@@ -1,6 +1,6 @@
 # 001: First editable stroke on macOS
 
-Status: ready. This task is not implemented by the bootstrap.
+Status: active. Implementation and verification are in progress on a task branch; owner acceptance is pending.
 Roles: ui_ux_designer, rust_engine, macos_ui, reviewer.
 
 ## Outcome
