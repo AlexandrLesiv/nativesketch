@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Validate and show the local task board; this never launches agents."""
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+STATUSES = {"ready", "waiting", "active", "review", "done", "blocked"}
+
+
+def read_board():
+    board = json.loads((ROOT / "tasks/board.json").read_text())
+    if board.get("schema_version") != 1 or not isinstance(board.get("tasks"), list):
+        raise ValueError("Expected schema_version 1 and a tasks list")
+    tasks = board["tasks"]
+    by_id = {}
+    roles = {path.stem for path in (ROOT / ".codex/agents").glob("*.toml")}
+    for task in tasks:
+        task_id = task.get("id", "")
+        if not isinstance(task_id, str) or not re.fullmatch(r"\d{3}", task_id):
+            raise ValueError("Task IDs must be three-digit strings")
+        if task_id in by_id:
+            raise ValueError(f"Duplicate task {task_id}")
+        by_id[task_id] = task
+        if task.get("status") not in STATUSES:
+            raise ValueError(f"Invalid status for {task_id}")
+        if not isinstance(task.get("title"), str) or not task["title"].strip():
+            raise ValueError(f"Missing title for {task_id}")
+        brief = (ROOT / task.get("brief", "")).resolve()
+        if ROOT not in brief.parents or not brief.is_file():
+            raise ValueError(f"Missing or external brief for {task_id}")
+        for field in ("depends_on", "roles"):
+            values = task.get(field)
+            if not isinstance(values, list) or not all(isinstance(v, str) for v in values):
+                raise ValueError(f"{field} must be a list of strings for {task_id}")
+            if len(values) != len(set(values)):
+                raise ValueError(f"Repeated {field} for {task_id}")
+        if not task["roles"] or set(task["roles"]) - roles:
+            raise ValueError(f"Missing or unknown agent roles for {task_id}")
+    visited, visiting = set(), set()
+
+    def visit(task_id):
+        if task_id not in by_id:
+            raise ValueError(f"Unknown dependency {task_id}")
+        if task_id in visiting:
+            raise ValueError(f"Dependency cycle at {task_id}")
+        if task_id in visited:
+            return
+        visiting.add(task_id)
+        for dependency in by_id[task_id]["depends_on"]:
+            visit(dependency)
+        visiting.remove(task_id)
+        visited.add(task_id)
+
+    for task in tasks:
+        visit(task["id"])
+        pending = [d for d in task["depends_on"] if by_id[d]["status"] != "done"]
+        if pending and task["status"] in {"ready", "active", "review", "done"}:
+            raise ValueError(f"Task {task['id']} has unfinished dependencies: {pending}")
+    return tasks
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="validate without listing")
+    options = parser.parse_args()
+    try:
+        tasks = read_board()
+    except (ValueError, OSError, TypeError, AttributeError) as error:
+        print(f"Board error: {error}", file=sys.stderr)
+        return 1
+    if options.check:
+        print(f"PASS: task board ({len(tasks)} tasks)")
+    else:
+        for task in tasks:
+            dependencies = ",".join(task["depends_on"]) or "none"
+            print(f"{task['id']}  {task['status']:7}  {task['title']}  [depends: {dependencies}]")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

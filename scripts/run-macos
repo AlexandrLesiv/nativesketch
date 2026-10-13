@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+"$repo_root/scripts/build-macos" "${1:-debug}"
+open "$repo_root/artifacts/NativeSketch.app"

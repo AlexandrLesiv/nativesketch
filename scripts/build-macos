@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+profile="${1:-debug}"
+if [[ "$(uname -s)" != Darwin ]]; then
+    echo "This build requires macOS and its SDK." >&2
+    exit 1
+fi
+case "$profile" in debug|release) ;; *) echo "Usage: $0 [debug|release]" >&2; exit 2 ;; esac
+export CARGO_TARGET_DIR="$repo_root/target"
+export SKETCH_RUST_PROFILE="$profile"
+export CLANG_MODULE_CACHE_PATH="$repo_root/.build-cache/clang"
+export SWIFTPM_MODULECACHE_OVERRIDE="$repo_root/.build-cache/swift-modules"
+mkdir -p "$CLANG_MODULE_CACHE_PATH" "$SWIFTPM_MODULECACHE_OVERRIDE"
+if [[ "$profile" == release ]]; then
+    cargo build --locked -p sketch-ffi --release
+else
+    cargo build --locked -p sketch-ffi
+fi
+swift_flags=(
+    --package-path "$repo_root/apps/macos"
+    --cache-path "$repo_root/.build-cache/swift-cache"
+    --config-path "$repo_root/.build-cache/swift-config"
+    --security-path "$repo_root/.build-cache/swift-security"
+    --scratch-path "$repo_root/.build-cache/swift-build"
+    --manifest-cache local
+    --configuration "$profile"
+)
+swift build "${swift_flags[@]}"
+bin_path="$(swift build "${swift_flags[@]}" --show-bin-path)"
+app_path="$repo_root/artifacts/NativeSketch.app"
+mkdir -p "$app_path/Contents/MacOS"
+cp "$bin_path/NativeSketch" "$app_path/Contents/MacOS/NativeSketch"
+cp "$repo_root/apps/macos/Info.plist" "$app_path/Contents/Info.plist"
+/usr/bin/codesign --force --sign - "$app_path"
+echo "Built $app_path ($profile; local ad-hoc signature)"

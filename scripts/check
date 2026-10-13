@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+case "${1:-}" in ""|--core) ;; *) echo "Usage: $0 [--core]" >&2; exit 2 ;; esac
+export CARGO_TARGET_DIR="$repo_root/target"
+./scripts/board --check
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+if [[ "${1:-}" != --core && "$(uname -s)" == Darwin ]]; then
+    ./scripts/build-macos
+    ./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --smoke-test
+else
+    echo "SKIP: macOS build and ABI smoke check"
+fi
+echo "PASS: applicable scaffold checks (drawing behavior is not implemented yet)"

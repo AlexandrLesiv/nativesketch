@@ -1,0 +1,14 @@
+/target/
+/.build-cache/
+/.worktrees/
+/artifacts/
+.DS_Store
+.env
+.env.*
+!.env.example
+apps/macos/.build/
+apps/macos/.swiftpm/
+*.xcuserstate
+xcuserdata/
+__pycache__/
+

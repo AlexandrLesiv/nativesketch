@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+task_name="${1:-}"
+if [[ ! "$task_name" =~ ^[a-z0-9][a-z0-9-]*$ || ${#task_name} -gt 60 ]]; then
+    echo "Usage: $0 lowercase-task-name (up to 60 letters, numbers, and hyphens)" >&2
+    exit 2
+fi
+if [[ ! -d "$repo_root/.git" ]]; then
+    echo "Run from the primary repository, not an existing worktree." >&2
+    exit 1
+fi
+git rev-parse --verify HEAD >/dev/null
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Commit the intended base changes first; new worktrees start from HEAD." >&2
+    exit 1
+fi
+mkdir -p "$repo_root/.worktrees"
+git worktree add -b "agent/$task_name" "$repo_root/.worktrees/$task_name" HEAD
+echo "Give the worker this checkout: $repo_root/.worktrees/$task_name"

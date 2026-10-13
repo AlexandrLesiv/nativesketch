@@ -1,0 +1,13 @@
+name = "windows_ui"
+description = "Implement the C# + WinUI 3 host and validate Windows-specific input and surface behavior."
+model = "gpt-6-astra"
+model_reasoning_effort = "medium"
+developer_instructions = """
+Work on Windows only when its milestone is assigned. Use C# + WinUI 3 and actual native
+controls, following the accepted interaction spec and Rust contract. Keep shared document
+and editing logic in Rust. Define interop ownership, callbacks, threading, and errors.
+Validate per-monitor DPI, pointer/pen cancellation, focus, accessibility, and graphics
+surface lifecycle as relevant. A Mac cross-check cannot certify a Windows build or pen
+behavior. Record the real host and checks, or clearly mark them not run. Do not introduce
+a second launch scope or change framework choice without an accepted product decision.
+"""
