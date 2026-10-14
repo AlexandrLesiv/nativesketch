@@ -110,7 +110,31 @@ fn write_json(path: PathBuf, value: &Value) -> Result<(), String> {
     fs::write(&tmp, bytes).map_err(|e| e.to_string())?;
     fs::rename(tmp, path).map_err(|e| e.to_string())
 }
+fn log_event(output: &std::path::Path, message: &str) -> Result<(), String> {
+    let mut log = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(output.join("run.log"))
+        .map_err(|e| e.to_string())?;
+    writeln!(log, "{:.9} {}", now(), message).map_err(|e| e.to_string())
+}
 impl Session {
+    fn record_failure(&mut self, stage: &str, message: &str) {
+        self.manifest["status"] = json!("failed");
+        self.manifest["error"] = json!(message);
+        self.manifest["error_stage"] = json!(stage);
+        self.manifest["completed_sample_count"] =
+            json!(self.frames.iter().filter(|f| f.phase == "measured").count());
+        let _ = log_event(
+            &self.config.output,
+            &format!(
+                "ERROR stage={stage} frames={} cause={message}",
+                self.frames.len()
+            ),
+        );
+        let _ = self.write_frames();
+        let _ = write_json(self.config.output.join("manifest.json"), &self.manifest);
+    }
     unsafe fn new(config: Config, layer: *mut c_void) -> Result<Self, String> {
         config.validate()?;
         if config.output.join("manifest.json").exists() {
@@ -138,7 +162,16 @@ impl Session {
         manifest["timing_provenance"] = json!({"cpu_clock":"CACurrentMediaTime monotonic seconds; durations Instant","cpu_frame_start_s":"entry BEFORE retirement wait; successive starts include backpressure/host scheduling/hash overhead","service_ms":"after prior-frame retirement, before input through common presentation enqueue; excludes hash/readback/output; includes acquisition","gpu_span_ms":"Metal marker before backend scene preparation GPUStartTime through shared blit/present command GPUEndTime; includes all backend CPU preprocessing/encoding gaps and queue scheduling; excludes common input/outline and drawable acquisition; NOT pure GPU execution","presented_s":"MTLDrawable.addPresentedHandler presentedTime (seconds); callback positive-only","completion_wait_ms":"retirement wait before service plus completion-mode current-frame wait","image_upload":"first-use scene preparation/queue staging and render submission; no eager GPU upload","state_hash":"outside service after presentation enqueue; affects wall frame intervals","inflight":if config.mode=="paced"{2}else{1},"presentation":"same Metal queue, tracked BGRA output, full texture blit, CAMetalLayer displaySync mode dependent"});
         manifest["unsupported"] = json!({"gpu_execution_ms":"No equivalent pure-pass timing; common timeline span only","physical_pen_latency":"No external measurement equipment","presentation_deadline_misses":"Callback intervals available; no independent display deadline schedule","gpu_peak_memory":"No comparable peak resident GPU counter","physical_footprint":"Not implemented; OS peak RSS and external sampler separate"});
         write_json(config.output.join("manifest.json"), &manifest)?;
-        let result = (|| {
+        log_event(
+            &config.output,
+            &format!(
+                "INIT source={} diff={} config={}",
+                manifest["source_revision"],
+                manifest["source_diff_hash"],
+                serde_json::to_string(&config).map_err(|e| e.to_string())?
+            ),
+        )?;
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let fixture = fixtures::Fixture::new(&config.fixture)?;
             let gpu = unsafe {
                 gpu::Gpu::new(
@@ -150,16 +183,29 @@ impl Session {
             }?;
             let backend = gpu::Backend::new(&config.backend, &gpu)?;
             Ok::<_, String>((fixture, gpu, backend))
-        })();
+        }))
+        .map_err(|_| "Rust panic during renderer initialization".to_string())
+        .and_then(|r| r);
         let (fixture, gpu, backend) = match result {
             Ok(v) => v,
             Err(e) => {
                 manifest["status"] = json!("failed");
                 manifest["error"] = json!(e);
+                let _ = log_event(&config.output, &format!("ERROR stage=init cause={e}"));
                 write_json(config.output.join("manifest.json"), &manifest)?;
                 return Err(e);
             }
         };
+        log_event(
+            &config.output,
+            &format!(
+                "READY backend={} gpu={} fixture={} init_ms={:.6}",
+                config.backend,
+                gpu.name,
+                config.fixture,
+                ms(init)
+            ),
+        )?;
         manifest["init_ms"] = json!(ms(init));
         manifest["fixture_hash"] = json!(fixture.spec_hash);
         manifest["input_hash"] = json!(fixture.input_hash);
@@ -284,6 +330,13 @@ impl Session {
         if !["complete", "cancelled", "invalidated", "failed"].contains(&status) {
             return Err("Invalid finish status".into());
         }
+        log_event(
+            &self.config.output,
+            &format!(
+                "FINISH requested_status={status} submitted_frames={} host_measured_elapsed_s={elapsed:.9}",
+                self.frames.len()
+            ),
+        )?;
         let drain_start = Instant::now();
         while !self.pending.is_empty() {
             self.retire()?;
@@ -367,6 +420,13 @@ impl Session {
         if let Some(f) = self.frames.first() {
             self.manifest["first_use"] = json!({"input_ms":f.input_ms,"outline_ms":f.outline_ms,"scene_ms":f.scene_ms,"render_submit_ms":f.render_submit_ms,"service_ms":f.service_ms,"gpu_span_ms":f.gpu_span_ms});
         }
+        log_event(
+            &self.config.output,
+            &format!(
+                "FINISHED status={status} measured_samples={count} measured_elapsed_s={:.9} drain_ms={drain_ms:.6}",
+                elapsed + drain_ms / 1000.0
+            ),
+        )?;
         write_json(self.config.output.join("manifest.json"), &self.manifest)?;
         self.finished = true;
         Ok(())
@@ -434,11 +494,21 @@ pub unsafe extern "C" fn rc_create(config: *const c_char, layer: *mut c_void) ->
 /// Handle is null or a live uniquely owned rc_create handle, used serially on its host queue.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn rc_step(handle: *mut c_void, phase: u32, index: u64) -> i32 {
-    ffi(|| {
+    let status = ffi(|| {
         unsafe { handle.cast::<Session>().as_mut() }
             .ok_or("Null handle")?
             .step(phase, index)
-    })
+    });
+    if status != 0 {
+        ffi(|| {
+            if let Some(s) = unsafe { handle.cast::<Session>().as_mut() } {
+                let message = ERROR.with(|e| e.borrow().to_string_lossy().into_owned());
+                s.record_failure("step", &message);
+            }
+            Ok(())
+        });
+    }
+    status
 }
 /// # Safety
 /// Handle is null or live and uniquely used. Non-null status points to a valid C string.
@@ -448,7 +518,7 @@ pub unsafe extern "C" fn rc_finish(
     status: *const c_char,
     elapsed: f64,
 ) -> i32 {
-    ffi(|| {
+    let result = ffi(|| {
         if status.is_null() {
             return Err("Null status".into());
         }
@@ -458,7 +528,17 @@ pub unsafe extern "C" fn rc_finish(
         unsafe { handle.cast::<Session>().as_mut() }
             .ok_or("Null handle")?
             .finish(status, elapsed)
-    })
+    });
+    if result != 0 {
+        ffi(|| {
+            if let Some(s) = unsafe { handle.cast::<Session>().as_mut() } {
+                let message = ERROR.with(|e| e.borrow().to_string_lossy().into_owned());
+                s.record_failure("finish", &message);
+            }
+            Ok(())
+        });
+    }
+    result
 }
 /// # Safety
 /// Handle is null or a live handle returned by rc_create, destroyed exactly once after
