@@ -89,7 +89,7 @@ final class Canvas: NSView {
     }
     required init?(coder: NSCoder) { fatalError() }
 }
-final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemValidation {
     var options: Options
     var window: NSWindow!
     let canvas = Canvas(frame: .zero), status = NSTextField(wrappingLabelWithString: "Ready")
@@ -100,7 +100,23 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var runNumber = 0
     let originalOutput: String
     init(_ options: Options) { self.options = options; originalOutput = options.output }
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(start) { return active == nil }
+        if menuItem.action == #selector(cancel) { return active != nil }
+        return true
+    }
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let menuBar = NSMenu()
+        let applicationItem = NSMenuItem(); menuBar.addItem(applicationItem)
+        let applicationMenu = NSMenu(title: "Renderer Comparison")
+        let quitItem = NSMenuItem(title: "Quit Renderer Comparison", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quitItem.target = NSApp; applicationMenu.addItem(quitItem); applicationItem.submenu = applicationMenu
+        let experimentItem = NSMenuItem(); menuBar.addItem(experimentItem)
+        let experimentMenu = NSMenu(title: "Experiment")
+        let runItem = NSMenuItem(title: "Run", action: #selector(start), keyEquivalent: "r"); runItem.target = self
+        let stopItem = NSMenuItem(title: "Stop", action: #selector(cancel), keyEquivalent: "."); stopItem.target = self
+        experimentMenu.addItem(runItem); experimentMenu.addItem(stopItem); experimentItem.submenu = experimentMenu
+        NSApp.mainMenu = menuBar
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 680), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "Native Sketch — Renderer Comparison"; window.delegate = self; window.minSize = NSSize(width: 640, height: 480)
         backend.addItems(withTitles: ["skia", "vello"]); fixture.addItems(withTitles: fixtures); resolution.addItems(withTitles: ["1600 × 1000", "2560 × 1600"]); mode.addItems(withTitles: ["completion", "paced"])
