@@ -100,9 +100,7 @@
       "id": "008",
       "title": "ChromeOS and Googlebook desktop adapter",
       "status": "active",
-      "depends_on": [
-        "007"
-      ],
+      "depends_on": [],
       "brief": "tasks/008-android-desktop.md",
       "roles": [
         "ui_ux_designer",
