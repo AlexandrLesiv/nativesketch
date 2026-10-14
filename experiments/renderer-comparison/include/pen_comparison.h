@@ -36,6 +36,10 @@ void *pc_replay_create(const char *config_json);
 /* elapsed_s is monotonic wall-clock offset. Applies ALL due samples. Never advances
    by rendered frames. Final advance >=duration_s commits final real sample. */
 int32_t pc_replay_advance(void *handle, double elapsed_s, PcSnapshot *out);
+/* Untimed cache preparation: initial base plus empty live geometry, zero delivered
+   samples. Does NOT consume the event at t=0. Only before any event/time advancement
+   or control action; repeated initial snapshots are allowed. */
+int32_t pc_replay_initial_snapshot(void *handle, PcSnapshot *out);
 /* Untimed diagnostics: 0 cancel, 1 undo, 2 redo. Stop replay after control actions. */
 int32_t pc_replay_control(void *handle, uint32_t action, PcSnapshot *out);
 const char *pc_replay_metadata_json(void *handle);

@@ -515,6 +515,21 @@ pub unsafe extern "C" fn pc_replay_advance(
 /// # Safety
 /// Handle and writable output satisfy pen_comparison.h; no concurrent use.
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn pc_replay_initial_snapshot(h: *mut c_void, out: *mut PcSnapshot) -> i32 {
+    call(h, |r| {
+        if out.is_null() {
+            return Err("Null initial snapshot".into());
+        }
+        if r.index != 0 || r.elapsed != 0.0 || r.controlled {
+            return Err("Initial snapshot requires an unadvanced replay".into());
+        }
+        unsafe { *out = r.snapshot() };
+        Ok(())
+    })
+}
+/// # Safety
+/// Handle and writable output satisfy pen_comparison.h; no concurrent use.
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn pc_replay_control(
     h: *mut c_void,
     action: u32,
@@ -719,6 +734,47 @@ mod tests {
         assert_eq!(a.document_hash, b.document_hash);
         assert_eq!(a.geometry_hash, b.geometry_hash);
         assert_eq!(a.total_samples, a.expected_samples);
+    }
+    #[test]
+    fn ffi_initial_snapshot_prepares_base_without_consuming_zero_time_input() {
+        unsafe {
+            let config = CString::new(r#"{"scene":"dense1000","trace":"short","width":1600,"height":1000,"duration_s":1.0,"sample_hz":120.0}"#).unwrap();
+            let h = pc_replay_create(config.as_ptr());
+            assert!(!h.is_null());
+            let metadata: serde_json::Value =
+                serde_json::from_str(CStr::from_ptr(pc_replay_metadata_json(h)).to_str().unwrap())
+                    .unwrap();
+            let mut out = std::mem::MaybeUninit::uninit();
+            assert_eq!(pc_replay_initial_snapshot(h, out.as_mut_ptr()), 0);
+            let initial = out.assume_init();
+            assert_eq!(initial.total_samples, 0);
+            assert_eq!(initial.last_sample_id, 0);
+            assert_eq!(initial.delivered_now, 0);
+            assert_eq!(initial.live_outline_count, 0);
+            assert_eq!(initial.base_outline_count, 1000);
+            assert_eq!(pc_replay_initial_snapshot(h, out.as_mut_ptr()), 0);
+            assert_eq!(out.assume_init().geometry_hash, initial.geometry_hash);
+            assert_eq!(pc_replay_advance(h, 0.0, out.as_mut_ptr()), 0);
+            let first = out.assume_init();
+            assert_eq!(first.delivered_now, 1);
+            assert_eq!(first.total_samples, 1);
+            assert_eq!(first.last_sample_id, 1);
+            assert_eq!(first.first_delivered_time_s, 0.0);
+            assert_eq!(pc_replay_advance(h, 1.0, out.as_mut_ptr()), 0);
+            let final_frame = out.assume_init();
+            assert_eq!(final_frame.total_samples, final_frame.expected_samples);
+            assert_eq!(
+                hash_string(&final_frame.document_hash),
+                metadata["expected_final_document_hash"]
+            );
+            assert_eq!(
+                hash_string(&final_frame.geometry_hash),
+                metadata["expected_final_geometry_hash"]
+            );
+            assert_eq!(pc_replay_initial_snapshot(h, out.as_mut_ptr()), 1);
+            assert!(pc_replay_metadata_json(h).is_null());
+            pc_replay_destroy(h);
+        }
     }
     #[test]
     fn ffi_expected_identity_and_poisoning() {
