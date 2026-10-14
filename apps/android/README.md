@@ -5,9 +5,9 @@ and the shared Rust editor. Android Canvas paints Rust-generated paths provision
 this does not decide the production renderer. No network permission or runtime service.
 
 Build with JDK 17+, Gradle 9.3.1, Android SDK 37 / build tools 36.0.0, NDK r30, and
-Rust target `aarch64-linux-android`. Set `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`,
+Rust targets `aarch64-linux-android` and `x86_64-linux-android`. Set `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`,
 and optionally `GRADLE` to local tool locations, then run `scripts/build-android`.
-The resulting ARM64 debug APK is `artifacts/NativeSketch-android.apk`.
+The resulting ARM64 + x86-64 debug APK is `artifacts/NativeSketch-android.apk`.
 `ANDROID_SERIAL=emulator-5554 scripts/check-android` installs and runs a debug-only
 on-device JNI/touch replay. Coordinate this with other native UI automation.
 
@@ -29,3 +29,26 @@ a provider I/O failure can leave a partial newly-created destination. The curren
 bridge performs bounded reads/writes on the UI thread with editing disabled. Large-document
 responsiveness, process-death recovery, physical pen feel, TalkBack speech, tablets/foldables,
 and release signing/distribution remain separate validation and product work.
+
+## ChromeOS / Googlebook desktop adaptation
+
+The same Android app adapts to the window width: at 840 dp it shows a native side
+panel with style, selection and viewport controls; smaller windows retain the compact
+bottom controls. Touchscreen hardware is optional. This is compatibility implementation,
+not certification on ChromeOS or Googlebook hardware.
+
+Keyboard: Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y undo/redo; Ctrl+S saves a copy; Ctrl+O opens;
+Ctrl+N creates a new drawing through the dirty guard. P / V choose Pen / Select;
+Delete removes selected ink; Escape cancels temporary input; + / − zoom; F fits the drawing.
+Text fields retain their editing keys. Space-drag or middle-button drag pans; wheel pans,
+Ctrl+wheel zooms around the pointer; secondary click opens native canvas actions and never
+inks. The hover cursor follows the tool. Resize cancels temporary ink/scale while retaining
+committed document/history/selection and preserving the viewport center.
+
+Incoming content-URI VIEW intents and single-file drops use the same bounded Rust import
+and Save/Discard/Cancel guard. Only grants offered by the sender are used. Drops keep their
+transient permission until completion/cancellation; recreation retains it with the document.
+No arbitrary filesystem paths or network URLs are accepted. Existing configuration retention
+is not process-death recovery. Desktop replay extends the phone replay with actual key,
+wheel, secondary-button, Space-drag, resize and incoming-file cancellation pathways.
+Real ChromeOS/Googlebook hardware, external keyboard/trackpad and stylus remain to be tested.
