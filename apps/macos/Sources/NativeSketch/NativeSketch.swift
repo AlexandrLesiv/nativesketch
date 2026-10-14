@@ -76,6 +76,11 @@ import CSketchFFI
   required init?(coder: NSCoder) { fatalError() }
   override var isFlipped: Bool { true }
   override var acceptsFirstResponder: Bool { true }
+  override func becomeFirstResponder() -> Bool {
+    let accepted = super.becomeFirstResponder()
+    if accepted { needsDisplay = true }
+    return accepted
+  }
   var editor: Editor { owner.editor }
   func document(_ p: CGPoint) -> CGPoint {
     CGPoint(x: (p.x - offset.x) / zoom, y: (p.y - offset.y) / zoom)
@@ -540,7 +545,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
       percent.isFinite && percent > 0 && percent <= 10_000
     else {
       NSSound.beep()
-      status.stringValue = "Enter a scale greater than 0 and at most 10000 percent."
+      let message = "Enter a scale greater than 0 and at most 10000 percent."
+      status.stringValue = message
+      window.makeFirstResponder(scale)
+      scale.selectText(nil)
+      NSAccessibility.post(
+        element: scale, notification: .announcementRequested,
+        userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
       return
     }
     let factor = percent / 100
@@ -724,6 +735,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     scale.stringValue = "200junk"
     resize(nil)
     precondition(geometry() == before)
+    precondition(scale.currentEditor() === window.firstResponder)
+    precondition(
+      (scale.currentEditor() as? NSTextView)?.selectedRange() == NSRange(location: 0, length: 7))
     scale.stringValue = "100"
     let point = CGPoint(x: 42, y: 37)
     canvas.setZoom(2)
