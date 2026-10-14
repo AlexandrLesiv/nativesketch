@@ -1,0 +1,27 @@
+[workspace]
+[package]
+name = "renderer-comparison"
+version = "0.1.0"
+edition = "2024"
+publish = false
+[lib]
+crate-type = ["staticlib", "rlib"]
+[dependencies]
+sketch-core = { path = "../../crates/sketch-core" }
+skia-safe = { version = "=0.153.3", default-features = false, features = ["binary-cache", "ganesh", "metal", "jpeg", "pdf"] }
+vello_gpu = { version = "=0.3.0", default-features = false, features = ["wgpu"] }
+vello_common = { version = "=0.3.0", default-features = false, features = ["std"] }
+wgpu = { version = "=30.0.0", default-features = false, features = ["std", "metal", "wgsl"] }
+objc2 = "=0.6.3"
+objc2-metal = { version = "=0.3.2", features = ["block2"] }
+objc2-quartz-core = { version = "=0.3.2", features = ["block2"] }
+objc2-foundation = "=0.3.2"
+block2 = "=0.6.2"
+pollster = "=0.4.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+png = "=0.18.1"
+libc = "0.2"
+[profile.release]
+lto = "thin"
