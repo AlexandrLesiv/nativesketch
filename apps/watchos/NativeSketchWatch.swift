@@ -151,7 +151,7 @@ struct WatchViewer: View {
   private var library: some View {
     List {
       Text("Shared drawings").font(.headline)
-      if model.catalog.isEmpty { Text("No cached drawings. Share a copy from iPhone, or configure server access.") }
+      if model.catalog.isEmpty { Text("No cached drawings. Share a copy from iPhone. Network access requires a configured server.") }
       ForEach(model.catalog) { item in
         Button { model.choose(item); showingDetails = false } label: {
           VStack(alignment: .leading) { Text(item.title).lineLimit(2).truncationMode(.tail).accessibilityLabel(item.title); Text(item.phoneOnly ? "iPhone copy" : "Synced drawing").font(.caption2) }

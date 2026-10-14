@@ -86,7 +86,7 @@
     {
       "id": "007",
       "title": "Independent Watch document sources",
-      "status": "active",
+      "status": "review",
       "depends_on": [],
       "brief": "tasks/007-watch-document-sources.md",
       "roles": [
@@ -99,7 +99,7 @@
     {
       "id": "008",
       "title": "ChromeOS and Googlebook desktop adapter",
-      "status": "waiting",
+      "status": "active",
       "depends_on": [
         "007"
       ],

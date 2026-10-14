@@ -1,6 +1,6 @@
 # 008: ChromeOS and Googlebook desktop adapter
 
-Status: waiting. Owner authorized implementation on 2026-10-14; follows task 007.
+Status: active. Owner authorized implementation on 2026-10-14; follows task 007.
 
 ## Outcome
 

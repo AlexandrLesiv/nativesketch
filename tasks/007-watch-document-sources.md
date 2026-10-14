@@ -1,6 +1,6 @@
 # 007: Independent Watch document sources
 
-Status: active. Owner authorized implementation on 2026-10-14; base `03aa825`.
+Status: review. Owner authorized implementation on 2026-10-14; base `03aa825`.
 
 ## Outcome
 
