@@ -2,6 +2,7 @@
 """Portable failure tests. No native/GPU work or generated evidence outside tempdir."""
 import csv
 import json
+import os
 from pathlib import Path
 import runpy
 import subprocess
@@ -19,7 +20,7 @@ class EvidenceTests(unittest.TestCase):
         self.root = Path(self.temp.name)
     def fixture(self, backend):
         p = self.root/backend; p.mkdir()
-        m = dict(schema_version=1,status='complete',backend=backend,backend_variant='test',fixture='live',width=16,height=16,mode='completion',warmup=1,frames_requested=3,duration_seconds=None,repeat_id='pilot-0',source_revision='test',source_diff_hash='test',build={},dependencies={},runtime={},display={},power={},timing_provenance={},unsupported={},fixture_hash='x',input_hash='y',image_hash='z',init_ms=1,first_use={},completed_sample_count=3)
+        m = dict(schema_version=1,status='complete',backend=backend,backend_variant='test',gpu_timing='on',fixture='live',width=16,height=16,mode='completion',warmup=1,frames_requested=3,duration_seconds=None,repeat_id='pilot-0',source_revision='test',source_diff_hash='test',build={},dependencies={},runtime={},display={},power={},timing_provenance={},unsupported={},fixture_hash='x',input_hash='y',image_hash='z',init_ms=1,first_use={},completed_sample_count=3)
         (p/'manifest.json').write_text(json.dumps(m))
         rows = []
         for phase,count in [('first-use',1),('warmup',1),('measured',3)]:
@@ -74,18 +75,37 @@ class EvidenceTests(unittest.TestCase):
     def test_command_failure_and_recovery(self):
         for b in ('skia','vello'): self.fixture(b)
         suite = self.root/'suite.json'
-        suite.write_text(json.dumps({'status':'failed','completed':1,'trials':[{},{}]}))
+        suite.write_text(json.dumps({'status':'failed','gpu_timing':'on','completed':1,'trials':[{},{}]}))
         command = [sys.executable,str(ROOT/'scripts/analyze-renderer-comparison'),str(self.root)]
         result = subprocess.run(command,capture_output=True,text=True)
         self.assertNotEqual(result.returncode,0)
         self.assertFalse((self.root/'summary.json').exists())
-        suite.write_text(json.dumps({'status':'complete','completed':2,'trials':[{},{}]}))
+        suite.write_text(json.dumps({'status':'complete','gpu_timing':'on','completed':2,'trials':[{},{}]}))
         self.assertEqual(subprocess.run(command,capture_output=True).returncode,0)
         self.assertTrue((self.root/'summary.json').exists())
     def test_invalid_cli_fails_without_output(self):
         result = subprocess.run([sys.executable,str(ROOT/'scripts/run-renderer-comparison'),'--suite','bogus','--output',str(self.root/'out')],capture_output=True)
         self.assertNotEqual(result.returncode,0)
         self.assertFalse((self.root/'out').exists())
+    def test_gpu_timing_disabled_primary_rejected_before_launch(self):
+        env = dict(os.environ, RENDERER_GPU_TIMING='off')
+        for suite in ('primary','sustained'):
+            command = [sys.executable,str(ROOT/'scripts/run-renderer-comparison'),'--suite',suite,'--output',str(self.root/'out'),'--dry-run']
+            result = subprocess.run(command,capture_output=True,text=True,env=env)
+            self.assertNotEqual(result.returncode,0)
+            self.assertIn('require on',result.stderr)
+        command[command.index('--suite')+1]='pilot'
+        result=subprocess.run(command,capture_output=True,text=True,env=env)
+        self.assertEqual(result.returncode,0)
+        self.assertEqual(json.loads(result.stdout)['gpu_timing'],'off')
+        self.assertFalse((self.root/'out').exists())
+    def test_mixed_gpu_timing_pair_rejected(self):
+        a,_=self.fixture('skia');b,_=self.fixture('vello')
+        m=json.loads((b/'manifest.json').read_text());m['gpu_timing']='off'
+        (b/'manifest.json').write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError,'pair mismatch gpu_timing'): A['analyze']([a,b])
+        m['repeat_id']='primary-0';(b/'manifest.json').write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError,'require GPU timing on'): A['validate'](b)
     def test_matrix_coverage(self):
         primary=R['matrix']('primary');self.assertEqual(len(primary),320)
         self.assertEqual(len(R['matrix']('sustained')),6)

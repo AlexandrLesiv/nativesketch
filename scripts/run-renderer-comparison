@@ -52,15 +52,19 @@ def main():
     args = parser.parse_args()
     if not (args.memory_interval >= .05 and args.memory_interval < 60 and 0 < args.window_seconds <= 14400): parser.error('invalid sampling interval or window (maximum four hours)')
     output = args.output.resolve()
+    gpu_timing = os.environ.get('RENDERER_GPU_TIMING', 'on')
+    if gpu_timing not in ('on', 'off'): parser.error('RENDERER_GPU_TIMING must be on or off')
+    if args.suite in ('primary', 'sustained') and gpu_timing != 'on':
+        parser.error('RENDERER_GPU_TIMING=off is only allowed for pilot instrumentation comparisons; primary/sustained require on')
     plan = matrix(args.suite)
     if args.dry_run:
-        print(json.dumps({'suite':args.suite,'trial_count':len(plan),'trials':plan},indent=2)); return 0
+        print(json.dumps({'suite':args.suite,'gpu_timing':gpu_timing,'trial_count':len(plan),'trials':plan},indent=2)); return 0
     # Keep disposable evidence under the repository ignored artifact tree.
     if not output.is_relative_to(root/'artifacts'/'renderer-comparison'): parser.error('output must be under repository artifacts/renderer-comparison/')
     if output.exists(): parser.error('output exists: preserve it and choose a fresh run directory')
     if not args.binary.is_file(): parser.error('build the native binary first')
     output.mkdir(parents=True)
-    metadata = {'schema_version':1,'suite':args.suite,'status':'running','trials':plan,'completed':0,'memory_sampling':args.memory_sampling,'memory_interval_s':args.memory_interval,'memory_definition':'external ps resident set, not footprint or GPU allocation','start':observation()}
+    metadata = {'schema_version':1,'suite':args.suite,'gpu_timing':gpu_timing,'status':'running','trials':plan,'completed':0,'memory_sampling':args.memory_sampling,'memory_interval_s':args.memory_interval,'memory_definition':'external ps resident set, not footprint or GPU allocation','start':observation()}
     def save(): (output/'suite.json').write_text(json.dumps(metadata,indent=2)+'\n')
     save()
     start = time.monotonic()

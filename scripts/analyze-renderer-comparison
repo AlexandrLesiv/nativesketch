@@ -18,11 +18,14 @@ def distribution(values):
 
 def validate(path):
     m = json.loads((path / 'manifest.json').read_text())
-    required = 'schema_version status backend backend_variant fixture width height mode warmup frames_requested duration_seconds repeat_id source_revision source_diff_hash build dependencies runtime display power timing_provenance unsupported fixture_hash input_hash image_hash init_ms first_use completed_sample_count'.split()
+    required = 'schema_version status backend backend_variant gpu_timing fixture width height mode warmup frames_requested duration_seconds repeat_id source_revision source_diff_hash build dependencies runtime display power timing_provenance unsupported fixture_hash input_hash image_hash init_ms first_use completed_sample_count'.split()
     missing = set(required) - m.keys()
     if missing: raise ValueError(f'{path}: missing manifest fields {sorted(missing)}')
     if m['schema_version'] != 1 or m['status'] != 'complete': raise ValueError(f'{path}: incompatible or incomplete manifest')
     if m['backend'] not in ('skia','vello') or m['mode'] not in ('completion','paced'): raise ValueError('invalid backend/mode')
+    if m['gpu_timing'] not in ('on','off'): raise ValueError('invalid GPU timing setting')
+    if (m['repeat_id'].startswith(('primary-', 'sustained-')) or m['duration_seconds'] is not None) and m['gpu_timing'] != 'on':
+        raise ValueError('primary/sustained trials require GPU timing on')
     with (path / 'frames.csv').open(newline='') as f:
         reader = csv.DictReader(f)
         if reader.fieldnames != FIELDS: raise ValueError(f'{path}: CSV schema mismatch')
@@ -72,7 +75,7 @@ def analyze(paths):
     for path in paths:
         m, phases = validate(path)
         metrics = {k: distribution([r[k] for r in phases['measured'] if r[k] is not None]) for k in METRICS}
-        run = dict(path=str(path), backend=m['backend'], fixture=m['fixture'], mode=m['mode'], width=m['width'], height=m['height'], repeat_id=m['repeat_id'], source_revision=m['source_revision'], metrics=metrics, first_use=m['first_use'], unsupported=m['unsupported'], actual_presentation_deadline_misses=None, actual_presentation_deadline_missing_reason='No display deadline classification in schema v1')
+        run = dict(path=str(path), backend=m['backend'], gpu_timing=m['gpu_timing'], fixture=m['fixture'], mode=m['mode'], width=m['width'], height=m['height'], repeat_id=m['repeat_id'], source_revision=m['source_revision'], metrics=metrics, first_use=m['first_use'], unsupported=m['unsupported'], actual_presentation_deadline_misses=None, actual_presentation_deadline_missing_reason='No display deadline classification in schema v1')
         refresh = m['display'].get('refresh_hz')
         run['service_budget_overruns'] = {'count': sum(r['service_ms'] > 1000/refresh for r in phases['measured']), 'denominator': len(phases['measured']), 'budget_ms':1000/refresh} if isinstance(refresh,(int,float)) and refresh > 0 else None
         starts = [r['cpu_frame_start_s'] for r in phases['measured']]
@@ -107,7 +110,7 @@ def analyze(paths):
     for key, pair in pairs.items():
         if set(pair) != {'skia','vello'}: raise ValueError(f'unpaired trial {key}')
         a,b = pair['skia'],pair['vello']
-        for field in ('fixture_hash','input_hash','image_hash','source_revision','source_diff_hash'):
+        for field in ('fixture_hash','input_hash','image_hash','source_revision','source_diff_hash','gpu_timing'):
             if a[0][field] != b[0][field]: raise ValueError(f'pair mismatch {field}')
         # Sustained runs can complete different frame counts. Their shared prefix must agree.
         for phase in ('first-use','warmup','measured'):
@@ -140,6 +143,11 @@ def main():
             if suite.get('status') not in ('running','complete') or suite.get('completed') != len(suite.get('trials',[])) or len(paths) != len(suite.get('trials',[])):
                 raise ValueError('incomplete/failed suite; preserve partial evidence without claiming completion')
         result = analyze(paths)
+        if suite_path.exists():
+            if suite.get('gpu_timing') not in ('on','off') or any(run['gpu_timing'] != suite['gpu_timing'] for run in result['runs']):
+                raise ValueError('suite GPU timing setting missing or inconsistent with trials')
+            if suite.get('suite') in ('primary','sustained') and suite['gpu_timing'] != 'on':
+                raise ValueError('primary/sustained suites require GPU timing on')
         output = args.output or args.root / 'summary.json'
         output.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n')
         print(output)
