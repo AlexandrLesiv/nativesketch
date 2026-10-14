@@ -4,34 +4,52 @@ import CSketchFFI
 // All adapter/editor access is confined to AppKit's main actor. Core owns editing,
 // history, hit testing, pressure geometry, and persistence. This painter is provisional.
 @MainActor final class Editor {
-  var handle: OpaquePointer
-  init() {
-    var h: OpaquePointer?
-    precondition(sketch_editor_create(&h) == 0)
-    handle = h!
+  private(set) var handle: OpaquePointer?
+  var onFailure: ((UInt32) -> Void)?
+  var unavailable: Bool { handle == nil }
+  init() { reset() }
+  isolated deinit { if let handle { sketch_editor_free(handle) } }
+  func reset() {
+    if let handle { sketch_editor_free(handle) }
+    handle = nil
+    precondition(sketch_editor_create(&handle) == 0)
   }
-  deinit { sketch_editor_free(handle) }
+  // Test seam also exercises panic status without adding a production Rust hook.
+  @discardableResult func observe(_ status: UInt32) -> UInt32 {
+    if status == 6, let old = handle {
+      handle = nil
+      sketch_editor_free(old)
+      onFailure?(status)
+    } else if status != 0 && status != 6 {
+      onFailure?(status)
+    }
+    return status
+  }
   var state: SketchState {
-    var s = SketchState()
-    _ = sketch_editor_state(handle, &s)
-    return s
+    guard handle != nil else { return SketchState() }
+    var state = SketchState()
+    guard observe(sketch_editor_state(handle, &state)) == 0 else { return SketchState() }
+    return state
   }
   func file(_ url: URL, save: Bool) -> UInt32 {
+    guard handle != nil else { return 6 }
     let bytes = Array(url.path.utf8)
-    return bytes.withUnsafeBufferPointer {
-      save
-        ? sketch_document_save(handle, $0.baseAddress, $0.count)
-        : sketch_document_load(handle, $0.baseAddress, $0.count)
-    }
+    return observe(
+      bytes.withUnsafeBufferPointer {
+        save
+          ? sketch_document_save(handle, $0.baseAddress, $0.count)
+          : sketch_document_load(handle, $0.baseAddress, $0.count)
+      })
   }
   func commands() -> [SketchPathCommand] {
+    guard handle != nil else { return [] }
     var count = 0
-    guard sketch_render_copy(handle, nil, 0, &count) == 0 else { return [] }
+    guard observe(sketch_render_copy(handle, nil, 0, &count)) == 0 else { return [] }
     var commands = Array(repeating: SketchPathCommand(), count: count)
     let result = commands.withUnsafeMutableBufferPointer {
       sketch_render_copy(handle, $0.baseAddress, $0.count, &count)
     }
-    return result == 0 ? commands : []
+    return observe(result) == 0 ? commands : []
   }
 }
 
@@ -67,7 +85,7 @@ import CSketchFFI
   }
   func point(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }
   func cancel() {
-    _ = sketch_cancel(editor.handle)
+    if editor.handle != nil { editor.observe(sketch_cancel(editor.handle)) }
     gesture = 0
     space = false
     owner.refresh()
@@ -77,7 +95,7 @@ import CSketchFFI
     let idle = gesture == 0
     cancel()
     if idle {
-      _ = sketch_select_clear(editor.handle)
+      editor.observe(sketch_select_clear(editor.handle))
       owner.refresh()
     }
   }
@@ -165,7 +183,7 @@ import CSketchFFI
     var sample = SketchSample(
       x: p.x, y: p.y, timestamp: event.timestamp, pressure: pen ? Double(event.pressure) : 0,
       sample_id: sampleID, has_pressure: pen ? 1 : 0, kind: 0)
-    let result = sketch_stroke_append(editor.handle, 1, &sample, 1)
+    let result = editor.observe(sketch_stroke_append(editor.handle, 1, &sample, 1))
     if result != 0 {
       cancel()
       owner.status.stringValue = "Input cancelled because the engine rejected a sample (\(result))."
@@ -173,6 +191,7 @@ import CSketchFFI
     needsDisplay = true
   }
   override func mouseDown(with event: NSEvent) {
+    guard !editor.unavailable else { return }
     window?.makeFirstResponder(self)
     start = point(event)
     if space {
@@ -297,6 +316,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   var url: URL?
   var approvedClose = false
   func applicationDidFinishLaunching(_ notification: Notification) {
+    editor.onFailure = { [weak self] code in
+      Task { @MainActor in self?.engineFailure(code) }
+    }
     makeMenu()
     window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: 1000, height: 700),
@@ -427,7 +449,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     add(view, "Zoom Out", #selector(zoomOut(_:)), "-")
     add(view, "Actual Size", #selector(actualSize(_:)), "0")
   }
+  var reportedEngineFailure = false
+  func engineFailure(_ code: UInt32) {
+    if code != 6 {
+      status.stringValue = "Engine operation failed (\(code))."
+      return
+    }
+    guard !reportedEngineFailure else { return }
+    reportedEngineFailure = true
+    canvas.gesture = 0
+    refresh()
+    let alert = NSAlert()
+    alert.messageText = "The drawing engine stopped unexpectedly"
+    alert.informativeText =
+      "Unsaved changes are unavailable. Use New to start again or Open to reload a saved document. The last successfully saved file is unchanged."
+    alert.runModal()
+  }
   @discardableResult func check(_ code: UInt32) -> Bool {
+    editor.observe(code)
+    if code == 6 || editor.unavailable { return false }
     if code == 0 { return true }
     let a = NSAlert()
     a.messageText = "The operation could not be completed"
@@ -436,6 +476,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     return false
   }
   func checkFile(_ code: UInt32, url: URL, verb: String) -> Bool {
+    editor.observe(code)
+    if code == 6 || editor.unavailable { return false }
     guard code != 0 else { return true }
     let alert = NSAlert()
     alert.messageText = "Could not \(verb) \(url.lastPathComponent)"
@@ -452,6 +494,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     let s = editor.state
     window.isDocumentEdited = s.dirty != 0
     window.title = "\(url?.lastPathComponent ?? "Untitled") — Native Sketch"
+    for control in [tool, color, width, stepper] as [NSControl] {
+      control.isEnabled = !editor.unavailable
+    }
+    if editor.unavailable {
+      scale.isEnabled = false
+      apply.isEnabled = false
+      status.stringValue = "Engine unavailable — use File > New or Open."
+      canvas.needsDisplay = true
+      return
+    }
     let selected = s.selected_id != 0
     scale.isEnabled = selected
     apply.isEnabled = selected
@@ -474,7 +526,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   }
   @objc func changeTool(_ sender: Any?) {
     canvas.cancel()
-    if tool.selectedSegment == 0 { _ = sketch_select_clear(editor.handle) }
+    if tool.selectedSegment == 0 { editor.observe(sketch_select_clear(editor.handle)) }
     refresh()
   }
   @objc func widthChanged(_ sender: Any?) {
@@ -484,7 +536,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   @objc func widthStepped(_ sender: Any?) { width.doubleValue = stepper.doubleValue }
   @objc func resize(_ sender: Any?) {
     canvas.cancel()
-    let factor = scale.doubleValue / 100
+    guard let percent = Double(scale.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)),
+      percent.isFinite && percent > 0 && percent <= 10_000
+    else {
+      NSSound.beep()
+      status.stringValue = "Enter a scale greater than 0 and at most 10000 percent."
+      return
+    }
+    let factor = percent / 100
     guard factor.isFinite && factor > 0 && factor <= 100 else {
       NSSound.beep()
       return
@@ -495,7 +554,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     {
       _ = check(sketch_resize_commit(editor.handle))
     }
-    if editor.state.interaction != 0 { _ = sketch_cancel(editor.handle) }
+    if editor.state.interaction != 0 {
+      if editor.handle != nil { editor.observe(sketch_cancel(editor.handle)) }
+    }
     scale.stringValue = "100"
     refresh()
   }
@@ -572,6 +633,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   @objc func saveAs(_ sender: Any?) { _ = save(forcePanel: true) }
   @objc func newDocument(_ sender: Any?) {
     guard mayReplace() else { return }
+    if editor.unavailable {
+      editor.reset()
+      reportedEngineFailure = false
+    }
     if check(sketch_document_new(editor.handle)) {
       url = nil
       canvas.zoom = 1
@@ -584,6 +649,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     let panel = NSOpenPanel()
     panel.allowsMultipleSelection = false
     guard panel.runModal() == .OK, let destination = panel.url else { return }
+    if editor.unavailable {
+      editor.reset()
+      reportedEngineFailure = false
+    }
     if checkFile(editor.file(destination, save: false), url: destination, verb: "open") {
       url = destination
       canvas.zoom = 1
@@ -604,6 +673,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   func applicationDidResignActive(_ notification: Notification) { canvas?.cancel() }
   func windowDidResignKey(_ notification: Notification) { canvas?.cancel() }
   func validateMenuItem(_ item: NSMenuItem) -> Bool {
+    if editor.unavailable {
+      return [
+        #selector(newDocument(_:)), #selector(openDocument(_:)), #selector(closeWindow(_:)),
+        #selector(quit(_:)),
+      ].contains(item.action)
+    }
     let s = editor.state
     if item.action == #selector(undo(_:)) {
       return (window?.firstResponder as? NSTextView)?.undoManager?.canUndo ?? (s.can_undo != 0)
@@ -645,6 +720,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
       }
     }
     let before = geometry()
+    scale.stringValue = "200junk"
+    resize(nil)
+    precondition(geometry() == before)
+    scale.stringValue = "100"
     let point = CGPoint(x: 42, y: 37)
     canvas.setZoom(2)
     window.setContentSize(NSSize(width: 700, height: 480))

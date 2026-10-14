@@ -3,6 +3,12 @@ import CSketchFFI
 
 @MainActor enum Integration {
   static func run() {
+    let poisoned = Editor()
+    precondition(poisoned.observe(6) == 6 && poisoned.handle == nil)
+    precondition(poisoned.state.stroke_count == 0 && poisoned.commands().isEmpty)
+    poisoned.observe(6)  // idempotent discard
+    poisoned.reset()
+    precondition(poisoned.handle != nil && poisoned.state.stroke_count == 0)
     let e = Editor()
     func ok(_ status: UInt32) { precondition(status == 0, "FFI status \(status)") }
     func stroke(_ pressure: Bool) {
@@ -81,29 +87,61 @@ import CSketchFFI
     )
   }
   static func timing() {
-    let e = Editor()
-    var samples: [SketchSample] = []
-    for i in 0..<120 {
-      let t = Double(i)
-      let pressure = Double(i % 20) / 19.0
-      samples.append(
-        SketchSample(
-          x: t * 2, y: sin(t / 8) * 30, timestamp: t / 120, pressure: pressure,
-          sample_id: UInt64(i), has_pressure: 1, kind: 0))
-    }
-    let start = ProcessInfo.processInfo.systemUptime
-    for _ in 0..<100 {
-      _ = sketch_document_new(e.handle)
-      _ = sketch_stroke_begin(
-        e.handle, 1, 1, SketchBrush(red: 0, green: 0, blue: 0, alpha: 1, width: 8))
-      samples.withUnsafeMutableBufferPointer {
-        _ = sketch_stroke_append(e.handle, 1, $0.baseAddress, $0.count)
+    let editor = Editor()
+    var appendTimes: [Double] = []
+    var copyTimes: [Double] = []
+    var rows = ["iteration,sample,input_append_us,path_copy_us"]
+    for iteration in -10..<100 {
+      precondition(sketch_document_new(editor.handle) == 0)
+      precondition(
+        sketch_stroke_begin(
+          editor.handle, 1, 1, SketchBrush(red: 0, green: 0, blue: 0, alpha: 1, width: 8)) == 0)
+      for index in 0..<120 {
+        let t = Double(index)
+        var sample = SketchSample(
+          x: t * 2, y: sin(t / 8) * 30, timestamp: t / 120, pressure: Double(index % 20) / 19,
+          sample_id: UInt64(index), has_pressure: 1, kind: 0)
+        let start = ProcessInfo.processInfo.systemUptime
+        precondition(sketch_stroke_append(editor.handle, 1, &sample, 1) == 0)
+        let appended = ProcessInfo.processInfo.systemUptime
+        _ = editor.commands()
+        let copied = ProcessInfo.processInfo.systemUptime
+        if iteration >= 0 {
+          let append = (appended - start) * 1_000_000
+          let copy = (copied - appended) * 1_000_000
+          appendTimes.append(append)
+          copyTimes.append(copy)
+          rows.append("\(iteration),\(index),\(append),\(copy)")
+        }
       }
-      _ = sketch_stroke_commit(e.handle, 1)
-      _ = e.commands()
+      precondition(sketch_stroke_commit(editor.handle, 1) == 0)
     }
+    let args = CommandLine.arguments
+    let destination: String
+    if let index = args.firstIndex(of: "--timing-csv"), args.count > index + 1 {
+      destination = args[index + 1]
+    } else {
+      destination =
+        FileManager.default.temporaryDirectory.appendingPathComponent(
+          "native-sketch-timing-\(UUID().uuidString).csv"
+        ).path
+    }
+    do {
+      try rows.joined(separator: "\n").write(toFile: destination, atomically: true, encoding: .utf8)
+    } catch { fatalError("Could not write timing data: \(error)") }
+    func summary(_ name: String, _ values: [Double]) {
+      let sorted = values.sorted()
+      func percentile(_ p: Double) -> Double {
+        sorted[min(sorted.count - 1, Int(Double(sorted.count - 1) * p))]
+      }
+      print(
+        "\(name) microseconds: p50=\(percentile(0.5)), p95=\(percentile(0.95)), p99=\(percentile(0.99))"
+      )
+    }
+    summary("input_append", appendTimes)
+    summary("path_copy", copyTimes)
     print(
-      "CPU replay+path copy: \((ProcessInfo.processInfo.systemUptime-start)*1000/100) ms/120-sample stroke; 100 iterations. No GPU/presentation or hardware-input latency claim."
+      "Raw CSV: \(destination). 10 warmup + 100 measured strokes, incremental 120 samples per stroke. CPU-only tiny-scene evidence; excludes paint, GPU, presentation and hardware input latency."
     )
   }
 }
