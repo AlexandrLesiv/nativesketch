@@ -107,6 +107,104 @@
         "rust_engine",
         "reviewer"
       ]
+    },
+    {
+      "id": "009",
+      "title": "Apple editor ports: iPhone, iPad and Vision Pro",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "006"
+      ],
+      "brief": "tasks/009-apple-editor-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "010",
+      "title": "Android, ChromeOS and Googlebook port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "008"
+      ],
+      "brief": "tasks/010-android-desktop-acceptance.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "011",
+      "title": "Linux native GTK4/libadwaita port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "005"
+      ],
+      "brief": "tasks/011-linux-native-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "012",
+      "title": "Browser Rust/Wasm editor production port",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "005"
+      ],
+      "brief": "tasks/012-browser-wasm-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "013",
+      "title": "Apple TV and independent Watch viewer ports",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "006",
+        "007"
+      ],
+      "brief": "tasks/013-apple-viewer-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "014",
+      "title": "Network document source and account integration",
+      "status": "waiting",
+      "depends_on": [
+        "007"
+      ],
+      "brief": "tasks/014-network-document-source.md",
+      "roles": [
+        "rust_engine",
+        "macos_ui",
+        "build_reliability",
+        "reviewer"
+      ]
     }
   ]
 }
