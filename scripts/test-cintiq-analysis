@@ -114,6 +114,76 @@ class AnalysisTests(unittest.TestCase):
         for text in ('Measured process CPU and callback wall time','External WindowServer CPU and GPU execution are not included','<td>1.25</td><td>—</td><td>345.60</td>','white-space:pre-wrap','overflow-wrap:anywhere',configs[0]['cell'],str(configs[0]['width'])+'×'+str(configs[0]['height'])+' px'):
             self.assertIn(text,report)
         self.assertIn('Cached base + live ink (C)' if configs[0]['policy']=='C' else 'Full redraw (R)',report)
+    def failure_fixture(self,backend='coregraphics'):
+        c=next(c for c in R['matrix'](1,3) if c['duration_s']==180 and c['backend']==backend)
+        folder=self.fixture(c,1); m=json.loads((folder/'manifest.json').read_text()); m.update(status='failed',reason=A['TERMINAL_REASON'],lifecycle=[],metal_observation_count=0)
+        f=m['final']; f.update(elapsed_s=190,expected_samples=43201,total_samples=43201,measured_frames=1,gpu_retirement_status=4)
+        f['replay'].update(expected_samples=43201,trace_samples=[{'id':i+1,'time_s':i/240} for i in range(43201)])
+        f.pop('capture_sha256'); f.pop('capture_kind'); (folder/'final.png').unlink(); self.write(folder/'manifest.json',m)
+        self.write(folder/'frames.json',[dict(frame=0,draw_start_s=1.2,epoch_s=1,total_samples=25,sample_id=25,geometry_hash='earlier')])
+        self.write(folder/'deliveries.json',[dict(receipt_s=1.1,epoch_s=1,first_sample_id=1,last_sample_id=25,sample_count=25),dict(receipt_s=181,epoch_s=1,first_sample_id=26,last_sample_id=43201,sample_count=43176)])
+        self.write(folder/'native-input.json',[]); (folder/'frames.csv').write_text('frame\n0\n'); return folder,c
+    def failure_reject(self,mutate):
+        folder,c=self.failure_fixture(); m=json.loads((folder/'manifest.json').read_text()); mutate(m); self.write(folder/'manifest.json',m)
+        with self.assertRaises(ValueError): A['analyze_failure'](folder,c,self.identity)
+    def test_terminal_failure_is_not_accepted_timing(self):
+        folder,c=self.failure_fixture(); observation=A['analyze_failure'](folder,c,self.identity)
+        self.assertEqual(observation['samples_never_drawn'],43176); self.assertNotIn('metrics',observation)
+        with self.assertRaises(ValueError): A['analyze_run'](folder,c,self.identity)
+        R['record_failed_receipt'](folder); A['verify_failure_receipt'](folder)
+        configs=[x for x in R['matrix'](1,3) if x['pair_id']==c['pair_id']]; self.collection(configs)
+        manifest=json.loads((self.root/'collection.json').read_text()); manifest['failure_policy']=A['FAILURE_POLICY']; self.write(self.root/'collection.json',manifest); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
+        result=A['analyze'](self.root); self.assertEqual(result['attempted_runs'],1); self.assertEqual(result['failed_runs'],1); self.assertEqual(result['accepted_runs'],0); self.assertEqual(result['pairs'],[])
+        analysis=self.root/'failed-analysis.json'; self.write(analysis,result); output=self.root/'failed-report.html'
+        subprocess.run([sys.executable,str(HERE/'build-cintiq-report'),str(analysis),'--output',str(output)],check=True,capture_output=True)
+        report=output.read_text(); self.assertIn('90 times with abrupt position resets',report); self.assertIn('1 classified failed observations',report); self.assertIn('43176',report); self.assertIn('no accepted timing distribution',report)
+    def test_failure_stop_rejected(self): self.failure_reject(lambda m:m.update(status='cancelled'))
+    def test_failure_other_reason_rejected(self): self.failure_reject(lambda m:m.update(reason='GPU retirement fence timeout'))
+    def test_failure_visibility_event_rejected(self): self.failure_reject(lambda m:m.update(lifecycle=[{'reason':'occluded'}]))
+    def test_failure_early_watchdog_rejected(self): self.failure_reject(lambda m:m['final'].update(elapsed_s=189))
+    def test_failure_wrong_final_hash_rejected(self): self.failure_reject(lambda m:m['final'].update(geometry_hash='wrong'))
+    def test_failure_native_input_rejected(self):
+        folder,c=self.failure_fixture(); self.write(folder/'native-input.json',[{'type':'down'}])
+        with self.assertRaises(ValueError): A['analyze_failure'](folder,c,self.identity)
+    def test_failure_receipt_corruption_rejected(self):
+        folder,c=self.failure_fixture(); R['record_failed_receipt'](folder); self.write(folder/'native-input.json',[{}])
+        with self.assertRaises(ValueError): A['verify_failure_receipt'](folder)
+    def test_failure_incomplete_files_rejected(self):
+        folder,c=self.failure_fixture(); (folder/'native-input.json').unlink()
+        with self.assertRaises(ValueError): A['analyze_failure'](folder,c,self.identity)
+    def test_failure_wrong_cell_rejected(self):
+        folder,c=self.failure_fixture(); c=dict(c,cell='primary-0-C-1600x1000')
+        with self.assertRaises(ValueError): A['analyze_failure'](folder,c,self.identity)
+    def test_failure_already_terminal_draw_rejected(self):
+        folder,c=self.failure_fixture(); self.write(folder/'frames.json',[dict(frame=0,draw_start_s=181,epoch_s=1,total_samples=43201,sample_id=43201,geometry_hash='geo')])
+        with self.assertRaisesRegex(ValueError,'already drawn'): A['analyze_failure'](folder,c,self.identity)
+    def test_skia_failure_requires_retirement(self):
+        folder,c=self.failure_fixture('skia'); A['analyze_failure'](folder,c,self.identity)
+        m=json.loads((folder/'manifest.json').read_text()); m['final']['gpu_retirement_status']=5; self.write(folder/'manifest.json',m)
+        with self.assertRaisesRegex(ValueError,'retirement'): A['analyze_failure'](folder,c,self.identity)
+    def test_failed_receipt_resume_does_not_launch(self):
+        binary=Path('/usr/bin/false'); self.identity={'binary_sha256':A['digest'](binary),'build':{'source_revision':'revision'}}
+        folder,c=self.failure_fixture(); R['record_failed_receipt'](folder)
+        configs=[c]+[x for x in R['matrix'](1,3) if x['id']!=c['id']]; self.collection(configs)
+        manifest=json.loads((self.root/'collection.json').read_text()); manifest['failure_policy']=A['FAILURE_POLICY']; self.write(self.root/'collection.json',manifest); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
+        build=self.root/'build.json'; self.write(build,self.identity['build'])
+        command=[sys.executable,str(HERE/'run-cintiq-comparison'),'run',str(self.root),'--binary',str(binary),'--build-json',str(build),'--limit','0']
+        result=subprocess.run(command,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr); self.assertIn('resume-skip-failed-observation',result.stdout); self.assertFalse((self.root/'HALTED.json').exists())
+        (folder/'frames.csv').write_text('frame\n999\n')
+        result=subprocess.run(command,capture_output=True,text=True); self.assertNotEqual(result.returncode,0); self.assertTrue((self.root/'HALTED.json').exists())
+    def test_verified_native_revision_allows_only_collector_changes(self):
+        repo=self.root/'repo'; repo.mkdir()
+        def git(*args): return subprocess.check_output(['git','-c','user.name=Test','-c','user.email=test@example.invalid',*args],cwd=repo,text=True,stderr=subprocess.DEVNULL).strip()
+        git('init'); (repo/'crates').mkdir(); (repo/'crates'/'native.rs').write_text('native v1'); git('add','.'); git('commit','-m','native'); native=git('rev-parse','HEAD')
+        (repo/'collector').write_text('collector v2'); git('add','.'); git('commit','-m','collector'); collector=git('rev-parse','HEAD')
+        self.assertEqual(R['native_revision'](repo,{'source_revision':native},collector,native),native)
+        (repo/'crates'/'native.rs').write_text('native v2'); git('add','.'); git('commit','-m','native changed')
+        with self.assertRaises(subprocess.CalledProcessError): R['native_revision'](repo,{'source_revision':native},git('rev-parse','HEAD'),native)
+    def test_incomplete_attempt_is_not_unattempted_pending(self):
+        configs=R['matrix'](1,3); self.collection(configs); (self.root/(configs[0]['id']+'.log')).write_text('launch attempted')
+        result=A['analyze'](self.root)
+        self.assertEqual(result['attempted_runs'],1); self.assertEqual(len(result['invalid']),1); self.assertEqual(len(result['pending']),371)
     def test_matrix(self):
         a=R['matrix'](1,3); self.assertEqual(a,R['matrix'](1,3)); self.assertNotEqual(a,R['matrix'](2,3)); self.assertEqual(len({c['id'] for c in a}),372)
         self.assertEqual(sum(c['duration_s'] for c in a),216*60)

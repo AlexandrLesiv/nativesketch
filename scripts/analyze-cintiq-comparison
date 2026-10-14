@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Validate frozen Cintiq collection and compute exploratory software-only results."""
-import argparse, hashlib, json, math, random, statistics
+import argparse, csv, hashlib, json, math, random, statistics
 from pathlib import Path
 
 def read(p): return json.loads(Path(p).read_text())
@@ -25,8 +25,36 @@ def config_match(m, c):
     screen=screens[0]
     require(not screen['in_mirror_set'] and screen['mirrors_display']==0, 'selected display is mirrored')
     require(screen['pixel_width']>=c['width'] and screen['pixel_height']>=c['height'], 'selected display cannot fit canvas')
-def analyze_run(folder, c, identity):
-    folder=Path(folder); m=read(folder/'manifest.json'); require(m['status']=='complete', 'run not complete: '+m['status'])
+TERMINAL_REASON='message("Replay watchdog: no terminal paint within ten seconds of trace duration")'
+FAILURE_POLICY='sustained-terminal-watchdog-v1'
+def failure_artifacts(folder):
+    folder=Path(folder)
+    files={p.name for p in folder.iterdir() if p.name not in ('collection-receipt.json','failed-observation-receipt.json')}
+    require({'manifest.json','frames.json','deliveries.json','metal-observations.json','native-input.json'}.issubset(files), 'failure artifact ledger incomplete')
+    require(all((folder/name).is_file() and not (folder/name).is_symlink() for name in files), 'failure artifact ledger contains non-file/symlink')
+    return {name:digest(folder/name) for name in sorted(files)}
+def verify_failure_receipt(folder):
+    receipt=read(Path(folder)/'failed-observation-receipt.json')
+    require(receipt.get('policy')==FAILURE_POLICY and receipt.get('outcome')=='failed', 'failure receipt policy/outcome mismatch')
+    require(receipt['files']==failure_artifacts(folder),'failed observation artifacts changed')
+def failed_condition(m,c):
+    require(m['status']=='failed' and m['reason']==TERMINAL_REASON, 'failure not the exact terminal watchdog')
+    require(c['duration_s']==180 and c['scene']=='dense1000' and c['trace']=='long' and c['policy']=='C' and c['start_state']=='warm' and c['warmup_s']==5 and c['idle_s']==0, 'failure outside sustained condition')
+    require((c['width'],c['height']) in ((1600,1000),(2560,1600)) and c['backend'] in ('skia','coregraphics'), 'failure outside declared backend/size')
+    require(c['cell']==f"sustained-C-{c['width']}x{c['height']}" and c['pair'] in (0,1,2), 'failure not a declared sustained cell')
+    require(c['pair_id']==c['cell']+'-pair'+str(c['pair']) and c['id']==c['pair_id']+'-'+c['backend'], 'failure declared ID mismatch')
+    require(m['lifecycle']==[], 'lifecycle event disqualifies failure continuation')
+def analyze_failure(folder,c,identity):
+    return analyze_run(folder,c,identity,_terminal_failure=True)
+def analyze_run(folder, c, identity, _terminal_failure=False):
+    folder=Path(folder); m=read(folder/'manifest.json')
+    if _terminal_failure:
+        failed_condition(m,c); failure_artifacts(folder)
+        if (folder/'failed-observation-receipt.json').exists(): verify_failure_receipt(folder)
+        require(not (folder/'collection-receipt.json').exists(),'failed observation has accepted receipt')
+        require(read(folder/'native-input.json')==[] and isinstance(read(folder/'metal-observations.json'),list),'failure ledger malformed or physical input present')
+        if c['backend']=='skia': require(m['final'].get('gpu_retirement_status')==4,'Skia GPU retirement not proven')
+    else: require(m['status']=='complete', 'run not complete: '+m['status'])
     if (folder/'collection-receipt.json').exists():
         hashes=read(folder/'collection-receipt.json')
         require(set(hashes)=={'manifest.json','frames.json','deliveries.json','metal-observations.json','final.png'}, 'receipt file set mismatch')
@@ -44,7 +72,8 @@ def analyze_run(folder, c, identity):
     require(all(math.isfinite(s['time_s']) and s['time_s']>=0 for s in samples), 'invalid scheduled time')
     require(all(samples[i]['time_s']<=samples[i+1]['time_s'] for i in range(len(samples)-1)), 'trace time regression')
     for k in ('geometry','document'): require(f[k+'_hash']==r['expected_final_'+k+'_hash'], 'final '+k+' hash mismatch')
-    require(digest(folder/'final.png')==f['capture_sha256'], 'capture checksum mismatch')
+    if not _terminal_failure: require(digest(folder/'final.png')==f['capture_sha256'], 'capture checksum mismatch')
+    elif 'capture_sha256' in f: require(digest(folder/'final.png')==f['capture_sha256'], 'failure capture checksum mismatch')
     deliveries=read(folder/'deliveries.json'); frames=read(folder/'frames.json'); receipt={}; epoch=None; prev=-math.inf
     for d in deliveries:
         require(d['receipt_s']>=prev, 'receipt regression'); prev=d['receipt_s']
@@ -66,6 +95,23 @@ def analyze_run(folder, c, identity):
         if count: require(row['sample_id']==ids[count-1], 'frame sample/count mismatch')
         while cursor<count:
             i=ids[cursor]; first[i]=row['draw_start_s']; cursor+=1
+    for sample in samples:
+        require(math.isfinite(receipt[sample['id']]) and receipt[sample['id']]+0.000001>=epoch+sample['time_s'],'sample receipt precedes schedule')
+        if sample['id'] in first: require(first[sample['id']]+0.000001>=receipt[sample['id']],'sample drawn before receipt')
+    if _terminal_failure:
+        require(len(ids)==43201 and ids[0]==1 and all(abs(sample['time_s']-index/240)<1e-8 for index,sample in enumerate(samples)), 'failure expected sustained trace sequence mismatch')
+        require(len(frames)==f['measured_frames'], 'failure frame ledger incomplete')
+        require(len(read(folder/'metal-observations.json'))==m['metal_observation_count'],'failure Metal ledger incomplete')
+        if frames:
+            with (folder/'frames.csv').open(newline='') as stream: csv_frames=list(csv.DictReader(stream))
+            require(len(csv_frames)==len(frames) and all(int(a['frame'])==b['frame'] for a,b in zip(csv_frames,frames)), 'failure CSV frame ledger incomplete')
+        require(not any(row['total_samples']==len(ids) and row['geometry_hash']==f['geometry_hash'] for row in frames),'terminal geometry already drawn')
+        require(f['elapsed_s']>=c['duration_s']+10, 'terminal watchdog occurred before declared deadline')
+        require(m['initial'].get('low_power_mode')==f.get('low_power_mode'), 'power mode changed during failed run')
+        end=epoch+f['elapsed_s']; gaps=[b['draw_start_s']-a['draw_start_s'] for a,b in zip(frames,frames[1:])]
+        tail=end-(frames[-1]['draw_start_s'] if frames else epoch)
+        undrawn=samples[cursor:]
+        return {'config':c,'outcome':'failed','reason':m['reason'],'samples_delivered':len(ids),'samples_never_drawn':len(undrawn),'maximum_observed_draw_gap_ms':max(gaps+[tail])*1000,'terminal_no_draw_gap_ms':tail*1000,'latest_undrawn_sample_age_at_finish_ms':(end-epoch-undrawn[-1]['time_s'])*1000 if undrawn else None,'oldest_undrawn_sample_age_at_finish_ms':(end-epoch-undrawn[0]['time_s'])*1000 if undrawn else None,'process_cpu_user_s':f.get('measured_cpu_user_s'),'process_cpu_system_s':f.get('measured_cpu_system_s'),'process_cpu_scope':f.get('measured_cpu_scope'),'final_document_hash':f['document_hash'],'final_geometry_hash':f['geometry_hash'],'artifact_checksums':failure_artifacts(folder),'interpretation':'Failed terminal draw; excluded from accepted timing distributions and numeric paired comparisons. Gaps include censored interval from last draw to finish entry, not photon latency.'}
     require(cursor==len(ids),'samples never represented by a draw')
     timings={'scheduled_to_receipt_ms':[], 'receipt_to_first_draw_ms':[], 'scheduled_to_first_draw_ms':[]}
     for s in samples:
@@ -83,11 +129,19 @@ def analyze_run(folder, c, identity):
 def analyze(root):
     root=Path(root); manifest=read(root/'collection.json')
     require(digest(root/'collection.json')==(root/'collection.sha256').read_text().strip(),'collection manifest modified')
-    results={}; pending=[]; invalid=[]
+    results={}; pending=[]; invalid=[]; failed=[]
     for c in manifest['runs']:
         folder=root/'runs'/c['id']
-        if not (folder/'manifest.json').exists(): pending.append(c['id']); continue
-        try: results[c['id']]=analyze_run(folder,c,manifest['identity'])
+        if not (folder/'manifest.json').exists():
+            if folder.exists() or (root/(c['id']+'.log')).exists(): invalid.append({'id':c['id'],'reason':'attempted run has no finalized manifest'})
+            else: pending.append(c['id'])
+            continue
+        try:
+            if manifest.get('failure_policy')==FAILURE_POLICY and read(folder/'manifest.json')['status']=='failed':
+                observation=analyze_failure(folder,c,manifest['identity'])
+                verify_failure_receipt(folder)
+                failed.append(observation)
+            else: results[c['id']]=analyze_run(folder,c,manifest['identity'])
         except (ValueError,KeyError,TypeError,OSError) as e: invalid.append({'id':c['id'],'reason':str(e)})
     pairs=[]; grouped={}
     for c in manifest['runs']: grouped.setdefault(c['pair_id'],{})[c['backend']]=c['id']
@@ -108,7 +162,7 @@ def analyze(root):
         ds=[p['delta_p95_cg_minus_skia_ms'] for p in pairs if p['cell']==cell]; rng=random.Random(1763)
         boot=[statistics.median(rng.choices(ds,k=len(ds))) for _ in range(5000)]
         summaries.append({'cell':cell,'pairs':len(ds),'median_paired_delta_ms':statistics.median(ds),'exploratory_pair_bootstrap_95':[quantile(boot,.025),quantile(boot,.975)]})
-    return {'schema_version':1,'status':'complete' if not pending and not invalid else 'partial','declared_runs':len(manifest['runs']),'accepted_runs':len(results),'pending':pending,'invalid':invalid,'runs':results,'pairs':pairs,'cells':summaries,'collection_identity':manifest['identity'],'physical_pen_to_screen':'PENDING CAMERA; not measured','interpretation':'Synthetic 240Hz software replay; first draw is not photon visibility. Pair bootstrap is exploratory; no equivalence or physical winner. Callback diagnostics have backend-specific boundaries.'}
+    return {'schema_version':1,'status':('complete-with-failures' if failed else 'complete') if not pending and not invalid else 'partial','declared_runs':len(manifest['runs']),'attempted_runs':len(results)+len(failed)+len(invalid),'accepted_runs':len(results),'failed_runs':len(failed),'failed':failed,'failure_policy':manifest.get('failure_policy','strict'),'collector':manifest.get('collector'),'pending':pending,'invalid':invalid,'runs':results,'pairs':pairs,'cells':summaries,'collection_identity':manifest['identity'],'physical_pen_to_screen':'PENDING CAMERA; not measured','interpretation':'Synthetic 240Hz software replay; first draw is not photon visibility. Pair bootstrap is exploratory; no equivalence or physical winner. Callback diagnostics have backend-specific boundaries.'}
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__); p.add_argument('collection'); p.add_argument('--output',required=True); a=p.parse_args()
     try: result=analyze(a.collection)

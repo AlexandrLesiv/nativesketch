@@ -27,21 +27,42 @@ def validate_build(build, revision, dirty):
     if build.get('source_revision')!=revision or build.get('source_status'): raise ValueError('build must identify this clean source revision')
     if build.get('rust_build_skipped') is True: raise ValueError('freeze rejects skipped Rust builds; rebuild the archive from this source')
 
+def collector_files():
+    return {name:sha(Path(__file__).with_name(name)) for name in ('run-cintiq-comparison','analyze-cintiq-comparison')}
+def native_revision(source, build, collector_revision, explicit):
+    revision=collector_revision
+    if explicit:
+        revision=subprocess.check_output(['git','rev-parse',explicit+'^{commit}'],cwd=source,text=True).strip()
+        paths=['experiments/renderer-comparison','crates','Cargo.toml','Cargo.lock','rust-toolchain.toml','.cargo']
+        subprocess.run(['git','diff','--exit-code',revision,collector_revision,'--',*paths],cwd=source,check=True,stdout=subprocess.DEVNULL)
+    if build.get('source_revision')!=revision: raise ValueError('native build revision does not match explicit verified source')
+    return revision
+
+def record_failed_receipt(folder):
+    receipt={'outcome':'failed','policy':A['FAILURE_POLICY'],'files':A['failure_artifacts'](folder)}
+    (folder/'failed-observation-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+
 def main():
-    p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=('freeze','run')); p.add_argument('collection',type=Path); p.add_argument('--binary',type=Path,required=True); p.add_argument('--build-json',type=Path,required=True); p.add_argument('--screen-id',type=int,default=3); p.add_argument('--seed',type=int,default=20261014); p.add_argument('--source',type=Path,default=Path(__file__).resolve().parent.parent); p.add_argument('--limit',type=int); p.add_argument('--timeout-grace',type=float,default=180); a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=('freeze','run')); p.add_argument('collection',type=Path); p.add_argument('--binary',type=Path,required=True); p.add_argument('--build-json',type=Path,required=True); p.add_argument('--screen-id',type=int,default=3); p.add_argument('--seed',type=int,default=20261014); p.add_argument('--source',type=Path,default=Path(__file__).resolve().parent.parent); p.add_argument('--native-source-revision'); p.add_argument('--allow-sustained-terminal-failure',action='store_true'); p.add_argument('--limit',type=int); p.add_argument('--timeout-grace',type=float,default=180); a=p.parse_args()
     root=a.collection.resolve(); binary=a.binary.resolve(); build=json.loads(a.build_json.read_text()); identity=dict(binary_sha256=sha(binary),build=build)
     if a.action=='freeze':
         if root.exists(): p.error('collection must not exist; frozen collections cannot be overwritten')
         revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=a.source,text=True).strip()
         dirty=subprocess.check_output(['git','status','--porcelain'],cwd=a.source,text=True)
-        try: validate_build(build,revision,dirty)
-        except ValueError as error: p.error(str(error))
+        collector_revision=revision
+        try:
+            revision=native_revision(a.source,build,collector_revision,a.native_source_revision)
+            validate_build(build,revision,dirty)
+            if any(sha(a.source/'scripts'/name)!=value for name,value in collector_files().items()): raise ValueError('collector scripts differ from clean source checkout')
+        except (ValueError,subprocess.CalledProcessError) as error: p.error(str(error))
         root.mkdir(parents=True); (root/'runs').mkdir()
-        m=dict(schema_version=1,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_revision=revision,identity=identity,recovery_s=2,seed=a.seed,binary=str(binary),runs=matrix(a.seed,a.screen_id),scope='Synthetic 240Hz software only; physical latency pending camera')
+        m=dict(schema_version=1,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_revision=revision,collector={'revision':collector_revision,'script_sha256':collector_files()},failure_policy=A['FAILURE_POLICY'] if a.allow_sustained_terminal_failure else 'strict',identity=identity,recovery_s=2,seed=a.seed,binary=str(binary),runs=matrix(a.seed,a.screen_id),scope='Synthetic 240Hz software only; physical latency pending camera')
         (root/'collection.json').write_text(json.dumps(m,indent=2)+'\n'); (root/'collection.sha256').write_text(sha(root/'collection.json')+'\n')
         print(f'Frozen {len(m["runs"])} runs. No app launched.'); return
     m=json.loads((root/'collection.json').read_text())
     if sha(root/'collection.json')!=(root/'collection.sha256').read_text().strip() or m['identity']!=identity: p.error('frozen manifest or binary/build identity mismatch')
+    if m.get('collector') and m['collector']['script_sha256']!=collector_files(): p.error('collector scripts changed since freeze')
+    if a.allow_sustained_terminal_failure and m.get('failure_policy')!=A['FAILURE_POLICY']: p.error('failure policy must be opted into at freeze, not during run')
     if (root/'HALTED.json').exists(): p.error('collection previously halted; preserve it. Diagnose and freeze a new collection; no automatic retry.')
     def log(kind,**fields):
         record=dict(time_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),kind=kind,**fields)
@@ -54,12 +75,18 @@ def main():
         folder=root/'runs'/c['id']
         if folder.exists():
             try:
-                A['analyze_run'](folder,c,identity)
-                hashes=json.loads((folder/'collection-receipt.json').read_text())
-                required={'manifest.json','frames.json','deliveries.json','metal-observations.json','final.png'}
-                if set(hashes)!=required or hashes!={name:sha(folder/name) for name in hashes}: raise ValueError('completed output changed or receipt incomplete')
+                if (folder/'failed-observation-receipt.json').exists():
+                    if m.get('failure_policy')!=A['FAILURE_POLICY']: raise ValueError('failed receipt not permitted by frozen policy')
+                    A['analyze_failure'](folder,c,identity); A['verify_failure_receipt'](folder)
+                    outcome='failed-observation'
+                else:
+                    A['analyze_run'](folder,c,identity)
+                    hashes=json.loads((folder/'collection-receipt.json').read_text())
+                    required={'manifest.json','frames.json','deliveries.json','metal-observations.json','final.png'}
+                    if set(hashes)!=required or hashes!={name:sha(folder/name) for name in hashes}: raise ValueError('completed output changed or receipt incomplete')
+                    outcome='complete'
             except Exception as e: halt('existing output cannot safely resume: '+str(e),c['id'])
-            log('resume-skip-complete',run=c['id']); continue
+            log('resume-skip-'+outcome,run=c['id']); continue
         if a.limit is not None and count>=a.limit: log('paused-at-requested-limit',completed_this_invocation=count); return
         if sha(binary)!=identity['binary_sha256']: halt('binary changed during collection',c['id'])
         cmd=[str(binary),'--output',str(folder),'--instrumentation','full']
@@ -70,10 +97,16 @@ def main():
             with (root/(c['id']+'.log')).open('xb') as output:
                 proc=subprocess.Popen(cmd,stdout=output,stderr=subprocess.STDOUT)
                 proc.wait(timeout=c['duration_s']+c['warmup_s']+c['idle_s']+a.timeout_grace)
-            if proc.returncode: halt('native process exit '+str(proc.returncode),c['id'])
-            A['analyze_run'](folder,c,identity)
-            files=['manifest.json','frames.json','deliveries.json','metal-observations.json','final.png']
-            (folder/'collection-receipt.json').write_text(json.dumps({name:sha(folder/name) for name in files},indent=2)+'\n')
+            outcome='complete'
+            if proc.returncode:
+                if proc.returncode!=1 or m.get('failure_policy')!=A['FAILURE_POLICY']: halt('native process exit '+str(proc.returncode),c['id'])
+                observation=A['analyze_failure'](folder,c,identity)
+                record_failed_receipt(folder); outcome='failed-observation'
+                log('classified-failure',run=c['id'],reason=observation['reason'])
+            else:
+                A['analyze_run'](folder,c,identity)
+                files=['manifest.json','frames.json','deliveries.json','metal-observations.json','final.png']
+                (folder/'collection-receipt.json').write_text(json.dumps({name:sha(folder/name) for name in files},indent=2)+'\n')
         except (KeyboardInterrupt,subprocess.TimeoutExpired) as e:
             if proc and proc.poll() is None:
                 proc.send_signal(signal.SIGTERM)
@@ -81,6 +114,6 @@ def main():
                 except subprocess.TimeoutExpired: proc.kill(); proc.wait()
             halt(type(e).__name__+'; output preserved, not retried',c['id'])
         except (ValueError,KeyError,OSError,TypeError) as e: halt(str(e),c['id'])
-        count+=1; log('complete',run=c['id'],elapsed_s=time.monotonic()-started)
+        count+=1; log(outcome,run=c['id'],elapsed_s=time.monotonic()-started)
     log('collection-complete')
 if __name__=='__main__': main()
