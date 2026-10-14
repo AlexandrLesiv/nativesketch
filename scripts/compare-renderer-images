@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Create paired correctness sheets and descriptive RGB differences (requires Pillow)."""
+import argparse,hashlib,json,math,pathlib,runpy
+from PIL import Image,ImageChops,ImageDraw,ImageFont,ImageStat
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('root',type=pathlib.Path)
+    parser.add_argument('--output',type=pathlib.Path,required=True)
+    parser.add_argument('--width',type=int)
+    parser.add_argument('--mode',choices=['completion','paced'])
+    parser.add_argument('--repeat-id')
+    args=parser.parse_args()
+    validate=runpy.run_path(str(pathlib.Path(__file__).resolve().parent/'analyze-renderer-comparison'))['validate']
+    pairs={}
+    for path in sorted(args.root.glob('*/manifest.json')):
+        m=json.loads(path.read_text())
+        if args.width is not None and m['width']!=args.width: continue
+        if args.mode is not None and m['mode']!=args.mode: continue
+        if args.repeat_id is not None and m['repeat_id']!=args.repeat_id: continue
+        validate(path.parent)
+        pair=pairs.setdefault(m['fixture'],{})
+        if m['backend'] in pair: raise ValueError('Multiple captures per backend; select width, mode and repeat ID')
+        pair[m['backend']]=(path.parent,m)
+    if not pairs: raise ValueError('No captures selected')
+    args.output.mkdir(parents=True,exist_ok=True)
+    try: font=ImageFont.load_default(size=17)
+    except TypeError: font=ImageFont.load_default()
+    results=[]
+    for fixture,pair in sorted(pairs.items()):
+        if set(pair)!= {'skia','vello'}: raise ValueError(f'Unpaired fixture: {fixture}')
+        ap,am=pair['skia'];bp,bm=pair['vello']
+        for field in ['fixture_hash','input_hash','image_hash','source_revision','source_diff_hash','width','height','mode','repeat_id']:
+            if am[field]!=bm[field]: raise ValueError(f'Pair mismatch: {fixture} {field}')
+        ar=json.loads((ap/'readback.json').read_text());br=json.loads((bp/'readback.json').read_text())
+        for field in ['phase','frame_index','state_hash','width','height']:
+            if ar[field]!=br[field]: raise ValueError(f'Readback mismatch: {fixture} {field}')
+        for readback,manifest in [(ar,am),(br,bm)]:
+            if readback['actual_state_hash']!=readback['state_hash'] or readback['image_hash']!=manifest['image_hash']:
+                raise ValueError('Readback actual/expected identity mismatch')
+        images=[]
+        for path,readback in [(ap,ar),(bp,br)]:
+            im=Image.open(path/'final.png').convert('RGBA')
+            if im.size!=(am['width'],am['height']) or im.getchannel('A').getextrema()!=(255,255):
+                raise ValueError(f'Invalid capture dimensions/background: {path}')
+            if hashlib.sha256(im.tobytes()).hexdigest()!=readback['rgba_sha256']:
+                raise ValueError(f'PNG does not match recorded RGBA digest: {path}')
+            _,phases=validate(path)
+            if readback['phase']!='measured' or readback['frame_index']!=int(phases['measured'][-1]['frame_index']) or readback['state_hash']!=phases['measured'][-1]['state_hash']:
+                raise ValueError('Readback frame identity mismatch')
+            images.append(im.convert('RGB'))
+        diff=ImageChops.difference(*images);stats=ImageStat.Stat(diff)
+        maximum=ImageChops.lighter(ImageChops.lighter(diff.getchannel('R'),diff.getchannel('G')),diff.getchannel('B'))
+        histogram=maximum.histogram();pixels=am['width']*am['height']
+        result={'fixture':fixture,'source_revision':am['source_revision'],'width':am['width'],'height':am['height'],'frame_index':ar['frame_index'],'state_hash':ar['state_hash'],'rgba_sha256':{b:r['rgba_sha256'] for b,r in [('skia',ar),('vello',br)]},'rgb_mae_0_255':sum(stats.mean)/3,'rgb_rmse_0_255':math.sqrt(sum(x*x for x in stats.rms)/3),'max_channel_difference':max(x[1] for x in diff.getextrema()),'pixels_any_difference_percent':(pixels-histogram[0])*100/pixels,'pixels_difference_gt_16_percent':sum(histogram[17:])*100/pixels}
+        results.append(result)
+        amplified=diff.point(lambda value:min(value*8,255));amplified.save(args.output/(fixture+'-difference-x8.png'))
+        panel_width=800;panel_height=round(am['height']*panel_width/am['width'])
+        sheet=Image.new('RGB',(1600,2*panel_height+80),'#eeeeee');draw=ImageDraw.Draw(sheet)
+        for im,x,y,label in [(images[0],0,35,'Skia'),(images[1],800,35,'Vello GPU'),(amplified,0,panel_height+75,'Absolute RGB difference x8')]:
+            sheet.paste(im.resize((panel_width,panel_height)),(x,y));draw.text((x+10,y-27),label,fill='black',font=font)
+        label=f"{fixture} / frame {ar['frame_index']} / {am['width']}x{am['height']}\n\nRGB mean absolute error: {result['rgb_mae_0_255']:.6f} / 255\nRGB RMS error: {result['rgb_rmse_0_255']:.6f} / 255\nPixels with any difference: {result['pixels_any_difference_percent']:.4f}%\nPixels with channel difference >16: {result['pixels_difference_gt_16_percent']:.4f}%\n\nDescriptive differences, not acceptance thresholds.\nSource: {am['source_revision'][:12]}"
+        draw.multiline_text((810,panel_height+100),label,fill='black',font=font,spacing=8)
+        sheet.save(args.output/(fixture+'-comparison.png'))
+    (args.output/'visual-statistics.json').write_text(json.dumps(results,indent=2)+'\n')
+    print(f'{len(results)} paired image comparisons: {args.output}')
+
+if __name__=='__main__': main()

@@ -17,7 +17,7 @@
     {
       "id": "002",
       "title": "Renderer comparison",
-      "status": "active",
+      "status": "review",
       "depends_on": [],
       "brief": "tasks/002-renderer-comparison.md",
       "roles": [

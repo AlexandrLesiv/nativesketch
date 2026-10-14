@@ -1,0 +1,5 @@
+{
+  "matplotlib": "3.11.2",
+  "source_revision": "32361fb4fe76281df509f364cf62b2433876a013",
+  "statistics": "median and min/max of five per-process p95 values; no pooled percentiles"
+}

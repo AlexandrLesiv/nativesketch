@@ -10,7 +10,9 @@ pressure curve, selection, transforms, persistence, and C ABI do not contain
 CoreGraphics objects. This adapter is disposable, not a multi-backend framework.
 
 This is not completion of task 002 and does not select CoreGraphics over Rust-Skia
-or Vello. No comparable Skia/Metal versus pinned Vello workload has run. A production
+or Vello. At this decision’s creation, no comparable Skia/Metal versus pinned Vello
+workload had run. The later [task 002 evidence](../evidence/002-renderer-comparison.md)
+and [comparison proposal](0003-renderer-comparison.md) record the experiment and its limits. A production
 renderer decision must still supply task 002's identical scenes, GPU settings,
 versions, raw timings, visual comparisons, memory/tail/stall data, integration risks,
 and human acceptance. CPU first-stroke timings cannot resolve that comparison.

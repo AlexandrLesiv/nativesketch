@@ -73,3 +73,28 @@ Primary upstream references:
 - https://docs.rs/crate/vello_gpu/0.3.0 (pinned API/license: Apache-2.0 OR MIT)
 - https://docs.rs/crate/skia-safe/0.153.3 (pinned binding API/license: MIT)
 - https://github.com/rust-skia/skia-binaries/releases/tag/0.153.3 (official binaries)
+
+## Guarded native-window replay
+
+The original normal-window matrix is retained at source `32361fb`; its report discloses
+extended missing presentation callbacks. Guarded measurements use source `d473865`:
+a scoped activity assertion, full-occlusion/session/sleep invalidation, a two-second
+automatic launch settling interval, and a temporary floating automatic benchmark window.
+Interactive launches retain a normal window. The floating level is restored after output.
+These are separate experimental presentation conditions, not a production window policy.
+
+`host-status.json` is authoritative through final readback/output: a complete Rust manifest
+does not override a late native invalidation. Invalid or cancelled CLI trials exit nonzero.
+The analyzer requires both records to be complete. The guarded replay exporter additionally
+requires recorded activity and matching floating-window lifecycle evidence.
+
+Keep the window visible on the current desktop throughout the run. Minimize, full coverage,
+Space/display changes, resize, sleep and session interruptions invalidate measurements;
+do not dismiss the benchmark to continue unrelated foreground work.
+
+The runner's `--replay-from ORIGINAL --trial-indices 58,70` selects the whole backend pair
+for each original index, preserving order and identities in a fresh output directory.
+Targeted replay is explicitly labeled partial coverage. `assemble-renderer-replay` derives
+complete paired evidence from explicitly supplied attempts, retaining exclusions and source
+hashes; it never edits or overwrites original runs. See the task evidence report for the
+exact reproduction commands and distinction between original and guarded results.

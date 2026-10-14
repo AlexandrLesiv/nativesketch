@@ -1,7 +1,13 @@
 # 002: Choose the initial renderer using evidence
 
-Status: active — owner authorized execution of the detailed plan on 2026-10-14. Roles: rendering_performance, build_reliability, reviewer.
+Status: review — comparison implemented and measured; owner acceptance pending. Roles: rendering_performance, build_reliability, reviewer.
 Updated: 2026-10-14. Planning baseline: `f5637a1`.
+
+Execution: [comparison report](../docs/evidence/002-renderer-comparison.md) and
+[decision proposal](../docs/decisions/0003-renderer-comparison.md). Original 320-process
+primary matrix and six sustained trials are retained; 16 affected primary trials and
+six sustained trials were repeated under explicit visibility/activity guards. Production
+selection remains OPEN.
 
 ## Outcome and boundaries
 
@@ -328,15 +334,15 @@ stop condition. Use isolated worktrees and serial host measurements; no recursiv
 
 ## Completion checklist
 
-- [ ] Candidate versions/variant and shared input/presentation contract frozen.
-- [ ] Both GPU backends built and displayed in a native macOS host.
-- [ ] Trustworthy timing boundaries established; unsupported metrics explicit.
-- [ ] All six scene classes validated visually; quality differences documented.
-- [ ] Raw first-use, repeated steady and sustained measurements retained.
-- [ ] CPU/GPU timing, tails, deadline definitions and memory reported honestly.
-- [ ] Reproduction/failure checks, required integration checks and fresh review complete.
-- [ ] Recommendation and platform risks delivered for owner acceptance.
-- [ ] Decision acceptance and production integration remain separate owner-controlled steps.
+- [x] Candidate versions/variant and shared input/presentation contract frozen.
+- [x] Both GPU backends built and displayed in a native macOS host.
+- [x] Trustworthy timing boundaries established; unsupported metrics explicit.
+- [x] All six scene classes validated visually; quality differences documented.
+- [x] Raw first-use, repeated steady and sustained measurements retained.
+- [x] CPU/GPU timing, tails, deadline definitions and memory reported honestly.
+- [x] Reproduction/failure checks, required integration checks and fresh review complete.
+- [x] Recommendation and platform risks delivered for owner acceptance.
+- [x] Decision acceptance and production integration remain separate owner-controlled steps.
 
 ## Upstream references
 

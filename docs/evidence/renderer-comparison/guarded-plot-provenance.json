@@ -1,0 +1,6 @@
+{
+  "source_revision": "d473865fff50c3564192df1c766eedfb200c6980",
+  "input_sha256": "ecc3b0098dd9c6429d6a322add05e05cf62e9f07883d2f3f5b2e632d266e5f8f",
+  "matplotlib": "3.11.2",
+  "definition": "Individual per-process p95 values; no pooled percentiles"
+}

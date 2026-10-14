@@ -78,8 +78,9 @@ SwapChainPanel composition rather than assuming a regular window surface is suff
 
 ## Renderer decision
 
-OPEN. Start the comparison with Skia over Metal, evaluate Vello's specific version and
-renderer variant. Compare identical scenes, quality, scale, input traces, and presentation.
+OPEN. The isolated [Skia/Metal versus Vello GPU comparison](evidence/002-renderer-comparison.md)
+records pinned variants, identical scenes, quality, scale, input traces and presentation.
+The [decision proposal](decisions/0003-renderer-comparison.md) remains subject to owner acceptance.
 Choose using the app's latency, correctness, memory, and integration evidence.
 Do not introduce a permanent abstraction supporting hypothetical backends before the spike.
 

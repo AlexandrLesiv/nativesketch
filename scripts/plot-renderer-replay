@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Plot individual guarded sustained process tails without pooling samples."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('results', type=Path)
+    p.add_argument('--output', type=Path, required=True)
+    a = p.parse_args()
+    import matplotlib
+    matplotlib.use('Agg')
+    matplotlib.rcParams['svg.hashsalt'] = 'native-sketch-renderer-comparison-v1'
+    import matplotlib.pyplot as plt
+    data = json.loads(a.results.read_text())
+    rows = next(s for s in data['suites'] if s['suite'] == 'sustained')['pairs']
+    runs = [r['guarded'] for r in rows]
+    if len(runs) != 6 or {(r['backend'],r['repeat_id']) for r in runs} != {(b,f'sustained-{n}') for b in ['skia','vello'] for n in range(3)}:
+        raise ValueError('Expected three guarded sustained pairs')
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5), sharey=True)
+    for ax, metric, title in zip(axes, ['service_without_acquire_ms','cpu_frame_interval_ms'], ['Service excluding drawable acquisition', 'Consecutive CPU frame starts']):
+        for backend, color, marker in [('skia','#245b91','o'), ('vello','#c96821','s')]:
+            selected = sorted((r for r in runs if r['backend']==backend), key=lambda r:r['repeat_id'])
+            values = [(r['cpu_frame_interval_ms'] if metric=='cpu_frame_interval_ms' else r['metrics'][metric])['p95'] for r in selected]
+            ax.plot([1,2,3], values, marker=marker, color=color, label=backend.title(), linewidth=1.2, markersize=7)
+            for x,y in zip([1,2,3],values): ax.annotate(f'{y:.2f}',(x,y),xytext=(0,8),textcoords='offset points',ha='center',fontsize=9,color=color)
+        ax.set_title(title,fontsize=11); ax.set_xticks([1,2,3],['Pair 1','Pair 2','Pair 3'])
+        ax.set_ylim(0,31); ax.grid(axis='y',alpha=.25); ax.set_axisbelow(True)
+    axes[0].set_ylabel('Per-process p95, milliseconds')
+    axes[0].legend(loc='upper left',frameon=False)
+    fig.suptitle('Guarded sustained pan/zoom — 1,000 strokes / 1600 × 1000',fontsize=14)
+    fig.text(.04,.065,'Each point: one 180-second native-paced process after warm-up. No pooled percentiles.\nFloating benchmark window; scoped activity assertion. Wall times include backend waits; not pen latency or displayed FPS.',fontsize=9)
+    fig.text(.04,.015,f"Source {data['guarded_source_revision'][:12]} • Apple M2 Pro • Skia Ganesh/Metal vs Vello GPU Sparse Strips",fontsize=9)
+    fig.tight_layout(rect=(0,.15,1,.94))
+    a.output.mkdir(parents=True,exist_ok=True)
+    fig.savefig(a.output/'guarded-sustained.png',dpi=180)
+    fig.savefig(a.output/'guarded-sustained.svg',metadata={'Date':None})
+    svg = a.output/'guarded-sustained.svg'
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines())+'\n')
+    (a.output/'guarded-plot-provenance.json').write_text(json.dumps({'source_revision':data['guarded_source_revision'],'input_sha256':hashlib.sha256(a.results.read_bytes()).hexdigest(),'matplotlib':matplotlib.__version__,'definition':'Individual per-process p95 values; no pooled percentiles'},indent=2)+'\n')
+    plt.close(fig)
+
+
+if __name__ == '__main__':
+    main()

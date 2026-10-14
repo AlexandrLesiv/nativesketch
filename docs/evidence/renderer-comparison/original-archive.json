@@ -1,0 +1,24 @@
+{
+  "archive": "renderer-original-32361fb.tar.gz",
+  "sha256": "ab6db65afa23b3af5c8dc5fb1b61c99e7fc65db417084bb94b87b027d28a4dc2",
+  "bytes": 252586780,
+  "source_revision": "32361fb4fe76281df509f364cf62b2433876a013",
+  "contents": [
+    "primary-final",
+    "sustained-final",
+    "quality-final",
+    "host-final.json",
+    "measurement-window.json",
+    "calibration-0-gpu-off-rss-on",
+    "calibration-0-gpu-on-rss-off",
+    "calibration-0-gpu-on-rss-on",
+    "calibration-1-gpu-off-rss-on",
+    "calibration-1-gpu-on-rss-off",
+    "calibration-1-gpu-on-rss-on",
+    "calibration-2-gpu-off-rss-on",
+    "calibration-2-gpu-on-rss-off",
+    "calibration-2-gpu-on-rss-on"
+  ],
+  "scope": "Original matrix and calibration/quality; includes disclosed presentation anomalies. Repaired measurements are separate.",
+  "raw_location": "Local ignored artifacts/renderer-comparison; archive is not checked into Git."
+}

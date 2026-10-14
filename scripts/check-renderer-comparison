@@ -3,5 +3,6 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 [ "$#" -eq 0 ] || { echo 'usage: check-renderer-comparison' >&2; exit 2; }
 python3 "$ROOT/scripts/tests/renderer_comparison_test.py"
+python3 "$ROOT/scripts/tests/renderer_replay_assembly_test.py"
 cargo test --locked --manifest-path "$ROOT/experiments/renderer-comparison/Cargo.toml" --target-dir "$ROOT/.build-cache/renderer-comparison"
 "$ROOT/scripts/build-renderer-comparison"

@@ -1,0 +1,22 @@
+{
+  "archive": "renderer-guarded-d473865.tar.gz",
+  "sha256": "85e2e95d62ab082094328677f0a8784646845658cf85418f376755a09461cd32",
+  "bytes": 61124999,
+  "selected_measurement_source_revision": "d473865fff50c3564192df1c766eedfb200c6980",
+  "contents": [
+    "primary-guarded-assembled",
+    "sustained-guarded-assembled",
+    "primary-guarded-final",
+    "primary-guarded-remaining-2",
+    "sustained-guarded-final",
+    "sustained-guarded-remaining",
+    "primary-guarded-remaining",
+    "primary-guarded",
+    "lifecycle-pilot",
+    "lifecycle-pilot-settled",
+    "lifecycle-pilot-exclusive",
+    "lifecycle-pilot-floating"
+  ],
+  "scope": "Derived16primary+6sustained, original attempts and lifecycle diagnostics. Earlier pilots have their own source revisions; excluded interrupted data is retained.",
+  "raw_location": "Local ignored artifacts/renderer-comparison; archive is not checked into Git."
+}

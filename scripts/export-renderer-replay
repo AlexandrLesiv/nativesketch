@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Export guarded replay separately; preserve original measurements and paired identities."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import runpy
+
+REPO = Path(__file__).resolve().parent.parent
+ANALYZER = runpy.run_path(str(REPO / 'scripts/analyze-renderer-comparison'))
+DISTRIBUTION = ANALYZER['distribution']
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_run(path, summary):
+    summary = dict(summary)
+    manifest, phases = ANALYZER['validate'](path)
+    rows = phases['measured']
+    active = [r['service_ms'] - r['acquire_ms'] for r in rows]
+    summary['metrics']['service_without_acquire_ms'] = DISTRIBUTION(active)
+    summary['trial'] = path.name
+    del summary['path']
+    summary['raw_sha256'] = {p.name: digest(p) for p in sorted(path.iterdir()) if p.is_file()}
+    times = [r['cpu_frame_start_s'] for r in rows]
+    windows = {}
+    for name, selected in [('first_30s', [i for i,t in enumerate(times) if t < times[0]+30]),
+                           ('last_30s', [i for i,t in enumerate(times) if t > times[-1]-30])]:
+        windows[name] = {
+            'frames': len(selected),
+            'presentation_callback_count': sum(rows[i]['presented_s'] is not None for i in selected),
+            'scene_ms': DISTRIBUTION([rows[i]['scene_ms'] for i in selected]),
+            'service_without_acquire_ms': DISTRIBUTION([active[i] for i in selected]),
+            'cpu_frame_interval_ms': DISTRIBUTION([(times[i]-times[i-1])*1000 for i in selected if i > 0]),
+        }
+    summary['windows'] = windows
+    summary['host_status'] = json.loads((path/'host-status.json').read_text())
+    summary['init_ms'] = manifest['init_ms']
+    summary['os_peak_rss_bytes'] = manifest['os_peak_rss_bytes']
+    summary['gpu_allocated_bytes_at_finish'] = manifest['gpu_allocated_bytes_at_finish']
+    return summary, manifest
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('root', type=Path)
+    p.add_argument('--primary', default='primary-guarded-assembled')
+    p.add_argument('--sustained', default='sustained-guarded-assembled')
+    p.add_argument('--output', type=Path, required=True)
+    a = p.parse_args()
+    result = {'definition': 'Separate paired replay, never pooled with the original matrix. Nearest-rank per-process distributions. Service excluding acquisition includes internal backend waits. CPU frame intervals are not displayed FPS.', 'suites': []}
+    repaired_revisions = set()
+    for suite, name, expected in [('primary', a.primary, 16), ('sustained', a.sustained, 6)]:
+        directory = a.root/name
+        metadata = json.loads((directory/'suite.json').read_text())
+        if metadata['status'] != 'complete' or metadata['completed'] != expected or len(metadata['trials']) != expected:
+            raise ValueError('Incomplete declared repair coverage')
+        if suite == 'primary' and (not metadata.get('replay') or metadata.get('original_trial_count') != 320):
+            raise ValueError('Expected explicit targeted primary replay provenance')
+        original_directory = a.root/(suite+'-final')
+        paths = sorted(directory.glob('*/manifest.json'))
+        if len(paths) != expected: raise ValueError('Missing/extra repaired trial')
+        # Also validate equivalent paired inputs within the repaired set.
+        guarded_summary = {Path(r['path']).name:r for r in ANALYZER['analyze']([p.parent for p in paths])['runs']}
+        original_summary = {Path(r['path']).name:r for r in ANALYZER['analyze']([original_directory/p.parent.name for p in paths])['runs']}
+        pairs = []
+        for path in paths:
+            repaired, rm = load_run(path.parent, guarded_summary[path.parent.name])
+            original, om = load_run(original_directory/path.parent.name, original_summary[path.parent.name])
+            for field in ['backend', 'fixture_hash', 'input_hash', 'image_hash', 'width', 'height', 'mode', 'repeat_id', 'warmup', 'frames_requested', 'duration_seconds', 'dependencies', 'quality']:
+                if rm[field] != om[field]: raise ValueError('Original/repaired work mismatch: '+field)
+            if rm['source_diff_hash'] != hashlib.sha256(b'').hexdigest(): raise ValueError('Dirty repaired source')
+            host = repaired['host_status']
+            policy = 'temporary floating automatic benchmark window; restored after output'
+            if rm['runtime'].get('window_level_policy') != policy or host.get('window_level_policy') != policy:
+                raise ValueError('Guarded replay requires recorded automatic floating-window policy')
+            if host.get('activity_held_through_output') is not True or not {'userInitiated','latencyCritical','idleDisplaySleepDisabled'}.issubset(set(rm['runtime'].get('activity_options',[]))):
+                raise ValueError('Guarded replay requires activity evidence in manifest and host status')
+            for state in [rm['runtime'].get('lifecycle_start',{}),host.get('lifecycle_start',{}),host.get('lifecycle_end',{})]:
+                if state.get('window_level') != 3 or state.get('window_unoccluded') is not True:
+                    raise ValueError('Guarded replay requires AppKit floating level 3 throughout')
+            repaired_revisions.add(rm['source_revision'])
+            pairs.append({'original': original, 'guarded': repaired})
+        result['suites'].append({'suite': suite, 'directory': name, 'suite_sha256': digest(directory/'suite.json'), 'trial_count': expected, 'elapsed_s': metadata['elapsed_s'], 'original_trial_indices': metadata.get('original_trial_indices'), 'pairs': pairs})
+    if len(repaired_revisions) != 1: raise ValueError('Mixed guarded revisions')
+    result['guarded_source_revision'] = repaired_revisions.pop()
+    a.output.parent.mkdir(parents=True, exist_ok=True)
+    a.output.write_text(json.dumps(result, indent=2)+'\n')
+    print(a.output)
+
+
+if __name__ == '__main__':
+    main()

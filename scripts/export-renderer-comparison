@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Export per-process comparison statistics without pooling frames across repeats."""
+import argparse,csv,hashlib,json,pathlib,runpy,statistics
+p=argparse.ArgumentParser(description=__doc__);p.add_argument('root',type=pathlib.Path);p.add_argument('output',type=pathlib.Path);a=p.parse_args()
+repo=pathlib.Path(__file__).resolve().parent.parent
+analyzer=runpy.run_path(str(repo/'scripts/analyze-renderer-comparison'))
+distribution=analyzer['distribution']
+def verified_summary(directory):
+ stored=json.loads((directory/'summary.json').read_text())
+ paths=[directory/pathlib.Path(r['path']).name for r in stored['runs']]
+ if len(set(paths))!=len(paths): raise ValueError('Duplicate trial path')
+ fresh=analyzer['analyze'](paths)
+ for old,new in zip(stored['runs'],fresh['runs']):
+  if {k:v for k,v in old.items() if k!='path'} != {k:v for k,v in new.items() if k!='path'}: raise ValueError('Stale summary: '+new['path'])
+ return fresh
+def raw_identity(path):
+ return {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(path.iterdir()) if p.is_file()}
+a.output.mkdir(parents=True,exist_ok=True)
+all_runs=[];sources=[]
+for suite in ['primary','sustained']:
+ directory=a.root/(suite+'-final');meta=json.loads((directory/'suite.json').read_text())
+ expected={'primary':320,'sustained':6}[suite]
+ if meta['status']!='complete' or meta['completed']!=expected or len(meta['trials'])!=expected: raise ValueError('Incomplete declared matrix')
+ summary=verified_summary(directory)
+ if len(summary['runs'])!=meta['completed']: raise ValueError('Summary count mismatch')
+ sources.append({'suite':suite,'summary_sha256':hashlib.sha256((directory/'summary.json').read_bytes()).hexdigest(),'trial_count':meta['completed'],'elapsed_s':meta['elapsed_s']})
+ for r in summary['runs']:
+  path=directory/pathlib.Path(r['path']).name;m=json.loads((path/'manifest.json').read_text())
+  with (path/'frames.csv').open() as f:frames=[x for x in csv.DictReader(f) if x['phase']=='measured']
+  work=[float(x['service_ms'])-float(x['acquire_ms']) for x in frames]
+  stats=dict(r['metrics']);stats['service_without_acquire_ms']=distribution(work);stats['cpu_frame_interval_ms']=r['cpu_frame_interval_ms'];stats['presentation_interval_ms']=r['presentation_interval_ms']
+  row={k:r[k] for k in ['backend','fixture','width','height','mode','repeat_id','source_revision','measured_frames','measured_elapsed_s','presentation_callback_count']}
+  row.update(suite=suite,trial=path.name,raw_sha256=raw_identity(path),gpu_timing=r['gpu_timing'],init_ms=m['init_ms'],identity_precompute_ms=m.get('identity_precompute_ms'),os_peak_rss_bytes=m.get('os_peak_rss_bytes'),gpu_allocated_bytes_at_finish=m.get('gpu_allocated_bytes_at_finish'),sampled_peak_rss_bytes=r['sampled_rss_bytes']['max'],service_budget_overruns=r['service_budget_overruns']['count'],service_budget_denominator=r['service_budget_overruns']['denominator'],first_use=r['first_use'],instrumentation_storage=m['instrumentation_storage'],metrics=stats)
+  if suite=='sustained':
+   times=[float(x['cpu_frame_start_s']) for x in frames]
+   row['windows']={}
+   for name,indices in [('first_30s',[i for i,t in enumerate(times) if t<times[0]+30]),('last_30s',[i for i,t in enumerate(times) if t>times[-1]-30])]:
+    row['windows'][name]={'frames':len(indices),'service_without_acquire_ms':distribution([work[i] for i in indices]),'cpu_frame_interval_ms':distribution([(times[i]-times[i-1])*1000 for i in indices if i>0])}
+   row['trace_full_cycles']=len(frames)//600;row['trace_partial_frames']=len(frames)%600
+  all_runs.append(row)
+if len({r['source_revision'] for r in all_runs})!=1: raise ValueError('Mixed source revisions')
+cells=[]
+for key in sorted(set((r['fixture'],r['width'],r['height'],r['mode']) for r in all_runs if r['suite']=='primary')):
+ group=[r for r in all_runs if r['suite']=='primary' and (r['fixture'],r['width'],r['height'],r['mode'])==key]
+ cell=dict(zip(['fixture','width','height','mode'],key));cell['backends']={}
+ for backend in ['skia','vello']:
+  rows=[r for r in group if r['backend']==backend];assert len(rows)==5
+  metrics={}
+  for metric in rows[0]['metrics']:
+   metrics[metric]={}
+   for q in ['p50','p95','p99','max']:
+    vals=[r['metrics'][metric][q] for r in rows if r['metrics'][metric][q] is not None]
+    metrics[metric][q]={'median':statistics.median(vals) if vals else None,'min':min(vals) if vals else None,'max':max(vals) if vals else None}
+  cell['backends'][backend]={'metrics':metrics,'init_ms_median':statistics.median(r['init_ms'] for r in rows),'os_peak_rss_bytes_median':statistics.median(r['os_peak_rss_bytes'] for r in rows),'sampled_peak_rss_bytes_median':statistics.median(r['sampled_peak_rss_bytes'] for r in rows),'first_use_service_ms_median':statistics.median(r['first_use']['service_ms'] for r in rows)}
+ deltas=[]
+ for repeat in range(5):
+  sk=next(r for r in group if r['backend']=='skia' and r['repeat_id']==f'primary-{repeat}')
+  ve=next(r for r in group if r['backend']=='vello' and r['repeat_id']==f'primary-{repeat}')
+  deltas.append(ve['metrics']['service_without_acquire_ms']['p95']-sk['metrics']['service_without_acquire_ms']['p95'])
+ cell['paired_service_without_acquire_p95_vello_minus_skia_ms']={'median':statistics.median(deltas),'min':min(deltas),'max':max(deltas),'values':deltas}
+ cells.append(cell)
+calibration=[]
+for directory in sorted(a.root.glob('calibration-*-gpu-*-rss-*')):
+ meta=json.loads((directory/'suite.json').read_text());assert meta['status']=='complete' and meta['completed']==2
+ summary=verified_summary(directory)
+ for r in summary['runs']:
+  path=directory/pathlib.Path(r['path']).name
+  with (path/'frames.csv').open() as f:frames=[x for x in csv.DictReader(f) if x['phase']=='measured']
+  if len(frames)!=600 or r['source_revision']!=all_runs[0]['source_revision']: raise ValueError('Calibration source/count mismatch')
+  calibration.append({'round':int(directory.name.split('-')[1]),'backend':r['backend'],'gpu_timing':meta['gpu_timing'],'memory_sampling':meta['memory_sampling'],'raw_sha256':raw_identity(path),'service_without_acquire_ms':distribution([float(x['service_ms'])-float(x['acquire_ms']) for x in frames]),'cpu_frame_interval_ms':r['cpu_frame_interval_ms']})
+if len(calibration)!=18: raise ValueError('Expected three calibration rounds with three settings and two backends')
+result={'source_revision':all_runs[0]['source_revision'],'definition':'Nearest-rank distributions per process; cell values are medians and ranges of five process statistics. Service without acquire = service_ms - acquire_ms per frame; still includes synchronous backend waits and is not CPU utilization. GPU spans include CPU/queue gaps.','sources':sources,'cells':cells,'runs':all_runs,'calibration':calibration}
+(a.output/'results.json').write_text(json.dumps(result,indent=2)+'\n')
+flat=[]
+for r in all_runs:
+ row={k:v for k,v in r.items() if k not in ['metrics','first_use','windows','instrumentation_storage','raw_sha256']}
+ for metric,stats in r['metrics'].items():
+  for q,v in stats.items():row[metric+'_'+q]=v
+ for metric,v in r['first_use'].items():row['first_use_'+metric]=v
+ flat.append(row)
+fields=list(dict.fromkeys(k for r in flat for k in r))
+with (a.output/'per-process.csv').open('w',newline='') as f:
+ w=csv.DictWriter(f,fieldnames=fields,lineterminator='\n');w.writeheader();w.writerows(flat)
+print(json.dumps({'source_revision':result['source_revision'],'processes':len(all_runs),'cells':len(cells),'output':str(a.output)},indent=2))
