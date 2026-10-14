@@ -748,6 +748,9 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       if self.editor.handle == nil { self.editor.reset() }
       if self.editor.check(sketch_document_new(self.editor.handle)) {
         self.name = "Untitled"
+        #if os(iOS)
+        self.watchSender.documentID = UUID().uuidString
+        #endif
         self.canvas.zoom = 1
         self.canvas.offset = CGPoint(x: 32, y: 32)
       }
@@ -843,6 +846,9 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       }
       if editor.load(data) {
         name = url.lastPathComponent
+        #if os(iOS)
+        watchSender.documentID = UUID().uuidString
+        #endif
         canvas.zoom = 1
         canvas.offset = CGPoint(x: 32, y: 32)
       }

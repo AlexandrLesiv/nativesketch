@@ -2,8 +2,15 @@
   import Foundation
   import WatchConnectivity
 
+  private final class WatchReply: @unchecked Sendable {
+    let call: ([String: Any]) -> Void
+    init(_ call: @escaping ([String: Any]) -> Void) { self.call = call }
+  }
+
   // Only explicit user actions enqueue a transfer; a copy never acknowledges a save.
   @MainActor final class WatchCopySender: NSObject, WCSessionDelegate {
+    var documentID = UUID().uuidString
+    private let catalog = SharedDrawingCatalog(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("WatchShared"))
     private var session: WCSession?
     private var pending: (Data, String, (String) -> Void)?
     private var completions: [URL: (String) -> Void] = [:]
@@ -52,13 +59,13 @@
           .appendingPathComponent("WatchOutgoing", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent(UUID().uuidString + ".nsketch")
-        try data.write(to: url, options: .atomic)
+        let copy = try catalog.share(data, title: title, documentID: documentID)
+        try JSONEncoder().encode(copy).write(to: url, options: .atomic)
         completions[url] = report
         session.transferFile(
           url,
           metadata: [
-            "protocolVersion": 1, "sentAt": Date().timeIntervalSince1970,
-            "title": title, "contentType": "dev.nativesketch.document",
+            "sourceProtocol": 2,
           ])
         report(
           "Copy queued for Apple Watch. Delivery can occur later when the devices connect. Sending a copy does not change this document’s saved status."
@@ -79,6 +86,35 @@
         } else {
           pending.2("Could not connect to Apple Watch: \(message ?? "try again after pairing")")
         }
+      }
+    }
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
+      let reply = WatchReply(replyHandler)
+      let id = message["requestID"] as? String
+      let version = message["sourceProtocol"] as? Int
+      let operation = message["operation"] as? String
+      let offset = message["offset"] as? Int ?? 0
+      let encoded = message["descriptor"] as? Data
+      Task { @MainActor in
+        guard version == 2, let id, UUID(uuidString: id) != nil else { reply.call(["error": "Invalid request"]); return }
+        do {
+          if operation == "list" {
+            guard offset >= 0, offset < 128, offset % 16 == 0 else { throw SourceFailure.metadata }
+            let items = Array(try self.catalog.list().dropFirst(offset).prefix(16))
+            let data = try JSONEncoder().encode(items)
+            guard data.count <= 48 * 1024 else { throw SourceFailure.oversized }
+            reply.call(["requestID": id, "payload": data])
+          } else if operation == "fetch", let encoded, encoded.count <= 8192 {
+            let descriptor = try JSONDecoder().decode(SourceDescriptor.self, from: encoded)
+            let copy = try self.catalog.fetch(descriptor)
+            let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("WatchOutgoing")
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let url = directory.appendingPathComponent(UUID().uuidString + ".json")
+            try JSONEncoder().encode(copy).write(to: url, options: .atomic)
+            WCSession.default.transferFile(url, metadata: ["sourceProtocol": 2, "requestID": id])
+            reply.call(["requestID": id, "queued": true])
+          } else { throw SourceFailure.metadata }
+        } catch { reply.call(["requestID": id, "error": "Shared copy unavailable"]) }
       }
     }
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}
