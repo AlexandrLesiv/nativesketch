@@ -1,7 +1,6 @@
 # 002: Choose the initial renderer using evidence
 
-Status: ready — detailed execution plan prepared; implementation and measurement await
-owner review of this plan. Roles: rendering_performance, build_reliability, reviewer.
+Status: active — owner authorized execution of the detailed plan on 2026-10-14. Roles: rendering_performance, build_reliability, reviewer.
 Updated: 2026-10-14. Planning baseline: `f5637a1`.
 
 ## Outcome and boundaries
@@ -25,7 +24,7 @@ The lead owns contract changes; version the manifest schema when it changes.
 
 ### Candidate versions
 
-Initial researched candidates:
+Initial researched candidates (superseded by the execution selection below):
 
 | Component | Proposed pin / settings |
 | --- | --- |
@@ -46,6 +45,22 @@ or upgrades. A third candidate is a separately labeled experiment, not a substit
 Commit a standalone experiment Cargo.lock and record compiler, SDK, build flags, Skia
 source/binary identity and lockfile hash. Build release artifacts before timed work. Do not
 raise the production workspace's minimum Rust version solely for this experiment.
+
+### Execution selection (2026-10-14)
+
+The approved preflight selects `skia-safe =0.153.3` Ganesh/Metal versus
+`vello_gpu =0.3.0`, `vello_common =0.3.0`, and `wgpu =30.0.0` (Metal only).
+The current official Vello guidance identifies sparse-strips Vello GPU as the intended
+production GPU direction and places compute-centric Vello under research. The candidate
+preprocesses paths on the CPU and rasterizes/composites on the GPU; include that CPU work
+in measured stages. Results apply to these exact variants, not every Vello implementation.
+The standalone lockfile will pin transitive dependencies. Production renderer selection
+remains OPEN.
+
+Use one Metal device/queue and equivalent offscreen BGRA8Unorm textures for both adapters,
+then a common native drawable blit/presentation path. Common sentinel timing is labeled
+GPU timeline span, including queue scheduling/idle gaps; it is not pure GPU execution.
+Safe interoperation and actual timing availability must pass the smoke gate before data.
 
 ### Identical input and rendering intent
 
