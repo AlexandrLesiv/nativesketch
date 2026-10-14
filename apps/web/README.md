@@ -24,3 +24,28 @@ There is no automatic recovery of unsaved drawings after a tab/process closes.
 Canvas2D is disposable presentation, not a production renderer decision. Physical pen
 feel and browser accessibility speech need device testing; Wasm adapter checks alone
 are not UI evidence.
+
+## GitHub Pages
+
+The public browser app is deployed to https://alexandrlesiv.github.io/nativesketch/.
+This is the current interaction prototype: Rust/Wasm owns editing, Canvas2D paints it;
+renderer task 002 remains open. Serving the app does not upload drawings or add cloud
+storage. Unsaved drawings still need an explicit download before closing the tab.
+
+`.github/workflows/pages.yml` pins the build toolchain and official Actions. It runs
+core, Wasm conformance and browser adapter checks on Ubuntu before publishing only
+`artifacts/web/`. All asset URLs and the service-worker scope are relative, supporting
+the `/nativesketch/` project path as well as a local root URL.
+
+Repository setup: Settings → Pages → Source → GitHub Actions. The `github-pages`
+environment must allow `main` and `codex/github-pages`. The latter is the explicitly
+authorized initial publication branch so the demo can be served before source PRs are
+merged. Pull requests build/test only and cannot deploy. After merging the Pages PR,
+remove the bootstrap branch and its deployment allowance; future updates come from
+`main`. Manual dispatch is also restricted to those same branches by the job conditions.
+No workflow merges branches or publishes native installers.
+
+The worker caches the app for offline reload after a successful first visit. Close all
+app tabs and reopen to activate an updated worker. This is asset caching, not drawing
+recovery. GitHub Pages supplies HTTPS and Wasm MIME delivery; verify these on the live
+URL after deployment. Build failures leave the previous deployment in place.
