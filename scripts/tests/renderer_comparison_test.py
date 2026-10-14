@@ -34,6 +34,7 @@ class EvidenceTests(unittest.TestCase):
         (p/'readback.json').write_text(json.dumps({'width':16,'height':16}))
         (p/'final.png').write_bytes(b'fixture')
         (p/'run.log').touch()
+        (p/'host-status.json').write_text(json.dumps({'status':'complete'}))
         return p,rows
     def write_rows(self,p,rows):
         with (p/'frames.csv').open('w',newline='') as f:
@@ -106,6 +107,51 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'pair mismatch gpu_timing'): A['analyze']([a,b])
         m['repeat_id']='primary-0';(b/'manifest.json').write_text(json.dumps(m))
         with self.assertRaisesRegex(ValueError,'require GPU timing on'): A['validate'](b)
+    def test_host_invalidation_overrides_complete_manifest(self):
+        p,_=self.fixture('skia')
+        (p/'host-status.json').write_text(json.dumps({'status':'invalidated','reason':'occluded during output drain'}))
+        with self.assertRaisesRegex(ValueError,'native host did not complete'): A['validate'](p)
+    def test_repaired_lifecycle_requires_assertion_and_visibility(self):
+        p,_=self.fixture('skia')
+        state=dict(window_visible=True,window_unoccluded=True,session_on_console=True,window_miniaturized=False,session_resigned=False,system_sleeping=False,screens_sleeping=False,display_asleep=False)
+        host=dict(status='complete',lifecycle_start=state,lifecycle_end=dict(state),lifecycle_events=[],activity_held_through_output=True,activity_options=['userInitiated','latencyCritical','idleDisplaySleepDisabled'])
+        path=p/'host-status.json';path.write_text(json.dumps(host));A['validate'](p)
+        host['activity_held_through_output']=False;path.write_text(json.dumps(host))
+        with self.assertRaisesRegex(ValueError,'assertion'): A['validate'](p)
+        host['activity_held_through_output']=True;host['lifecycle_end']['window_unoccluded']=False;path.write_text(json.dumps(host))
+        with self.assertRaisesRegex(ValueError,'lifecycle state'): A['validate'](p)
+        host['lifecycle_end']['window_unoccluded']=True;host['lifecycle_events']=[dict(event='occluded',invalidating=True)];path.write_text(json.dumps(host))
+        with self.assertRaisesRegex(ValueError,'invalidating'): A['validate'](p)
+    def replay_source(self, suite='primary'):
+        source=self.root/'original';source.mkdir()
+        trials=R['matrix'](suite)
+        (source/'suite.json').write_text(json.dumps(dict(suite=suite,status='complete',completed=len(trials),trials=trials)))
+        for i,t in enumerate(trials):
+            path=source/R['trial_name'](i,t);path.mkdir()
+            (path/'manifest.json').write_text(json.dumps(dict(t,status='complete',source_revision='original')))
+        return source
+    def test_replay_expands_pairs_and_preserves_indices(self):
+        source=self.replay_source()
+        before=(source/'suite.json').read_bytes()
+        selected,meta=R['replay_plan']('primary',source,'58,70,71,72,224,227,228,230,233')
+        self.assertEqual([i for i,_ in selected],[58,59,70,71,72,73,224,225,226,227,228,229,230,231,232,233])
+        self.assertEqual(len(selected),16)
+        self.assertEqual(meta['original_trial_count'],320)
+        self.assertTrue(meta['replay'])
+        self.assertEqual(meta['source_revisions'],['original'])
+        self.assertEqual(before,(source/'suite.json').read_bytes())
+        self.assertTrue(R['trial_name'](*selected[0]).startswith('058-'))
+    def test_replay_rejects_invalid_and_incomplete_source(self):
+        source=self.replay_source()
+        for indices in ('','1,','-1','320','1,1','1.5','abc'):
+            with self.assertRaises(ValueError): R['replay_plan']('primary',source,indices)
+        with self.assertRaises(ValueError): R['replay_plan']('sustained',source,'0')
+        manifest=next(source.glob('*/manifest.json'));value=json.loads(manifest.read_text());value['backend']='wrong';manifest.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError,'mismatched'): R['replay_plan']('primary',source,'0')
+        manifest.unlink()
+        with self.assertRaisesRegex(ValueError,'missing'): R['replay_plan']('primary',source,'0')
+        suite=json.loads((source/'suite.json').read_text());suite['status']='failed';(source/'suite.json').write_text(json.dumps(suite))
+        with self.assertRaisesRegex(ValueError,'incomplete'): R['replay_plan']('primary',source,'0')
     def test_matrix_coverage(self):
         primary=R['matrix']('primary');self.assertEqual(len(primary),320)
         self.assertEqual(len(R['matrix']('sustained')),6)

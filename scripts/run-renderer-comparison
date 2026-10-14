@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -16,6 +17,38 @@ def matrix(suite):
     cells = [('live',1600,1000,'completion')] if suite == 'pilot' else ([('panzoom',1600,1000,'paced')] if suite == 'sustained' else [(f,w,h,m) for f in FIXTURES for w,h in [(1600,1000),(2560,1600)] for m in ['completion','paced']])
     repeats = {'pilot':1,'primary':5,'sustained':3}[suite]
     return [dict(fixture=f,width=w,height=h,mode=m,repeat_id=f'{suite}-{r}',backend=b) for f,w,h,m in cells for r in range(repeats) for b in (['skia','vello'] if r % 2 == 0 else ['vello','skia'])]
+
+def replay_plan(suite, source, selection):
+    """Replay whole adjacent backend pairs, retaining the original matrix indices."""
+    original = json.loads((source / 'suite.json').read_text())
+    expected = matrix(suite)
+    if original.get('suite') != suite or original.get('replay'):
+        raise ValueError('replay source must be an original full suite of the selected type')
+    if original.get('status') != 'complete' or original.get('completed') != len(expected) or original.get('trials') != expected:
+        raise ValueError('replay source is incomplete or its trial matrix is inconsistent')
+    tokens = selection.split(',')
+    if not tokens or any(not token.strip().isascii() or not token.strip().isdigit() for token in tokens):
+        raise ValueError('trial indices must be comma-separated nonnegative integers')
+    requested = [int(token.strip()) for token in tokens]
+    if len(requested) != len(set(requested)) or any(i >= len(expected) for i in requested):
+        raise ValueError('duplicate or out-of-range trial index')
+    indices = sorted({j for i in requested for j in (i // 2 * 2, i // 2 * 2 + 1)})
+    # Check every original result is present and complete, without modifying old evidence.
+    manifests = list(source.glob('*/manifest.json'))
+    if len(manifests) != len(expected): raise ValueError('replay source has missing or extra trial manifests')
+    revisions = set()
+    for i,trial in enumerate(expected):
+        directory = trial_name(i,trial)
+        m = json.loads((source / directory / 'manifest.json').read_text())
+        if m.get('status') != 'complete' or any(m.get(k) != v for k,v in trial.items()):
+            raise ValueError(f'replay source trial {i} is incomplete or mismatched')
+        revisions.add(m.get('source_revision'))
+    if None in revisions: raise ValueError('replay source missing source revision')
+    metadata = {'replay':True, 'source_suite':str(source), 'source_suite_sha256':hashlib.sha256((source/'suite.json').read_bytes()).hexdigest(), 'source_revisions':sorted(revisions), 'requested_trial_indices':requested, 'original_trial_indices':indices, 'original_trial_count':len(expected), 'coverage':'targeted paired replay only; not a complete matrix; do not silently pool with original revisions'}
+    return [(i,expected[i]) for i in indices], metadata
+
+def trial_name(i, trial):
+    return f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["mode"]}-{trial["repeat_id"]}-{trial["backend"]}'
 
 def observation():
     result = {'utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
@@ -46,6 +79,8 @@ def main():
     root = Path(__file__).resolve().parent.parent
     parser.add_argument('--binary',type=Path,default=root/'artifacts/renderer-comparison-build/RendererComparison.app/Contents/MacOS/RendererComparison')
     parser.add_argument('--dry-run',action='store_true')
+    parser.add_argument('--replay-from',type=Path,help='Complete original suite; preserve it and write selected pairs to a fresh output directory')
+    parser.add_argument('--trial-indices',help='Original comma-separated indices; each expands to both members of its backend pair')
     parser.add_argument('--memory-sampling',choices=['on','off'],default='on')
     parser.add_argument('--memory-interval',type=float,default=.25)
     parser.add_argument('--window-seconds',type=float,default=14400)
@@ -56,25 +91,31 @@ def main():
     if gpu_timing not in ('on', 'off'): parser.error('RENDERER_GPU_TIMING must be on or off')
     if args.suite in ('primary', 'sustained') and gpu_timing != 'on':
         parser.error('RENDERER_GPU_TIMING=off is only allowed for pilot instrumentation comparisons; primary/sustained require on')
-    plan = matrix(args.suite)
+    if (args.replay_from is None) != (args.trial_indices is None): parser.error('--replay-from and --trial-indices must be supplied together')
+    indexed_plan = list(enumerate(matrix(args.suite)))
+    replay_metadata = {}
+    if args.replay_from is not None:
+        try: indexed_plan, replay_metadata = replay_plan(args.suite,args.replay_from.resolve(),args.trial_indices)
+        except (ValueError,OSError,TypeError,KeyError) as error: parser.error(str(error))
+    plan = [trial for _,trial in indexed_plan]
     if args.dry_run:
-        print(json.dumps({'suite':args.suite,'gpu_timing':gpu_timing,'trial_count':len(plan),'trials':plan},indent=2)); return 0
+        print(json.dumps({'suite':args.suite,'gpu_timing':gpu_timing,'trial_count':len(plan),'trials':plan,**replay_metadata},indent=2)); return 0
     # Keep disposable evidence under the repository ignored artifact tree.
     if not output.is_relative_to(root/'artifacts'/'renderer-comparison'): parser.error('output must be under repository artifacts/renderer-comparison/')
     if output.exists(): parser.error('output exists: preserve it and choose a fresh run directory')
     if not args.binary.is_file(): parser.error('build the native binary first')
     output.mkdir(parents=True)
-    metadata = {'schema_version':1,'suite':args.suite,'gpu_timing':gpu_timing,'status':'running','trials':plan,'completed':0,'memory_sampling':args.memory_sampling,'memory_interval_s':args.memory_interval,'memory_definition':'external ps resident set, not footprint or GPU allocation','start':observation()}
+    metadata = {'schema_version':1,'suite':args.suite,'gpu_timing':gpu_timing,'status':'running','trials':plan,'completed':0,'memory_sampling':args.memory_sampling,'memory_interval_s':args.memory_interval,'memory_definition':'external ps resident set, not footprint or GPU allocation','start':observation(),**replay_metadata}
     def save(): (output/'suite.json').write_text(json.dumps(metadata,indent=2)+'\n')
     save()
     start = time.monotonic()
     inhibitor = None
     try:
         if sys.platform == 'darwin': inhibitor = subprocess.Popen(['caffeinate','-di','-w',str(os.getpid())])
-        for i,trial in enumerate(plan):
+        for i,trial in indexed_plan:
             remaining = args.window_seconds - (time.monotonic()-start)
             if remaining <= 0: raise RuntimeError('measurement window expired; pending cells retained in suite manifest')
-            path = output / f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["mode"]}-{trial["repeat_id"]}-{trial["backend"]}'
+            path = output / trial_name(i,trial)
             path.mkdir()
             command = [str(args.binary.resolve())]
             for key,value in trial.items(): command += ['--'+key.replace('_','-'),str(value)]

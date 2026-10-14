@@ -22,6 +22,21 @@ def validate(path):
     missing = set(required) - m.keys()
     if missing: raise ValueError(f'{path}: missing manifest fields {sorted(missing)}')
     if m['schema_version'] != 1 or m['status'] != 'complete': raise ValueError(f'{path}: incompatible or incomplete manifest')
+    host = json.loads((path / 'host-status.json').read_text())
+    if host.get('status') != 'complete': raise ValueError(f'{path}: native host did not complete: {host.get("status")}')
+    if 'lifecycle_start' in host or 'lifecycle_start' in m['runtime']:
+        if host.get('activity_held_through_output') is not True:
+            raise ValueError('native activity assertion was not held through output')
+        required_options = {'userInitiated','latencyCritical','idleDisplaySleepDisabled'}
+        if not required_options.issubset(set(host.get('activity_options',[]))):
+            raise ValueError('missing native activity assertion options')
+        events = host.get('lifecycle_events')
+        if not isinstance(events,list) or any(event.get('invalidating') is not False for event in events):
+            raise ValueError('native lifecycle invalidating event or incomplete event record')
+        for phase in ('lifecycle_start','lifecycle_end'):
+            state = host.get(phase,{})
+            if any(state.get(key) is not True for key in ('window_visible','window_unoccluded','session_on_console')) or any(state.get(key) is not False for key in ('window_miniaturized','session_resigned','system_sleeping','screens_sleeping','display_asleep')):
+                raise ValueError(f'invalid native lifecycle state: {phase}')
     if m['backend'] not in ('skia','vello') or m['mode'] not in ('completion','paced'): raise ValueError('invalid backend/mode')
     if m['gpu_timing'] not in ('on','off'): raise ValueError('invalid GPU timing setting')
     if (m['repeat_id'].startswith(('primary-', 'sustained-')) or m['duration_seconds'] is not None) and m['gpu_timing'] != 'on':
@@ -144,6 +159,8 @@ def main():
                 raise ValueError('incomplete/failed suite; preserve partial evidence without claiming completion')
         result = analyze(paths)
         if suite_path.exists():
+            if suite.get('replay'):
+                result['coverage'] = {key:suite[key] for key in ('replay','source_suite','source_suite_sha256','source_revisions','requested_trial_indices','original_trial_indices','original_trial_count','coverage')}
             if suite.get('gpu_timing') not in ('on','off') or any(run['gpu_timing'] != suite['gpu_timing'] for run in result['runs']):
                 raise ValueError('suite GPU timing setting missing or inconsistent with trials')
             if suite.get('suite') in ('primary','sustained') and suite['gpu_timing'] != 'on':
