@@ -631,12 +631,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   }
   @objc func saveDocument(_ sender: Any?) { _ = save() }
   @objc func saveAs(_ sender: Any?) { _ = save(forcePanel: true) }
+  func recoverEditorIfNeeded() {
+    guard editor.unavailable else { return }
+    // A new empty editor must never inherit the previous document destination.
+    url = nil
+    editor.reset()
+    reportedEngineFailure = false
+  }
   @objc func newDocument(_ sender: Any?) {
     guard mayReplace() else { return }
-    if editor.unavailable {
-      editor.reset()
-      reportedEngineFailure = false
-    }
+    recoverEditorIfNeeded()
     if check(sketch_document_new(editor.handle)) {
       url = nil
       canvas.zoom = 1
@@ -649,10 +653,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     let panel = NSOpenPanel()
     panel.allowsMultipleSelection = false
     guard panel.runModal() == .OK, let destination = panel.url else { return }
-    if editor.unavailable {
-      editor.reset()
-      reportedEngineFailure = false
-    }
+    recoverEditorIfNeeded()
     if checkFile(editor.file(destination, save: false), url: destination, verb: "open") {
       url = destination
       canvas.zoom = 1
@@ -730,8 +731,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     precondition(geometry() == before)
     let roundtrip = canvas.document(canvas.screen(point))
     precondition(abs(roundtrip.x - point.x) < 1e-10 && abs(roundtrip.y - point.y) < 1e-10)
+    let saved = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "native-recovery-\(UUID().uuidString).nsketch")
+    precondition(editor.file(saved, save: true) == 0)
+    let savedBytes = try! Data(contentsOf: saved)
+    url = saved
+    editor.onFailure = nil  // Exercise recovery without opening an intentional panic alert.
+    editor.observe(6)
+    recoverEditorIfNeeded()
+    let missing = saved.appendingPathExtension("missing")
+    precondition(editor.file(missing, save: false) != 0)
+    precondition(url == nil && editor.state.stroke_count == 0)
+    precondition((try! Data(contentsOf: saved)) == savedBytes)
+    try? FileManager.default.removeItem(at: saved)
     print(
-      "PASS: native AppKit mouse replay, cancellation, keyboard-equivalent selection/resize/history, viewport/window resize. Synthetic mouse events; no physical tablet."
+      "PASS: native AppKit mouse replay, cancellation, keyboard-equivalent selection/resize/history, viewport/window resize, failed recovery-open clears Save destination. Synthetic mouse events; no physical tablet."
     )
     _ = sketch_document_new(editor.handle)
     NSApp.terminate(nil)
