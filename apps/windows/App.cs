@@ -280,7 +280,7 @@ public sealed class SketchWindow : Window
                 select.IsChecked = true;
                 break;
             case VirtualKey.Delete:
-                Command("delete");
+                if (engine.State.SelectedId != 0) Command("delete");
                 break;
             default:
                 return;
