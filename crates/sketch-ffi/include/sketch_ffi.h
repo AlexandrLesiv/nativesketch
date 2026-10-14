@@ -53,7 +53,8 @@ typedef struct {
  * through the call. Output is caller-owned and disjoint from inputs. No retained
  * pointers/handles/global state; callable on any thread. Status 0/1/6 as above;
  * failure leaves output untouched. No panic unwinds across this boundary.
- * Decisions: 0 accept, 1 duplicate (retain CURRENT metadata/provenance), 2 stale,
+ * Decisions: 0 accept (advance metadata even if bytes match), 1 duplicate
+ * (identical immutable metadata; retain current), 2 stale,
  * 3 conflict (requires explicit user choice), 4 wrong namespace/document.
  * Same revision with contradictory metadata is invalid (status 1). Same published
  * generation with different revisions conflicts even for identical content.

@@ -685,6 +685,55 @@ mod source_tests {
         }
     }
     #[test]
+    fn ffi_same_content_revision_advance_prevents_rollback_and_keeps_ancestry() {
+        let r1 = SketchSourceVersion {
+            kind: 1,
+            server_generation: 1,
+            ..version()
+        };
+        let r2 = SketchSourceVersion {
+            revision_id: text("r2"),
+            parent_revision_id: r1.revision_id,
+            content_sha256: text(
+                "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            ),
+            server_generation: 2,
+            ..r1
+        };
+        let r3 = SketchSourceVersion {
+            revision_id: text("r3"),
+            parent_revision_id: r2.revision_id,
+            server_generation: 3,
+            ..r1
+        };
+        let mut cached = r1;
+        let mut decision = 999;
+        unsafe {
+            assert_eq!(sketch_source_compare(&cached, &r3, &mut decision), 0);
+            assert_eq!(decision, 0);
+            cached = r3;
+            assert_eq!(sketch_source_compare(&cached, &r2, &mut decision), 0);
+            assert_eq!(decision, 2);
+            let d1 = SketchSourceVersion {
+                kind: 0,
+                revision_id: text("d1"),
+                parent_revision_id: r3.revision_id,
+                ..r3
+            };
+            let d2 = SketchSourceVersion {
+                revision_id: text("d2"),
+                parent_revision_id: d1.revision_id,
+                content_sha256: r2.content_sha256,
+                ..d1
+            };
+            assert_eq!(sketch_source_compare(&cached, &d1, &mut decision), 0);
+            assert_eq!(decision, 0);
+            cached = d1;
+            assert_eq!(sketch_source_compare(&cached, &d2, &mut decision), 0);
+            assert_eq!(decision, 0);
+        }
+    }
+    #[test]
     fn ffi_policy_reports_nonmutating_conflicts_and_identity_mismatch() {
         let current = version();
         let mut candidate = current;
