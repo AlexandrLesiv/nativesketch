@@ -58,7 +58,7 @@ import CSketchFFI
     try bytes.write(to: url, options: .atomic)
   }
   func migrate(_ legacy: WatchCopyStore) throws {
-    guard archive.entries.isEmpty, let metadata = legacy.metadata else { return }
+    guard !FileManager.default.fileExists(atPath: url.path), archive.entries.isEmpty, let metadata = legacy.metadata else { return }
     let hash = SourceDescriptor.hash(legacy.document.source)
     let descriptor = SourceDescriptor(namespaceID: "legacy-phone", documentID: hash, revisionID: hash, parentRevisionID: "", contentSHA256: hash, serverGeneration: 0, kind: 0, title: metadata.title)
     try accept(SourceCopy(descriptor: descriptor, document: legacy.document.source), source: "Migrated iPhone copy", select: true)
@@ -98,16 +98,20 @@ import CSketchFFI
       try copy.validate()
       let decision = try compareSource(descriptor, copy.descriptor)
       guard decision == 0 || decision == 1 else { throw SourceFailure.rejected }
+      try checkPending(copy)
       if navigating, store.selected?.copy.descriptor.id == descriptor.id, store.selected?.copy.descriptor.contentSHA256 != copy.descriptor.contentSHA256 {
         try stage(copy, source: source); report("New version available. Use Apply Update in Details."); changed()
       } else { try store.accept(copy, source: source, select: true); pending = nil; report("Updated from " + source); changed() }
     } catch { if request == generation { report(error.localizedDescription); changed() } }
   }
-  private func stage(_ copy: SourceCopy, source: String) throws {
+  private func checkPending(_ copy: SourceCopy) throws {
     if let pending, pending.0.descriptor.id == copy.descriptor.id {
       let decision = try compareSource(pending.0.descriptor, copy.descriptor)
       guard decision == 0 || decision == 1 else { throw SourceFailure.rejected }
     }
+  }
+  private func stage(_ copy: SourceCopy, source: String) throws {
+    try checkPending(copy)
     let candidate = ReadOnlyDocument()
     try candidate.importCopy(copy.document, limit: WatchCopyStore.limit)
     pending = (copy, source)
@@ -118,11 +122,15 @@ import CSketchFFI
   }
   func pushed(_ copy: SourceCopy) throws {
     try copy.validate()
+    try checkPending(copy)
     // A push adds to the library; it never hijacks an existing selection.
     if copy.descriptor.id == store.selected?.copy.descriptor.id, navigating, store.selected?.copy.descriptor.contentSHA256 != copy.descriptor.contentSHA256 {
       if let current = store.selected { let decision = try compareSource(current.copy.descriptor, copy.descriptor); guard decision == 0 || decision == 1 else { throw SourceFailure.rejected } }
       try stage(copy, source: "iPhone"); report("New version available. Use Apply Update in Details.")
-    } else { try store.accept(copy, source: "iPhone", select: store.selected == nil) }
+    } else {
+      try store.accept(copy, source: "iPhone", select: store.selected == nil)
+      if pending?.0.descriptor.id == copy.descriptor.id { pending = nil }
+    }
     changed()
   }
 }

@@ -64,6 +64,10 @@ import CSketchFFI
     let stagedNewer = SourceCopy(descriptor: SourceDescriptor(namespaceID: "test", documentID: "b", revisionID: "three", parentRevisionID: "", contentSHA256: SourceDescriptor.hash(empty), serverGeneration: 3, kind: 1, title: "b"), document: empty)
     try coordinator.pushed(stagedNewer)
     do { try coordinator.pushed(changed); throw SourceFailure.metadata } catch SourceFailure.rejected {}
+    // Same-content metadata updates must also respect the pending newer revision.
+    phone.copies = [copy("b", "two", 2)]
+    await coordinator.refresh(b.descriptor)
+    guard store.selected?.copy.descriptor.revisionID == "one" else { throw SourceFailure.rejected }
     guard coordinator.pending?.0.descriptor.revisionID == "three" else { throw SourceFailure.rejected }
     try coordinator.apply()
     guard coordinator.pending == nil, store.document.source == empty else { throw SourceFailure.rejected }
@@ -71,6 +75,9 @@ import CSketchFFI
     try legacy.receive(data, metadata: WatchCopyMetadata(["protocolVersion": 1, "sentAt": 1.0, "title": "Legacy", "contentType": "dev.nativesketch.document"]))
     let migrated = WatchLibraryStore(url: root.appendingPathComponent("migrated.json")); try migrated.migrate(legacy)
     guard migrated.selected?.copy.descriptor.phoneOnly == true, FileManager.default.fileExists(atPath: legacy.cache.path) else { throw SourceFailure.rejected }
+    try migrated.remove(migrated.selected!.copy.descriptor.id)
+    let emptyLibrary = WatchLibraryStore(url: migrated.url); try emptyLibrary.restore(); try emptyLibrary.migrate(legacy)
+    guard emptyLibrary.archive.entries.isEmpty else { throw SourceFailure.rejected }
     let missing = ServerDrawingSource(base: nil)
     do { _ = try await missing.list(); throw SourceFailure.metadata } catch SourceFailure.unconfigured {}
     let catalog = SharedDrawingCatalog(directory: root.appendingPathComponent("shared"))
