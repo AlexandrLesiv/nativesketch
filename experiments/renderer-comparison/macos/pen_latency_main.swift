@@ -204,7 +204,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         DispatchQueue.main.async { NSApp.terminate(nil) }; return true
     }
     @objc func showResults() { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: o.output, isDirectory: true)]) }
-    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { if active || finalizing { stopRun(); return .terminateCancel }; return .terminateNow }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { if active || finalizing { closeAfterFinished = true; stopRun(); return .terminateCancel }; return .terminateNow }
     @objc func stopRun() { guard active || finalizing else { return }; outcome = "cancelled"; reason = "Stop requested"; if active { finish() } }
     func abort(_ error: Error) { fputs("\(error)\n", stderr); if active || finalizing { outcome = "failed"; reason = "\(error)"; if active { finish() } } else { exit(1) } }
     var initialization: [[String: Any]] = [], nativeCTM: [Double] = [], retainedClip: CGPath?
