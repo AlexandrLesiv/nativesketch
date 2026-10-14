@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+platform="${1:-simulator}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+case "$platform" in
+ simulator) sdk=appletvsimulator; rust_target=aarch64-apple-tvos-sim; swift_target=arm64-apple-tvos17.0-simulator ;;
+ device) sdk=appletvos; rust_target=aarch64-apple-tvos; swift_target=arm64-apple-tvos17.0 ;;
+ *) echo 'Usage: scripts/build-tvos [simulator|device]' >&2; exit 2 ;;
+esac
+export CARGO_TARGET_DIR="$repo_root/target"
+export SDKROOT="$(xcrun --sdk "$sdk" --show-sdk-path)"
+cargo build --locked --release -p sketch-ffi --target "$rust_target"
+app="$repo_root/artifacts/tvos-$platform/NativeSketchTV.app"
+mkdir -p "$app" "$repo_root/.build-cache/tvos"
+xcrun --sdk "$sdk" swiftc -D VIEWER_REPLAY -swift-version 6 -parse-as-library -O -target "$swift_target" -sdk "$SDKROOT" -module-cache-path "$repo_root/.build-cache/tvos" -I apps/macos/Sources/CSketchFFI apps/apple-viewer/*.swift apps/tvos/NativeSketchTV.swift "target/$rust_target/release/libsketch_ffi.a" -framework UIKit -framework Security -o "$app/NativeSketchTV"
+cp apps/tvos/Info.plist "$app/Info.plist"
+SDKROOT="$(xcrun --sdk macosx --show-sdk-path)" cargo run --locked --quiet -p sketch-ffi --example portable-fixture -- "$app/Sample.nsketch"
+codesign --force --sign - "$app"
+echo "Built $app (device provisioning remains required)."

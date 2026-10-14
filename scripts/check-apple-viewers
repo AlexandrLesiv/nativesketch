@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+cargo build --locked --release -p sketch-ffi
+mkdir -p artifacts/viewer-check
+cargo run --locked --quiet -p sketch-ffi --example portable-fixture -- artifacts/viewer-check/Sample.nsketch
+cat > artifacts/viewer-check/main.swift <<'SWIFT'
+import Foundation
+@main struct Check { @MainActor static func main() throws { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS (host adapter)") } }
+SWIFT
+xcrun swiftc -D VIEWER_REPLAY -swift-version 6 -parse-as-library -I apps/macos/Sources/CSketchFFI apps/apple-viewer/*.swift artifacts/viewer-check/main.swift target/release/libsketch_ffi.a -framework Security -o artifacts/viewer-check/check
+artifacts/viewer-check/check
