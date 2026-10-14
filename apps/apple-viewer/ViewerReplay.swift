@@ -2,6 +2,21 @@ import Foundation
 
 @MainActor enum ViewerReplay {
   static func run() throws {
+    let cancellation = NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+    var rejectedHTTP = BoundedDownload(limit: 3)
+    precondition(!rejectedHTTP.response(status: 404, expectedLength: -1))
+    if case .failure(let reason) = rejectedHTTP.result(transportError: cancellation) { precondition(reason as? DownloadFailure == .http(404)) } else { preconditionFailure("HTTP rejection lost") }
+    var streaming = BoundedDownload(limit: 3)
+    precondition(streaming.response(status: 200, expectedLength: -1))
+    precondition(streaming.append(Data([1, 2])) && !streaming.append(Data([3, 4])))
+    precondition(streaming.bytes == Data([1, 2]) && streaming.failure == .oversized)
+    if case .failure(let reason) = streaming.result(transportError: cancellation) { precondition(reason as? DownloadFailure == .oversized) } else { preconditionFailure("Size rejection lost") }
+    var declared = BoundedDownload(limit: 3)
+    precondition(!declared.response(status: 200, expectedLength: 4) && declared.failure == .oversized)
+    var redirect = BoundedDownload(limit: 3)
+    precondition(!redirect.redirect(to: URL(string: "http://example.test/copy")))
+    precondition(!redirect.response(status: 302, expectedLength: 0) && redirect.failure == .insecureRedirect)
+
     guard let sample = Bundle.main.url(forResource: "Sample", withExtension: "nsketch") else { throw ViewerError.invalid }
     let bytes = try boundedRead(sample, limit: 8 * 1024 * 1024)
     let document = ReadOnlyDocument(); try document.importCopy(bytes, limit: bytes.count)

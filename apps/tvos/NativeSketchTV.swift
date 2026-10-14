@@ -4,7 +4,8 @@ import Foundation
 // Delegate streaming bounds memory before appending; redirects cannot downgrade HTTPS.
 final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Sendable {
   static let limit = 64 * 1024 * 1024
-  private var bytes = Data()
+  private var body = BoundedDownload(limit: DocumentDownload.limit)
+  private let sessionLock = NSLock()
   private var session: URLSession?
   private let completion: @Sendable (Result<Data, Error>) -> Void
   init(url: URL, completion: @escaping @Sendable (Result<Data, Error>) -> Void) {
@@ -12,26 +13,31 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     super.init()
     let configuration = URLSessionConfiguration.ephemeral
     configuration.timeoutIntervalForResource = 120
-    session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
-    session?.dataTask(with: url).resume()
+    let queue = OperationQueue(); queue.maxConcurrentOperationCount = 1
+    let created = URLSession(configuration: configuration, delegate: self, delegateQueue: queue)
+    sessionLock.withLock { session = created }
+    created.dataTask(with: url).resume()
   }
-  func cancel() { session?.invalidateAndCancel() }
+  func cancel() {
+    let current = sessionLock.withLock { session }
+    current?.invalidateAndCancel()
+  }
   func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
-    completionHandler(request.url?.scheme?.lowercased() == "https" ? request : nil)
+    completionHandler(body.redirect(to: request.url) ? request : nil)
   }
   func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
-    guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode), response.expectedContentLength <= Int64(Self.limit) else {
+    guard body.response(status: (response as? HTTPURLResponse)?.statusCode, expectedLength: response.expectedContentLength) else {
       completionHandler(.cancel); return
     }
     completionHandler(.allow)
   }
   func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-    guard bytes.count <= Self.limit - data.count else { dataTask.cancel(); return }
-    bytes.append(data)
+    if !body.append(data) { dataTask.cancel() }
   }
   func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-    completion(error.map { .failure($0) } ?? .success(bytes))
-    session.finishTasksAndInvalidate(); self.session = nil
+    completion(body.result(transportError: error))
+    session.finishTasksAndInvalidate()
+    sessionLock.withLock { self.session = nil }
   }
 }
 
@@ -58,6 +64,8 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
   let address = UITextField()
   private var download: DocumentDownload?
   private var generation = 0
+  private var cancelButton: UIButton?
+  private var navigationButtons: [UIButton] = []
   private let cache = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("LastCopy.nsketch")
   override func viewDidLoad() {
     super.viewDidLoad(); view.backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? .black : .white }
@@ -69,6 +77,7 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     address.borderStyle = .roundedRect
     let open = button("Open URL") { [weak self] in self?.openURL() }
     let cancel = button("Cancel Load") { [weak self] in self?.cancelLoad() }
+    cancelButton = cancel
     let sample = button("Sample") { [weak self] in self?.sample() }
     let fit = button("Fit") { [weak self] in self?.canvas.navigation.fit() }
     let plus = button("Zoom +") { [weak self] in self?.canvas.navigation.magnify(1.4) }
@@ -82,11 +91,13 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
       button("Pan Down") { [weak self] in self?.canvas.navigation.pan.height += 80 },
     ])
     directions.spacing = 24; directions.distribution = .fillEqually
+    navigationButtons = [fit, plus, minus] + directions.arrangedSubviews.compactMap { $0 as? UIButton }
     let stack = UIStackView(arrangedSubviews: [status, address, controls, canvas, directions])
     stack.axis = .vertical; stack.spacing = 20; stack.translatesAutoresizingMaskIntoConstraints = false
     view.addSubview(stack)
     NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12), stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12), address.heightAnchor.constraint(equalToConstant: 70), controls.heightAnchor.constraint(equalToConstant: 70), directions.heightAnchor.constraint(equalToConstant: 70)])
     if let data = try? boundedRead(cache, limit: DocumentDownload.limit), (try? document.importCopy(data, limit: DocumentDownload.limit)) != nil { status.text = "Last viewed copy · View Only" }
+    refreshAvailability()
     if ProcessInfo.processInfo.arguments.contains("--integration-test") {
       do { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS") } catch { print("APPLE VIEWER REPLAY FAIL: \(error)") }
     }
@@ -95,13 +106,22 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     let button = UIButton(type: .system); button.setTitle(title, for: .normal)
     button.addAction(UIAction { _ in action() }, for: .primaryActionTriggered); return button
   }
-  private func cancelLoad() { generation += 1; download?.cancel(); download = nil; status.text = "Load cancelled · Previous copy retained · View Only" }
+  private func refreshAvailability() {
+    cancelButton?.isEnabled = download != nil
+    for button in navigationButtons { button.isEnabled = !document.paths.isEmpty }
+  }
+  private func cancelLoad() {
+    generation += 1; download?.cancel(); download = nil
+    status.text = "Load cancelled · Previous copy retained · View Only"
+    refreshAvailability()
+  }
   private func present(_ data: Data, title: String) throws {
     let candidate = ReadOnlyDocument(); try candidate.importCopy(data, limit: DocumentDownload.limit)
     try FileManager.default.createDirectory(at: cache.deletingLastPathComponent(), withIntermediateDirectories: true)
     try data.write(to: cache, options: .atomic)
     document = candidate; canvas.document = candidate
-    canvas.navigation.fit(); status.text = "\(title) · \(document.strokeCount) strokes · View Only"
+    canvas.navigation.fit(); status.text = "\(title) · \(document.strokeCount) \(document.strokeCount == 1 ? "stroke" : "strokes") · View Only"
+    refreshAvailability()
   }
   private func sample() {
     cancelLoad()
@@ -115,10 +135,12 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
       Task { @MainActor in
         guard let self, self.generation == request else { return }
         self.download = nil
+        defer { self.refreshAvailability() }
         do { try self.present(result.get(), title: url.lastPathComponent) }
         catch { self.status.text = "\(error.localizedDescription) Previous copy retained · View Only" }
       }
     }
+    refreshAvailability()
   }
 }
 @MainActor final class TVScene: UIResponder, UIWindowSceneDelegate {

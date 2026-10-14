@@ -15,7 +15,7 @@ import WatchConnectivity
     }
   }
   func refresh() {
-    if let metadata = store.metadata { message = "\(metadata.title)\nReceived \(Date(timeIntervalSince1970: store.receivedAt ?? metadata.sentAt).formatted(date: .abbreviated, time: .shortened))" }
+    if store.metadata != nil { message = "" }
     version += 1
   }
   nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
@@ -39,6 +39,7 @@ struct WatchViewer: View {
   @StateObject private var model = WatchModel()
   @State private var crown = 1.0
   @State private var startPan: CGSize?
+  @State private var showingDetails = false
   var body: some View {
     VStack(spacing: 4) {
       Text("View Only").font(.caption).foregroundStyle(.secondary)
@@ -56,9 +57,35 @@ struct WatchViewer: View {
         if startPan == nil { startPan = model.navigation.pan }
         model.navigation.pan = CGSize(width: (startPan?.width ?? 0) + value.translation.width, height: (startPan?.height ?? 0) + value.translation.height)
       }.onEnded { _ in startPan = nil })
-      Text(model.message).font(.caption2).lineLimit(3)
-      Button("Fit") { crown = 1; model.navigation.fit() }
+      if let metadata = model.store.metadata {
+        Text(metadata.title).font(.caption2).lineLimit(1).truncationMode(.tail)
+          .accessibilityLabel("Document: " + metadata.title)
+        Text("Received " + Date(timeIntervalSince1970: model.store.receivedAt ?? metadata.sentAt).formatted(date: .abbreviated, time: .shortened))
+          .font(.caption2).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+      }
+      if !model.message.isEmpty {
+        Text(model.message).font(.caption2).lineLimit(2)
+          .accessibilityLabel(model.message)
+      }
+      HStack {
+        Button("Fit") { crown = 1; model.navigation.fit() }
+        Button("Details") { showingDetails = true }
+      }
     }.padding(4)
+    .sheet(isPresented: $showingDetails) {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 12) {
+          Text("View Only").font(.headline)
+          if let metadata = model.store.metadata {
+            Text(metadata.title).fixedSize(horizontal: false, vertical: true)
+            Text("Received " + Date(timeIntervalSince1970: model.store.receivedAt ?? metadata.sentAt).formatted(date: .complete, time: .shortened))
+          }
+          if !model.message.isEmpty { Text(model.message).fixedSize(horizontal: false, vertical: true) }
+          Text("Turn the Digital Crown to zoom. Drag to pan. Fit shows the entire drawing.")
+          Button("Done") { showingDetails = false }
+        }.padding()
+      }
+    }
   }
 }
 @main struct NativeSketchWatch: App { var body: some Scene { WindowGroup { WatchViewer() } } }
