@@ -129,6 +129,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
             MaterialButton(this).apply {
                 id = View.generateViewId()
                 text = "Pen"
+                setPadding(dp(6), 0, dp(6), 0)
                 minWidth = 0
                 minHeight = dp(48)
             }
@@ -136,6 +137,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
             MaterialButton(this).apply {
                 id = View.generateViewId()
                 text = "Select"
+                setPadding(dp(6), 0, dp(6), 0)
                 minWidth = 0
                 minHeight = dp(48)
             }
@@ -687,6 +689,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
 
         init {
             isFocusable = true
+            isFocusableInTouchMode = true
             importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         }
 
@@ -1090,7 +1093,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
             else if(meta and KeyEvent.META_CTRL_ON != 0) onKeyShortcut(code, event)
             else onKeyDown(code, event)
         }
-        canvas.requestFocus()
+        check(canvas.requestFocus() && canvas.hasFocus())
         key(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON)
         check(engine.state(handle)[0] == 1.0)
         key(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON or KeyEvent.META_SHIFT_ON)
@@ -1109,6 +1112,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
         canvas.layout(canvas.left, canvas.top, canvas.right-100, canvas.bottom-50)
         check(engine.state(handle)[5] == 0.0)
         check(desktopSnapshot.contentEquals(engine.export(handle)))
+        check(canvas.requestFocus() && canvas.hasFocus())
         key(KeyEvent.KEYCODE_SPACE)
         val oldOx = canvas.ox
         event(MotionEvent.ACTION_DOWN, 1, 2010)
