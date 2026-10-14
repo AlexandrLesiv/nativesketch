@@ -42,7 +42,13 @@ most two in flight with display synchronization. Missing callbacks/timestamps st
 with reasons. The bounded final callback drain is excluded from measured elapsed time;
 final GPU retirement is recorded separately and included in elapsed time.
 
-State hashing is outside service timing and remains in whole-frame wall intervals. Frame
+The 240 live-stroke expected geometry/state hashes are computed through the actual core
+input/outline path before GPU initialization, then the logical fixture is reset. Timed live
+frames look up that validated identity while still executing real input/outline/backend work.
+The final actual geometry hash is recomputed outside timing and must match. CPU tests compare
+every frame in the cycle and phase resets. Precomputation time is recorded separately; this
+is expected-trace identification, not a claim of actual per-frame runtime hashing. Other
+fixtures retain their static geometry hash and hash only small changing transforms. Frame
 rows and callback atomics remain until output; their count/capacity is recorded so sustained
 RSS is not mistaken for pure renderer storage. OS peak RSS also includes common fixture
 state, the host, instrumentation and untimed final readback/PNG output. External sampler

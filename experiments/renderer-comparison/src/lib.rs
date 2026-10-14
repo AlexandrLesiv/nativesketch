@@ -159,7 +159,7 @@ impl Session {
             "Sparse Strips CPU preprocessing / wgpu Metal GPU rasterization and compositing"
         });
         manifest["quality"] = json!({"target":"BGRA8Unorm","alpha":"premultiplied target / unpremultiplied source RGBA","color_space":"sRGB numeric channels; no linear-light conversion","blend":"source-over","fill":"nonzero once per complete stroke","image_filter":"bilinear no mipmaps","antialiasing":if config.backend=="skia"{"Ganesh analytic coverage AA; sample_count=1"}else{"Sparse Strips analytic coverage; sample_count=1"}});
-        manifest["timing_provenance"] = json!({"cpu_clock":"CACurrentMediaTime monotonic seconds; durations Instant","cpu_frame_start_s":"entry BEFORE retirement wait; successive starts include backpressure/host scheduling/hash overhead","service_ms":"after prior-frame retirement, before input through common presentation enqueue; excludes hash/readback/output; includes acquisition","gpu_span_ms":"Metal marker before backend scene preparation GPUStartTime through shared blit/present command GPUEndTime; includes all backend CPU preprocessing/encoding gaps and queue scheduling; excludes common input/outline and drawable acquisition; NOT pure GPU execution","presented_s":"MTLDrawable.addPresentedHandler presentedTime (seconds); callback positive-only","completion_wait_ms":"retirement wait before service plus completion-mode current-frame wait","image_upload":"first-use scene preparation/queue staging and render submission; no eager GPU upload","state_hash":"outside service after presentation enqueue; affects wall frame intervals","inflight":if config.mode=="paced"{2}else{1},"presentation":"same Metal queue, tracked BGRA output, full texture blit, CAMetalLayer displaySync mode dependent"});
+        manifest["timing_provenance"] = json!({"cpu_clock":"CACurrentMediaTime monotonic seconds; durations Instant","cpu_frame_start_s":"entry BEFORE retirement wait; successive starts include backpressure/host scheduling/hash overhead","service_ms":"after prior-frame retirement, before input through common presentation enqueue; excludes hash/readback/output; includes acquisition","gpu_span_ms":"Metal marker before backend scene preparation GPUStartTime through shared blit/present command GPUEndTime; includes all backend CPU preprocessing/encoding gaps and queue scheduling; excludes common input/outline and drawable acquisition; NOT pure GPU execution","presented_s":"MTLDrawable.addPresentedHandler presentedTime (seconds); callback positive-only","completion_wait_ms":"retirement wait before service plus completion-mode current-frame wait","image_upload":"first-use scene preparation/queue staging and render submission; no eager GPU upload","state_hash":"live: cached 240-frame expected core geometry/state identities, precomputed before GPU initialization; actual input/outline work still executed each frame; final actual identity recomputed outside timing. Other fixtures cache immutable geometry and hash only the changing transforms after presentation enqueue.","inflight":if config.mode=="paced"{2}else{1},"presentation":"same Metal queue, tracked BGRA output, full texture blit, CAMetalLayer displaySync mode dependent"});
         manifest["unsupported"] = json!({"gpu_execution_ms":"No equivalent pure-pass timing; common timeline span only","physical_pen_latency":"No external measurement equipment","presentation_deadline_misses":"Callback intervals available; no independent display deadline schedule","gpu_peak_memory":"No comparable peak resident GPU counter","physical_footprint":"Not implemented; OS peak RSS and external sampler separate"});
         write_json(config.output.join("manifest.json"), &manifest)?;
         log_event(
@@ -172,7 +172,8 @@ impl Session {
             ),
         )?;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let fixture = fixtures::Fixture::new(&config.fixture)?;
+            let mut fixture = fixtures::Fixture::new(&config.fixture)?;
+            fixture.configure_identity(config.width, config.height);
             let gpu = unsafe {
                 gpu::Gpu::new(
                     layer.cast(),
@@ -208,6 +209,9 @@ impl Session {
         )?;
         manifest["init_ms"] = json!(ms(init));
         manifest["fixture_hash"] = json!(fixture.spec_hash);
+        manifest["identity_precompute_ms"] = json!(fixture.identity_precompute_ms);
+        manifest["expected_live_state_sequence_hash"] =
+            json!(fixture.expected_live_sequence_hash());
         manifest["input_hash"] = json!(fixture.input_hash);
         manifest["image_hash"] = json!(fixture.image_hash);
         manifest["gpu"] = json!({"name":gpu.name,"api":"Metal","software_fallback":false});
@@ -380,6 +384,18 @@ impl Session {
         }
         self.write_frames()?;
         if !self.frames.is_empty() {
+            let last = self.frames.last().unwrap();
+            let actual_state_hash = self.fixture.actual_state_hash(
+                last.index as usize,
+                self.config.width,
+                self.config.height,
+            );
+            if actual_state_hash != last.state_hash {
+                return Err(
+                    "Final actual fixture geometry does not match recorded expected identity"
+                        .into(),
+                );
+            }
             let rgba = self.gpu.readback()?;
             let output = BufWriter::new(
                 File::create(self.config.output.join("final.png")).map_err(|e| e.to_string())?,
@@ -404,7 +420,7 @@ impl Session {
             let last = self.frames.last().unwrap();
             write_json(
                 self.config.output.join("readback.json"),
-                &json!({"width":self.config.width,"height":self.config.height,"phase":last.phase,"frame_index":last.index,"state_hash":last.state_hash,"rgba_sha256":fixtures::hash(&rgba),"image_hash":self.fixture.image_hash,"nonwhite_pixels":nonwhite,"opaque_background":opaque,"validation":"basic structural check only; visual equivalence requires inspection"}),
+                &json!({"width":self.config.width,"height":self.config.height,"phase":last.phase,"frame_index":last.index,"state_hash":last.state_hash,"actual_state_hash":actual_state_hash,"identity_validation":"actual final geometry recomputed after timing and matched expected state","rgba_sha256":fixtures::hash(&rgba),"image_hash":self.fixture.image_hash,"nonwhite_pixels":nonwhite,"opaque_background":opaque,"validation":"basic structural check only; visual equivalence requires inspection"}),
             )?;
         }
         let mut usage: libc::rusage = unsafe { std::mem::zeroed() };

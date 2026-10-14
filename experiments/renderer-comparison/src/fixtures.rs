@@ -64,6 +64,10 @@ pub struct Fixture {
     pub image: Vec<u8>,
     pub input_ms: f64,
     pub outline_ms: f64,
+    pub identity_precompute_ms: f64,
+    live_geometry_hashes: Vec<String>,
+    live_state_hashes: Vec<String>,
+    live_state_dimensions: (u32, u32),
     last: Option<usize>,
     initialized: bool,
 }
@@ -161,7 +165,7 @@ impl Fixture {
                 trace.extend_from_slice(&v.to_le_bytes());
             }
         }
-        Ok(Self {
+        let mut fixture = Self {
             id: id.into(),
             editor,
             paths: vec![],
@@ -172,9 +176,51 @@ impl Fixture {
             image,
             input_ms: 0.0,
             outline_ms: 0.0,
+            identity_precompute_ms: 0.0,
+            live_geometry_hashes: Vec::new(),
+            live_state_hashes: Vec::new(),
+            live_state_dimensions: (0, 0),
             last: None,
             initialized: false,
-        })
+        };
+        if id == "live" {
+            let start = Instant::now();
+            // Run the actual core input/outline path once, before GPU initialization, to
+            // validate the expected cycle. Never hash the complete live scene in a timed loop.
+            for frame in 0..240 {
+                fixture.prepare(frame)?;
+                fixture
+                    .live_geometry_hashes
+                    .push(geometry_hash(&fixture.paths));
+            }
+            fixture.configure_identity(1600, 1000);
+            fixture.editor.cancel();
+            fixture.paths.clear();
+            fixture.geometry_hash.clear();
+            fixture.last = None;
+            fixture.initialized = false;
+            fixture.input_ms = 0.0;
+            fixture.outline_ms = 0.0;
+            fixture.identity_precompute_ms = start.elapsed().as_secs_f64() * 1000.0;
+        }
+        Ok(fixture)
+    }
+    pub fn configure_identity(&mut self, width: u32, height: u32) {
+        if self.id == "live" {
+            self.live_state_hashes = self
+                .live_geometry_hashes
+                .iter()
+                .enumerate()
+                .map(|(frame, geometry)| {
+                    compose_state_hash(&self.id, geometry, frame, width, height)
+                })
+                .collect();
+            self.live_state_dimensions = (width, height);
+        }
+    }
+    pub fn expected_live_sequence_hash(&self) -> Option<String> {
+        (!self.live_state_hashes.is_empty())
+            .then(|| hash(self.live_state_hashes.concat().as_bytes()))
     }
     pub fn prepare(&mut self, frame: usize) -> Result<bool, String> {
         self.input_ms = 0.0;
@@ -215,20 +261,33 @@ impl Fixture {
         Ok(changed)
     }
     pub fn state_hash(&mut self, frame: usize, width: u32, height: u32) -> String {
+        if self.id == "live" {
+            if self.live_state_dimensions != (width, height) {
+                self.configure_identity(width, height);
+            }
+            return self.live_state_hashes[frame % 240].clone();
+        }
         if self.geometry_hash.is_empty() {
             self.geometry_hash = geometry_hash(&self.paths);
         }
-        let mut bytes = self.geometry_hash.as_bytes().to_vec();
-        for v in transform(&self.id, frame, width, height) {
+        compose_state_hash(&self.id, &self.geometry_hash, frame, width, height)
+    }
+    /// Untimed correctness guard. Recomputes the actual current geometry, never the cache.
+    pub fn actual_state_hash(&self, frame: usize, width: u32, height: u32) -> String {
+        compose_state_hash(&self.id, &geometry_hash(&self.paths), frame, width, height)
+    }
+}
+fn compose_state_hash(id: &str, geometry: &str, frame: usize, width: u32, height: u32) -> String {
+    let mut bytes = geometry.as_bytes().to_vec();
+    for v in transform(id, frame, width, height) {
+        bytes.extend_from_slice(&v.to_le_bytes());
+    }
+    if id == "image" {
+        for v in image_transform(frame) {
             bytes.extend_from_slice(&v.to_le_bytes());
         }
-        if self.id == "image" {
-            for v in image_transform(frame) {
-                bytes.extend_from_slice(&v.to_le_bytes());
-            }
-        }
-        hash(&bytes)
     }
+    hash(&bytes)
 }
 fn live_sample(j: usize) -> Sample {
     let t = j as f64 / 239.0;
@@ -278,11 +337,28 @@ mod tests {
         let mut a = Fixture::new("live").unwrap();
         a.prepare(0).unwrap();
         let first = a.state_hash(0, 1600, 1000);
+        assert_eq!(first, a.actual_state_hash(0, 1600, 1000));
         for i in 1..240 {
             a.prepare(i).unwrap();
+            assert_eq!(
+                a.state_hash(i, 1600, 1000),
+                a.actual_state_hash(i, 1600, 1000),
+                "cycle frame {i}"
+            );
         }
         a.prepare(240).unwrap();
+        assert_eq!(a.state_hash(240, 1600, 1000), first);
+        assert_eq!(a.actual_state_hash(240, 1600, 1000), first);
+        // Warm-up ends at 119; measured phase restarts at zero on warmed resources.
+        a.prepare(119).unwrap();
+        a.prepare(0).unwrap();
+        assert_eq!(a.actual_state_hash(0, 1600, 1000), first);
         assert_eq!(a.state_hash(0, 1600, 1000), first);
+        a.configure_identity(2560, 1600);
+        assert_eq!(
+            a.state_hash(0, 2560, 1600),
+            a.actual_state_hash(0, 2560, 1600)
+        );
         assert_eq!(a.editor.state().count, 100);
     }
     #[test]
