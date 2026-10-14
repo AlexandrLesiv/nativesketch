@@ -71,8 +71,13 @@ final class Canvas: NSView {
     var input: ((NSEvent, String) -> Void)?
     var isMetal = false
     override var isFlipped: Bool { true }
-    override var wantsUpdateLayer: Bool { isMetal }
-    override func updateLayer() { if isMetal { painter?(nil) } }
+    // CAMetalLayer owns presentation; AppKit does not promise draw/updateLayer
+    // callbacks for this backing-layer class. Metal invalidation is dispatched
+    // explicitly on the same main runloop, while CG retains NSView.draw semantics.
+    func requestPaint() {
+        if isMetal { DispatchQueue.main.async { [weak self] in self?.painter?(nil) } }
+        else { needsDisplay = true }
+    }
     override var isOpaque: Bool { true }
     override var acceptsFirstResponder: Bool { true }
     override func makeBackingLayer() -> CALayer { isMetal ? CAMetalLayer() : CALayer() }
@@ -89,6 +94,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!, gate = WakeGate()
     var window: NSWindow!, target: NSScreen!, device: MTLDevice?, queue: MTLCommandQueue?
     var replay: UnsafeMutableRawPointer?, skia: UnsafeMutableRawPointer?
+    var watchdog: DispatchSourceTimer?
     var timer: DispatchSourceTimer?, activity: NSObjectProtocol?, observations: [NSObjectProtocol] = []
     var active = false, finalizing = false, measured = false, outcome = "complete", reason = ""
     var epoch = 0.0, initialFrame = NSRect.zero, initialMode: [Int] = [], rows: [[String: Any]] = [], events: [[String: Any]] = []
@@ -219,6 +225,17 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             active = true; run.isEnabled = false; stop.isEnabled = true
             activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .latencyCritical, .idleDisplaySleepDisabled], reason: "Authorized visible Cintiq software replay")
             startTimer()
+            let watcher = DispatchSource.makeTimerSource(queue: .main)
+            watcher.schedule(deadline: .now() + .milliseconds(250), repeating: .milliseconds(250))
+            watcher.setEventHandler { [weak self] in
+                guard let self, self.active else { return }
+                if self.requestPending && monotonicNow() - self.requestTime > 2 {
+                    self.abort(Failure.message("Redraw watchdog: pending native paint exceeded two seconds"))
+                } else if self.timer != nil && monotonicNow() - self.epoch > (self.measured ? self.o.duration : self.o.warmup) + 10 {
+                    self.abort(Failure.message("Replay watchdog: no terminal paint within ten seconds of trace duration"))
+                }
+            }
+            watchdog = watcher; watcher.resume()
             if o.selfTest { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self.stop.performClick(nil) } }
         } catch { abort(error) }
     }
@@ -247,7 +264,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             if snapshot.delivered_now > 0 || snapshot.viewport_revision != requestedViewport || snapshot.trace_complete != 0 || frameIndex == 0 {
                 requestedViewport = snapshot.viewport_revision
-                if !requestPending { requestTime = monotonicNow(); requestPending = true; canvas.needsDisplay = true }
+                if !requestPending { requestTime = monotonicNow(); requestPending = true; canvas.requestPaint() }
             }
         } catch { abort(error) }
     }
@@ -360,7 +377,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 else {
                     timer?.cancel(); timer = nil
                     try resetReplay(o.duration); preparingMeasured = true; requestTime = monotonicNow(); requestPending = true
-                    DispatchQueue.main.async { self.canvas.needsDisplay = true }
+                    canvas.requestPaint()
                 }
             }
         } catch { abort(error) }
@@ -385,7 +402,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         finalMetadata["capture_kind"] = o.backend == "coregraphics" ? "Untimed bitmap proxy using identical painter; not presented pixels" : "Untimed final Metal texture readback; not optical pixels"
     }
     func finish() {
-        guard active else { return }; active = false; finalizing = true; timer?.cancel(); timer = nil
+        guard active else { return }; active = false; finalizing = true; timer?.cancel(); timer = nil; watchdog?.cancel(); watchdog = nil
         status.stringValue = "Finalizing software evidence — Stop remains available"
         finalMetadata["elapsed_s"] = monotonicNow() - epoch
         finalMetadata["measured_frames"] = measuredFrames
@@ -428,7 +445,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let build = Bundle.main.url(forResource: "build", withExtension: "json").flatMap { try? Data(contentsOf: $0) }.flatMap { try? JSONSerialization.jsonObject(with: $0) }
             let manifest: [String: Any] = ["schema_version": 1, "initialization": initialization, "native_context_ctm": nativeCTM, "first_use_definition": "first painter use in fresh process; replay construction/reference oracle and context creation logged separately before replay epoch", "status": outcome, "reason": reason, "backend": o.backend, "policy": o.policy, "scene": o.scene, "trace": o.trace, "trace_source": "synthetic 240Hz, not recorded Wacom input", "duration_s": o.duration, "start_state": o.startState, "warmup_s": o.warmup, "idle_s": o.idle, "logging_enabled": o.logging,
                 "occlusion_checks": occlusionChecks, "occlusion_query_unavailable": occlusionUnavailable, "physical_pen_to_screen": "NOT MEASURED — camera pending", "software_endpoint": o.backend == "coregraphics" ? "AppKit drawing callback return; raster and composition deferred/unknown" : "Skia submit and separately reported Metal callbacks",
-                "cache_scheduling": "synchronous in draw; atomic generation switch; input remains queued during rebuild", "initial": initialState, "final": finalMetadata, "lifecycle": events,
+                "redraw_scheduling": "Common event-driven invalidation with one pending request; Core Graphics NSView.draw callback, Metal explicit main-runloop dispatch into native CAMetalLayer drawable. No display-link pacing or application frame FIFO.", "redraw_watchdog_s": 2, "cache_scheduling": "synchronous in draw; atomic generation switch; input remains queued during rebuild", "initial": initialState, "final": finalMetadata, "lifecycle": events,
                 "build": build ?? NSNull(), "binary_sha256": executable.map { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() } ?? "unknown",
                 "os": ProcessInfo.processInfo.operatingSystemVersionString, "thermal_state": ProcessInfo.processInfo.thermalState.rawValue, "self_test": o.selfTest,
                 "metal_observation_count": presentations.count, "metal_configuration": ["maximum_drawables": 3, "display_sync": true, "framebuffer_only": false], "limitations": ["No photon endpoint", "Generated replay bypasses digitizer/driver", "AppKit occlusion flag does not prove absence of partial occluders", "Final screenshot is untimed", "Metal completion callbacks are not GPU-only durations"]]
