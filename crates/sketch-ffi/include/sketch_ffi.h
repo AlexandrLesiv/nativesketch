@@ -65,6 +65,20 @@ uint32_t sketch_redo(SketchEditor *editor);
 uint32_t sketch_document_new(SketchEditor *editor);
 uint32_t sketch_document_save(SketchEditor *editor, const uint8_t *path, size_t length);
 uint32_t sketch_document_load(SketchEditor *editor, const uint8_t *path, size_t length);
+/* Portable persistence for OS document providers and browser blobs. Export is an
+ * immutable caller-owned .nsketch snapshot plus editor-local revision identity.
+ * NULL/0 queries size successfully; insufficient capacity returns 3, writes only
+ * out_count/out_revision, and never writes partial bytes. Export/import/mark_saved
+ * require idle state. Limit: 64 MiB. Import validates before replacing state;
+ * failure preserves document/history. Success starts a clean document session.
+ * Revisions do not repeat across new/import/load within this handle lifetime.
+ * Mark saved ONLY after successful durable write; cancelled/failed writes or a
+ * browser download initiation must not acknowledge. Stale revision returns 2.
+ * All pointers obey the serialized borrowed-input/caller-output rules above.
+ */
+uint32_t sketch_document_export(SketchEditor *editor, uint8_t *bytes, size_t capacity, size_t *out_count, uint64_t *out_revision);
+uint32_t sketch_document_import(SketchEditor *editor, const uint8_t *bytes, size_t length);
+uint32_t sketch_document_mark_saved(SketchEditor *editor, uint64_t revision);
 #ifdef __cplusplus
 }
 #endif

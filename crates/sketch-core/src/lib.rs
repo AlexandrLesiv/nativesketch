@@ -478,7 +478,29 @@ impl Editor {
     }
     pub fn clear(&mut self) -> Result<()> {
         self.idle()?;
-        *self = Self::new();
+        self.replace_document(Document::default())
+    }
+    /// Immutable committed document bytes and editor-local revision identity.
+    pub fn export(&self) -> Result<(Vec<u8>, u64)> {
+        self.idle()?;
+        let bytes = persistence::encode(&self.document);
+        if bytes.len() as u64 > persistence::MAX_BYTES {
+            return Err(Error::InvalidArgument);
+        }
+        Ok((bytes, self.revision))
+    }
+    /// Replace only after full validation. Failed or cancelled host reads do not mutate state.
+    pub fn import(&mut self, bytes: &[u8]) -> Result<()> {
+        self.idle()?;
+        self.replace_document(persistence::decode(bytes)?)
+    }
+    /// Host calls only after successful durable write of this editor's snapshot.
+    pub fn mark_saved(&mut self, revision: u64) -> Result<()> {
+        self.idle()?;
+        if revision != self.revision {
+            return Err(Error::InvalidState);
+        }
+        self.saved_revision = revision;
         Ok(())
     }
     pub fn save(&mut self, path: &Path) -> Result<()> {
@@ -490,6 +512,11 @@ impl Editor {
     pub fn load(&mut self, path: &Path) -> Result<()> {
         self.idle()?;
         let document = persistence::load(path)?;
+        self.replace_document(document)
+    }
+    fn replace_document(&mut self, document: Document) -> Result<()> {
+        let revision = self.next_revision;
+        let next_revision = revision.checked_add(1).ok_or(Error::InvalidState)?;
         let next_id = document
             .strokes
             .iter()
@@ -501,6 +528,9 @@ impl Editor {
         *self = Self {
             document,
             next_id,
+            revision,
+            saved_revision: revision,
+            next_revision,
             ..Self::new()
         };
         Ok(())

@@ -3,7 +3,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::sync::atomic::{AtomicU64, Ordering};
 const MAGIC: &[u8; 8] = b"NSKETCH1";
-const MAX_BYTES: u64 = 64 * 1024 * 1024;
+pub(crate) const MAX_BYTES: u64 = 64 * 1024 * 1024;
 static TEMP_ID: AtomicU64 = AtomicU64::new(0);
 fn checksum(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf29ce484222325, |h, b| {
@@ -13,7 +13,7 @@ fn checksum(bytes: &[u8]) -> u64 {
 fn put(bytes: &mut Vec<u8>, n: u64) {
     bytes.extend_from_slice(&n.to_le_bytes());
 }
-fn encode(document: &Document) -> Vec<u8> {
+pub(super) fn encode(document: &Document) -> Vec<u8> {
     let mut b = MAGIC.to_vec();
     put(&mut b, document.strokes.len() as u64);
     for s in &document.strokes {
@@ -57,8 +57,8 @@ impl Reader<'_> {
         Ok(f64::from_bits(self.u64()?))
     }
 }
-fn decode(bytes: &[u8]) -> Result<Document> {
-    if bytes.len() < 24 || &bytes[..8] != MAGIC {
+pub(super) fn decode(bytes: &[u8]) -> Result<Document> {
+    if bytes.len() as u64 > MAX_BYTES || bytes.len() < 24 || &bytes[..8] != MAGIC {
         return Err(Error::Format);
     }
     let end = bytes.len() - 8;
