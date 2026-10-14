@@ -99,9 +99,18 @@ import CSketchFFI
       let decision = try compareSource(descriptor, copy.descriptor)
       guard decision == 0 || decision == 1 else { throw SourceFailure.rejected }
       if navigating, store.selected?.copy.descriptor.id == descriptor.id, store.selected?.copy.descriptor.contentSHA256 != copy.descriptor.contentSHA256 {
-        pending = (copy, source); report("New version available. Use Apply Update in Details."); changed()
+        try stage(copy, source: source); report("New version available. Use Apply Update in Details."); changed()
       } else { try store.accept(copy, source: source, select: true); pending = nil; report("Updated from " + source); changed() }
     } catch { if request == generation { report(error.localizedDescription); changed() } }
+  }
+  private func stage(_ copy: SourceCopy, source: String) throws {
+    if let pending, pending.0.descriptor.id == copy.descriptor.id {
+      let decision = try compareSource(pending.0.descriptor, copy.descriptor)
+      guard decision == 0 || decision == 1 else { throw SourceFailure.rejected }
+    }
+    let candidate = ReadOnlyDocument()
+    try candidate.importCopy(copy.document, limit: WatchCopyStore.limit)
+    pending = (copy, source)
   }
   func apply() throws {
     guard let (copy, source) = pending, copy.descriptor.id == store.selected?.copy.descriptor.id else { pending = nil; return }
@@ -112,7 +121,7 @@ import CSketchFFI
     // A push adds to the library; it never hijacks an existing selection.
     if copy.descriptor.id == store.selected?.copy.descriptor.id, navigating, store.selected?.copy.descriptor.contentSHA256 != copy.descriptor.contentSHA256 {
       if let current = store.selected { let decision = try compareSource(current.copy.descriptor, copy.descriptor); guard decision == 0 || decision == 1 else { throw SourceFailure.rejected } }
-      pending = (copy, "iPhone"); report("New version available. Use Apply Update in Details.")
+      try stage(copy, source: "iPhone"); report("New version available. Use Apply Update in Details.")
     } else { try store.accept(copy, source: "iPhone", select: store.selected == nil) }
     changed()
   }
