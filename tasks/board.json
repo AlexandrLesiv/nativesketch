@@ -82,6 +82,33 @@
         "rust_engine",
         "reviewer"
       ]
+    },
+    {
+      "id": "007",
+      "title": "Independent Watch document sources",
+      "status": "active",
+      "depends_on": [],
+      "brief": "tasks/007-watch-document-sources.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "008",
+      "title": "ChromeOS and Googlebook desktop adapter",
+      "status": "waiting",
+      "depends_on": [
+        "007"
+      ],
+      "brief": "tasks/008-android-desktop.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "reviewer"
+      ]
     }
   ]
 }
