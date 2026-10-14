@@ -306,7 +306,9 @@ import CSketchFFI
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemValidation {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemValidation,
+  NSToolbarDelegate
+{
   let editor = Editor()
   var window: NSWindow!
   var canvas: Canvas!
@@ -320,6 +322,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   let status = NSTextField(labelWithString: "")
   var url: URL?
   var approvedClose = false
+  var toolbarControls: NSStackView!
+  let editingToolbarID = NSToolbarItem.Identifier("editing")
+  func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+    [editingToolbarID]
+  }
+  func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+    [editingToolbarID, .flexibleSpace]
+  }
+  func toolbar(
+    _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+    willBeInsertedIntoToolbar: Bool
+  ) -> NSToolbarItem? {
+    guard identifier == editingToolbarID else { return nil }
+    let item = NSToolbarItem(itemIdentifier: identifier)
+    item.label = "Drawing tools"
+    item.paletteLabel = "Drawing tools"
+    item.view = toolbarControls
+    return item
+  }
   func applicationDidFinishLaunching(_ notification: Notification) {
     editor.onFailure = { [weak self] code in
       Task { @MainActor in self?.engineFailure(code) }
@@ -378,20 +399,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     ])
     controls.spacing = 8
     controls.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+    toolbarControls = controls
+    let toolbar = NSToolbar(identifier: "NativeSketchEditing")
+    toolbar.delegate = self
+    toolbar.displayMode = .iconOnly
+    toolbar.allowsUserCustomization = false
+    window.toolbar = toolbar
+    window.toolbarStyle = .unified
     status.font = .systemFont(ofSize: 12)
     status.textColor = .secondaryLabelColor
     status.setAccessibilityLabel("Document status")
     let root = NSView()
     window.contentView = root
-    for v in [controls, canvas!, status] {
+    for v in [canvas!, status] {
       v.translatesAutoresizingMaskIntoConstraints = false
       root.addSubview(v)
     }
     NSLayoutConstraint.activate([
-      controls.topAnchor.constraint(equalTo: root.topAnchor),
-      controls.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-      controls.trailingAnchor.constraint(lessThanOrEqualTo: root.trailingAnchor),
-      canvas.topAnchor.constraint(equalTo: controls.bottomAnchor),
+      canvas.topAnchor.constraint(equalTo: root.topAnchor),
       canvas.leadingAnchor.constraint(equalTo: root.leadingAnchor),
       canvas.trailingAnchor.constraint(equalTo: root.trailingAnchor),
       canvas.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -6),
