@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+: "${ANDROID_HOME:=$HOME/Library/Android/sdk}"
+: "${ANDROID_SERIAL:=emulator-5554}"
+export ANDROID_SERIAL
+adb="$ANDROID_HOME/platform-tools/adb"
+"$adb" install -r "$repo_root/artifacts/NativeSketch-android.apk"
+"$adb" logcat -c
+"$adb" shell am force-stop dev.nativesketch
+"$adb" shell am start -n dev.nativesketch/.MainActivity --ez replay true
+for attempt in {1..30}; do
+    output="$("$adb" logcat -d -s NativeSketchReplay:I AndroidRuntime:E)"
+    if [[ "$output" == *"PASS: JNI"* ]]; then printf '%s\n' "$output"; exit 0; fi
+    sleep 1
+done
+printf '%s\n' "$output"
+exit 1
