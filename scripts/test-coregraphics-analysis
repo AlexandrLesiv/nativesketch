@@ -90,6 +90,43 @@ class Tests(unittest.TestCase):
     def test_validation_only_rejected(self):
         self.m['validation_only']=True;self.save()
         with self.assertRaisesRegex(ValueError,'validation-only'):A['validate'](self.path)
+    def make_resume_source(self, count=3):
+        source=self.path/'prior';source.mkdir();plan=R['matrix']('pilot')
+        (source/'suite.json').write_text(json.dumps(dict(schema_version=2,experiment='coregraphics-appkit-v1',suite='pilot',status='failed',completed=count,trials=plan,memory_interval_seconds=.25)))
+        for i,trial in enumerate(plan[:count]):
+            dest=source/R['trial_name'](i,trial);dest.mkdir()
+            for p in self.path.iterdir():
+                if p.is_file():(dest/p.name).write_bytes(p.read_bytes())
+            m=dict(self.m);m.update(trial,warmup=12,frames_requested=30,completed_sample_count=30)
+            (dest/'manifest.json').write_text(json.dumps(m))
+        return source
+    def test_resume_prefix_preserved_stops_at_first_invalid(self):
+        source=self.make_resume_source();plan=R['matrix']('pilot')
+        failed=source/R['trial_name'](1,plan[1]);(failed/'host-status.json').write_text('{"status":"invalidated"}')
+        def validate(path):
+            if json.loads((path/'host-status.json').read_text())['status']!='complete':raise ValueError('late native invalidation')
+            return json.loads((path/'manifest.json').read_text()),{}
+        provenance,identity,fixtures=R['resume_prefix'](source,'pilot',validate)
+        self.assertEqual(provenance['reused_count'],1);self.assertEqual(provenance['rerun_from_index'],1)
+        self.assertIn('invalidation',provenance['reuse_stop_reason'])
+        output=self.path/'fresh';output.mkdir();R['copy_prefix'](provenance,output)
+        first=source/R['trial_name'](0,plan[0]);copied=output/first.name
+        self.assertEqual((copied/'manifest.json').read_bytes(),(first/'manifest.json').read_bytes())
+        self.assertTrue(failed.exists());self.assertFalse((output/failed.name).exists())
+    def test_resume_rejects_wrong_matrix_and_mixed_build(self):
+        source=self.make_resume_source(2);plan=R['matrix']('pilot')
+        validate=lambda path:(json.loads((path/'manifest.json').read_text()),{})
+        mpath=source/R['trial_name'](1,plan[1])/'manifest.json';m=json.loads(mpath.read_text());m['build']={'profile':'different'};mpath.write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError,'mixed source/build'):R['resume_prefix'](source,'pilot',validate)
+        suite=json.loads((source/'suite.json').read_text());suite['trials'].reverse();(source/'suite.json').write_text(json.dumps(suite))
+        with self.assertRaisesRegex(ValueError,'wrong declared matrix'):R['resume_prefix'](source,'pilot',validate)
+    def test_resume_admission_rejects_wrong_protocol_and_new_revision(self):
+        trial=R['matrix']('pilot')[0];m=dict(self.m);m.update(trial,warmup=12,frames_requested=30,completed_sample_count=30)
+        identity=R['admission'](m,trial,'pilot',None,{})
+        m['source_revision']='b'*40
+        with self.assertRaisesRegex(ValueError,'mixed source/build'):R['admission'](m,trial,'pilot',identity,{})
+        m['frames_requested']=29
+        with self.assertRaisesRegex(ValueError,'protocol'):R['admission'](m,trial,'pilot',None,{})
     def test_matrix_coverage(self):
         self.assertEqual([len(R['matrix'](s)) for s in ('pilot','primary','sustained')],[8,48,3])
         cells={}

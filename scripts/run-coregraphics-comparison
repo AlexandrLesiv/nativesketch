@@ -3,6 +3,8 @@
 import argparse
 import datetime
 import json
+import hashlib
+import shutil
 import math
 import os
 from pathlib import Path
@@ -18,6 +20,46 @@ def matrix(suite):
     if suite=='pilot': return [dict(fixture=f,width=1600,height=1000,repeat_id='pilot-0') for f in FIXTURES]
     if suite=='sustained': return [dict(fixture='panzoom',width=1600,height=1000,repeat_id=f'sustained-{i}') for i in range(3)]
     return [dict(fixture=f,width=w,height=h,repeat_id=f'primary-{i}') for f in FIXTURES for w,h in [(1600,1000),(2560,1600)] for i in range(3)]
+
+def trial_name(i,trial):
+    return f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["repeat_id"]}'
+
+def admission(m,trial,suite,identity,fixtures):
+    if any(m.get(k)!=v for k,v in trial.items()):raise ValueError('trial identity differs from declared matrix')
+    warmup=12 if suite=='pilot' else 120
+    frames=30 if suite=='pilot' else 600
+    if m['warmup']!=warmup or (suite=='sustained' and (m['duration_seconds']!=180 or m['frames_requested'] is not None)) or (suite!='sustained' and (m['frames_requested']!=frames or m['duration_seconds'] is not None)):
+        raise ValueError('trial protocol differs from declared suite')
+    current={k:m[k] for k in ('source_revision','source_diff_hash','build')}
+    if identity is not None and current!=identity:raise ValueError('mixed source/build identity')
+    key=(m['fixture'],m['width'],m['height'])
+    fixture={k:m[k] for k in ('fixture_hash','input_hash','image_hash','quality')}
+    if key in fixtures and fixtures[key]!=fixture:raise ValueError('mixed fixture/quality identities')
+    fixtures[key]=fixture
+    return current
+
+def resume_prefix(source,suite,validate):
+    raw=(source/'suite.json').read_bytes();meta=json.loads(raw);plan=matrix(suite)
+    if meta.get('suite')!=suite or meta.get('trials')!=plan or meta.get('schema_version')!=2 or meta.get('experiment')!='coregraphics-appkit-v1':raise ValueError('resume source has wrong declared matrix')
+    if meta.get('memory_interval_seconds')!=.25:raise ValueError('resume source memory instrumentation differs')
+    accepted=[];identity=None;fixtures={};stopped='all trials complete'
+    for i,trial in enumerate(plan):
+        directory=source/trial_name(i,trial)
+        try:m,_=validate(directory)
+        except (ValueError,OSError,KeyError,TypeError) as error:
+            stopped=str(error);break
+        identity=admission(m,trial,suite,identity,fixtures)
+        hashes={str(p.relative_to(directory)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(directory.rglob('*')) if p.is_file()}
+        accepted.append(dict(index=i,path=str(directory),sha256=hashes))
+    provenance=dict(source_root=str(source),source_suite_sha256=hashlib.sha256(raw).hexdigest(),source_suite_status=meta.get('status'),source_elapsed_seconds=meta.get('elapsed_seconds'),reused_count=len(accepted),rerun_from_index=len(accepted),reuse_stop_reason=stopped,reused_trials=accepted)
+    return provenance,identity,fixtures
+
+def copy_prefix(provenance,output):
+    for trial in provenance['reused_trials']:
+        source=Path(trial['path']);target=output/source.name
+        shutil.copytree(source,target)
+        actual={str(p.relative_to(target)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}
+        if actual!=trial['sha256']:raise ValueError('copied prefix bytes differ from validated original evidence')
 
 def observations():
     result={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
@@ -44,27 +86,35 @@ def main():
     p.add_argument('--suite',required=True,choices=['pilot','primary','sustained'])
     p.add_argument('--output',required=True,type=Path)
     p.add_argument('--binary',type=Path,default=ROOT/'artifacts/coregraphics-comparison-build/CoreGraphicsComparison.app/Contents/MacOS/CoreGraphicsComparison')
+    p.add_argument('--resume-from',type=Path,help='Validate and copy only a contiguous complete prefix into a fresh output, then rerun from first invalid/missing trial')
     p.add_argument('--dry-run',action='store_true')
     p.add_argument('--window-seconds',type=float,default=5400)
     a=p.parse_args()
     if not math.isfinite(a.window_seconds) or not 0<a.window_seconds<=5400:p.error('window must be positive and at most 5400 seconds')
     plan=matrix(a.suite)
-    if a.dry_run:print(json.dumps(dict(suite=a.suite,trial_count=len(plan),trials=plan),indent=2));return 0
+    validate=runpy.run_path(str(ROOT/'scripts/analyze-coregraphics-comparison'))['validate']
+    provenance={};identity=None;fixtures={}
+    if a.resume_from:
+        try:provenance,identity,fixtures=resume_prefix(a.resume_from.resolve(),a.suite,validate)
+        except (ValueError,OSError,KeyError,TypeError) as error:p.error(str(error))
+    if a.dry_run:print(json.dumps(dict(suite=a.suite,trial_count=len(plan),trials=plan,resume=provenance),indent=2));return 0
     output=a.output.resolve()
     if not output.is_relative_to(ROOT/'artifacts/coregraphics-comparison'):p.error('output must be under artifacts/coregraphics-comparison')
     if output.exists():p.error('output exists: preserve it and choose a fresh directory')
     if not a.binary.is_file():p.error('build native binary before running')
     output.mkdir(parents=True)
-    meta=dict(schema_version=2,experiment='coregraphics-appkit-v1',suite=a.suite,status='running',completed=0,trials=plan,memory_interval_seconds=.25,memory_clock='Python monotonic; not assumed synchronized with native CACurrentMediaTime',start=observations())
+    meta=dict(schema_version=2,experiment='coregraphics-appkit-v1',suite=a.suite,status='running',completed=0,trials=plan,memory_interval_seconds=.25,memory_clock='Python monotonic; not assumed synchronized with native CACurrentMediaTime',start=observations(),resume=provenance,reused_count=provenance.get('reused_count',0),rerun_from_index=provenance.get('rerun_from_index',0),elapsed_definition='This invocation only; previous source elapsed, including failed work, is retained in resume provenance',binary_sha256=hashlib.sha256(a.binary.read_bytes()).hexdigest())
     def save():(output/'suite.json').write_text(json.dumps(meta,indent=2)+'\n')
     save();start=time.monotonic();inhibitor=None
     try:
         if sys.platform=='darwin':inhibitor=subprocess.Popen(['caffeinate','-di','-w',str(os.getpid())])
-        validate=runpy.run_path(str(ROOT/'scripts/analyze-coregraphics-comparison'))['validate']
+        if provenance:
+            copy_prefix(provenance,output);meta['completed']=provenance['reused_count'];save()
         for i,trial in enumerate(plan):
+            if i<meta['completed']:continue
             remaining=a.window_seconds-(time.monotonic()-start)
             if remaining<=0:raise RuntimeError('90-minute window exhausted; incomplete trials retained')
-            directory=output/f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["repeat_id"]}'
+            directory=output/trial_name(i,trial)
             directory.mkdir()
             command=[str(a.binary.resolve()),"--backend","coregraphics","--mode","appkit-paced"]
             for k,v in trial.items():command+=['--'+k.replace('_','-'),str(v)]
@@ -83,7 +133,7 @@ def main():
                 finally:
                     stop.set();worker.join(timeout=3);launch['after']=observations();(directory/'launcher.json').write_text(json.dumps(launch,indent=2)+'\n')
             if code:raise RuntimeError(f'native trial failed with exit {code}: {directory}')
-            validate(directory);meta['completed']+=1;save()
+            m,_=validate(directory);identity=admission(m,trial,a.suite,identity,fixtures);meta['completed']+=1;save()
             print(f'{meta["completed"]}/{len(plan)} {directory.name}',flush=True)
         subprocess.run([sys.executable,str(ROOT/'scripts/analyze-coregraphics-comparison'),str(output)],check=True)
         meta['status']='complete';return 0
