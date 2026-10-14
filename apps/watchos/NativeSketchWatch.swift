@@ -53,13 +53,35 @@ struct WatchViewer: View {
   @State private var crown = 1.0
   @State private var startPan: CGSize?
   @State private var showingDetails = false
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  private var detailsSummary: String {
+    let received = model.store.receivedAt.map { "Received " + Date(timeIntervalSince1970: $0).formatted(date: .abbreviated, time: .shortened) } ?? ""
+    return [model.store.metadata?.title ?? "", received, model.message].filter { !$0.isEmpty }.joined(separator: ". ")
+  }
   var body: some View {
+    Group {
+      if dynamicTypeSize.isAccessibilitySize {
+        // Large text can scroll to every native control without shrinking the canvas.
+        ScrollView { primary.frame(minHeight: 280) }
+      } else { primary }
+    }
+    .sheet(isPresented: $showingDetails) { details }
+  }
+  private var primary: some View {
     VStack(spacing: 4) {
       Text("View Only").font(.caption).foregroundStyle(.secondary)
       Canvas { context, size in
         context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.white))
         context.concatenate(model.navigation.transform(bounds: model.store.document.bounds, size: size))
         for (path, color) in model.store.document.paths { context.fill(Path(path), with: .color(Color(cgColor: color))) }
+      }
+      .frame(minHeight: 64, maxHeight: .infinity)
+      .layoutPriority(1)
+      .overlay {
+        if model.store.metadata == nil {
+          Text("Send a copy from iPhone").font(.caption2).foregroundStyle(.black)
+            .multilineTextAlignment(.center).padding(6).allowsHitTesting(false)
+        }
       }
       .accessibilityLabel("Drawing preview, view only")
       .focusable()
@@ -70,22 +92,22 @@ struct WatchViewer: View {
         if startPan == nil { startPan = model.navigation.pan }
         model.navigation.pan = CGSize(width: (startPan?.width ?? 0) + value.translation.width, height: (startPan?.height ?? 0) + value.translation.height)
       }.onEnded { _ in startPan = nil })
-      if let metadata = model.store.metadata {
-        Text(metadata.title).font(.caption2).lineLimit(1).truncationMode(.tail)
-          .accessibilityLabel("Document: " + metadata.title)
-        Text("Received " + Date(timeIntervalSince1970: model.store.receivedAt ?? metadata.sentAt).formatted(date: .abbreviated, time: .shortened))
-          .font(.caption2).lineLimit(2).fixedSize(horizontal: false, vertical: true)
-      }
-      if !model.message.isEmpty {
-        Text(model.message).font(.caption2).lineLimit(2)
-          .accessibilityLabel(model.message)
+      if let metadata = model.store.metadata, !dynamicTypeSize.isAccessibilitySize {
+        ViewThatFits(in: .vertical) {
+          Text(metadata.title).font(.caption2).lineLimit(1).truncationMode(.tail)
+            .accessibilityLabel("Document: " + metadata.title)
+          EmptyView()
+        }
       }
       HStack {
         Button("Fit") { crown = 1; model.navigation.fit() }
+          .disabled(model.store.document.paths.isEmpty)
         Button("Details") { showingDetails = true }
+          .accessibilityValue(detailsSummary)
       }
     }.padding(4)
-    .sheet(isPresented: $showingDetails) {
+  }
+  private var details: some View {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
           Text("View Only").font(.headline)
@@ -98,7 +120,6 @@ struct WatchViewer: View {
           Button("Done") { showingDetails = false }
         }.padding()
       }
-    }
   }
 }
 @main struct NativeSketchWatch: App { var body: some Scene { WindowGroup { WatchViewer() } } }
