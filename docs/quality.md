@@ -23,7 +23,12 @@ Generated artifacts are not source. Keep test fixtures synthetic and disposable.
 `scripts/check-linux` builds GTK/libadwaita, runs clippy and the native adapter test;
 running this on macOS does not certify Linux display servers or portals.
 `scripts/check-android` runs the JNI/input replay on the selected Android device or
-emulator. `scripts/run-ios <UUID> --integration-test` runs the UIKit replay in that
+emulator. Always identify the disposable test device before choosing `ANDROID_SERIAL`.
+Desktop replay covers keyboard callbacks, resize cancellation, native MIME eligibility,
+mouse/stylus/touch provenance and large-document Fit/zoom. Real input dispatch, small/short
+window usability and file-provider permissions also require native runtime inspection.
+Dual-ABI packaging alone does not certify ChromeOS/Googlebook hardware.
+`scripts/run-ios <UUID> --integration-test` runs the UIKit replay in that
 simulator. Coordinate device runs and native UI inspection exclusively on the host.
 `scripts/check-windows.ps1` builds the x64 Rust DLL/WinUI host and runs C# conformance
 on Windows. Cross-host C# compilation or interop checks do not replace Windows launch.

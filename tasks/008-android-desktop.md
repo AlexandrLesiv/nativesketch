@@ -1,6 +1,8 @@
 # 008: ChromeOS and Googlebook desktop adapter
 
-Status: active. Owner authorized implementation on 2026-10-14; implementation follows task 007, which is now in merge review.
+Status: review. Implementation and compact/desktop replay complete on 2026-10-14.
+See docs/evidence/008-android-desktop.md for incomplete short-window/keyboard/hardware inspection.
+Owner merge approval is pending; implementation followed task 007.
 There is no code or merge dependency between these two platform features.
 
 ## Outcome

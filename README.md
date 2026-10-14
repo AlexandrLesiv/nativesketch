@@ -11,7 +11,7 @@ platform. This is the first-stroke milestone, not a production drawing applicati
 | visionOS | Swift / UIKit 2D editor | `scripts/build-visionos simulator` |
 | tvOS | UIKit view-only document viewer | `scripts/build-tvos simulator` |
 | watchOS | Independent SwiftUI viewer, optional iPhone source | `scripts/build-watchos simulator` |
-| Android | Kotlin / Material Components for Views | `scripts/build-android`, `scripts/check-android` |
+| Android / compatible ChromeOS / Googlebook | Adaptive Kotlin / Material Views; ARM64 + x86-64 | `scripts/build-android`, `scripts/check-android` |
 | Windows | C# / WinUI 3 | `scripts/check-windows.ps1` on Windows |
 | Linux | Rust / GTK4 + libadwaita | `scripts/check-linux` |
 | Browser | TypeScript / semantic HTML + Rust/Wasm | `scripts/run-web`, `scripts/check-web` |
@@ -19,6 +19,8 @@ platform. This is the first-stroke milestone, not a production drawing applicati
 Apple chrome uses standard native controls and current SDK styling; Android uses
 Material Views. Actual platform runtime verification varies: read the
 [platform evidence](docs/evidence/005-native-platforms.md) before accepting a port.
+[Android desktop evidence](docs/evidence/008-android-desktop.md) records emulator results
+and remaining ChromeOS/Googlebook hardware and interface checks.
 GTK has been built on this Mac; that does not certify Linux. Windows C# compilation
 and its Rust interop check do not certify a packaged, running Windows application.
 

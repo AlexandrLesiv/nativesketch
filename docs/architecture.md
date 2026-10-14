@@ -20,6 +20,12 @@ JNI, WinUI through C# P/Invoke, GTK directly as a Rust dependency, and browser t
 `sketch-wasm` protocol 1. The byte format is common across all hosts. Platforms own
 viewport state and native controls; no host reimplements document/history semantics.
 
+Android desktop adaptation shares the same Activity, JNI bridge and Rust editor.
+Window width selects compact or expanded native controls; size changes cancel temporary
+gestures and retain committed content, history and selection. Keyboard/mouse/stylus
+adaptation and content-URI permissions remain in Kotlin. ARM64 and x86-64 package the
+same Rust semantics; no separate ChromeOS or Googlebook document implementation exists.
+
 Export returns bytes and a revision; only a confirmed successful write of that
 revision may mark clean. New/import/load invalidate earlier save acknowledgements.
 The browser's download-only path keeps dirty state because dispatching a download is
