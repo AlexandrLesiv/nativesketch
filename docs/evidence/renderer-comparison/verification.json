@@ -1,0 +1,41 @@
+{
+  "tested_revision": "6e1fb271f68f6122108164ce515d871a59df9ed0",
+  "checks": [
+    {
+      "command": "./scripts/check",
+      "tested_revision": "6e1fb271f68f6122108164ce515d871a59df9ed0",
+      "status": "passed",
+      "log_sha256": "e02b935bae2834c81b18324c4c0b37c4b06220b0d7cc782b4f4e0c49523c3682"
+    },
+    {
+      "command": "./scripts/check-renderer-comparison",
+      "tested_revision": "6e1fb271f68f6122108164ce515d871a59df9ed0",
+      "status": "passed",
+      "log_sha256": "3907e487024c612b700b02c22ec3c34ae173c1f01766c9dff1446843ed9d9943"
+    }
+  ],
+  "counts": {
+    "production_rust_tests": 26,
+    "experiment_rust_tests": 5,
+    "analysis_and_replay_python_tests": 24
+  },
+  "native_final_inspection": {
+    "source_revision": "6e1fb271f68f6122108164ce515d871a59df9ed0",
+    "status": "complete",
+    "backend": "vello",
+    "fixture": "alpha",
+    "frame_count": 1,
+    "window_level": 0,
+    "description": "Interactive normal-window launch; Run locked controls, completed visible alpha fixture, restored controls; app left running. Not a performance trial."
+  },
+  "independent_review": {
+    "reviewed_head": "55cf0b8",
+    "reviewed_additional": "Final working evidence/helpers subsequently committed in6e1fb27; generated SVG/CSV whitespace normalized afterward without data changes.",
+    "result": "No unresolved actionable finding; all22guardedprocesses/rawhashes/lifecycle/tables validated."
+  },
+  "limitations": [
+    "Incomplete presentation callbacks; no display-deadline classification or physical pen latency",
+    "macOS/Metal only; no cross-platform renderer certification",
+    "Dark appearance, minimum-width resize and keyboard-event delivery not fully verified"
+  ]
+}

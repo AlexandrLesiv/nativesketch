@@ -391,6 +391,13 @@ stages, sampled peaks and finish-time GPU allocation separately.
 
 ## Verification and review
 
+Final integration source **`6e1fb271f68f6122108164ce515d871a59df9ed0`** passed
+`./scripts/check` and `./scripts/check-renderer-comparison`: 26 production Rust tests,
+five experiment Rust tests, 24 Python analysis/recovery tests, native release build and
+Swift/Rust integration. The [verification record](renderer-comparison/verification.json)
+binds command logs to that revision. The final interactive app rendered the alpha fixture,
+restored its controls and remained open; this one-frame inspection is not performance data.
+
 - `./scripts/check` passed at source `32361fb`, including 26 Rust tests, formatting/lints,
   the macOS build and Swift/Rust integration. Evidence helpers/report were untracked at that
   time and do not alter that production check. Existing linker search-path warnings did not
