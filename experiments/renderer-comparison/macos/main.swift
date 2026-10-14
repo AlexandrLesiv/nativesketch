@@ -188,7 +188,9 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         NSLayoutConstraint.activate([canvas.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -28), canvas.heightAnchor.constraint(greaterThanOrEqualToConstant: 260), status.widthAnchor.constraint(equalTo: canvas.widthAnchor)])
         status.setAccessibilityLabel("Experiment status")
         window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
-        if !options.interactive { DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.start() } }
+        // Allow launch/activation to settle before any trial or initialization starts.
+        // This delay is outside timing; every in-trial occlusion still invalidates.
+        if !options.interactive { DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { self.start() } }
     }
     func setStatus(_ value: String) { status.stringValue = value; NSAccessibility.post(element: status, notification: .valueChanged) }
     @objc func revealResults() { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: options.output) }
@@ -204,6 +206,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
     func windowDidChangeBackingProperties(_ n: Notification) { invalidate("Backing scale changed") }
     func windowShouldClose(_ sender: NSWindow) -> Bool { if active != nil { closing = true; cancel(); return false }; NSApp.terminate(nil); return true }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { if active != nil { closing = true; cancel(); return .terminateCancel }; return .terminateNow }
+    func applicationWillTerminate(_ notification: Notification) {
+        // AppKit's terminate path exits the process without returning from app.run().
+        // finishUI has already drained the renderer and written host-status before
+        // requesting termination. Preserve its verdict for command-line runners.
+        fflush(nil)
+        exit(exitCode)
+    }
     @objc func start() {
         guard active == nil else { return }
         if options.interactive && runNumber > 0 { options.output = originalOutput + "-" + UUID().uuidString }
@@ -229,6 +238,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         var config: [String: Any] = ["backend": options.backend, "fixture": options.fixture, "width": options.width, "height": options.height, "mode": options.mode, "warmup": options.warmup, "repeat_id": options.repeatID, "output": options.output, "display": ["refresh_hz": hz as Any? ?? NSNull(), "refresh_source": "CVDisplayLink nominal period; not observed presentation rate", "backing_scale": window.backingScaleFactor, "window_points_width": window.frame.width, "window_points_height": window.frame.height], "runtime": ["os": ProcessInfo.processInfo.operatingSystemVersionString, "cpu_count": ProcessInfo.processInfo.processorCount, "physical_memory_bytes": ProcessInfo.processInfo.physicalMemory], "power": ["thermal_before": ProcessInfo.processInfo.thermalState.rawValue, "low_power_mode": ProcessInfo.processInfo.isLowPowerModeEnabled]]
         var runtime = config["runtime"] as! [String: Any]
         runtime["lifecycle_start"] = startState
+        runtime["automatic_launch_settle_seconds"] = options.interactive ? 0.0 : 2.0
         runtime["activity_options"] = ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"]
         runtime["activity_options_raw"] = activityOptions.rawValue
         runtime["lifecycle_policy"] = "Invalidate full window occlusion, session resignation, system/display sleep; focus loss alone is allowed. Host status is authoritative through output completion."
