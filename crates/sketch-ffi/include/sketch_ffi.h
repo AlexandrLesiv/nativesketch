@@ -40,6 +40,34 @@ typedef struct {
     double red, green, blue, alpha;
     double x1, y1, x2, y2, x3, y3;
 } SketchPathCommand;
+/* Additive ABI 2 source metadata policy. This does NOT authenticate metadata,
+ * hash bytes, import a document, or change a cache. Before accepting, host must
+ * verify expected selected namespace/document (even when current is NULL), request
+ * identity, actual SHA256, and document validity. Namespace includes account/library.
+ * Text is borrowed UTF-8, not NUL-terminated: IDs 1..256 bytes without controls;
+ * parent may be empty (NULL/0 allowed). Hash is exactly 64 lowercase hex bytes.
+ * kind: 0 phone draft, 1 server published. generation is draft's server base
+ * (0 for phone-only), or published server sequence (>=1). Immutable revision IDs
+ * bind hash, parent, kind and generation; publication requires a new revision ID.
+ * Current may be NULL. All other pointers must be valid and inputs immutable
+ * through the call. Output is caller-owned and disjoint from inputs. No retained
+ * pointers/handles/global state; callable on any thread. Status 0/1/6 as above;
+ * failure leaves output untouched. No panic unwinds across this boundary.
+ * Decisions: 0 accept, 1 duplicate (retain CURRENT metadata/provenance), 2 stale,
+ * 3 conflict (requires explicit user choice), 4 wrong namespace/document.
+ * Same revision with contradictory metadata is invalid (status 1). Same published
+ * generation with different revisions conflicts even for identical content.
+ * Only published versions use generation ordering. Draft transitions require
+ * direct-parent evidence with consistent base generation; skipped/unknown ancestry
+ * conflicts. Older published snapshots cannot overwrite drafts. No wallclock order.
+ */
+typedef struct { const uint8_t *bytes; size_t length; } SketchSourceText;
+typedef struct {
+    SketchSourceText namespace_id, document_id, revision_id, parent_revision_id, content_sha256;
+    uint64_t server_generation;
+    uint32_t kind;
+} SketchSourceVersion;
+uint32_t sketch_source_compare(const SketchSourceVersion *current, const SketchSourceVersion *candidate, uint32_t *out_decision);
 uint32_t sketch_abi_version(void);
 uint32_t sketch_editor_create(SketchEditor **out_editor);
 void sketch_editor_free(SketchEditor *editor);
