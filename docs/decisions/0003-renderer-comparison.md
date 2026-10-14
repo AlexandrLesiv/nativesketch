@@ -14,6 +14,14 @@ It is the authority for exact revisions, numerical results and verification stat
 
 ## Proposed direction
 
+Update: the next planned decision experiment is [Skia versus Core Graphics physical
+pen latency](../benchmarks/skia-coregraphics-pen-latency-plan.md) on the connected Wacom
+Cintiq with Pro Pen 3. Vello is outside that experiment; its historical evidence remains.
+The earlier Skia preference below concerns the tested Skia/Vello adapters, and does not
+establish a Skia advantage over Core Graphics. No physical latency results exist yet.
+
+### Earlier GPU comparison recommendation
+
 Use Skia as the baseline for the next scoped interaction integration experiment, while
 retaining Vello GPU as a candidate. Skia's current adapter has lower pan/zoom and live-update
 submission costs; Vello has lower dense retained-scene costs. Dense first-use/memory costs

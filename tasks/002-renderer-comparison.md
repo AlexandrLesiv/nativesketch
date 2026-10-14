@@ -16,6 +16,10 @@ ranking or isolated engine-size delta is claimed by that artifact audit.
 The [separate renderer bundle study](../docs/evidence/renderer-bundle-size.html) adds
 matched macOS Skia/Vello/blank/both builds and distinct linker optimization lanes.
 
+Planned next experiment: [Skia versus Core Graphics physical pen latency](../docs/benchmarks/skia-coregraphics-pen-latency-plan.md), using the owner's connected Wacom Cintiq and Pro Pen 3.
+It holds input semantics, caching policy and canvas size constant, with physical optical
+measurements separate from identical-sample replay. Implementation has not started.
+
 ## Outcome and boundaries
 
 Compare Rust-Skia Ganesh over Metal with an explicitly pinned Vello GPU version/variant
