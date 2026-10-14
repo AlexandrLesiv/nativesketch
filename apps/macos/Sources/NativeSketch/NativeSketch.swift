@@ -335,6 +335,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
       window.appearance = NSAppearance(
         named: CommandLine.arguments[index + 1] == "dark" ? .darkAqua : .aqua)
     }
+    if CommandLine.arguments.contains("--small-window") {
+      window.setContentSize(NSSize(width: 640, height: 420))
+    }
     window.title = "Untitled — Native Sketch"
     window.minSize = NSSize(width: 640, height: 420)
     window.isReleasedWhenClosed = false
@@ -546,9 +549,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     else {
       NSSound.beep()
       let message = "Enter a scale greater than 0 and at most 10000 percent."
-      status.stringValue = message
       window.makeFirstResponder(scale)
       scale.selectText(nil)
+      status.stringValue = message
       NSAccessibility.post(
         element: scale, notification: .announcementRequested,
         userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
@@ -735,6 +738,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     scale.stringValue = "200junk"
     resize(nil)
     precondition(geometry() == before)
+    precondition(status.stringValue == "Enter a scale greater than 0 and at most 10000 percent.")
     precondition(scale.currentEditor() === window.firstResponder)
     precondition(
       (scale.currentEditor() as? NSTextView)?.selectedRange() == NSRange(location: 0, length: 7))
