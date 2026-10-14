@@ -197,15 +197,16 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var snapshot = PcSnapshot()
     func ffiCheck(_ result: Int32) throws { try require(result == 0, String(cString: pc_error())) }
     func hashString<T>(_ tuple: T) -> String { withUnsafeBytes(of: tuple) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) } }
-    func resetReplay(_ duration: Double, prepareInitial: Bool = true) throws {
+    func resetReplay(_ duration: Double) throws {
         let constructionStart = monotonicNow()
         if let replay { pc_replay_destroy(replay) }
         let config: [String: Any] = ["scene": o.scene, "trace": o.trace, "width": o.width, "height": o.height, "duration_s": duration, "sample_hz": 240]
         let data = try jsonData(config), text = String(decoding: data, as: UTF8.self)
         replay = text.withCString { pc_replay_create($0) }; try require(replay != nil, String(cString: pc_error()))
         let constructed = monotonicNow(); snapshot = PcSnapshot()
-        if prepareInitial { try ffiCheck(pc_replay_advance(replay, 0, &snapshot)) }
-        initialization.append(["stage": "replay_creation_and_reference_oracle", "duration_ms": (constructed-constructionStart)*1000, "initial_advance_ms": (monotonicNow()-constructed)*1000, "initial_sample_applied": prepareInitial])
+        try ffiCheck(pc_replay_initial_snapshot(replay, &snapshot))
+        try require(snapshot.total_samples == 0 && snapshot.live_outline_count == 0, "Initial cache snapshot must not consume replay input")
+        initialization.append(["stage": "replay_creation_and_reference_oracle", "duration_ms": (constructed-constructionStart)*1000, "initial_snapshot_ms": (monotonicNow()-constructed)*1000, "initial_sample_applied": false])
         requestedViewport = .max; baseRevision = .max; liveRevision = .max; cacheKey = ""; cacheImage = nil; decodedImage = nil; retainedClip = nil
         if let skia { try ffiCheck(pc_skia_reset(skia)) }
         epoch = monotonicNow(); latestReceipt = epoch; terminalDrawn = false
@@ -214,14 +215,14 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard !active && !finalizing else { return }
         do {
             try check(); initialFrame = window.frame; initialMode = mode()
-            initialState = ["screens": screens(), "window_frame": NSStringFromRect(window.frame), "canvas_points": NSStringFromRect(canvas.bounds), "scale": target.backingScaleFactor, "physical_width": o.width, "physical_height": o.height]
+            initialState = ["selected_screen_id": o.display, "actual_screen_id": screenID(window.screen ?? target), "screens": screens(), "window_frame": NSStringFromRect(window.frame), "canvas_points": NSStringFromRect(canvas.bounds), "scale": target.backingScaleFactor, "physical_width": o.width, "physical_height": o.height]
             if let d = device, let q = queue {
                 let begin = monotonicNow()
                 skia = pc_skia_create(Unmanaged.passUnretained(d as AnyObject).toOpaque(), Unmanaged.passUnretained(q as AnyObject).toOpaque(), UInt32(o.width), UInt32(o.height))
                 try require(skia != nil, String(cString: pc_error()))
                 initialization.append(["stage": "skia_context_creation", "duration_ms": (monotonicNow()-begin)*1000])
             }
-            measured = o.warmup == 0; try resetReplay(measured ? o.duration : o.warmup, prepareInitial: !measured)
+            measured = o.warmup == 0; try resetReplay(measured ? o.duration : o.warmup)
             active = true; run.isEnabled = false; stop.isEnabled = true
             activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .latencyCritical, .idleDisplaySleepDisabled], reason: "Authorized visible Cintiq software replay")
             startTimer()
@@ -251,8 +252,8 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard active && timer != nil else { return }
         do {
             try check()
-            let elapsed = monotonicNow() - epoch
             let receipt = monotonicNow()
+            let elapsed = receipt - epoch
             try ffiCheck(pc_replay_advance(replay, elapsed, &snapshot))
             if measured {
                 advanceCount += 1; advanceCPUms += (monotonicNow()-receipt)*1000
@@ -401,6 +402,38 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         finalMetadata["capture_sha256"] = SHA256.hash(data: png).map { String(format: "%02x", $0) }.joined()
         finalMetadata["capture_kind"] = o.backend == "coregraphics" ? "Untimed bitmap proxy using identical painter; not presented pixels" : "Untimed final Metal texture readback; not optical pixels"
     }
+    var gpuRetired = false, retirementFinished = false
+    func retireGPU(_ continuation: @escaping () -> Void) {
+        guard let queue else { gpuRetired = true; continuation(); return }
+        guard let fence = queue.makeCommandBuffer() else { retirementFailure("Could not allocate GPU retirement fence"); return }
+        let begin = monotonicNow()
+        fence.label = "Untimed finalization retirement fence"
+        fence.addCompletedHandler { [weak self] command in
+            let status = command.status
+            DispatchQueue.main.async {
+                guard let self, !self.retirementFinished else { return }
+                self.retirementFinished = true
+                self.finalMetadata["gpu_retirement_ms"] = (monotonicNow()-begin)*1000
+                self.finalMetadata["gpu_retirement_status"] = status.rawValue
+                guard status == .completed else { self.retirementFailure("GPU retirement fence did not complete successfully"); return }
+                self.gpuRetired = true; continuation()
+            }
+        }
+        fence.commit()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            guard let self, !self.retirementFinished else { return }
+            self.retirementFinished = true; self.retirementFailure("GPU retirement fence timed out after five seconds")
+        }
+    }
+    func retirementFailure(_ message: String) {
+        // Do not destroy a context whose GPU work may still own its resources.
+        // Preserve a failed result, then let process teardown retire the device.
+        outcome = "failed"; reason = message
+        finalMetadata["gpu_retirement"] = "unproven; context destruction skipped"
+        try? write(rows, "frames.json"); try? write(deliveries, "deliveries.json")
+        try? write(["schema_version": 1, "status": outcome, "reason": reason, "backend": o.backend, "policy": o.policy, "initial": initialState, "final": finalMetadata, "lifecycle": events], "manifest.json")
+        fputs("\(message)\n", stderr); exit(1)
+    }
     func finish() {
         guard active else { return }; active = false; finalizing = true; timer?.cancel(); timer = nil; watchdog?.cancel(); watchdog = nil
         status.stringValue = "Finalizing software evidence — Stop remains available"
@@ -408,7 +441,8 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         finalMetadata["measured_frames"] = measuredFrames
         finalMetadata["advance_totals"] = ["calls": advanceCount, "whole_call_ms": advanceCPUms, "input_ms": inputTotalMs, "outline_ms": outlineTotalMs, "export_ms": exportTotalMs]
         finalMetadata["frame_stage_scope"] = "Frame input/outline/export fields refer only to latest advance; use advance_totals for all calls including zero-delivery and commit-only work"
-        // Keep the runloop/lifecycle observer alive through capture and artifact writes.
+        // Keep Stop/lifecycle active while the same queue asynchronously retires on every exit path.
+        retireGPU {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             do {
                 try self.check()
@@ -437,6 +471,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { self.finalWrite() }
         }
     }
+    }
     func finalWrite() {
         do {
             do { try check() } catch { if outcome == "complete" { outcome = "invalid"; reason = "\(error)" } }
@@ -450,6 +485,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 "os": ProcessInfo.processInfo.operatingSystemVersionString, "thermal_state": ProcessInfo.processInfo.thermalState.rawValue, "self_test": o.selfTest,
                 "metal_observation_count": presentations.count, "metal_configuration": ["maximum_drawables": 3, "display_sync": true, "framebuffer_only": false], "limitations": ["No photon endpoint", "Generated replay bypasses digitizer/driver", "AppKit occlusion flag does not prove absence of partial occluders", "Final screenshot is untimed", "Metal completion callbacks are not GPU-only durations"]]
             try write(manifest, "manifest.json")
+            try require(gpuRetired, "GPU retirement was not proven")
             if let replay { pc_replay_destroy(replay); self.replay = nil }; if let skia { pc_skia_destroy(skia); self.skia = nil }
             if let activity { ProcessInfo.processInfo.endActivity(activity); self.activity = nil }
             finalizing = false; stop.isEnabled = false; status.stringValue = "\(outcome): \(reason) — physical latency pending"
