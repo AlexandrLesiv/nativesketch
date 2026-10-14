@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Portable corruption, completeness, sample-zero and pairing regression checks."""
+import copy, hashlib, json, runpy, tempfile, unittest, subprocess, sys
+from pathlib import Path
+HERE=Path(__file__).resolve().parent; A=runpy.run_path(str(HERE/'analyze-cintiq-comparison')); R=runpy.run_path(str(HERE/'run-cintiq-comparison'))
+class AnalysisTests(unittest.TestCase):
+    def setUp(self):
+        # Disposable fixtures stay within ignored project artifacts.
+        base=HERE.parent/'artifacts'; base.mkdir(exist_ok=True)
+        self.temp=tempfile.TemporaryDirectory(prefix='cintiq-analysis-test-',dir=base); self.root=Path(self.temp.name)
+        self.c=R['matrix'](1,3)[0]; self.identity={'binary_sha256':'binary','build':{'source_revision':'revision'}}
+    def tearDown(self): self.temp.cleanup()
+    def write(self,p,v): p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(v))
+    def fixture(self,c=None,start_id=0):
+        c=c or self.c; folder=self.root/'runs'/c['id']; folder.mkdir(parents=True)
+        samples=[{'id':i+start_id,'time_s':i*.01} for i in range(3)]
+        f={'expected_samples':3,'total_samples':3,'geometry_hash':'geo','document_hash':'doc','capture_sha256':hashlib.sha256(b'image').hexdigest(),'capture_kind':'proxy','advance_totals':{'calls':17,'whole_call_ms':2},'replay':{'config':dict({k:c[k] for k in ('scene','trace','width','height','duration_s')},sample_hz=240),'trace_samples':samples,'expected_samples':3,'expected_final_geometry_hash':'geo','expected_final_document_hash':'doc','trace_sha256':'trace','image_sha256':'image','initial_document_revision':1}}
+        m={k:c[k] for k in ('backend','policy','scene','trace','start_state','duration_s','warmup_s','idle_s')}; m.update(status='complete',initial={'physical_width':c['width'],'physical_height':c['height']},logging_enabled=True,self_test=False,final=f,occlusion_checks=5,occlusion_query_unavailable=0,**self.identity)
+        self.write(folder/'manifest.json',m); (folder/'final.png').write_bytes(b'image')
+        self.write(folder/'deliveries.json',[dict(receipt_s=1.025,epoch_s=1,first_sample_id=start_id,last_sample_id=start_id+2,sample_count=3)])
+        # Empty frame must not claim sample zero; next frame catches all three.
+        rows=[dict(frame=0,draw_start_s=1.0,epoch_s=1,total_samples=0,sample_id=0),dict(frame=1,draw_start_s=1.03,epoch_s=1,total_samples=3,sample_id=start_id+2)]
+        self.write(folder/'frames.json',rows); self.write(folder/'metal-observations.json',[]); return folder
+    def test_first_draw_math_and_zero(self):
+        for start in (0,1):
+            c=dict(self.c,id=self.c['id']+str(start)); r=A['analyze_run'](self.fixture(c,start),c,self.identity)
+            self.assertAlmostEqual(r['metrics']['scheduled_to_receipt_ms']['p50'],15)
+            self.assertAlmostEqual(r['metrics']['receipt_to_first_draw_ms']['p95'],5)
+            self.assertAlmostEqual(r['metrics']['scheduled_to_first_draw_ms']['p95'],29)
+            self.assertEqual(r['advance_totals']['calls'],17)
+    def mutate_reject(self,file,change):
+        folder=self.fixture(); data=json.loads((folder/file).read_text()); change(data); self.write(folder/file,data)
+        with self.assertRaises(ValueError): A['analyze_run'](folder,self.c,self.identity)
+    def test_delivery_gap(self): self.mutate_reject('deliveries.json',lambda x:x[0].update(first_sample_id=1,sample_count=2))
+    def test_duplicate_delivery(self): self.mutate_reject('deliveries.json',lambda x:x.append(dict(x[0])))
+    def test_missing_last_draw(self): self.mutate_reject('frames.json',lambda x:x.pop())
+    def test_hash_corruption(self): self.mutate_reject('manifest.json',lambda x:x['final'].update(document_hash='bad'))
+    def test_binary_corruption(self): self.mutate_reject('manifest.json',lambda x:x.update(binary_sha256='other'))
+    def test_capture_corruption(self):
+        folder=self.fixture(); (folder/'final.png').write_bytes(b'bad')
+        with self.assertRaises(ValueError): A['analyze_run'](folder,self.c,self.identity)
+    def collection(self,configs):
+        self.write(self.root/'collection.json',dict(runs=configs,identity=self.identity)); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
+    def test_partial_matrix(self):
+        configs=R['matrix'](1,3); self.collection(configs); self.fixture(configs[0]); r=A['analyze'](self.root)
+        self.assertEqual(r['declared_runs'],372); self.assertEqual(len(r['pending']),371); self.assertEqual(r['status'],'partial'); self.assertEqual(r['pairs'],[])
+    def test_pair_identity_rejection(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs); self.fixture(configs[0]); folder=self.fixture(configs[1]); m=json.loads((folder/'manifest.json').read_text()); m['final']['replay']['trace_sha256']='different'; self.write(folder/'manifest.json',m)
+        with self.assertRaisesRegex(ValueError,'pair input'): A['analyze'](self.root)
+    def test_pair_math(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs)
+        for c in configs:self.fixture(c)
+        r=A['analyze'](self.root); self.assertEqual(r['pairs'][0]['delta_p95_cg_minus_skia_ms'],0); self.assertEqual(r['cells'][0]['exploratory_pair_bootstrap_95'],[0,0])
+    def test_manifest_corruption(self):
+        self.collection([]); (self.root/'collection.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError,'modified'): A['analyze'](self.root)
+    def test_runner_halts_incomplete_without_launch(self):
+        configs=R['matrix'](1,3); binary=Path('/usr/bin/false')
+        self.identity={'binary_sha256':A['digest'](binary),'build':{}}
+        self.collection(configs); build=self.root/'build.json'; self.write(build,{})
+        (self.root/'runs'/configs[0]['id']).mkdir(parents=True)
+        command=[sys.executable,str(HERE/'run-cintiq-comparison'),'run',str(self.root),'--binary',str(binary),'--build-json',str(build)]
+        first=subprocess.run(command,capture_output=True,text=True)
+        self.assertNotEqual(first.returncode,0); self.assertTrue((self.root/'HALTED.json').exists())
+        second=subprocess.run(command,capture_output=True,text=True)
+        self.assertNotEqual(second.returncode,0); self.assertIn('previously halted',second.stderr)
+    def test_runner_exit_failure_halts(self):
+        configs=R['matrix'](1,3); binary=Path('/usr/bin/false')
+        self.identity={'binary_sha256':A['digest'](binary),'build':{}}
+        self.collection(configs); build=self.root/'build.json'; self.write(build,{})
+        result=subprocess.run([sys.executable,str(HERE/'run-cintiq-comparison'),'run',str(self.root),'--binary',str(binary),'--build-json',str(build)],capture_output=True,text=True)
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('process exit',json.loads((self.root/'HALTED.json').read_text())['reason'])
+    def test_matrix(self):
+        a=R['matrix'](1,3); self.assertEqual(a,R['matrix'](1,3)); self.assertNotEqual(a,R['matrix'](2,3)); self.assertEqual(len({c['id'] for c in a}),372)
+        self.assertEqual(sum(c['duration_s'] for c in a),216*60)
+        self.assertEqual(sum(c['duration_s']==180 for c in a),12)
+if __name__=='__main__': unittest.main()

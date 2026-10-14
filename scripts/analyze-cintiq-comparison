@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Validate frozen Cintiq collection and compute exploratory software-only results."""
+import argparse, hashlib, json, math, random, statistics
+from pathlib import Path
+
+def read(p): return json.loads(Path(p).read_text())
+def digest(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+def require(ok, message):
+    if not ok: raise ValueError(message)
+def quantile(xs, q):
+    if not xs: return None
+    a=sorted(xs); i=(len(a)-1)*q; lo=int(i)
+    return a[lo]+(a[min(lo+1,len(a)-1)]-a[lo])*(i-lo)
+def distribution(xs):
+    require(all(math.isfinite(x) and x >= -0.001 for x in xs), 'nonfinite/negative timing')
+    return dict(count=len(xs),p50=quantile(xs,.5),p95=quantile(xs,.95),p99=quantile(xs,.99),max=max(xs) if xs else None)
+def config_match(m, c):
+    for key in ('backend','policy','scene','trace','start_state','duration_s','warmup_s','idle_s'):
+        require(m[key]==c[key], 'configuration mismatch: '+key)
+    require(m['initial']['physical_width']==c['width'] and m['initial']['physical_height']==c['height'], 'canvas mismatch')
+def analyze_run(folder, c, identity):
+    folder=Path(folder); m=read(folder/'manifest.json'); require(m['status']=='complete', 'run not complete: '+m['status'])
+    if (folder/'collection-receipt.json').exists():
+        hashes=read(folder/'collection-receipt.json')
+        require(set(hashes)=={'manifest.json','frames.json','deliveries.json','metal-observations.json','final.png'}, 'receipt file set mismatch')
+        require(all(digest(folder/k)==v for k,v in hashes.items()), 'collected artifacts changed')
+    config_match(m,c); require(m['binary_sha256']==identity['binary_sha256'],'binary identity mismatch')
+    require(m['build']==identity['build'],'build identity mismatch')
+    require(m['logging_enabled'] and not m['self_test'], 'non-measurement run')
+    f=m['final']; r=f['replay']; samples=r['trace_samples']; ids=[s['id'] for s in samples]
+    for key in ('scene','trace','width','height','duration_s'): require(r['config'][key]==c[key], 'replay config mismatch: '+key)
+    require(r['config']['sample_hz']==240, 'unexpected sample rate')
+    require(len(ids)>0 and ids==list(range(ids[0],ids[0]+len(ids))), 'trace sample IDs not contiguous')
+    require(len(ids)==f['expected_samples']==f['total_samples']==r['expected_samples'], 'sample counts differ')
+    require(all(math.isfinite(s['time_s']) and s['time_s']>=0 for s in samples), 'invalid scheduled time')
+    require(all(samples[i]['time_s']<=samples[i+1]['time_s'] for i in range(len(samples)-1)), 'trace time regression')
+    for k in ('geometry','document'): require(f[k+'_hash']==r['expected_final_'+k+'_hash'], 'final '+k+' hash mismatch')
+    require(digest(folder/'final.png')==f['capture_sha256'], 'capture checksum mismatch')
+    deliveries=read(folder/'deliveries.json'); frames=read(folder/'frames.json'); receipt={}; epoch=None; prev=-math.inf
+    for d in deliveries:
+        require(d['receipt_s']>=prev, 'receipt regression'); prev=d['receipt_s']
+        if epoch is None: epoch=d['epoch_s']
+        require(d['epoch_s']==epoch, 'epoch mismatch')
+        chunk=list(range(d['first_sample_id'],d['last_sample_id']+1))
+        require(len(chunk)==d['sample_count'] and len(chunk)>0, 'delivery count mismatch')
+        for i in chunk:
+            require(i not in receipt, 'duplicate delivery'); receipt[i]=d['receipt_s']
+    require(set(receipt)==set(ids), 'delivery gap or extra sample')
+    first={}; cursor=0; previous_time=-math.inf; previous_frame=-1; previous_count=0
+    for row in frames:
+        require(row['frame']>previous_frame and row['draw_start_s']>=previous_time,'frame order regression')
+        previous_frame=row['frame']; previous_time=row['draw_start_s']
+        require(row['epoch_s']==epoch, 'frame epoch mismatch')
+        count=row['total_samples']; require(previous_count<=count<=len(ids), 'frame sample count regression')
+        previous_count=count
+        # total_samples disambiguates an empty snapshot from sample ID zero.
+        if count: require(row['sample_id']==ids[count-1], 'frame sample/count mismatch')
+        while cursor<count:
+            i=ids[cursor]; first[i]=row['draw_start_s']; cursor+=1
+    require(cursor==len(ids),'samples never represented by a draw')
+    timings={'scheduled_to_receipt_ms':[], 'receipt_to_first_draw_ms':[], 'scheduled_to_first_draw_ms':[]}
+    for s in samples:
+        i=s['id']; scheduled=epoch+s['time_s']
+        timings['scheduled_to_receipt_ms'].append((receipt[i]-scheduled)*1000)
+        timings['receipt_to_first_draw_ms'].append((first[i]-receipt[i])*1000)
+        timings['scheduled_to_first_draw_ms'].append((first[i]-scheduled)*1000)
+    result={'config':c,'identity':{'trace':r['trace_sha256'],'expected_geometry':r['expected_final_geometry_hash'],'expected_document':r['expected_final_document_hash'],'image':r['image_sha256'],'initial_document_revision':r['initial_document_revision'],'initial':m['initial']},'metrics':{k:distribution(v) for k,v in timings.items()},'advance_totals':f['advance_totals'],'frames':len(frames),'capture_kind':f['capture_kind'],'occlusion_checks':m['occlusion_checks'],'occlusion_query_unavailable':m['occlusion_query_unavailable']}
+    result['callback_diagnostics']={k:distribution([x[k] for x in frames if x.get(k) is not None]) for k in ('draw_cpu_ms','draw_interval_ms','acquire_ms','cache_build_ms')}
+    result['metal_observations']=len(read(folder/'metal-observations.json'))
+    return result
+
+def analyze(root):
+    root=Path(root); manifest=read(root/'collection.json')
+    require(digest(root/'collection.json')==(root/'collection.sha256').read_text().strip(),'collection manifest modified')
+    results={}; pending=[]; invalid=[]
+    for c in manifest['runs']:
+        folder=root/'runs'/c['id']
+        if not (folder/'manifest.json').exists(): pending.append(c['id']); continue
+        try: results[c['id']]=analyze_run(folder,c,manifest['identity'])
+        except (ValueError,KeyError,TypeError,OSError) as e: invalid.append({'id':c['id'],'reason':str(e)})
+    pairs=[]; grouped={}
+    for c in manifest['runs']: grouped.setdefault(c['pair_id'],{})[c['backend']]=c['id']
+    for pair, members in grouped.items():
+        require(set(members)=={'skia','coregraphics'}, 'malformed declared pair '+pair)
+        if not all(i in results for i in members.values()): continue
+        s,g=(results[members[k]] for k in ('skia','coregraphics'))
+        sc,gc=(dict(x['config']) for x in (s,g))
+        for c in (sc,gc): c.pop('id'); c.pop('backend')
+        require(sc==gc,'pair configuration mismatch '+pair)
+        require(s['identity']==g['identity'],'pair input/display/expected identity mismatch '+pair)
+        delta=g['metrics']['scheduled_to_first_draw_ms']['p95']-s['metrics']['scheduled_to_first_draw_ms']['p95']
+        pairs.append({'pair_id':pair,'cell':sc['cell'],'delta_p95_cg_minus_skia_ms':delta})
+    summaries=[]
+    for cell in sorted({p['cell'] for p in pairs}):
+        ds=[p['delta_p95_cg_minus_skia_ms'] for p in pairs if p['cell']==cell]; rng=random.Random(1763)
+        boot=[statistics.median(rng.choices(ds,k=len(ds))) for _ in range(5000)]
+        summaries.append({'cell':cell,'pairs':len(ds),'median_paired_delta_ms':statistics.median(ds),'exploratory_pair_bootstrap_95':[quantile(boot,.025),quantile(boot,.975)]})
+    return {'schema_version':1,'status':'complete' if not pending and not invalid else 'partial','declared_runs':len(manifest['runs']),'accepted_runs':len(results),'pending':pending,'invalid':invalid,'runs':results,'pairs':pairs,'cells':summaries,'collection_identity':manifest['identity'],'physical_pen_to_screen':'PENDING CAMERA; not measured','interpretation':'Synthetic 240Hz software replay; first draw is not photon visibility. Pair bootstrap is exploratory; no equivalence or physical winner. Callback diagnostics have backend-specific boundaries.'}
+if __name__=='__main__':
+    p=argparse.ArgumentParser(description=__doc__); p.add_argument('collection'); p.add_argument('--output',required=True); a=p.parse_args()
+    try: result=analyze(a.collection)
+    except (ValueError,KeyError,TypeError,OSError) as e: p.exit(1,str(e)+'\n')
+    Path(a.output).write_text(json.dumps(result,indent=2)+'\n'); print(f"{result['status']}: {result['accepted_runs']}/{result['declared_runs']} accepted")
