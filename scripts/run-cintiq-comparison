@@ -22,6 +22,11 @@ def matrix(seed, display):
             runs.append(dict(id=pair_id+'-'+backend,pair_id=pair_id,cell=cell,pair=n,backend=backend,scene=scene,trace=trace,start_state=state,policy=policy,width=width,height=height,duration_s=duration,warmup_s=0 if state=='first-use' else 5,idle_s=30 if state=='after-idle' else 0,screen_id=display))
     return runs
 
+def validate_build(build, revision, dirty):
+    if dirty: raise ValueError('freeze requires clean source checkout')
+    if build.get('source_revision')!=revision or build.get('source_status'): raise ValueError('build must identify this clean source revision')
+    if build.get('rust_build_skipped') is True: raise ValueError('freeze rejects skipped Rust builds; rebuild the archive from this source')
+
 def main():
     p=argparse.ArgumentParser(description=__doc__); p.add_argument('action',choices=('freeze','run')); p.add_argument('collection',type=Path); p.add_argument('--binary',type=Path,required=True); p.add_argument('--build-json',type=Path,required=True); p.add_argument('--screen-id',type=int,default=3); p.add_argument('--seed',type=int,default=20261014); p.add_argument('--source',type=Path,default=Path(__file__).resolve().parent.parent); p.add_argument('--limit',type=int); p.add_argument('--timeout-grace',type=float,default=180); a=p.parse_args()
     root=a.collection.resolve(); binary=a.binary.resolve(); build=json.loads(a.build_json.read_text()); identity=dict(binary_sha256=sha(binary),build=build)
@@ -29,8 +34,8 @@ def main():
         if root.exists(): p.error('collection must not exist; frozen collections cannot be overwritten')
         revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=a.source,text=True).strip()
         dirty=subprocess.check_output(['git','status','--porcelain'],cwd=a.source,text=True)
-        if dirty: p.error('freeze requires clean source checkout')
-        if build.get('source_revision')!=revision or build.get('source_status'): p.error('build must identify this clean source revision')
+        try: validate_build(build,revision,dirty)
+        except ValueError as error: p.error(str(error))
         root.mkdir(parents=True); (root/'runs').mkdir()
         m=dict(schema_version=1,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_revision=revision,identity=identity,seed=a.seed,binary=str(binary),runs=matrix(a.seed,a.screen_id),scope='Synthetic 240Hz software only; physical latency pending camera')
         (root/'collection.json').write_text(json.dumps(m,indent=2)+'\n'); (root/'collection.sha256').write_text(sha(root/'collection.json')+'\n')

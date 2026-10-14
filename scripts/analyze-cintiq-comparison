@@ -17,7 +17,14 @@ def distribution(xs):
 def config_match(m, c):
     for key in ('backend','policy','scene','trace','start_state','duration_s','warmup_s','idle_s'):
         require(m[key]==c[key], 'configuration mismatch: '+key)
-    require(m['initial']['physical_width']==c['width'] and m['initial']['physical_height']==c['height'], 'canvas mismatch')
+    initial=m['initial']
+    require(initial['physical_width']==c['width'] and initial['physical_height']==c['height'], 'canvas mismatch')
+    require(initial['selected_screen_id']==c['screen_id'] and initial['actual_screen_id']==c['screen_id'], 'selected/actual display mismatch')
+    screens=[s for s in initial['screens'] if s['id']==c['screen_id']]
+    require(len(screens)==1, 'selected display missing or duplicated')
+    screen=screens[0]
+    require(not screen['in_mirror_set'] and screen['mirrors_display']==0, 'selected display is mirrored')
+    require(screen['pixel_width']>=c['width'] and screen['pixel_height']>=c['height'], 'selected display cannot fit canvas')
 def analyze_run(folder, c, identity):
     folder=Path(folder); m=read(folder/'manifest.json'); require(m['status']=='complete', 'run not complete: '+m['status'])
     if (folder/'collection-receipt.json').exists():
@@ -28,6 +35,8 @@ def analyze_run(folder, c, identity):
     require(m['build']==identity['build'],'build identity mismatch')
     require(m['logging_enabled'] and not m['self_test'], 'non-measurement run')
     f=m['final']; r=f['replay']; samples=r['trace_samples']; ids=[s['id'] for s in samples]
+    require(r['source_revision']==identity['build']['source_revision'], 'Rust replay source revision differs from frozen build')
+    require(math.isfinite(f['elapsed_s']) and f['elapsed_s']+0.001>=c['duration_s'], 'run ended before declared duration')
     for key in ('scene','trace','width','height','duration_s'): require(r['config'][key]==c[key], 'replay config mismatch: '+key)
     require(r['config']['sample_hz']==240, 'unexpected sample rate')
     require(len(ids)>0 and ids==list(range(ids[0],ids[0]+len(ids))), 'trace sample IDs not contiguous')
@@ -64,8 +73,10 @@ def analyze_run(folder, c, identity):
         timings['scheduled_to_receipt_ms'].append((receipt[i]-scheduled)*1000)
         timings['receipt_to_first_draw_ms'].append((first[i]-receipt[i])*1000)
         timings['scheduled_to_first_draw_ms'].append((first[i]-scheduled)*1000)
-    result={'config':c,'identity':{'trace':r['trace_sha256'],'expected_geometry':r['expected_final_geometry_hash'],'expected_document':r['expected_final_document_hash'],'image':r['image_sha256'],'initial_document_revision':r['initial_document_revision'],'initial':m['initial']},'metrics':{k:distribution(v) for k,v in timings.items()},'advance_totals':f['advance_totals'],'frames':len(frames),'capture_kind':f['capture_kind'],'occlusion_checks':m['occlusion_checks'],'occlusion_query_unavailable':m['occlusion_query_unavailable']}
+    result={'config':c,'identity':{'trace':r['trace_sha256'],'expected_geometry':r['expected_final_geometry_hash'],'expected_document':r['expected_final_document_hash'],'image':r['image_sha256'],'initial_document_revision':r['initial_document_revision'],'initial':{k:v for k,v in m['initial'].items() if k not in ('thermal_state','low_power_mode')}},'metrics':{k:distribution(v) for k,v in timings.items()},'advance_totals':f['advance_totals'],'frames':len(frames),'capture_kind':f['capture_kind'],'occlusion_checks':m['occlusion_checks'],'occlusion_query_unavailable':m['occlusion_query_unavailable']}
     result['callback_diagnostics']={k:distribution([x[k] for x in frames if x.get(k) is not None]) for k in ('draw_cpu_ms','draw_interval_ms','acquire_ms','cache_build_ms')}
+    result['resource_observations']={'initial':{k:m['initial'].get(k) for k in ('thermal_state','low_power_mode')},'final':{k:f.get(k) for k in ('thermal_state','low_power_mode','process_lifetime_peak_rss_bytes','memory_scope')}}
+    result['resource_scope']='Process-lifetime peak RSS includes initialization and untimed capture; excludes distinct GPU/WindowServer allocation accounting. Thermal and power states are metadata, not energy measurements.'
     result['metal_observations']=len(read(folder/'metal-observations.json'))
     return result
 
@@ -88,6 +99,8 @@ def analyze(root):
         for c in (sc,gc): c.pop('id'); c.pop('backend')
         require(sc==gc,'pair configuration mismatch '+pair)
         require(s['identity']==g['identity'],'pair input/display/expected identity mismatch '+pair)
+        powers=[x['resource_observations'][phase]['low_power_mode'] for x in (s,g) for phase in ('initial','final')]
+        require(len(set(powers))==1,'power mode changed within matched pair '+pair)
         delta=g['metrics']['scheduled_to_first_draw_ms']['p95']-s['metrics']['scheduled_to_first_draw_ms']['p95']
         pairs.append({'pair_id':pair,'cell':sc['cell'],'delta_p95_cg_minus_skia_ms':delta})
     summaries=[]

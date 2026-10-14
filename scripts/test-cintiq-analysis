@@ -14,8 +14,8 @@ class AnalysisTests(unittest.TestCase):
     def fixture(self,c=None,start_id=0):
         c=c or self.c; folder=self.root/'runs'/c['id']; folder.mkdir(parents=True)
         samples=[{'id':i+start_id,'time_s':i*.01} for i in range(3)]
-        f={'expected_samples':3,'total_samples':3,'geometry_hash':'geo','document_hash':'doc','capture_sha256':hashlib.sha256(b'image').hexdigest(),'capture_kind':'proxy','advance_totals':{'calls':17,'whole_call_ms':2},'replay':{'config':dict({k:c[k] for k in ('scene','trace','width','height','duration_s')},sample_hz=240),'trace_samples':samples,'expected_samples':3,'expected_final_geometry_hash':'geo','expected_final_document_hash':'doc','trace_sha256':'trace','image_sha256':'image','initial_document_revision':1}}
-        m={k:c[k] for k in ('backend','policy','scene','trace','start_state','duration_s','warmup_s','idle_s')}; m.update(status='complete',initial={'physical_width':c['width'],'physical_height':c['height']},logging_enabled=True,self_test=False,final=f,occlusion_checks=5,occlusion_query_unavailable=0,**self.identity)
+        f={'elapsed_s':c['duration_s'],'expected_samples':3,'total_samples':3,'geometry_hash':'geo','document_hash':'doc','capture_sha256':hashlib.sha256(b'image').hexdigest(),'capture_kind':'proxy','advance_totals':{'calls':17,'whole_call_ms':2},'replay':{'source_revision':'revision','config':dict({k:c[k] for k in ('scene','trace','width','height','duration_s')},sample_hz=240),'trace_samples':samples,'expected_samples':3,'expected_final_geometry_hash':'geo','expected_final_document_hash':'doc','trace_sha256':'trace','image_sha256':'image','initial_document_revision':1}}
+        m={k:c[k] for k in ('backend','policy','scene','trace','start_state','duration_s','warmup_s','idle_s')}; m.update(status='complete',initial={'selected_screen_id':c['screen_id'],'actual_screen_id':c['screen_id'],'screens':[{'id':c['screen_id'],'in_mirror_set':False,'mirrors_display':0,'pixel_width':3840,'pixel_height':2160}],'physical_width':c['width'],'physical_height':c['height']},logging_enabled=True,self_test=False,final=f,occlusion_checks=5,occlusion_query_unavailable=0,**self.identity)
         self.write(folder/'manifest.json',m); (folder/'final.png').write_bytes(b'image')
         self.write(folder/'deliveries.json',[dict(receipt_s=1.025,epoch_s=1,first_sample_id=start_id,last_sample_id=start_id+2,sample_count=3)])
         # Empty frame must not claim sample zero; next frame catches all three.
@@ -36,6 +36,17 @@ class AnalysisTests(unittest.TestCase):
     def test_missing_last_draw(self): self.mutate_reject('frames.json',lambda x:x.pop())
     def test_hash_corruption(self): self.mutate_reject('manifest.json',lambda x:x['final'].update(document_hash='bad'))
     def test_binary_corruption(self): self.mutate_reject('manifest.json',lambda x:x.update(binary_sha256='other'))
+    def test_stale_rust_archive(self): self.mutate_reject('manifest.json',lambda x:x['final']['replay'].update(source_revision='stale'))
+    def test_early_completion(self): self.mutate_reject('manifest.json',lambda x:x['final'].update(elapsed_s=x['duration_s']-.01))
+    def test_selected_display_mismatch(self): self.mutate_reject('manifest.json',lambda x:x['initial'].update(selected_screen_id=2))
+    def test_actual_display_mismatch(self): self.mutate_reject('manifest.json',lambda x:x['initial'].update(actual_screen_id=2))
+    def test_mirrored_display(self): self.mutate_reject('manifest.json',lambda x:x['initial']['screens'][0].update(in_mirror_set=True))
+    def test_mirror_source(self): self.mutate_reject('manifest.json',lambda x:x['initial']['screens'][0].update(mirrors_display=2))
+    def test_display_too_small(self): self.mutate_reject('manifest.json',lambda x:x['initial']['screens'][0].update(pixel_width=800))
+    def test_display_missing(self): self.mutate_reject('manifest.json',lambda x:x['initial'].update(screens=[]))
+    def test_skipped_rust_build(self):
+        with self.assertRaisesRegex(ValueError,'skipped Rust'): R['validate_build']({'source_revision':'revision','source_status':'','rust_build_skipped':True},'revision','')
+        R['validate_build']({'source_revision':'revision','source_status':'','rust_build_skipped':False},'revision','')
     def test_capture_corruption(self):
         folder=self.fixture(); (folder/'final.png').write_bytes(b'bad')
         with self.assertRaises(ValueError): A['analyze_run'](folder,self.c,self.identity)
@@ -47,6 +58,17 @@ class AnalysisTests(unittest.TestCase):
     def test_pair_identity_rejection(self):
         configs=R['matrix'](1,3)[:2]; self.collection(configs); self.fixture(configs[0]); folder=self.fixture(configs[1]); m=json.loads((folder/'manifest.json').read_text()); m['final']['replay']['trace_sha256']='different'; self.write(folder/'manifest.json',m)
         with self.assertRaisesRegex(ValueError,'pair input'): A['analyze'](self.root)
+    def test_pair_thermal_change_is_reported(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs)
+        for index,c in enumerate(configs):
+            folder=self.fixture(c); m=json.loads((folder/'manifest.json').read_text()); m['initial']['thermal_state']=index; m['initial']['low_power_mode']=False; m['final']['low_power_mode']=False; self.write(folder/'manifest.json',m)
+        r=A['analyze'](self.root); self.assertEqual(len(r['pairs']),1)
+        self.assertEqual({v['resource_observations']['initial']['thermal_state'] for v in r['runs'].values()},{0,1})
+    def test_pair_power_change_rejected(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs)
+        for index,c in enumerate(configs):
+            folder=self.fixture(c); m=json.loads((folder/'manifest.json').read_text()); m['initial']['low_power_mode']=bool(index); m['final']['low_power_mode']=bool(index); self.write(folder/'manifest.json',m)
+        with self.assertRaisesRegex(ValueError,'power mode'): A['analyze'](self.root)
     def test_pair_math(self):
         configs=R['matrix'](1,3)[:2]; self.collection(configs)
         for c in configs:self.fixture(c)
