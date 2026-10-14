@@ -215,7 +215,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard !active && !finalizing else { return }
         do {
             try check(); initialFrame = window.frame; initialMode = mode()
-            initialState = ["selected_screen_id": o.display, "actual_screen_id": screenID(window.screen ?? target), "screens": screens(), "window_frame": NSStringFromRect(window.frame), "canvas_points": NSStringFromRect(canvas.bounds), "scale": target.backingScaleFactor, "physical_width": o.width, "physical_height": o.height]
+            initialState = ["thermal_state": ProcessInfo.processInfo.thermalState.rawValue, "low_power_mode": ProcessInfo.processInfo.isLowPowerModeEnabled, "selected_screen_id": o.display, "actual_screen_id": screenID(window.screen ?? target), "screens": screens(), "window_frame": NSStringFromRect(window.frame), "canvas_points": NSStringFromRect(canvas.bounds), "scale": target.backingScaleFactor, "physical_width": o.width, "physical_height": o.height]
             if let d = device, let q = queue {
                 let begin = monotonicNow()
                 skia = pc_skia_create(Unmanaged.passUnretained(d as AnyObject).toOpaque(), Unmanaged.passUnretained(q as AnyObject).toOpaque(), UInt32(o.width), UInt32(o.height))
@@ -474,6 +474,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     func finalWrite() {
         do {
+            var usage = rusage()
+            if getrusage(RUSAGE_SELF, &usage) == 0 {
+                finalMetadata["process_lifetime_peak_rss_bytes"] = usage.ru_maxrss
+                finalMetadata["memory_scope"] = "Darwin process-lifetime maximum resident set; includes initialization and untimed capture; excludes distinct GPU/WindowServer allocation accounting"
+            } else { finalMetadata["process_lifetime_peak_rss_bytes"] = NSNull() }
+            finalMetadata["thermal_state"] = ProcessInfo.processInfo.thermalState.rawValue
+            finalMetadata["low_power_mode"] = ProcessInfo.processInfo.isLowPowerModeEnabled
             do { try check() } catch { if outcome == "complete" { outcome = "invalid"; reason = "\(error)" } }
             try write(presentations, "metal-observations.json")
             let executable = Bundle.main.executableURL.flatMap { try? Data(contentsOf: $0) }
