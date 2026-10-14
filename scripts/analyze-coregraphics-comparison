@@ -9,6 +9,8 @@ from pathlib import Path
 import re
 import runpy
 import statistics
+import struct
+import zlib
 import sys
 FIELDS='phase index state_hash request_s draw_start_s draw_end_s input_ms outline_ms export_ms path_ms draw_ms service_ms'.split()
 METRICS=[x for x in FIELDS if x.endswith('_ms')]
@@ -26,9 +28,37 @@ def finite(x,name,positive=False):
 def digest(value,name):
     if not isinstance(value,str) or not HASH.fullmatch(value):raise ValueError(f'invalid {name} hash')
 
+def validate_png(data,width,height):
+    if data[:8]!=b'\x89PNG\r\n\x1a\n':raise ValueError('invalid PNG signature')
+    offset=8;compressed=[];header=None;ended=False
+    while offset<len(data):
+        if offset+12>len(data):raise ValueError('truncated PNG chunk')
+        size=struct.unpack('>I',data[offset:offset+4])[0];kind=data[offset+4:offset+8];end=offset+12+size
+        if end>len(data):raise ValueError('truncated PNG payload')
+        payload=data[offset+8:offset+8+size];crc=struct.unpack('>I',data[offset+8+size:end])[0]
+        if zlib.crc32(kind+payload)&0xffffffff!=crc:raise ValueError('invalid PNG checksum')
+        if header is None and kind!=b'IHDR':raise ValueError('PNG lacks initial header')
+        if kind==b'IHDR':
+            if header is not None or size!=13:raise ValueError('invalid PNG header')
+            header=struct.unpack('>IIBBBBB',payload)
+        elif kind==b'IDAT':compressed.append(payload)
+        elif kind==b'IEND':
+            if size or end!=len(data):raise ValueError('invalid PNG ending')
+            ended=True;break
+        offset=end
+    if not ended or not compressed or header is None:raise ValueError('incomplete PNG')
+    w,h,depth,color,compression,filter_method,interlace=header
+    if (w,h)!=(width,height):raise ValueError('decoded PNG dimensions mismatch')
+    # Native capture contract emits ordinary noninterlaced 8-bit RGB/RGBA PNGs.
+    if depth!=8 or color not in (2,6) or compression or filter_method or interlace:raise ValueError('unsupported native PNG encoding')
+    stride=w*(3 if color==2 else 4);expected=(stride+1)*h
+    decoder=zlib.decompressobj();decoded=decoder.decompress(b''.join(compressed),expected+1)
+    if len(decoded)!=expected or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:raise ValueError('invalid PNG image data size')
+    if any(decoded[y*(stride+1)]>4 for y in range(h)):raise ValueError('invalid PNG row filter')
+
 def validate(path):
     m=json.loads((path/'manifest.json').read_text());host=json.loads((path/'host-status.json').read_text());rb=json.loads((path/'readback.json').read_text())
-    required='schema_version experiment backend mode status source_revision source_diff_hash build fixture width height repeat_id warmup frames_requested duration_seconds fixture_hash input_hash image_hash quality physical_canvas display runtime timing_provenance unsupported init_ms first_use completed_sample_count measured_elapsed_seconds scheduling final_expected_state_hash final_actual_state_hash os_peak_rss_bytes'.split()
+    required='schema_version experiment backend mode status source_revision source_diff_hash build fixture width height repeat_id warmup frames_requested duration_seconds fixture_hash input_hash image_hash quality physical_canvas display runtime timing_provenance unsupported init_ms first_use completed_sample_count measured_elapsed_seconds measured_start_s measured_end_s scheduling final_expected_state_hash final_actual_state_hash os_peak_rss_bytes'.split()
     if set(required)-m.keys():raise ValueError(f'missing manifest fields: {sorted(set(required)-m.keys())}')
     if (m['schema_version'],m['experiment'],m['backend'],m['mode'])!=(2,'coregraphics-appkit-v1','coregraphics','appkit-paced'):raise ValueError('wrong experiment identity')
     if m['status']!='complete' or host.get('status')!='complete':raise ValueError('manifest or authoritative host status incomplete')
@@ -57,18 +87,31 @@ def validate(path):
         if reader.fieldnames!=FIELDS:raise ValueError('wrong frame schema')
         rows=list(reader)
     phases={p:[] for p in ('first-use','warmup','measured')}
+    previous_end=-1.0;previous_request=-1.0;previous_phase=-1
     for row in rows:
         if row['phase'] not in phases:raise ValueError('invalid frame phase')
         index=int(row['index'])
         if index!=len(phases[row['phase']]):raise ValueError('duplicate/out-of-order frame index')
+        phase_order=('first-use','warmup','measured').index(row['phase'])
+        if phase_order<previous_phase:raise ValueError('global phase order invalid')
+        previous_phase=phase_order
         digest(row['state_hash'],'frame state')
         for k in FIELDS[3:]:row[k]=finite(float(row[k]),k)
         if not row['request_s']<=row['draw_start_s']<=row['draw_end_s']:raise ValueError('reversed callback timestamps')
-        if row['draw_ms']>row['service_ms']+.01:raise ValueError('paint exceeds service duration')
+        if row['draw_start_s']<previous_end or row['request_s']<previous_request:raise ValueError('overlapping or out-of-order callback timestamps')
+        previous_end=row['draw_end_s'];previous_request=row['request_s']
+        if abs(row['service_ms']-(row['draw_end_s']-row['draw_start_s'])*1000)>.01:raise ValueError('service duration disagrees with callback timestamps')
+        if sum(row[k] for k in ('input_ms','outline_ms','export_ms','path_ms','draw_ms'))>row['service_ms']+.01:raise ValueError('nonoverlapping stages exceed service duration')
         phases[row['phase']].append(row)
     for phase,count in [('first-use',1),('warmup',m['warmup']),('measured',m['completed_sample_count'])]:
         if len(phases[phase])!=count:raise ValueError('incomplete frame counts')
     if phases['measured'][-1]['state_hash']!=m['final_actual_state_hash']:raise ValueError('last measured identity mismatch')
+    start=finite(m['measured_start_s'],'measured_start_s');end=finite(m['measured_end_s'],'measured_end_s')
+    if end<start or abs((end-start)-m['measured_elapsed_seconds'])>.00001:raise ValueError('measured duration disagrees with measurement boundaries')
+    if abs(start-phases['measured'][0]['draw_start_s'])>.000001 or end<phases['measured'][-1]['draw_end_s']-.000001:raise ValueError('measurement boundaries do not enclose callbacks')
+    if 'final_postdraw_seconds' in m:
+        tail=finite(m['final_postdraw_seconds'],'final_postdraw_seconds')
+        if abs(tail-(end-phases['measured'][-1]['draw_end_s']))>.00001:raise ValueError('final bookkeeping duration inconsistent')
     if m['duration_seconds'] is None:
         if type(m['frames_requested']) is not int or m['frames_requested']!=m['completed_sample_count']:raise ValueError('partial fixed-frame run')
     else:
@@ -77,13 +120,16 @@ def validate(path):
     scheduling=m['scheduling']
     for field in ('opportunities','coalesced','requests','benchmark_draw_callbacks'):
         if type(scheduling[field]) is not int or scheduling[field]<0:raise ValueError('invalid scheduling count')
-    if scheduling['benchmark_draw_callbacks']!=len(rows) or scheduling['requests']<len(rows) or scheduling['opportunities']<scheduling['requests']:raise ValueError('scheduling counts inconsistent')
+    if scheduling['benchmark_draw_callbacks']!=len(rows) or scheduling['requests']<len(rows) or scheduling['opportunities']!=scheduling['requests']+scheduling['coalesced']:raise ValueError('scheduling counts inconsistent')
     if rb['width']!=m['width'] or rb['height']!=m['height'] or rb['frame_index']!=m['completed_sample_count']-1:raise ValueError('quality capture dimensions/index mismatch')
     for k in ('fixture_hash','input_hash','image_hash'):
         if rb[k]!=m[k]:raise ValueError('capture fixture identity mismatch')
     for k in ('rgba_sha256','state_hash','actual_state_hash'):digest(rb[k],k)
     if rb['state_hash']!=rb['actual_state_hash'] or rb['state_hash']!=m['final_actual_state_hash'] or not rb.get('provenance'):raise ValueError('capture identity/provenance missing')
-    if (path/'final.png').read_bytes()[:8]!=b'\x89PNG\r\n\x1a\n' or not (path/'run.log').is_file():raise ValueError('missing PNG/log evidence')
+    png=(path/'final.png').read_bytes();digest(rb.get('png_sha256'),'PNG')
+    if hashlib.sha256(png).hexdigest()!=rb['png_sha256']:raise ValueError('PNG digest mismatch')
+    validate_png(png,m['width'],m['height'])
+    if not (path/'run.log').is_file():raise ValueError('missing log evidence')
     return m,phases
 
 def analyze(paths):

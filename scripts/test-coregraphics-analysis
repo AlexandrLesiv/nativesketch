@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import csv
+import hashlib
+import struct
+import zlib
 import json
 from pathlib import Path
 import runpy
@@ -14,14 +17,19 @@ H='a'*64
 class Tests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.path=Path(self.temp.name)
-        self.m=dict(schema_version=2,experiment='coregraphics-appkit-v1',backend='coregraphics',mode='appkit-paced',status='complete',source_revision='a'*40,source_diff_hash=H,build={},fixture='live',width=16,height=16,repeat_id='pilot-0',warmup=1,frames_requested=3,duration_seconds=None,fixture_hash=H,input_hash=H,image_hash=H,quality={},physical_canvas=dict(backing_width=16,backing_height=16,point_width=8,point_height=8,scale=2,ctm=[2,0,0,2,0,0]),display={},runtime={},timing_provenance={},unsupported={'gpu_time':'unavailable in AppKit callback'},init_ms=1,first_use={},completed_sample_count=3,measured_elapsed_seconds=1,scheduling=dict(opportunities=5,requests=5,coalesced=0,benchmark_draw_callbacks=5),final_expected_state_hash=H,final_actual_state_hash=H,os_peak_rss_bytes=10)
+        self.m=dict(schema_version=2,experiment='coregraphics-appkit-v1',backend='coregraphics',mode='appkit-paced',status='complete',source_revision='a'*40,source_diff_hash=H,build={},fixture='live',width=16,height=16,repeat_id='pilot-0',warmup=1,frames_requested=3,duration_seconds=None,fixture_hash=H,input_hash=H,image_hash=H,quality={},physical_canvas=dict(backing_width=16,backing_height=16,point_width=8,point_height=8,scale=2,ctm=[2,0,0,2,0,0]),display={},runtime={},timing_provenance={},unsupported={'gpu_time':'unavailable in AppKit callback'},init_ms=1,first_use={},completed_sample_count=3,measured_elapsed_seconds=2.001,measured_start_s=3.001,measured_end_s=5.002,scheduling=dict(opportunities=5,requests=5,coalesced=0,benchmark_draw_callbacks=5),final_expected_state_hash=H,final_actual_state_hash=H,os_peak_rss_bytes=10)
         state=dict(window_visible=True,window_unoccluded=True,session_on_console=True,window_miniaturized=False,session_resigned=False,system_sleeping=False,screens_sleeping=False,display_asleep=False)
         self.host=dict(status='complete',lifecycle_start=state,lifecycle_end=state,lifecycle_events=[],activity_assertion=dict(held_through_output=True,options=['userInitiated','latencyCritical','idleDisplaySleepDisabled']),output_validation={'valid':True,'reason':''},final_dimensions=dict(width=16,height=16))
         self.rb=dict(width=16,height=16,frame_index=2,rgba_sha256=H,state_hash=H,actual_state_hash=H,fixture_hash=H,input_hash=H,image_hash=H,provenance='untimed capture proxy')
         self.rows=[]
         for phase,n in [('first-use',1),('warmup',1),('measured',3)]:
-            for i in range(n):self.rows.append(dict(phase=phase,index=i,state_hash=H,request_s=i+1,draw_start_s=i+1.001,draw_end_s=i+1.002,input_ms=0,outline_ms=0,export_ms=0,path_ms=0,draw_ms=.5,service_ms=1))
-        (self.path/'final.png').write_bytes(b'\x89PNG\r\n\x1a\n');(self.path/'run.log').touch();self.save()
+            for i in range(n):
+                t=len(self.rows)+1
+                self.rows.append(dict(phase=phase,index=i,state_hash=H,request_s=t,draw_start_s=t+.001,draw_end_s=t+.002,input_ms=0,outline_ms=0,export_ms=0,path_ms=0,draw_ms=.5,service_ms=1))
+        def chunk(kind,data):return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+        png=b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',16,16,8,6,0,0,0))+chunk(b'IDAT',zlib.compress((b'\x00'+b'\xff'*64)*16))+chunk(b'IEND',b'')
+        self.rb['png_sha256']=hashlib.sha256(png).hexdigest()
+        (self.path/'final.png').write_bytes(png);(self.path/'run.log').touch();self.save()
     def save(self):
         for name,value in [('manifest',self.m),('host-status',self.host),('readback',self.rb)]: (self.path/(name+'.json')).write_text(json.dumps(value))
         with (self.path/'frames.csv').open('w',newline='') as f:
@@ -45,22 +53,40 @@ class Tests(unittest.TestCase):
         self.m['physical_canvas']['backing_width']=16;self.rb['state_hash']='b'*64;self.save()
         with self.assertRaisesRegex(ValueError,'capture identity'):A['validate'](self.path)
     def test_sustained_duration(self):
-        self.m.update(duration_seconds=180,frames_requested=None,measured_elapsed_seconds=179.9);self.save()
+        self.m.update(duration_seconds=180,frames_requested=None,measured_elapsed_seconds=179.9,measured_end_s=182.901);self.save()
         with self.assertRaisesRegex(ValueError,'truncated'):A['validate'](self.path)
-        self.m['measured_elapsed_seconds']=180.1;self.save();A['validate'](self.path)
+        self.m['measured_elapsed_seconds']=180.1;self.m['measured_end_s']=183.101;self.save();A['validate'](self.path)
     def test_invalid_cli_no_output(self):
         result=subprocess.run([sys.executable,str(ROOT/'scripts/run-coregraphics-comparison'),'--suite','primary','--output',str(self.path/'output'),'--window-seconds','nan','--dry-run'],capture_output=True)
         self.assertNotEqual(result.returncode,0);self.assertFalse((self.path/'output').exists())
     def test_reversed_callback_and_duplicate_frame(self):
         self.rows[-1]['draw_start_s']=0;self.save()
         with self.assertRaisesRegex(ValueError,'reversed'):A['validate'](self.path)
-        self.rows[-1]['draw_start_s']=3.001;self.rows[-1]['index']=1;self.save()
+        self.rows[-1]['draw_start_s']=5.001;self.rows[-1]['index']=1;self.save()
         with self.assertRaisesRegex(ValueError,'duplicate'):A['validate'](self.path)
     def test_invalidation_and_assertion_loss(self):
         self.host['activity_assertion']['held_through_output']=False;self.save()
         with self.assertRaisesRegex(ValueError,'assertion'):A['validate'](self.path)
         self.host['activity_assertion']['held_through_output']=True;self.host['lifecycle_events']=[dict(invalidating=True)];self.save()
         with self.assertRaisesRegex(ValueError,'invalidating'):A['validate'](self.path)
+    def test_fabricated_service_and_duration(self):
+        self.rows[-1]['service_ms']=1000;self.save()
+        with self.assertRaisesRegex(ValueError,'disagrees'):A['validate'](self.path)
+        self.rows[-1]['service_ms']=1;self.m.update(duration_seconds=180,frames_requested=None,measured_elapsed_seconds=180.1);self.save()
+        with self.assertRaisesRegex(ValueError,'measurement boundaries'):A['validate'](self.path)
+    def test_stage_sum_and_phase_order(self):
+        self.rows[-1]['input_ms']=2;self.save()
+        with self.assertRaisesRegex(ValueError,'stages exceed'):A['validate'](self.path)
+        self.rows[-1]['input_ms']=0;self.rows[0],self.rows[1]=self.rows[1],self.rows[0];self.save()
+        with self.assertRaisesRegex(ValueError,'phase order'):A['validate'](self.path)
+    def test_coalesced_opportunities(self):
+        self.m['scheduling']['coalesced']=1;self.save()
+        with self.assertRaisesRegex(ValueError,'scheduling'):A['validate'](self.path)
+    def test_corrupt_png_and_signature_only(self):
+        png=self.path/'final.png';png.write_bytes(png.read_bytes()+b'extra')
+        with self.assertRaisesRegex(ValueError,'digest'):A['validate'](self.path)
+        png.write_bytes(b'\x89PNG\r\n\x1a\n');self.rb['png_sha256']=hashlib.sha256(png.read_bytes()).hexdigest();self.save()
+        with self.assertRaisesRegex(ValueError,'incomplete PNG'):A['validate'](self.path)
     def test_matrix_coverage(self):
         self.assertEqual([len(R['matrix'](s)) for s in ('pilot','primary','sustained')],[8,48,3])
         cells={}
