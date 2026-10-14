@@ -10,6 +10,7 @@ from pathlib import Path
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('analysis')
 p.add_argument('--output', required=True)
+p.add_argument('--context', help='Optional reviewed report narrative JSON; does not alter measurements')
 a = p.parse_args()
 d = json.loads(Path(a.analysis).read_text())
 e = lambda value: html.escape(str(value))
@@ -64,8 +65,16 @@ parts = ['''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta nam
 :root{color-scheme:light}body{font:17px/1.6 system-ui,sans-serif;color:#182638;background:#f2f5f9;margin:0}main{max-width:1180px;margin:auto;padding:36px 22px}h1,h2,h3{line-height:1.22}h1{font-size:2.4rem;max-width:900px}h2{margin-top:0}section{background:#fff;padding:26px;margin:22px 0;border:1px solid #dbe2ea;border-radius:14px;min-width:0}.notice{border-left:6px solid #b46e12}.subgroup{border-top:1px solid #dbe2ea;padding:22px 0}.muted{color:#536276}a{color:#174e91}.scroll{max-width:100%;overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;min-width:720px}td,th{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #dbe2ea;overflow-wrap:anywhere}th{background:#f2f5f9}th:first-child{width:34%}pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:13px}code{overflow-wrap:anywhere}details{margin:16px 0}summary{cursor:pointer;font-weight:650;padding:10px 0}svg{display:block;width:100%;min-width:1020px;height:auto}.key{display:inline-block;width:14px;height:14px;margin:0 6px 0 14px;vertical-align:middle}.skia{background:#2267a4}.cg{background:#b36118}nav{display:flex;flex-wrap:wrap;gap:18px}.caption{font-size:14px;color:#536276}.badge{font-weight:650;color:#174e91}@media(max-width:650px){main{padding:20px 12px}section{padding:18px}h1{font-size:1.8rem}td,th{padding:8px}table{min-width:760px}}@media print{details{display:block}svg{min-width:0}section{break-inside:avoid}}</style></head><body><main id="main">
 <h1>Skia / Metal and Core Graphics on the Cintiq</h1><p>Matched synthetic input and native canvas conditions. Read ordinary short-stroke behavior first, then stress cases and completion outcomes.</p><nav aria-label="Report sections"><a href="#ordinary">Short strokes</a><a href="#stress">Overlap stress</a><a href="#sustained">Sustained</a><a href="#failures">Failures</a><a href="#recommendation">Recommendation</a><a href="#evidence">Evidence</a></nav>
 <section class="notice"><h2>Physical pen-to-screen latency remains pending</h2><p><strong>Endpoint: Scheduled sample → first draw start.</strong> This is neither drawing completion nor visible ink. Generated 240 Hz replay bypasses Wacom digitizer and driver delivery. A suitable camera is still required to measure physical pen movement through visible pixels. Neither backend is declared a physical-latency winner.</p></section>''']
-parts.append(f'<section><h2>Coverage: {e(d["status"])}</h2><p>{d.get("attempted_runs", d["accepted_runs"] + len(d["invalid"]))} attempted of {d["declared_runs"]} declared runs; {d["accepted_runs"]} accepted; {d.get("failed_runs", 0)} classified failed observations; {len(d["pending"])} pending; {len(d["invalid"])} invalid.</p><p>Acceptance means software artifact validation; image quality and native inspection remain separate review gates. Missing cells are shown as pending, never estimated. Failed runs are excluded from accepted percentiles, so completion counts must be read alongside timings.</p></section>')
+parts.append(f'<section><h2>Coverage: {e(d["status"])}</h2><p>{d.get("attempted_runs", d["accepted_runs"] + len(d["invalid"]))} attempted in the retained matrix of {d["declared_runs"]} declared runs; {d["accepted_runs"]} accepted; {d.get("failed_runs", 0)} classified failed observations; {len(d["pending"])} pending; {len(d["invalid"])} invalid.</p><p>Acceptance means software artifact validation; image quality and native inspection remain separate review gates. Missing cells are shown as pending, never estimated. Failed runs are excluded from accepted percentiles, so completion counts must be read alongside timings.</p></section>')
 
+
+if a.context:
+    context = json.loads(Path(a.context).read_text())
+    for section in context['sections']:
+        parts.append('<section>' + ('<details><summary>' + e(section['title']) + '</summary>' if section.get('collapsed') else '<h2>' + e(section['title']) + '</h2>'))
+        for paragraph in section['paragraphs']:
+            parts.append('<p>' + e(paragraph) + '</p>')
+        parts.append(('</details>' if section.get('collapsed') else '') + '</section>')
 
 def chart_and_table(cells, title):
     """Each homogeneous group has an independent absolute timing scale."""
@@ -103,7 +112,7 @@ def chart_and_table(cells, title):
     by_cell = {c['cell']: c for c in d['cells']}
     for cell in cells:
         item = by_cell.get(cell)
-        parts.append('<tr><td>' + label(cell) + '</td><td>' + str(item['pairs'] if item else 0) + '</td><td>' + fmt(item['median_paired_delta_ms'] if item else None) + '</td><td>' + (' to '.join(fmt(x) for x in item['exploratory_pair_bootstrap_95']) if item else 'Pending / no both-accepted pair') + '</td></tr>')
+        parts.append('<tr><td>' + label(cell) + '</td><td>' + str(item['pairs'] if item else 0) + '</td><td>' + fmt(item['median_paired_delta_ms'] if item else None) + '</td><td>' + ((' to '.join(fmt(x) for x in item['exploratory_pair_bootstrap_95']) if item['pairs'] > 1 else 'Insufficient paired replicates') if item else 'Pending / no both-accepted pair') + '</td></tr>')
     parts.append('</table></div></details></div>')
 
 
@@ -131,7 +140,7 @@ def workload_section(section_id, title, predicate, intro):
     parts.append('</section>')
 
 
-workload_section('ordinary', '1. Ordinary short-stroke traces', lambda c: c['trace'] == 'short', 'Separate 0.75-second strokes. Cached rendering is shown first; full redraw is a control. Warm, first-painter-use and after-idle runs, and the two physical canvas sizes, stay separate. “Ordinary” describes this generated trace shape, not a measurement of real pen feel.')
+workload_section('ordinary', '1. Ordinary short-stroke traces', lambda c: c['trace'] == 'short', 'Separate 0.75-second strokes. Cached rendering is shown first; full redraw is a control. Warm, first-painter-use and after-idle runs, and the two physical canvas sizes, stay separate. “Ordinary” describes this generated trace shape, not a measurement of real pen feel. First-painter-use values summarize the full 30-second replay and can dilute a one-time first-mark cost; reference construction and context initialization precede that replay epoch. These are not cold-launch-to-visible-ink measurements.')
 workload_section('stress', '2. Repeated-overlap stress: 30 seconds', lambda c: c['trace'] != 'short' and c['duration_s'] < 180, 'Long traces and the ink portion of pan/zoom traces follow a repeated curve with abrupt end-to-start position resets. A 30-second long trace makes 15 passes. These are repeated-overlap stress cases, not representative smooth motion or spatially growing lines. Their scales are independent of ordinary short strokes.')
 workload_section('sustained', '3. Sustained stress and paired completion: 180 seconds', lambda c: c['duration_s'] == 180, 'The sustained trace retraces the same path 90 times with abrupt position resets. Completion is an outcome alongside software timing. Three declared pairs per size provide limited evidence; failed members contribute no accepted timing distribution or numeric paired difference.')
 sustained_pairs = [pair for pair in d.get('pair_outcomes', []) if pair['pair_id'].startswith('sustained-')]

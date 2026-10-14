@@ -91,3 +91,38 @@ is owner-reported Pro Pen 3, not validated by a generated replay.
 See [bounded performance failures](cintiq-software-protocol-amendment.md) for the
 2026-10-15 opt-in collector amendment, diagnostic evidence, trace limitations and
 separate native/collector provenance. Native measurements and watchdogs stay unchanged.
+
+## Current acquisition record (2026-10-15)
+
+The [partial HTML/SVG report](../evidence/cintiq-software-comparison.html) and
+[validated analysis](../evidence/cintiq-software-analysis.json) retain 138 accepted
+runs and two classified sustained failures in 70 complete pairs. Another 232 runs
+need a valid outcome. Implementation/preflight passed; acquisition is incomplete.
+
+Session 3 halted on a Sony secondary-display disconnect. The Cintiq kept its mode.
+Sony reappeared before any continuation trial; no single-display trial was accepted.
+Session 4 preserved complete pairs but its first repeat halted immediately on a small
+Window Server overlay in the canvas. Pointer-placement attempts did not clear it, so
+collection awaits the requested physical pointer/pen adjustment. Keep both halted
+sessions and the valid but unpaired Skia member of the interrupted pair. On recovery,
+repeat both members; never pool that orphan into the matched result.
+
+The source binary remains `8a26d1d`; collector `acabb64` is separately frozen.
+The phrase “long growing stroke” above means accumulated outline geometry: the actual
+trace repeatedly retraces the same curve with abrupt position resets, as documented
+in the amendment. It is not a smooth spatially growing physical stroke.
+
+Report reproduction:
+
+```sh
+./scripts/build-cintiq-report docs/evidence/cintiq-software-analysis.json \
+  --context docs/evidence/cintiq-software-context.json \
+  --output docs/evidence/cintiq-software-comparison.html
+```
+
+Only the reviewed narrative is supplied by the context file; it does not change
+measurements. Update its status/counts when acquisition resumes. Physical measurements,
+real Wacom input characterization, and the previously stopped bundle-size checks remain
+pending. The original mirrored display arrangement was restored during this pause, verified
+with Sony display 2 mirroring Cintiq display 3. Temporarily separate them again only
+when resuming acquisition, and restore afterward.
