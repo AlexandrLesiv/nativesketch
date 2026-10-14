@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""Generate a standalone native Core Graphics evidence report from validated exports.
+
+No native execution, benchmark aggregation across pipelines, or external asset requests.
+Run after the exclusive measurement window has ended.
+"""
+import argparse
+import base64
+import html
+import json
+import math
+from pathlib import Path
+import statistics
+
+ROOT = Path(__file__).resolve().parent.parent
+FIXTURES = ['live','dense100','dense1000','dense5000','panzoom','alpha','clip','image']
+LABELS = {'live':'Live stroke','dense100':'100 strokes','dense1000':'1,000 strokes','dense5000':'5,000 strokes','panzoom':'Pan / zoom','alpha':'Translucency','clip':'Clipping','image':'Imported image'}
+
+def esc(value):
+    return html.escape(str(value), quote=True)
+
+def number(value, decimals=2):
+    return f'{value:,.{decimals}f}' if isinstance(value,(int,float)) and not isinstance(value,bool) and math.isfinite(value) else 'Not measured'
+
+def read(path, required=True):
+    if not path.exists():
+        if required: raise ValueError(f'Missing required export: {path}')
+        return None
+    return json.loads(path.read_text())
+
+def metric(run, key, q='p95'):
+    value = run['metrics'][key][q]
+    if not isinstance(value,(int,float)) or not math.isfinite(value) or value < 0:
+        raise ValueError(f'Invalid {key}/{q} in {run.get("repeat_id")}')
+    return value
+
+def table(headers, rows, caption):
+    return '<div class="table-scroll" tabindex="0" role="region" aria-label="'+esc(caption)+'"><table><caption>'+esc(caption)+'</caption><thead><tr>'+''.join('<th scope="col">'+esc(h)+'</th>' for h in headers)+'</tr></thead><tbody>'+''.join('<tr>'+''.join(('<th scope="row">' if i==0 else '<td>')+esc(v)+('</th>' if i==0 else '</td>') for i,v in enumerate(row))+'</tr>' for row in rows)+'</tbody></table></div>'
+
+def chart(groups, key, title, chart_id):
+    # Each point is one process p95. Whisker endpoints are the three-process range.
+    series = [(label,[metric(r,key) for r in runs]) for label,runs in groups]
+    maximum = max(v for _,values in series for v in values) or 1
+    axis_max = maximum * 1.08
+    height=78+len(series)*38
+    left,right=200,850
+    def x(v):return left+(right-left)*v/axis_max
+    svg=[f'<svg viewBox="0 0 900 {height}" role="img" aria-labelledby="{chart_id}-title {chart_id}-desc"><title id="{chart_id}-title">{esc(title)}</title><desc id="{chart_id}-desc">Each circle is one process p95. The thick diamond is the median of three process p95 values. Horizontal lines show their minimum and maximum. Exact values follow in the table. Units are milliseconds.</desc>']
+    for tick in range(5):
+        value=axis_max*tick/4;xx=x(value)
+        svg.append(f'<line x1="{xx:.2f}" y1="28" x2="{xx:.2f}" y2="{height-35}" class="grid"/><text x="{xx:.2f}" y="{height-12}" text-anchor="middle">{number(value,1)}</text>')
+    rows=[]
+    for i,(label,values) in enumerate(series):
+        y=45+i*38;median=statistics.median(values)
+        svg.append(f'<text x="188" y="{y+5}" text-anchor="end">{esc(label)}</text><line x1="{x(min(values)):.2f}" y1="{y}" x2="{x(max(values)):.2f}" y2="{y}" class="range"/>')
+        for j,v in enumerate(values):svg.append(f'<circle cx="{x(v):.2f}" cy="{y+(j-1)*6}" r="4" class="point"/>')
+        xx=x(median);svg.append(f'<path d="M {xx:.2f} {y-7} l 6 7 -6 7 -6 -7 Z" class="median"/>')
+        rows.append([label,*[number(v) for v in values],number(median),f'{number(min(values))}–{number(max(values))}'])
+    svg.append('</svg>')
+    return '<figure>'+''.join(svg)+'<figcaption>Milliseconds. Three fresh processes per cell; each contributes one p95. No frame pooling or confidence interval.</figcaption></figure>'+table(['Workload','Process 1','Process 2','Process 3','Median p95','p95 range'],rows,title+' — exact process p95 values (ms)')
+
+def quality_section(records, directory):
+    if records is None:return '<p class="notice">Quality export pending. No visual equivalence conclusion is available from this report.</p>'
+    items=records if isinstance(records,list) else records.get('records',[])
+    output=[]
+    for item in items:
+        label=f'{LABELS.get(item.get("fixture"),item.get("fixture","Unknown"))} · {item.get("width")} × {item.get("height")} · frame {item.get("frame_index")}'
+        output.append('<article class="quality"><h3>'+esc(label)+'</h3>')
+        sheet=item.get('sheet')
+        path=directory/sheet if sheet else None
+        if path is not None and not path.is_file():path=ROOT/sheet
+        if path is not None and path.is_file() and path.suffix.lower()=='.png':
+            image=base64.b64encode(path.read_bytes()).decode('ascii')
+            output.append('<img loading="lazy" alt="'+esc(item.get('alt','Untimed quality comparison sheet for '+label+'; panel names are printed within the sheet.'))+'" src="data:image/png;base64,'+image+'">')
+        else:output.append('<p>Quality image pending or unavailable.</p>')
+        detail={k:v for k,v in item.items() if k not in ('fixture','width','height','frame_index','sheet','alt')}
+        if detail:output.append('<pre>'+esc(json.dumps(detail,indent=2))+'</pre>')
+        output.append('</article>')
+    return ''.join(output) or '<p>Quality records pending.</p>'
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--data',type=Path,default=ROOT/'docs/evidence/coregraphics-comparison')
+    parser.add_argument('--output',type=Path,default=ROOT/'docs/evidence/coregraphics-comparison.html')
+    args=parser.parse_args()
+    primary=read(args.data/'primary.json');sustained=read(args.data/'sustained.json')
+    sizes=read(args.data/'artifact-sizes.json',False);quality=read(args.data/'quality.json',False)
+    runs=primary['runs'];steady=sustained['runs']
+    if len(runs)!=48 or len(steady)!=3:raise ValueError('Report requires all 48 primary and three sustained trials; incomplete evidence must remain explicitly pending')
+    groups={}
+    for fixture in FIXTURES:
+        for width,height in [(1600,1000),(2560,1600)]:
+            selected=sorted([r for r in runs if (r['fixture'],r['width'],r['height'])==(fixture,width,height)],key=lambda r:r['repeat_id'])
+            if len(selected)!=3 or {r['repeat_id'] for r in selected}!={'primary-0','primary-1','primary-2'}:raise ValueError('Missing or duplicate primary cell')
+            groups[(fixture,width)]=selected
+    if {r['repeat_id'] for r in steady}!={'sustained-0','sustained-1','sustained-2'} or any(r['fixture']!='panzoom' or r['width']!=1600 or r['height']!=1000 or r['measured_elapsed_seconds']<180 for r in steady):raise ValueError('Invalid sustained coverage')
+    revisions=sorted({r['source_revision'] for r in runs+steady})
+    if len(revisions)!=1:raise ValueError('Mixed Core Graphics source revisions')
+    parts=['<header><p class="eyebrow">Native Sketch · Renderer investigation</p><h1>Core Graphics in a native AppKit view</h1><p class="intro">48 primary trials and three sustained trials. These measurements describe CPU work in actual AppKit drawing callbacks. They do not measure completed GPU rendering or displayed pixels.</p><p class="badge">Production renderer decision: OPEN</p></header>']
+    parts.append('<section><h2>What was measured</h2><p>Eight deterministic workloads, two physical canvas sizes, three fresh processes per cell. Each primary process records one first-use frame, 120 warm-up frames and 600 measured frames. Sustained pan/zoom uses 120 warm-up frames followed by at least 180 measured seconds in each of three processes.</p><p><strong>Service time</strong> covers fixture preparation, path construction and Core Graphics painting within the draw callback. <strong>Callback interval</strong> measures time between callback starts, including AppKit scheduling. The native context can have an identity transform while recording commands for deferred composition; callback return is not evidence that those commands reached the display.</p><p>GPU execution/completion, presentation timestamps, missed-display deadlines, physical footprint, GPU peak memory and physical pen latency are not measured. No overall speedup ratio between this path and the Metal experiments is implied.</p><p class="mono">Measured source: '+esc(revisions[0])+'</p></section>')
+    for key,title in [('service_ms','CPU draw-callback service p95'),('callback_interval_ms','CPU callback-start interval p95')]:
+        parts.append('<section><h2>'+esc(title)+'</h2>')
+        for width in (1600,2560):
+            height=1000 if width==1600 else 1600
+            parts.append(f'<h3>{width} × {height} physical pixels</h3>')
+            parts.append(chart([(LABELS[f],groups[(f,width)]) for f in FIXTURES],key,title+f' · {width} × {height}',key+str(width)))
+        parts.append('</section>')
+    parts.append('<section><h2>Sustained pan/zoom</h2><p>All three 180-second processes are shown separately. A process can submit a different number of trace frames; callbacks are not a displayed-frame count.</p>')
+    sustained_rows=[]
+    for r in sorted(steady,key=lambda r:r['repeat_id']):
+        sustained_rows.append([r['repeat_id'],r['measured_frames'],number(r['measured_elapsed_seconds']),number(metric(r,'service_ms','p50')),number(metric(r,'service_ms')),number(metric(r,'callback_interval_ms')),number(r['os_peak_rss_bytes']/1048576) if isinstance(r.get('os_peak_rss_bytes'),(int,float)) else 'Not measured'])
+    parts.append(table(['Process','Callbacks','Measured seconds','Service p50 (ms)','Service p95 (ms)','Callback interval p95 (ms)','Whole-process peak RSS (MiB)'],sustained_rows,'Three sustained native AppKit processes'))
+    parts.append('</section><section><h2>First use and memory</h2><p>Each row summarizes three primary processes. Peak RSS includes the whole executable, linked libraries, instrumentation and untimed output. It is not renderer-only memory, physical footprint or GPU allocation. First use is process-first-use; system and filesystem caches may already be warm.</p>')
+    first_rows=[]
+    for (fixture,width),selected in groups.items():
+        first=[r.get('first_use',{}).get('service_ms') for r in selected]
+        first=[v for v in first if isinstance(v,(int,float))]
+        rss=[r['os_peak_rss_bytes']/1048576 for r in selected]
+        first_rows.append([LABELS[fixture],f'{width} × {1000 if width==1600 else 1600}',number(statistics.median(first)) if first else 'Not measured',number(statistics.median(r['init_ms'] for r in selected)),number(statistics.median(rss)),f'{number(min(rss))}–{number(max(rss))}'])
+    parts.append(table(['Workload','Physical pixels','First-use service median (ms)','Initialization median (ms)','Peak RSS median (MiB)','Peak RSS range (MiB)'],first_rows,'Process first-use and whole-process memory'))
+    parts.append('</section><section><h2>Visual quality evidence</h2><p>These untimed captures are inspection proxies, not proof of exact presented pixels. Frame 599 from primary runs permits matching static views of each trace. RGB differences describe pixels; they do not establish a pass threshold, perceptual equivalence or equal antialiasing.</p>'+quality_section(quality,args.data)+'</section>')
+    parts.append('<section><h2>Historical Skia and Vello context</h2><p>The prior Metal experiment used fixed offscreen textures displayed inside a fitted 900 × 680-point presentation area. This experiment draws at the actual native view backing dimensions. Their presentation paths and timing scopes differ, so there is no shared three-backend render-time axis.</p><p>The original GPU matrix was measured at source <code>32361fb</code> and retained lifecycle/callback limitations. A later guarded replay measured selected pairs and all three pan/zoom sustained repeats separately. Those original and guarded measurements remain separate from this Core Graphics dataset.</p><p><a href="renderer-comparison.html">Read the separate Skia/Vello evidence report</a> · <a href="renderer-comparison/guarded-replay.json">Guarded replay data</a></p></section>')
+    parts.append('<section><h2>Application size and platform implications</h2><p>The table reports actual existing artifacts, not isolated engine overhead. Different apps, configurations, architectures and packaging cannot be subtracted to estimate the cost of one renderer. Static archives are build inputs, not shipped application size.</p>')
+    records=(sizes or {}).get('artifacts',[])
+    if records:
+        size_rows=[]
+        for row in records:
+            b=row.get('logical_bytes');size_rows.append([row.get('label',''),row.get('artifact',''),str(b) if b is not None else 'Not measured',number(b/1048576,3) if isinstance(b,(int,float)) else 'Not measured',row.get('notes','')])
+        parts.append(table(['Artifact label','Path','Logical bytes','MiB','Configuration and interpretation'],size_rows,'Measured artifact sizes; not isolated backend overhead'))
+        parts.append('<p>Audit date: '+esc(sizes.get('audit_date','Unrecorded'))+'. '+esc(sizes.get('definition',''))+'</p>')
+        wasm=sizes.get('wasm')
+        if wasm:parts.append('<p>Shared logic Wasm: '+esc(wasm.get('bytes'))+' bytes; local gzip-9 encoding: '+esc(wasm.get('gzip9_bytes'))+' bytes. '+esc(wasm.get('notes',''))+'</p>')
+        parts.append('<p><strong>Independent renderer overhead:</strong> '+esc(sizes.get('renderer_overhead','Not measured.'))+'</p>')
+    else:parts.append('<p class="notice">Artifact-size export pending. No per-backend size estimate is implied.</p>')
+    parts.append('<p>Bundling Skia or Vello ships application code and associated resources. Core Graphics on Apple platforms, Android Canvas and browser Canvas use engines provided by the system or browser. The existing browser prototype uses Canvas 2D and shared Rust/Wasm logic; it does not bundle Skia or Vello.</p><p>External reference integration sizes are examples from other projects, not Native Sketch measurements or predictions. Version, feature selection, compression and store delivery affect their interpretation.</p>')
+    for reference in (sizes or {}).get('references',[]):
+        parts.append('<p>'+esc(reference.get('claim',''))+' <a href="'+esc(reference['url'])+'">Read the upstream reference</a>.</p>')
+    parts.append('</section>')
+    parts.append('<section><h2>Decision and remaining work</h2><p><strong>Renderer selection remains open.</strong> Core Graphics is an appropriate native Apple baseline to evaluate in the prototype if visual quality and interaction checks hold up. These callback measurements alone do not justify a permanent backend commitment.</p><p>Before selecting a production renderer, weigh the visible quality review, editing responsiveness, pipeline differences, backend-specific shipped size and measurements on the actual target platforms. macOS evidence does not certify iPhone, iPad, Android or browser performance.</p><p><a href="coregraphics-comparison/primary.json">Primary raw-hash summary</a> · <a href="coregraphics-comparison/sustained.json">Sustained raw-hash summary</a> · <a href="coregraphics-comparison/quality.json">Quality records</a> · <a href="coregraphics-comparison/artifact-sizes.json">Artifact-size records</a></p></section>')
+    style='''html{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111820;color:#e8eef5;font:16px/1.65 system-ui,-apple-system,sans-serif}main{max-width:1120px;margin:auto;padding:48px 24px 80px}h1,h2,h3{line-height:1.2}h1{font-size:clamp(2rem,5vw,3.4rem);max-width:850px;margin:10px 0 24px}h2{font-size:1.65rem}h3{font-size:1.1rem;margin-top:30px}section{margin-top:56px;border-top:1px solid #344251;padding-top:22px}p{max-width:940px}a{color:#93d8ff;text-underline-offset:3px}a:focus-visible,.table-scroll:focus-visible{outline:3px solid #ffd174;outline-offset:4px}.intro{font-size:1.2rem;color:#c4d2df}.eyebrow{color:#a9c5d9}.badge,.notice{background:#283348;padding:10px 15px;border-left:4px solid #ffd174}.badge{display:inline-block;font-weight:700}.mono,code{font-family:ui-monospace,monospace;overflow-wrap:anywhere}.table-scroll{overflow-x:auto;margin:24px 0}table{border-collapse:collapse;width:100%;font-size:.9rem}caption{text-align:left;font-weight:650;margin:0 0 10px}th,td{padding:9px 12px;text-align:left;border-bottom:1px solid #344251;vertical-align:top}thead{background:#233040}th{font-weight:650}td{font-variant-numeric:tabular-nums}figure{margin:24px 0}svg{display:block;width:100%;height:auto;background:#18232e;border-radius:8px}svg text{fill:#d4e1ec;font:15px system-ui,sans-serif}.grid{stroke:#344251}.range{stroke:#a7b6c6;stroke-width:3}.point{fill:#7dcef7;stroke:#111820;stroke-width:1}.median{fill:#ffd174;stroke:#111820;stroke-width:1}figcaption{font-size:.9rem;color:#c1ceda;margin-top:9px}.quality img{display:block;max-width:100%;height:auto;background:white}.quality{margin:28px 0}pre{overflow:auto;font-size:.85rem;background:#18232e;padding:14px;border-radius:6px}@media(max-width:640px){main{padding:28px 16px 50px}section{margin-top:36px}svg{min-width:600px}figure{overflow-x:auto}th,td{padding:8px}h2{font-size:1.45rem}}'''
+    document='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Native Sketch — Core Graphics evidence</title><style>'+style+'</style></head><body><main>'+''.join(parts)+'</main></body></html>'
+    args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(document);print(args.output)
+
+if __name__=='__main__':main()
