@@ -291,3 +291,49 @@ fn portable_snapshot_stale_acknowledgement_and_atomic_failure() {
     e.import(&empty).unwrap();
     assert_eq!(e.mark_saved(written_revision), Err(Error::InvalidState));
 }
+
+#[test]
+fn partitioned_render_retains_committed_ink_and_temporary_prediction() {
+    let mut e = Editor::new();
+    draw(&mut e);
+    let signature = |paths: Vec<PathCommand>| {
+        paths
+            .into_iter()
+            .map(|c| (c.stroke_id, c.rgba, c.verb, c.points))
+            .collect::<Vec<_>>()
+    };
+    let base = signature(e.render_committed());
+    e.begin(7, 1, brush()).unwrap();
+    e.append(
+        7,
+        &[
+            Input::Actual(sample(1, 40., Some(0.7))),
+            Input::Predicted(sample(2, 80., None)),
+        ],
+    )
+    .unwrap();
+    assert_eq!(signature(e.render_committed()), base);
+    assert!(e.render_live().iter().any(|c| c.points[0] > 70.));
+    let mut partition = e.render_committed();
+    partition.extend(e.render_live());
+    assert_eq!(signature(e.render()), signature(partition));
+    e.cancel();
+    assert!(e.render_live().is_empty());
+    assert_eq!(signature(e.render()), base);
+    e.begin(7, 1, brush()).unwrap();
+    e.append(
+        7,
+        &[
+            Input::Actual(sample(1, 40., None)),
+            Input::Predicted(sample(2, 80., None)),
+        ],
+    )
+    .unwrap();
+    e.commit(7).unwrap();
+    assert!(e.render_live().is_empty());
+    assert_eq!(e.document().strokes[1].samples.len(), 1);
+    e.undo().unwrap();
+    assert_eq!(signature(e.render_committed()), base);
+    e.redo().unwrap();
+    assert_eq!(signature(e.render()), signature(e.render_committed()));
+}

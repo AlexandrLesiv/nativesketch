@@ -13,6 +13,9 @@ compile_error!("size-baseline must be built alone with --no-default-features");
 mod fixtures;
 mod gpu;
 mod native_fixture;
+mod pen_replay;
+#[cfg(feature = "skia-backend")]
+mod pen_skia;
 use objc2_metal::{MTLCommandBuffer, MTLCommandBufferStatus, MTLDevice};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

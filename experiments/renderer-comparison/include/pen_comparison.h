@@ -49,6 +49,8 @@ void pc_replay_destroy(void *handle);
 void *pc_skia_create(void *device, void *queue, uint32_t width, uint32_t height);
 int32_t pc_skia_render(void *handle, void *texture, const PcSnapshot *snapshot,
                        uint32_t policy, PcPaintMetrics *out);
+/* Clear path/image/background caches between replay handles; retain Metal context. */
+int32_t pc_skia_reset(void *handle);
 void pc_skia_destroy(void *handle);
 const char *pc_error(void);
 #endif

@@ -536,7 +536,9 @@ impl Editor {
         };
         Ok(())
     }
-    pub fn render(&self) -> Vec<PathCommand> {
+    /// Render committed document content, including a temporary resize preview.
+    /// Renderer caches may retain this output but never own document semantics.
+    pub fn render_committed(&self) -> Vec<PathCommand> {
         let mut out = Vec::new();
         for (i, s) in self.document.strokes.iter().enumerate() {
             let t = self
@@ -546,6 +548,12 @@ impl Editor {
                 .map_or(s.transform, |r| r.preview);
             render_stroke(s, t, s.samples.iter().copied(), &mut out);
         }
+        out
+    }
+    /// Render temporary real and predicted ink without regenerating committed paths.
+    /// Predicted samples remain temporary and are never committed by this accessor.
+    pub fn render_live(&self) -> Vec<PathCommand> {
+        let mut out = Vec::new();
         if let Some(ink) = &self.ink {
             render_stroke(
                 &ink.stroke,
@@ -554,6 +562,11 @@ impl Editor {
                 &mut out,
             );
         }
+        out
+    }
+    pub fn render(&self) -> Vec<PathCommand> {
+        let mut out = self.render_committed();
+        out.extend(self.render_live());
         out
     }
 }
