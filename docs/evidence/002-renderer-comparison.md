@@ -3,6 +3,9 @@
 Status: comparison ready for review; original matrix and guarded replay complete. Production renderer selection remains OPEN.
 Date: 2026-10-14.
 
+[Open the self-contained HTML comparison](renderer-comparison.html) for SVG charts,
+workload tables, visual examples, pros/cons and the qualified recommendation.
+
 ## Result and recommendation
 
 **Recommendation: retain Skia as the next interaction-prototype baseline, keep Vello GPU
