@@ -184,6 +184,50 @@ class AnalysisTests(unittest.TestCase):
         configs=R['matrix'](1,3); self.collection(configs); (self.root/(configs[0]['id']+'.log')).write_text('launch attempted')
         result=A['analyze'](self.root)
         self.assertEqual(result['attempted_runs'],1); self.assertEqual(len(result['invalid']),1); self.assertEqual(len(result['pending']),371)
+    def paired_failures(self,accept_skia=False,mutate_coregraphics=None):
+        configs=[]
+        for backend in ('skia','coregraphics'):
+            folder,c=self.failure_fixture(backend); configs.append(c)
+            m=json.loads((folder/'manifest.json').read_text())
+            m['final'].update(measured_cpu_user_s=12.34,measured_cpu_system_s=.5)
+            if backend=='coregraphics' and mutate_coregraphics: mutate_coregraphics(m)
+            if backend=='skia' and accept_skia:
+                m['status']='complete'; m['reason']=''; m['final']['capture_sha256']=hashlib.sha256(b'image').hexdigest(); m['final']['capture_kind']='proxy'; (folder/'final.png').write_bytes(b'image')
+                rows=json.loads((folder/'frames.json').read_text()); rows.append(dict(frame=1,draw_start_s=181.1,epoch_s=1,total_samples=43201,sample_id=43201,geometry_hash='geo')); self.write(folder/'frames.json',rows)
+            self.write(folder/'manifest.json',m)
+            if m['status']=='failed': R['record_failed_receipt'](folder)
+        self.assertEqual(configs[0]['pair_id'],configs[1]['pair_id'])
+        self.collection(configs); manifest=json.loads((self.root/'collection.json').read_text()); manifest['failure_policy']=A['FAILURE_POLICY']; self.write(self.root/'collection.json',manifest); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
+        return configs
+    def test_both_failed_pair_is_visible_without_delta(self):
+        self.paired_failures(); result=A['analyze'](self.root)
+        self.assertEqual(result['failed_runs'],2); self.assertEqual(result['pairs'],[])
+        pair=result['pair_outcomes'][0]; self.assertTrue(pair['matched_identity_verified']); self.assertFalse(pair['numeric_delta_available'])
+        self.assertEqual([pair['backends'][b]['outcome'] for b in ('skia','coregraphics')],['failed','failed'])
+        self.assertEqual(result['failed'][0]['resource_observations']['final']['measured_cpu_user_s'],12.34)
+        analysis=self.root/'both-failed.json'; self.write(analysis,result); output=self.root/'both-failed.html'
+        subprocess.run([sys.executable,str(HERE/'build-cintiq-report'),str(analysis),'--output',str(output)],check=True,capture_output=True)
+        report=output.read_text(); self.assertIn('<td>failed</td><td>failed</td>',report); self.assertIn('can miss transient occlusion',report)
+    def test_mixed_pair_is_visible_without_delta(self):
+        self.paired_failures(accept_skia=True); result=A['analyze'](self.root)
+        self.assertEqual(result['accepted_runs'],1); self.assertEqual(result['failed_runs'],1); self.assertEqual(result['pairs'],[])
+        pair=result['pair_outcomes'][0]; self.assertTrue(pair['matched_identity_verified']); self.assertFalse(pair['numeric_delta_available'])
+        self.assertEqual([pair['backends'][b]['outcome'] for b in ('skia','coregraphics')],['accepted','failed'])
+    def test_failed_pair_identity_mismatch_rejected(self):
+        self.paired_failures(mutate_coregraphics=lambda m:m['final']['replay'].update(trace_sha256='different'))
+        with self.assertRaisesRegex(ValueError,'pair input/display'): A['analyze'](self.root)
+    def test_failed_pair_power_mismatch_rejected(self):
+        def power(m): m['initial']['low_power_mode']=True; m['final']['low_power_mode']=True
+        self.paired_failures(mutate_coregraphics=power)
+        with self.assertRaisesRegex(ValueError,'power mode'): A['analyze'](self.root)
+    def test_every_pending_pair_is_visible(self):
+        self.collection(R['matrix'](1,3)); result=A['analyze'](self.root)
+        self.assertEqual(len(result['pair_outcomes']),186)
+        self.assertTrue(all(p['backends']['skia']['outcome']=='pending' and p['backends']['coregraphics']['outcome']=='pending' and not p['numeric_delta_available'] for p in result['pair_outcomes']))
+    def test_invalid_pair_state_is_visible(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs); folder=self.fixture(configs[0]); m=json.loads((folder/'manifest.json').read_text()); m['binary_sha256']='other'; self.write(folder/'manifest.json',m)
+        result=A['analyze'](self.root); pair=result['pair_outcomes'][0]
+        self.assertEqual(pair['backends'][configs[0]['backend']]['outcome'],'invalid'); self.assertEqual(pair['backends'][configs[1]['backend']]['outcome'],'pending')
     def test_matrix(self):
         a=R['matrix'](1,3); self.assertEqual(a,R['matrix'](1,3)); self.assertNotEqual(a,R['matrix'](2,3)); self.assertEqual(len({c['id'] for c in a}),372)
         self.assertEqual(sum(c['duration_s'] for c in a),216*60)
