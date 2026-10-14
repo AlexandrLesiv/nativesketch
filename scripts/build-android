@@ -7,12 +7,22 @@ cd "$repo_root"
 : "${JAVA_HOME:=/Applications/Android Studio.app/Contents/jbr/Contents/Home}"
 : "${GRADLE:=gradle}"
 export ANDROID_HOME JAVA_HOME
-ndk_bin="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin"
+case "$(uname -s)" in
+    Darwin) ndk_host=darwin-x86_64 ;;
+    Linux) ndk_host=linux-x86_64 ;;
+    *) echo "Unsupported NDK build host" >&2; exit 1 ;;
+esac
+ndk_bin="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/$ndk_host/bin"
 export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$ndk_bin/aarch64-linux-android26-clang"
-cargo build --locked -p sketch-ffi --release --target aarch64-linux-android
-libs="$repo_root/apps/android/app/src/main/jniLibs/arm64-v8a"
-mkdir -p "$libs" "$repo_root/artifacts"
-cp target/aarch64-linux-android/release/libsketch_ffi.so "$libs/"
-"$ndk_bin/aarch64-linux-android26-clang++" -std=c++17 -shared -fPIC -static-libstdc++ -Icrates/sketch-ffi/include apps/android/app/src/main/cpp/bridge.cpp -L"$libs" -lsketch_ffi -o "$libs/libsketch_jni.so"
+export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER="$ndk_bin/x86_64-linux-android26-clang"
+for entry in aarch64-linux-android:arm64-v8a x86_64-linux-android:x86_64; do
+    target="${entry%%:*}"
+    abi="${entry##*:}"
+    cargo build --locked -p sketch-ffi --release --target "$target"
+    libs="$repo_root/apps/android/app/src/main/jniLibs/$abi"
+    mkdir -p "$libs" "$repo_root/artifacts"
+    cp "target/$target/release/libsketch_ffi.so" "$libs/"
+    "$ndk_bin/${target}26-clang++" -std=c++17 -shared -fPIC -static-libstdc++ -Icrates/sketch-ffi/include apps/android/app/src/main/cpp/bridge.cpp -L"$libs" -lsketch_ffi -o "$libs/libsketch_jni.so"
+done
 "$GRADLE" -p apps/android --no-daemon assembleDebug
 cp apps/android/app/build/outputs/apk/debug/app-debug.apk artifacts/NativeSketch-android.apk
