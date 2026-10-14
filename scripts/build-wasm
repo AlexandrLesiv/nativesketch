@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+export CARGO_TARGET_DIR="$repo_root/target"
+cargo build --locked --release -p sketch-wasm --target wasm32-unknown-unknown
+mkdir -p "$repo_root/artifacts/web"
+cp "$CARGO_TARGET_DIR/wasm32-unknown-unknown/release/sketch_wasm.wasm" "$repo_root/artifacts/web/sketch_wasm.wasm"
+echo "Built artifacts/web/sketch_wasm.wasm"

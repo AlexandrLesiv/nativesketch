@@ -420,6 +420,47 @@ pub unsafe extern "C" fn sketch_document_mark_saved(e: *mut SketchEditor, revisi
 mod tests {
     use super::*;
     #[test]
+    fn byte_buffers_have_owned_copy_and_atomic_capacity_errors() {
+        unsafe {
+            let mut e = ptr::null_mut();
+            assert_eq!(sketch_editor_create(&mut e), 0);
+            let mut n = 0;
+            let mut rev = 0;
+            assert_eq!(
+                sketch_document_export(e, ptr::null_mut(), 0, &mut n, &mut rev),
+                0
+            );
+            let mut small = [255u8; 1];
+            assert_eq!(
+                sketch_document_export(e, small.as_mut_ptr(), 1, &mut n, &mut rev),
+                3
+            );
+            assert_eq!(small, [255]);
+            assert_eq!(
+                sketch_document_export(e, ptr::null_mut(), 1, &mut n, &mut rev),
+                1
+            );
+            let mut bytes = vec![0; n];
+            assert_eq!(
+                sketch_document_export(e, bytes.as_mut_ptr(), bytes.len(), &mut n, &mut rev),
+                0
+            );
+            assert_eq!(sketch_document_import(e, ptr::null(), 0), 1);
+            assert_eq!(sketch_document_import(e, b"bad".as_ptr(), 3), 5);
+            assert_eq!(sketch_document_mark_saved(e, rev), 0);
+            assert_eq!(sketch_document_import(e, bytes.as_ptr(), bytes.len()), 0);
+            bytes.fill(0);
+            assert_eq!(sketch_document_mark_saved(e, rev), 2);
+            assert_eq!(
+                sketch_document_export(e, ptr::null_mut(), 0, &mut n, &mut rev),
+                0
+            );
+            assert_eq!(n, 24);
+            sketch_editor_free(e);
+        }
+    }
+
+    #[test]
     fn panic_is_contained() {
         assert_eq!(protect(|| panic!("injected panic")), 6);
     }

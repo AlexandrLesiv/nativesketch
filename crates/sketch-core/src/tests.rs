@@ -241,3 +241,53 @@ fn replay_named_synthetic_trace_and_save_only_actual_samples() {
     assert_eq!(editor.document, original);
     assert_eq!(editor.undo.len(), 1);
 }
+
+#[test]
+fn portable_snapshot_stale_acknowledgement_and_atomic_failure() {
+    let mut e = Editor::new();
+    let (empty, initial) = e.export().unwrap();
+    e.clear().unwrap();
+    assert_eq!(e.mark_saved(initial), Err(Error::InvalidState));
+    let (_, current) = e.export().unwrap();
+    e.import(&empty).unwrap();
+    assert_eq!(e.mark_saved(current), Err(Error::InvalidState));
+    let (before, revision) = e.export().unwrap();
+    assert_eq!(e.import(b"corrupt"), Err(Error::Format));
+    assert_eq!(e.export().unwrap(), (before, revision));
+    e.begin(
+        1,
+        0,
+        Brush {
+            rgba: [0.0, 0.0, 0.0, 1.0],
+            width: 4.0,
+        },
+    )
+    .unwrap();
+    assert_eq!(e.export(), Err(Error::InvalidState));
+    assert_eq!(e.import(&empty), Err(Error::InvalidState));
+    assert_eq!(e.mark_saved(revision), Err(Error::InvalidState));
+    e.append(
+        1,
+        &[Input::Actual(Sample {
+            x: 1.0,
+            y: 2.0,
+            timestamp: 0.0,
+            pressure: None,
+            id: 1,
+        })],
+    )
+    .unwrap();
+    e.commit(1).unwrap();
+    assert!(e.state().dirty);
+    assert_eq!(e.mark_saved(revision), Err(Error::InvalidState));
+    let (_, written_revision) = e.export().unwrap();
+    assert!(e.state().dirty); // cancelled/failed host write leaves dirty
+    e.mark_saved(written_revision).unwrap();
+    assert!(!e.state().dirty);
+    e.undo().unwrap();
+    assert!(e.state().dirty);
+    e.redo().unwrap();
+    assert!(!e.state().dirty);
+    e.import(&empty).unwrap();
+    assert_eq!(e.mark_saved(written_revision), Err(Error::InvalidState));
+}
