@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Serial fresh-process native AppKit trials. No physical display latency claim."""
+import argparse
+import datetime
+import json
+import math
+import os
+from pathlib import Path
+import runpy
+import subprocess
+import sys
+import threading
+import time
+ROOT=Path(__file__).resolve().parent.parent
+FIXTURES=['live','dense100','dense1000','dense5000','panzoom','alpha','clip','image']
+
+def matrix(suite):
+    if suite=='pilot': return [dict(fixture=f,width=1600,height=1000,repeat_id='pilot-0') for f in FIXTURES]
+    if suite=='sustained': return [dict(fixture='panzoom',width=1600,height=1000,repeat_id=f'sustained-{i}') for i in range(3)]
+    return [dict(fixture=f,width=w,height=h,repeat_id=f'primary-{i}') for f in FIXTURES for w,h in [(1600,1000),(2560,1600)] for i in range(3)]
+
+def observations():
+    result={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    for name,command in [('power',['pmset','-g','batt']),('thermal',['pmset','-g','therm'])]:
+        try:
+            p=subprocess.run(command,capture_output=True,text=True,timeout=10)
+            result[name]=dict(exit_code=p.returncode,text=p.stdout.strip(),error=p.stderr.strip())
+        except (OSError,subprocess.TimeoutExpired) as e:result[name]={'unavailable':str(e)}
+    return result
+
+def sample(pid,stop,path):
+    with path.open('w') as f:
+        f.write('sampler_monotonic_s,rss_bytes,missing_reason\n')
+        while not stop.is_set():
+            t=time.monotonic()
+            try:
+                p=subprocess.run(['ps','-o','rss=','-p',str(pid)],capture_output=True,text=True,timeout=2)
+                f.write(f'{t},{int(p.stdout.strip())*1024},\n')
+            except (OSError,ValueError,subprocess.TimeoutExpired):f.write(f'{t},,process unavailable\n')
+            f.flush();stop.wait(.25)
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--suite',required=True,choices=['pilot','primary','sustained'])
+    p.add_argument('--output',required=True,type=Path)
+    p.add_argument('--binary',type=Path,default=ROOT/'artifacts/coregraphics-comparison-build/CoreGraphicsComparison.app/Contents/MacOS/CoreGraphicsComparison')
+    p.add_argument('--dry-run',action='store_true')
+    p.add_argument('--window-seconds',type=float,default=5400)
+    a=p.parse_args()
+    if not math.isfinite(a.window_seconds) or not 0<a.window_seconds<=5400:p.error('window must be positive and at most 5400 seconds')
+    plan=matrix(a.suite)
+    if a.dry_run:print(json.dumps(dict(suite=a.suite,trial_count=len(plan),trials=plan),indent=2));return 0
+    output=a.output.resolve()
+    if not output.is_relative_to(ROOT/'artifacts/coregraphics-comparison'):p.error('output must be under artifacts/coregraphics-comparison')
+    if output.exists():p.error('output exists: preserve it and choose a fresh directory')
+    if not a.binary.is_file():p.error('build native binary before running')
+    output.mkdir(parents=True)
+    meta=dict(schema_version=2,experiment='coregraphics-appkit-v1',suite=a.suite,status='running',completed=0,trials=plan,memory_interval_seconds=.25,memory_clock='Python monotonic; not assumed synchronized with native CACurrentMediaTime',start=observations())
+    def save():(output/'suite.json').write_text(json.dumps(meta,indent=2)+'\n')
+    save();start=time.monotonic();inhibitor=None
+    try:
+        if sys.platform=='darwin':inhibitor=subprocess.Popen(['caffeinate','-di','-w',str(os.getpid())])
+        validate=runpy.run_path(str(ROOT/'scripts/analyze-coregraphics-comparison'))['validate']
+        for i,trial in enumerate(plan):
+            remaining=a.window_seconds-(time.monotonic()-start)
+            if remaining<=0:raise RuntimeError('90-minute window exhausted; incomplete trials retained')
+            directory=output/f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["repeat_id"]}'
+            directory.mkdir()
+            command=[str(a.binary.resolve()),"--backend","coregraphics","--mode","appkit-paced"]
+            for k,v in trial.items():command+=['--'+k.replace('_','-'),str(v)]
+            command+=['--warmup',str(12 if a.suite=='pilot' else 120),'--output',str(directory)]
+            command+=['--duration-seconds','180'] if a.suite=='sustained' else ['--frames',str(30 if a.suite=='pilot' else 600)]
+            launch=dict(command=command,before=observations());stop=threading.Event()
+            with (directory/'launcher.log').open('w') as log:
+                process=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT)
+                worker=threading.Thread(target=sample,args=(process.pid,stop,directory/'memory.csv'),daemon=True);worker.start()
+                try:code=process.wait(timeout=remaining)
+                except (subprocess.TimeoutExpired,KeyboardInterrupt):
+                    process.terminate()
+                    try:process.wait(timeout=10)
+                    except subprocess.TimeoutExpired:process.kill();process.wait()
+                    raise
+                finally:
+                    stop.set();worker.join(timeout=3);launch['after']=observations();(directory/'launcher.json').write_text(json.dumps(launch,indent=2)+'\n')
+            if code:raise RuntimeError(f'native trial failed with exit {code}: {directory}')
+            validate(directory);meta['completed']+=1;save()
+            print(f'{meta["completed"]}/{len(plan)} {directory.name}',flush=True)
+        subprocess.run([sys.executable,str(ROOT/'scripts/analyze-coregraphics-comparison'),str(output)],check=True)
+        meta['status']='complete';return 0
+    except (Exception,KeyboardInterrupt) as e:
+        meta['status']='failed';meta['error']=str(e) or type(e).__name__;print(meta['error'],file=sys.stderr);return 1
+    finally:
+        meta['elapsed_seconds']=time.monotonic()-start;meta['end']=observations();save()
+        if inhibitor:inhibitor.terminate();inhibitor.wait()
+if __name__=='__main__':sys.exit(main())

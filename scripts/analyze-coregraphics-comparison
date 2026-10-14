@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Validate actual AppKit callback evidence; summarize per-process CPU durations only."""
+import argparse
+import csv
+import hashlib
+import json
+import math
+from pathlib import Path
+import re
+import runpy
+import statistics
+import sys
+FIELDS='phase index state_hash request_s draw_start_s draw_end_s input_ms outline_ms export_ms path_ms draw_ms service_ms'.split()
+METRICS=[x for x in FIELDS if x.endswith('_ms')]
+HASH=re.compile(r'^[0-9a-f]{64}$')
+ROOT=Path(__file__).resolve().parent.parent
+
+def dist(values):
+    v=sorted(values)
+    return dict(count=len(v),**{f'p{q}':v[math.ceil(len(v)*q/100)-1] if v else None for q in (50,95,99)},max=v[-1] if v else None)
+
+def finite(x,name,positive=False):
+    if isinstance(x,bool) or not isinstance(x,(int,float)) or not math.isfinite(x) or x<0 or (positive and x==0):raise ValueError(f'invalid {name}')
+    return x
+
+def digest(value,name):
+    if not isinstance(value,str) or not HASH.fullmatch(value):raise ValueError(f'invalid {name} hash')
+
+def validate(path):
+    m=json.loads((path/'manifest.json').read_text());host=json.loads((path/'host-status.json').read_text());rb=json.loads((path/'readback.json').read_text())
+    required='schema_version experiment backend mode status source_revision source_diff_hash build fixture width height repeat_id warmup frames_requested duration_seconds fixture_hash input_hash image_hash quality physical_canvas display runtime timing_provenance unsupported init_ms first_use completed_sample_count measured_elapsed_seconds scheduling final_expected_state_hash final_actual_state_hash os_peak_rss_bytes'.split()
+    if set(required)-m.keys():raise ValueError(f'missing manifest fields: {sorted(set(required)-m.keys())}')
+    if (m['schema_version'],m['experiment'],m['backend'],m['mode'])!=(2,'coregraphics-appkit-v1','coregraphics','appkit-paced'):raise ValueError('wrong experiment identity')
+    if m['status']!='complete' or host.get('status')!='complete':raise ValueError('manifest or authoritative host status incomplete')
+    if not re.fullmatch('[0-9a-f]{40}',m['source_revision']):raise ValueError('invalid source revision')
+    for field in ('source_diff_hash','fixture_hash','input_hash','image_hash','final_expected_state_hash','final_actual_state_hash'):digest(m[field],field)
+    if m['final_expected_state_hash']!=m['final_actual_state_hash']:raise ValueError('actual final identity mismatch')
+    for field in ('width','height','warmup','completed_sample_count'):
+        if type(m[field]) is not int or m[field]<0:raise ValueError(f'invalid {field}')
+    if m['width']<=0 or m['height']<=0 or m['completed_sample_count']<=0:raise ValueError('empty canvas or measured run')
+    for field in ('init_ms','measured_elapsed_seconds','os_peak_rss_bytes'):finite(m[field],field)
+    if not m['unsupported'] or not all(isinstance(v,str) and v for v in m['unsupported'].values()):raise ValueError('unsupported metrics must retain explicit reasons')
+    canvas=m['physical_canvas']
+    if canvas['backing_width']!=m['width'] or canvas['backing_height']!=m['height']:raise ValueError('physical backing size mismatch')
+    for field in ('point_width','point_height','scale'):finite(canvas[field],field,True)
+    if abs(canvas['point_width']*canvas['scale']-m['width'])>.01 or abs(canvas['point_height']*canvas['scale']-m['height'])>.01:raise ValueError('point/backing size mismatch')
+    if len(canvas['ctm'])!=6 or not all(isinstance(x,(int,float)) and math.isfinite(x) for x in canvas['ctm']):raise ValueError('invalid drawing context transform')
+    if host.get('final_dimensions')!={'width':m['width'],'height':m['height']} or host.get('output_validation',{}).get('valid') is not True:raise ValueError('final output validation failed')
+    assertion=host.get('activity_assertion',{})
+    if assertion.get('held_through_output') is not True or not {'userInitiated','latencyCritical','idleDisplaySleepDisabled'}.issubset(set(assertion.get('options',[]))):raise ValueError('activity assertion not held')
+    for phase in ('lifecycle_start','lifecycle_end'):
+        state=host.get(phase,{})
+        if any(state.get(k) is not True for k in ('window_visible','window_unoccluded','session_on_console')) or any(state.get(k) is not False for k in ('window_miniaturized','session_resigned','system_sleeping','screens_sleeping','display_asleep')):raise ValueError('invalid native lifecycle')
+    if not isinstance(host.get('lifecycle_events'),list) or any(e.get('invalidating') is not False for e in host['lifecycle_events']):raise ValueError('invalidating lifecycle event')
+    with (path/'frames.csv').open(newline='') as f:
+        reader=csv.DictReader(f)
+        if reader.fieldnames!=FIELDS:raise ValueError('wrong frame schema')
+        rows=list(reader)
+    phases={p:[] for p in ('first-use','warmup','measured')}
+    for row in rows:
+        if row['phase'] not in phases:raise ValueError('invalid frame phase')
+        index=int(row['index'])
+        if index!=len(phases[row['phase']]):raise ValueError('duplicate/out-of-order frame index')
+        digest(row['state_hash'],'frame state')
+        for k in FIELDS[3:]:row[k]=finite(float(row[k]),k)
+        if not row['request_s']<=row['draw_start_s']<=row['draw_end_s']:raise ValueError('reversed callback timestamps')
+        if row['draw_ms']>row['service_ms']+.01:raise ValueError('paint exceeds service duration')
+        phases[row['phase']].append(row)
+    for phase,count in [('first-use',1),('warmup',m['warmup']),('measured',m['completed_sample_count'])]:
+        if len(phases[phase])!=count:raise ValueError('incomplete frame counts')
+    if phases['measured'][-1]['state_hash']!=m['final_actual_state_hash']:raise ValueError('last measured identity mismatch')
+    if m['duration_seconds'] is None:
+        if type(m['frames_requested']) is not int or m['frames_requested']!=m['completed_sample_count']:raise ValueError('partial fixed-frame run')
+    else:
+        finite(m['duration_seconds'],'duration',True)
+        if m['frames_requested'] is not None or m['measured_elapsed_seconds']<m['duration_seconds']:raise ValueError('truncated sustained run')
+    scheduling=m['scheduling']
+    for field in ('opportunities','coalesced','requests','benchmark_draw_callbacks'):
+        if type(scheduling[field]) is not int or scheduling[field]<0:raise ValueError('invalid scheduling count')
+    if scheduling['benchmark_draw_callbacks']!=len(rows) or scheduling['requests']<len(rows) or scheduling['opportunities']<scheduling['requests']:raise ValueError('scheduling counts inconsistent')
+    if rb['width']!=m['width'] or rb['height']!=m['height'] or rb['frame_index']!=m['completed_sample_count']-1:raise ValueError('quality capture dimensions/index mismatch')
+    for k in ('fixture_hash','input_hash','image_hash'):
+        if rb[k]!=m[k]:raise ValueError('capture fixture identity mismatch')
+    for k in ('rgba_sha256','state_hash','actual_state_hash'):digest(rb[k],k)
+    if rb['state_hash']!=rb['actual_state_hash'] or rb['state_hash']!=m['final_actual_state_hash'] or not rb.get('provenance'):raise ValueError('capture identity/provenance missing')
+    if (path/'final.png').read_bytes()[:8]!=b'\x89PNG\r\n\x1a\n' or not (path/'run.log').is_file():raise ValueError('missing PNG/log evidence')
+    return m,phases
+
+def analyze(paths):
+    runs=[];identities=set();cells={};fixture_identities={}
+    for path in paths:
+        m,phases=validate(path);rows=phases['measured'];starts=[r['draw_start_s'] for r in rows]
+        if any(b<a for a,b in zip(starts,starts[1:])):raise ValueError('nonmonotonic callbacks')
+        key=(m['fixture'],m['width'],m['height'])
+        identity=(m['fixture_hash'],m['input_hash'],m['image_hash'],json.dumps(m['quality'],sort_keys=True))
+        if key in fixture_identities and fixture_identities[key]!=identity:raise ValueError('fixture or quality changed between repeats')
+        fixture_identities[key]=identity
+        metrics={k:dist([r[k] for r in rows]) for k in METRICS}
+        metrics['request_to_draw_ms']=dist([(r['draw_start_s']-r['request_s'])*1000 for r in rows]);metrics['callback_interval_ms']=dist([(b-a)*1000 for a,b in zip(starts,starts[1:])])
+        identities.add((m['source_revision'],m['source_diff_hash'],json.dumps(m['build'],sort_keys=True)))
+        raw={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(path.iterdir()) if p.is_file()}
+        run=dict(path=str(path),fixture=m['fixture'],width=m['width'],height=m['height'],repeat_id=m['repeat_id'],source_revision=m['source_revision'],source_diff_hash=m['source_diff_hash'],metrics=metrics,unsupported=m['unsupported'],first_use=m['first_use'],init_ms=m['init_ms'],measured_frames=len(rows),measured_elapsed_seconds=m['measured_elapsed_seconds'],os_peak_rss_bytes=m['os_peak_rss_bytes'],raw_sha256=raw)
+        runs.append(run);cells.setdefault((m['fixture'],m['width'],m['height']),[]).append(run)
+    if len(identities)!=1:raise ValueError('mixed source/build identities or empty evidence')
+    summaries=[]
+    for key,group in sorted(cells.items()):
+        if len({r['repeat_id'] for r in group})!=len(group):raise ValueError('duplicate process repeat')
+        summaries.append(dict(fixture=key[0],width=key[1],height=key[2],process_count=len(group),metrics={metric:dict(p95_median=statistics.median(r['metrics'][metric]['p95'] for r in group),p95_min=min(r['metrics'][metric]['p95'] for r in group),p95_max=max(r['metrics'][metric]['p95'] for r in group)) for metric in METRICS+['request_to_draw_ms','callback_interval_ms']}))
+    return dict(schema_version=2,experiment='coregraphics-appkit-v1',definition='Nearest-rank per-process CPU callback distributions; cell statistics are median/min/max of process p95, never pooled. Callback intervals are not FPS, request delay is not pen latency, and draw return can exclude deferred composition.',runs=runs,cells=summaries)
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('root',type=Path);p.add_argument('--output',type=Path);a=p.parse_args()
+    try:
+        suite=json.loads((a.root/'suite.json').read_text())
+        if suite['suite'] not in ('pilot','primary','sustained'):raise ValueError('invalid suite')
+        expected=runpy.run_path(str(ROOT/'scripts/run-coregraphics-comparison'))['matrix'](suite['suite'])
+        paths=sorted(p.parent for p in a.root.glob('*/manifest.json'))
+        if suite['status'] not in ('running','complete') or suite['completed']!=len(expected) or suite['trials']!=expected or len(paths)!=len(expected):raise ValueError('incomplete declared suite')
+        result=analyze(paths)
+        actual=[{k:r[k] for k in ('fixture','width','height','repeat_id')} for r in result['runs']]
+        if actual!=expected:raise ValueError('trial identities do not match declared matrix')
+        for path in paths:
+            m=json.loads((path/'manifest.json').read_text());warm=12 if suite['suite']=='pilot' else 120
+            if m['warmup']!=warm or (suite['suite']=='sustained' and m['duration_seconds']!=180) or (suite['suite']!='sustained' and m['frames_requested']!=(30 if suite['suite']=='pilot' else 600)):raise ValueError('declared protocol mismatch')
+        result['suite']=suite['suite'];output=a.output or a.root/'summary.json';output.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n');print(output)
+    except (ValueError,KeyError,TypeError,OSError) as e:print(f'analysis failed: {e}',file=sys.stderr);return 1
+    return 0
+if __name__=='__main__':sys.exit(main())

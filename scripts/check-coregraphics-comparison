@@ -1,0 +1,6 @@
+#!/bin/sh
+# Portable CPU tooling checks only. Native build/correctness/measurement is separate.
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+[ "$#" -eq 0 ] || { echo 'usage: check-coregraphics-comparison' >&2; exit 2; }
+exec python3 "$ROOT/scripts/test-coregraphics-analysis"
