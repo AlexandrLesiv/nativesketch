@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Compare matched final fixture captures, without asserting pixel equivalence (Pillow)."""
+import argparse, hashlib, json, runpy
+from pathlib import Path
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageStat
+ROOT=Path(__file__).resolve().parents[1]
+FIXTURES=['live','dense100','dense1000','dense5000','panzoom','alpha','clip','image']
+def main():
+ p=argparse.ArgumentParser(description=__doc__)
+ p.add_argument('coregraphics',type=Path);p.add_argument('historical',type=Path)
+ p.add_argument('--output',required=True,type=Path);p.add_argument('--allow-partial',action='store_true')
+ a=p.parse_args();validate=runpy.run_path(str(ROOT/'scripts/analyze-coregraphics-comparison'))['validate']
+ a.output.mkdir(parents=True,exist_ok=True);records=[];missing=[]
+ for width,height in [(1600,1000),(2560,1600)]:
+  for fixture in FIXTURES:
+   candidates=[]
+   for path in a.coregraphics.glob('*/manifest.json'):
+    m=json.loads(path.read_text())
+    if (m.get('fixture'),m.get('width'),m.get('height'),m.get('repeat_id'))==(fixture,width,height,'primary-0') and m.get('status')=='complete':candidates.append(path.parent)
+   if not candidates:
+    missing.append(dict(fixture=fixture,width=width));continue
+   if len(candidates)!=1:raise ValueError('Multiple Core Graphics candidates')
+   cg=candidates[0];cm,_=validate(cg);cr=json.loads((cg/'readback.json').read_text())
+   if cr['frame_index']!=599:raise ValueError('Expected primary final frame 599')
+   paths={'coregraphics':cg};reads={'coregraphics':cr}
+   for backend in ['skia','vello']:
+    matches=list(a.historical.glob(f'*-{fixture}-{width}-completion-primary-0-{backend}'))
+    if len(matches)!=1:raise ValueError(f'Missing or ambiguous historical {fixture} {width} {backend}')
+    old=matches[0];om=json.loads((old/'manifest.json').read_text());orr=json.loads((old/'readback.json').read_text())
+    for key in ['fixture_hash','input_hash','image_hash','width','height']:
+     if om[key]!=cm[key]:raise ValueError(f'Fixture contract mismatch: {key}')
+    for key in ['frame_index','state_hash','actual_state_hash','width','height']:
+     if orr[key]!=cr[key]:raise ValueError(f'Final state mismatch: {key}')
+    paths[backend]=old;reads[backend]=orr
+   images={};hashes={};rgba_verified={}
+   for backend,path in paths.items():
+    raw=(path/'final.png').read_bytes();im=Image.open(path/'final.png').convert('RGBA')
+    if im.size!=(width,height) or im.getchannel('A').getextrema()!=(255,255):raise ValueError('Invalid dimensions or nonopaque background')
+    h=hashlib.sha256(im.tobytes()).hexdigest();rgba_verified[backend]=(h==reads[backend]['rgba_sha256'])
+    if not rgba_verified[backend]:raise ValueError(f'PNG RGBA content differs from captured hash: {backend}')
+    images[backend]=im.convert('RGB');hashes[backend]=hashlib.sha256(raw).hexdigest()
+   diffs={}
+   for backend in ['skia','vello']:
+    diff=ImageChops.difference(images['coregraphics'],images[backend]);stats=ImageStat.Stat(diff)
+    channels=diff.split();mask=ImageChops.lighter(ImageChops.lighter(channels[0],channels[1]),channels[2])
+    changed=width*height-mask.histogram()[0]
+    diffs[backend]=dict(mean_abs_channel=sum(stats.mean)/3,max_channel=max(v[1] for v in stats.extrema),changed_pixel_fraction=changed/(width*height))
+   thumb_width=560;thumb_height=round(height*thumb_width/width)
+   sheet=Image.new('RGB',(3*thumb_width,thumb_height+54),'#f4f5ef');draw=ImageDraw.Draw(sheet)
+   try:font=ImageFont.load_default(size=18)
+   except TypeError:font=ImageFont.load_default()
+   for i,backend in enumerate(['coregraphics','skia','vello']):
+    draw.text((i*thumb_width+12,10),backend+' / frame 599',font=font,fill='#183039')
+    sheet.paste(images[backend].resize((thumb_width,thumb_height),Image.Resampling.LANCZOS),(i*thumb_width,46))
+   rel=f'quality/frame599-{width}/{fixture}.png';dest=a.output/rel;dest.parent.mkdir(parents=True,exist_ok=True);sheet.save(dest)
+   records.append(dict(fixture=fixture,width=width,height=height,frame_index=599,sheet=rel,rgb_diff=diffs,png_sha256=hashes,rgba_hash_verified=rgba_verified,state_hash=cr['state_hash'],provenance='Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof.'))
+ if missing and not a.allow_partial:raise ValueError(f'Incomplete quality matrix: {missing}')
+ (a.output/'quality.json').write_text(json.dumps(records,indent=2)+'\n')
+ (a.output/'quality-coverage.json').write_text(json.dumps(dict(expected=16,completed=len(records),missing=missing),indent=2)+'\n')
+ print(f'{len(records)}/16 matched capture triples; all RGBA hashes verified')
+if __name__=='__main__':main()

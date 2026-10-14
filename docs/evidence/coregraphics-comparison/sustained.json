@@ -1,0 +1,373 @@
+{
+  "schema_version": 2,
+  "experiment": "coregraphics-appkit-v1",
+  "definition": "Nearest-rank per-process CPU callback distributions; cell statistics are median/min/max of process p95, never pooled. Callback intervals are not FPS, request delay is not pen latency, and draw return can exclude deferred composition.",
+  "runs": [
+    {
+      "path": "artifacts/coregraphics-comparison/sustained-resumed3-462629e/000-panzoom-1600-sustained-0",
+      "fixture": "panzoom",
+      "width": 1600,
+      "height": 1000,
+      "repeat_id": "sustained-0",
+      "source_revision": "462629ea97e6c79e9dc63832b35a3d54f76865a9",
+      "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "input_ms": {
+          "count": 13304,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "outline_ms": {
+          "count": 13304,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "export_ms": {
+          "count": 13304,
+          "p50": 4.1e-05,
+          "p95": 0.000125,
+          "p99": 0.00025,
+          "max": 0.008583
+        },
+        "path_ms": {
+          "count": 13304,
+          "p50": 0.000208325,
+          "p95": 0.000375003,
+          "p99": 0.00054168,
+          "max": 0.007249997
+        },
+        "draw_ms": {
+          "count": 13304,
+          "p50": 4.198999988,
+          "p95": 4.686916654,
+          "p99": 5.066666665,
+          "max": 6.262875002
+        },
+        "service_ms": {
+          "count": 13304,
+          "p50": 4.2005,
+          "p95": 4.688750007,
+          "p99": 5.071083331,
+          "max": 6.265041666
+        },
+        "request_to_draw_ms": {
+          "count": 13304,
+          "p50": 5.783917004009709,
+          "p95": 11.257125006522983,
+          "p99": 13.526750000892207,
+          "max": 43.0431669956306
+        },
+        "callback_interval_ms": {
+          "count": 13303,
+          "p50": 13.893833005568013,
+          "p95": 18.776750002871267,
+          "p99": 20.721958004287444,
+          "max": 50.108499999623746
+        }
+      },
+      "unsupported": {
+        "gpu_completion": "Not observable",
+        "gpu_execution_ms": "Native CGContext exposes no equivalent measurement",
+        "gpu_peak_memory": "No native comparable counter",
+        "physical_footprint": "Not implemented",
+        "physical_pen_latency": "No instrumented physical pen measurement",
+        "presentation_deadline_misses": "No independent presentation schedule",
+        "presentation_timestamp": "Draw return is not presentation"
+      },
+      "first_use": {
+        "draw_end_s": 103092.81212837502,
+        "draw_ms": 5.071458333986811,
+        "draw_start_s": 103092.78258662502,
+        "export_ms": 2.613833,
+        "index": 0,
+        "input_ms": 0,
+        "outline_ms": 7.473708,
+        "path_ms": 14.380416672793217,
+        "phase": "first-use",
+        "request_s": 103092.78217150002,
+        "service_ms": 29.541750001953915,
+        "state_hash": "9d8195afc529c1732e0173e5e44bd363d81a70b4b9a6c444e3ece32bb020f4be"
+      },
+      "init_ms": 64.78083333058748,
+      "measured_frames": 13304,
+      "measured_elapsed_seconds": 180.0032343333296,
+      "os_peak_rss_bytes": 286900224,
+      "raw_sha256": {
+        "final.png": "abfb2f7c769807fd88c8077b18f6b85dedd81ac9eb72669af09f68d12154b4cd",
+        "frames.csv": "7dfb61b1a63cbdc48688b9a9137e4e5820c809eb8d27196a3040b200a0890024",
+        "host-status.json": "280b51e5cb3ade333004fb2038188de70542c0b1b7c57f7c79030e728d2e8cff",
+        "launcher.json": "0440e35f21d50c878013bfd1a7badf8e7c84135a6104414419c75b29e34e64a2",
+        "launcher.log": "3527740a814e8f4f99158321478483284139b18fd929985168ce5e749bbebcaa",
+        "manifest.json": "b404b4c263df75f306a39c37349db8d3bec44d546f580d3ca2ea8d4bf9750e71",
+        "memory.csv": "b3fde0deaa7e7e993015ecd6546e2cb044af5f4d936359aa8ada4a2d7c37af34",
+        "readback.json": "2956a6357db2244d99aaf6ec1dc9aece8423641334805e244abab89909c4af7a",
+        "run.log": "eab947d1e458a269def222e26d626612190726d00496dd4999cfa1eebaf34fae"
+      }
+    },
+    {
+      "path": "artifacts/coregraphics-comparison/sustained-resumed3-462629e/001-panzoom-1600-sustained-1",
+      "fixture": "panzoom",
+      "width": 1600,
+      "height": 1000,
+      "repeat_id": "sustained-1",
+      "source_revision": "462629ea97e6c79e9dc63832b35a3d54f76865a9",
+      "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "input_ms": {
+          "count": 11971,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "outline_ms": {
+          "count": 11971,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "export_ms": {
+          "count": 11971,
+          "p50": 4.1e-05,
+          "p95": 0.000125,
+          "p99": 0.00025,
+          "max": 0.004708
+        },
+        "path_ms": {
+          "count": 11971,
+          "p50": 0.000166678,
+          "p95": 0.000333326,
+          "p99": 0.000500004,
+          "max": 0.014375008
+        },
+        "draw_ms": {
+          "count": 11971,
+          "p50": 4.395208336,
+          "p95": 4.939833336,
+          "p99": 5.279583333,
+          "max": 8.320083332
+        },
+        "service_ms": {
+          "count": 11971,
+          "p50": 4.396874996,
+          "p95": 4.94179166,
+          "p99": 5.28079168,
+          "max": 8.322000009
+        },
+        "request_to_draw_ms": {
+          "count": 11971,
+          "p50": 6.634249992202967,
+          "p95": 13.452582992613316,
+          "p99": 15.376167008071207,
+          "max": 67.16116600728128
+        },
+        "callback_interval_ms": {
+          "count": 11970,
+          "p50": 14.585124998120591,
+          "p95": 19.74154100753367,
+          "p99": 21.733000001404434,
+          "max": 73.94250000652391
+        }
+      },
+      "unsupported": {
+        "gpu_completion": "Not observable",
+        "gpu_execution_ms": "Native CGContext exposes no equivalent measurement",
+        "gpu_peak_memory": "No native comparable counter",
+        "physical_footprint": "Not implemented",
+        "physical_pen_latency": "No instrumented physical pen measurement",
+        "presentation_deadline_misses": "No independent presentation schedule",
+        "presentation_timestamp": "Draw return is not presentation"
+      },
+      "first_use": {
+        "draw_end_s": 103277.57016950002,
+        "draw_ms": 5.155124992597848,
+        "draw_start_s": 103277.54100058335,
+        "export_ms": 2.542417,
+        "index": 0,
+        "input_ms": 0,
+        "outline_ms": 7.279166999999999,
+        "path_ms": 14.19075000740122,
+        "phase": "first-use",
+        "request_s": 103277.54065758336,
+        "service_ms": 29.168916662456468,
+        "state_hash": "9d8195afc529c1732e0173e5e44bd363d81a70b4b9a6c444e3ece32bb020f4be"
+      },
+      "init_ms": 73.6637499940116,
+      "measured_frames": 11971,
+      "measured_elapsed_seconds": 180.01381241666968,
+      "os_peak_rss_bytes": 281395200,
+      "raw_sha256": {
+        "final.png": "0e037fe36918d942f479f1a74a75402de7bd9b34d490244f06b872789d38523c",
+        "frames.csv": "f7fca3140a9d34ef4b77d73fee1f6020e9518dc229eeba53a966430d84460c2f",
+        "host-status.json": "e1ac5615482bdb6290cbd115ed25e626b52e0ff86b642159cf83fa424807a5dd",
+        "launcher.json": "4946ae699d93c7dea25863f30fc9c428d370a0b09f32c23e8fe1441eff3d7779",
+        "launcher.log": "228124fecea179baa219a01ba045273ca8aa6c56e73d4bab3a5bc16f7fb8ed3a",
+        "manifest.json": "942ce1e54809cfa0af7714e78a31bab8527c18dc6887d4feffa4cbaf5ddb8aeb",
+        "memory.csv": "10cf82455cd93551dad3114d8ffd3dbf22b6698d4a49de9cd67b2789fdc0a5a7",
+        "readback.json": "09b63c72eb73443c3118ad65406fc589ee64d4927ee36d21b15a425813895ecb",
+        "run.log": "2227c7ad0e4de87f6f3fd7c29dbd32e4cd2d3ab79af1b72cdb2b2bd1f4ae2b80"
+      }
+    },
+    {
+      "path": "artifacts/coregraphics-comparison/sustained-resumed3-462629e/002-panzoom-1600-sustained-2",
+      "fixture": "panzoom",
+      "width": 1600,
+      "height": 1000,
+      "repeat_id": "sustained-2",
+      "source_revision": "462629ea97e6c79e9dc63832b35a3d54f76865a9",
+      "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metrics": {
+        "input_ms": {
+          "count": 11507,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "outline_ms": {
+          "count": 11507,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "export_ms": {
+          "count": 11507,
+          "p50": 4.1e-05,
+          "p95": 0.000125,
+          "p99": 0.000208,
+          "max": 0.004417
+        },
+        "path_ms": {
+          "count": 11507,
+          "p50": 0.000166678,
+          "p95": 0.000333341,
+          "p99": 0.000500004,
+          "max": 0.008833333
+        },
+        "draw_ms": {
+          "count": 11507,
+          "p50": 4.451916669,
+          "p95": 5.130041667,
+          "p99": 5.445874995,
+          "max": 11.587749992
+        },
+        "service_ms": {
+          "count": 11507,
+          "p50": 4.45391667,
+          "p95": 5.132208331,
+          "p99": 5.447791671,
+          "max": 11.589458329
+        },
+        "request_to_draw_ms": {
+          "count": 11507,
+          "p50": 7.26241699885577,
+          "p95": 14.04329200158827,
+          "p99": 15.935707997414283,
+          "max": 27.92849999968894
+        },
+        "callback_interval_ms": {
+          "count": 11506,
+          "p50": 14.969208001275547,
+          "p95": 20.480584003962576,
+          "p99": 22.99937499628868,
+          "max": 35.4682080069324
+        }
+      },
+      "unsupported": {
+        "gpu_completion": "Not observable",
+        "gpu_execution_ms": "Native CGContext exposes no equivalent measurement",
+        "gpu_peak_memory": "No native comparable counter",
+        "physical_footprint": "Not implemented",
+        "physical_pen_latency": "No instrumented physical pen measurement",
+        "presentation_deadline_misses": "No independent presentation schedule",
+        "presentation_timestamp": "Draw return is not presentation"
+      },
+      "first_use": {
+        "draw_end_s": 103462.47747625002,
+        "draw_ms": 6.583374997717328,
+        "draw_start_s": 103462.44022983336,
+        "export_ms": 4.636792,
+        "index": 0,
+        "input_ms": 0,
+        "outline_ms": 10.310417000000001,
+        "path_ms": 15.712583335698582,
+        "phase": "first-use",
+        "request_s": 103462.43986070836,
+        "service_ms": 37.246416657580994,
+        "state_hash": "9d8195afc529c1732e0173e5e44bd363d81a70b4b9a6c444e3ece32bb020f4be"
+      },
+      "init_ms": 54.389208322390914,
+      "measured_frames": 11507,
+      "measured_elapsed_seconds": 180.0141404166643,
+      "os_peak_rss_bytes": 268582912,
+      "raw_sha256": {
+        "final.png": "1304138c42a39009750acb5cd467d49f393f22a38360bf18e70460e95665e604",
+        "frames.csv": "755493c3dae601d6962c1226720656e9ff8a22f6aeee4c7b200bae0dd1136f87",
+        "host-status.json": "e04f4ec0b79b72bcde184f73cc12228b96ebed3b30bdc15e94594489add3f5ef",
+        "launcher.json": "0ad9b798e1e3432bb9dbfce4581ee0e6c48c543a823429e1b66b6e2df0fca709",
+        "launcher.log": "bbb400ca6aa0cece5794293e1b509451807f5c114b0417d89580c2e26148d476",
+        "manifest.json": "66728c4c2699045168da1b0fe697cdb40b18a5518e46da2014068698a036920c",
+        "memory.csv": "5cdc99638598327e38f2282c5c87b3fc1b54e9d58c300c5ea0a660b44c3e6047",
+        "readback.json": "2c6f12c60e5d67aec3535f79eefde6c4333def266d2655dc1c35215406a57922",
+        "run.log": "35f3844ba2454282a2f59ad0c1069b23eb7ca093648862d0b97b0a380f0a592b"
+      }
+    }
+  ],
+  "cells": [
+    {
+      "fixture": "panzoom",
+      "width": 1600,
+      "height": 1000,
+      "process_count": 3,
+      "metrics": {
+        "input_ms": {
+          "p95_median": 0.0,
+          "p95_min": 0.0,
+          "p95_max": 0.0
+        },
+        "outline_ms": {
+          "p95_median": 0.0,
+          "p95_min": 0.0,
+          "p95_max": 0.0
+        },
+        "export_ms": {
+          "p95_median": 0.000125,
+          "p95_min": 0.000125,
+          "p95_max": 0.000125
+        },
+        "path_ms": {
+          "p95_median": 0.000333341,
+          "p95_min": 0.000333326,
+          "p95_max": 0.000375003
+        },
+        "draw_ms": {
+          "p95_median": 4.939833336,
+          "p95_min": 4.686916654,
+          "p95_max": 5.130041667
+        },
+        "service_ms": {
+          "p95_median": 4.94179166,
+          "p95_min": 4.688750007,
+          "p95_max": 5.132208331
+        },
+        "request_to_draw_ms": {
+          "p95_median": 13.452582992613316,
+          "p95_min": 11.257125006522983,
+          "p95_max": 14.04329200158827
+        },
+        "callback_interval_ms": {
+          "p95_median": 19.74154100753367,
+          "p95_min": 18.776750002871267,
+          "p95_max": 20.480584003962576
+        }
+      }
+    }
+  ],
+  "suite": "sustained"
+}

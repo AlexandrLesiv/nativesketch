@@ -81,6 +81,9 @@ SwapChainPanel composition rather than assuming a regular window surface is suff
 OPEN. The isolated [Skia/Metal versus Vello GPU comparison](evidence/002-renderer-comparison.md)
 records pinned variants, identical scenes, quality, scale, input traces and presentation.
 The [decision proposal](decisions/0003-renderer-comparison.md) remains subject to owner acceptance.
+The [native AppKit/Core Graphics follow-up](evidence/coregraphics-comparison.html)
+adds CPU callback measurements and shipped-artifact size context, with different timing
+boundaries from the Metal experiment.
 Choose using the app's latency, correctness, memory, and integration evidence.
 For an illustrated explanation of these layers and input-to-display delay, see the
 [rendering layers and pen latency guide](evidence/rendering-layers-and-latency.html).

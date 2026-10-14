@@ -9,6 +9,11 @@ primary matrix and six sustained trials are retained; 16 affected primary trials
 six sustained trials were repeated under explicit visibility/activity guards. Production
 selection remains OPEN.
 
+Follow-up: the [native AppKit/Core Graphics comparison](../docs/evidence/coregraphics-comparison.html)
+adds 48 primary and three sustained trials, matched visual captures and an artifact-size
+audit. Its CPU callback scope differs from the Metal trials; no three-backend speedup
+ranking or isolated engine-size delta is claimed.
+
 ## Outcome and boundaries
 
 Compare Rust-Skia Ganesh over Metal with an explicitly pinned Vello GPU version/variant

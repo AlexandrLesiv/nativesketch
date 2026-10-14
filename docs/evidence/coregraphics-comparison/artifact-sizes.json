@@ -33,7 +33,7 @@
       "label": "iPhone/iPad prototype with watch app",
       "logical_bytes": 4091004,
       "file_count": 7,
-      "notes": "arm64 device; UIKit/Core Graphics; includes nested watch app; existing artifact lacks embedded revision",
+      "notes": "arm64 device; UIKit/Core Graphics; includes nested watch app; existing artifact lacks embedded revision; excluding its 2,182,536-byte nested watch app, the iPhone/iPad files total 1,908,468 bytes (1.820 MiB).",
       "sha256": {
         "artifacts/ios-device/NativeSketch.app/Info.plist": "ab6341aa90872ad1ff86ace344580e3aae8cdf810dab08c553c41eb7a10a0752",
         "artifacts/ios-device/NativeSketch.app/NativeSketch": "980025fc5daaa54ed0bf1213fa8cee5961778cbda8a38e49b69104fddf6da890",
@@ -80,11 +80,11 @@
   "references": [
     {
       "url": "https://wcandillon.github.io/react-native-skia/v2/docs/getting-started/installation/",
-      "claim": "React Native Skia reference integration quotes 6MB iOS,4MB Android,2.9MB web; not Native Sketch measurements."
+      "claim": "React Native Skia v2 documentation quotes an app-size increase of 6 MB on iOS, 4 MB on Android and 2.9 MB on web. These are external reference figures, not Native Sketch measurements."
     },
     {
       "url": "https://wcandillon.github.io/react-native-skia/v2/docs/getting-started/web/",
-      "claim": "2.9MB CanvasKit figure is gzip-compressed Wasm; feature/version dependent."
+      "claim": "The quoted 2.9 MB web figure refers to gzip-compressed CanvasKit Wasm. Actual size depends on version and enabled features."
     },
     {
       "url": "https://developer.android.com/topic/performance/reduce-apk-size",

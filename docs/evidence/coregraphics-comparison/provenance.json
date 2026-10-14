@@ -1,0 +1,55 @@
+{
+  "summary_text": "All 48 primary trials and three 180-second sustained trials completed on the same frozen native binary. Collection was interrupted three times: a minimized high-resolution 5,000-stroke trial at 510 measured callbacks, followed by two screen-fit failures after the user moved windows (271 and zero measured callbacks). Each rejected attempt is retained. Resumption copied only the strictly validated contiguous prefix with checksum provenance; the final suite reused 22 accepted trials and executed the remaining 26. Time gaps and resumed collection are part of these results; no rejected samples enter aggregates.",
+  "measured_revision": "462629ea97e6c79e9dc63832b35a3d54f76865a9",
+  "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "build_identity_sha256": "67d40a524af3841a1284fd1570c80ce327187a6bbbe0c98c00b7697046736d12",
+  "native_executable_sha256": "f6bfe1fc06db52995afdbe31d881bd6accb3b2dbd11632f4c791fdef45ec7e06",
+  "hardware": {
+    "model": "Apple M2 Pro",
+    "cpu_cores": 12,
+    "gpu_cores": 19,
+    "memory_bytes": 17179869184,
+    "display": "SONY TV, 3840x2160 physical, 1920x1080 points, nominal 120 Hz, scale 2",
+    "os": "macOS 27.0.1 (26A434)"
+  },
+  "accepted_roots": [
+    "artifacts/coregraphics-comparison/primary-resumed3-462629e",
+    "artifacts/coregraphics-comparison/sustained-resumed3-462629e"
+  ],
+  "rejected_attempts": [
+    "artifacts/coregraphics-comparison/primary-462629e/021-dense5000-2560-primary-0",
+    "artifacts/coregraphics-comparison/primary-resumed-462629e/022-dense5000-2560-primary-1",
+    "artifacts/coregraphics-comparison/primary-resumed2-462629e/022-dense5000-2560-primary-1"
+  ],
+  "checks": {
+    "pilot": "8/8 accepted at 1600x1000; designer reviewed all eight full PNGs",
+    "primary": "48/48 accepted: 8 fixtures x 2 resolutions x 3 processes, 120 warmup + 600 measured",
+    "sustained": "3/3 accepted: 180 measured seconds each after 120 warmup",
+    "negative_native_tests": [
+      "minimize and restore during finalization retained invalidated status and exit 1",
+      "Cmd-Q during finalization retained cancelled status and exit 1"
+    ],
+    "rust_tests": "8 passed on measured revision 462629e",
+    "analysis_failure_tests": "18 passed after safe-resume addition dd1d930; independently repeated",
+    "production_integration": "./scripts/check passed at af266be and again at integration 4834b88 with pending report/evidence changes. Formatting, clippy, Rust tests, macOS build and Swift/Rust integration passed. Two linker search-path warnings did not prevent build. All five size-audit artifact hashes still match after the check.",
+    "review": "Fresh reviewer found lifecycle/timing/capture issues; repaired and independently reassessed with no remaining blocker before measurements. Resume mechanism independently reviewed.",
+    "final_evidence_review": "Fresh reviewer independently recomputed all 51 accepted trials and summaries, verified 48 decoded captures, resumed prefix/failures and five artifact audits at integration 4834b885e38d033b332a86f23913e3e95c9c464f plus exported evidence. No actionable finding. Subsequent report changes add memory/startup caveats, chart accessibility and navigation links; native measured code unchanged.",
+    "designer_review": "All 16 matched frame-599 sheets reviewed at their displayed reduced scale; no obvious geometry, orientation, clipping, ordering, live-stroke shape or alpha-fill blocker. Final native screenshots reviewed. Visible legend, larger mobile labels and keyboard focus fixes re-reviewed and confirmed; no remaining visual/report blocker.",
+    "native_final_inspection": "Measured binary 462629e launched interactively in a separate 30-frame live trace with 12 warm-up frames. Run starts, completes and restores Run enabled/Stop disabled; preview visible. Not included in performance aggregates.",
+    "browser_inspection": "Desktop 1280x900 and mobile 390x844 inspected. No horizontal document overflow; chart regions scroll and keyboard ArrowRight operates the focused chart; viewport restored."
+  },
+  "interpretation_erratum": "Raw quality.cache_policy says fresh full-view raster. The verified behavior is full paint command reissue with retained CGPaths and no application bitmap cache. System caching, completed rasterization and composition remain unobserved. Raw records are preserved unchanged.",
+  "scope_limits": [
+    "CPU callback costs and callback intervals are not completed GPU work or physical pen latency.",
+    "Core Graphics uses actual backing-size NSView; historical GPU texture presentation is fitted inside a different preview size.",
+    "Whole-process RSS excludes separate WindowServer/compositor process costs and is not physical footprint or GPU memory.",
+    "One Mac/display/OS, three fresh processes per cell, sequential fixture ordering and resumed collection; no cross-platform performance claim.",
+    "Final lifecycle ledger seal is an observation endpoint, not an OS event-delivery or presentation fence."
+  ],
+  "raw_archive": {
+    "path": "artifacts/coregraphics-comparison-462629e-raw.tar.gz",
+    "bytes": 139790451,
+    "sha256": "0a5bc65f9b309ac9e6515771b881e14b615894e42ea54a0fe64cb49796d2eecc",
+    "distribution": "Retained locally, not committed or uploaded. Contains accepted suites, interrupted attempts, pilots, validation checks and final interactive inspection."
+  }
+}

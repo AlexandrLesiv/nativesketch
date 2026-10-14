@@ -6,6 +6,10 @@ Date: 2026-10-14.
 [Open the self-contained HTML comparison](renderer-comparison.html) for SVG charts,
 workload tables, visual examples, pros/cons and the qualified recommendation.
 
+The [AppKit/Core Graphics follow-up](coregraphics-comparison.html) adds 48 primary
+and three sustained runs, matched capture triples and an artifact-size audit. CPU callback
+costs are separately scoped from the Metal pipeline; they are not a direct speedup ranking.
+
 ## Result and recommendation
 
 **Recommendation: retain Skia as the next interaction-prototype baseline, keep Vello GPU

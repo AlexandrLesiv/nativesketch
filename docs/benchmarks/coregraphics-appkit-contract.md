@@ -1,6 +1,8 @@
 # Core Graphics / AppKit benchmark extension
 
-Status: implementation contract, 2026-10-14. Baseline e0c7f99. Production selection OPEN.
+Status: measured 2026-10-14 at 462629ea97e6c79e9dc63832b35a3d54f76865a9.
+48 primary + 3 sustained trials complete; see ../evidence/coregraphics-comparison.html.
+Baseline e0c7f99. Production selection OPEN.
 
 This is a separately labeled experiment of actual layer-backed NSView.draw with
 NSGraphicsContext.current.cgContext. Do not substitute a bitmap CGContext uploaded to
@@ -61,7 +63,10 @@ Core Graphics may record drawing for later execution. Do not infer backing resol
 from CGContext CTM or require its scale to equal the window backing scale. Validate a
 finite, invertible, axis-aligned context and verify actual capture dimensions and content.
 Require full canvas/window to fit visible screen and fail unsupported size rather than
-silently downscale. Clear white and rasterize fresh each benchmark draw. Cache CGPaths
+silently downscale. Clear white and reissue all painting commands each benchmark draw. No application bitmap
+cache is used; system caching, rasterization and composition are unobserved. The raw
+manifest cache_policy wording "fresh full-view raster" describes intent and is corrected
+by this interpretation; it is not proof of completed fresh rasterization. Cache CGPaths
 for retained geometry; rebuild live paths when geometry_changed. Nonzero fill once per
 whole stroke; source-over, explicit sRGB colors/image, antialiasing enabled. Image .low
 interpolation is requested bilinear behavior, not a guarantee of equal filter output.

@@ -1,0 +1,498 @@
+[
+  {
+    "fixture": "live",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/live.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.16387375,
+        "max_channel": 81,
+        "changed_pixel_fraction": 0.015709375
+      },
+      "vello": {
+        "mean_abs_channel": 0.19716625,
+        "max_channel": 133,
+        "changed_pixel_fraction": 0.014835625
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "a557bbde87c65f3b495c66aa2d06b1a54500fd40b223b79b1de60100e4d3bf61",
+      "skia": "48098a360ec73a6ab21132ebbf5af583123be2f918282cdaeed1b02de1feb52e",
+      "vello": "a0db083f0fe0d23cc2672f9cef3e0df3da74430fc7f71a8e44abaf923b9139e1"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "f17458c7bf145a6063600ddf2f8123d90f7751f14d3d666f1c9c31e2311082bd",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense100",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/dense100.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.160170625,
+        "max_channel": 81,
+        "changed_pixel_fraction": 0.0140375
+      },
+      "vello": {
+        "mean_abs_channel": 0.18695499999999998,
+        "max_channel": 133,
+        "changed_pixel_fraction": 0.0133975
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "d2c591e89c3e82bf06dad1172ba83b5bafc78481da6c69574c1f413609e056bb",
+      "skia": "b2814c2537843e2b1265678cdefc0e739bc76e7e02d72504abffeb5034c17c4a",
+      "vello": "89d81ef4c88b2ee85768faa544a3cdf2502dd50de6bbf1fe303b3a6738eda694"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "d307012366989c1ba5fd66dc9194fdc8f58ad1c8d58264d26191d99114635e19",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense1000",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/dense1000.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 1.44339875,
+        "max_channel": 86,
+        "changed_pixel_fraction": 0.1312575
+      },
+      "vello": {
+        "mean_abs_channel": 1.7206410416666664,
+        "max_channel": 140,
+        "changed_pixel_fraction": 0.125521875
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "60ec239cde7a1cc4fd3446b9e29dfaa1ce513b5f4c6af8da876bc093542fa602",
+      "skia": "2a23c89b4a8caf1a74852f83336c0fe37c97fac6f5d7773515850940df3bd665",
+      "vello": "3c0ff119dd6ef29e080b1e2438695cad288990991c63224b45dd9f1c1c1efa4a"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "4e3dbd2dd23508268ce9337ed9b69a166d8899986b32afb428101a02a104b02a",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense5000",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/dense5000.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 1.801575,
+        "max_channel": 87,
+        "changed_pixel_fraction": 0.27422375
+      },
+      "vello": {
+        "mean_abs_channel": 2.0261985416666666,
+        "max_channel": 120,
+        "changed_pixel_fraction": 0.268763125
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "d7855ec58e60f5da11be770a89fb06fa20b047b926553911b4ee9da797b50a0b",
+      "skia": "0982196d1146c855f417ec51632d543ca4475005b0eea1b06306af38a0d08339",
+      "vello": "ed08eb7ccfd4b527115593d9dd00c1d682b0cf9475fb2b654cd3848109f865fd"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "03de49592340e3abc6a93ce0c5298b7f01c6e3fb3cc556a0059f3f18394e856f",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "panzoom",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/panzoom.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 1.4420020833333334,
+        "max_channel": 88,
+        "changed_pixel_fraction": 0.12966875
+      },
+      "vello": {
+        "mean_abs_channel": 1.6928358333333335,
+        "max_channel": 138,
+        "changed_pixel_fraction": 0.12425
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "2ea4552eaead24f0361e1609c886ec883f97ad4c5855120964931d93aecd997c",
+      "skia": "3f41d7463fa103d05468095f46457fea22f1e4b132b9af6804da0e39821e10bc",
+      "vello": "c7b5bc727f05ed34f23f8b5870986595f4abdeee22109b8d71fa8057b40b9ed9"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "33b955b0c30fba166e940f5064d747a614e8e956cdd5881285f2bbb8b7e7878f",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "alpha",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/alpha.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.073093125,
+        "max_channel": 51,
+        "changed_pixel_fraction": 0.08709125
+      },
+      "vello": {
+        "mean_abs_channel": 0.05517416666666667,
+        "max_channel": 69,
+        "changed_pixel_fraction": 0.05039875
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "e210ddbfee11c0e17470b109a2ea9536efe814a1699bde49a3d87b715b9b3cc9",
+      "skia": "c7f58aa8e0f6620fe82edeae1d0d34a73022da22ac8eabbba46631033ce6d934",
+      "vello": "abc4e498481e18d9ca7c7aaa44b51add26b4b02fd0d1bdb07ef6769f1a5d438a"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "6dc04692da380b16c1a3d952acb0b89bb8870d477bb8927b35f6e1ade079d188",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "clip",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/clip.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.11426770833333333,
+        "max_channel": 83,
+        "changed_pixel_fraction": 0.00999
+      },
+      "vello": {
+        "mean_abs_channel": 0.13310208333333332,
+        "max_channel": 135,
+        "changed_pixel_fraction": 0.00953
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "a720d89f7947563870728689878238155794148ee8f56d866c6bf02d64f8b7a7",
+      "skia": "c0256d2130ea3da789931fd05efb01730a61dc92702b35847fb86e8598716802",
+      "vello": "b171dd9cdf881d6931ddad376c48d4eca09d75fc60291d5e61e25d10ecd12044"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "c03951c10f3ed04716d3dfe0dddb37227b9573435582200b1becdf7f9f765a94",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "image",
+    "width": 1600,
+    "height": 1000,
+    "frame_index": 599,
+    "sheet": "quality/frame599-1600/image.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.06032854166666666,
+        "max_channel": 79,
+        "changed_pixel_fraction": 0.038589375
+      },
+      "vello": {
+        "mean_abs_channel": 0.100894375,
+        "max_channel": 135,
+        "changed_pixel_fraction": 0.125136875
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "385370a2063f6aa573fa388874e863b05e6938a3ffe6b9a0a8cb0d5a3a9be3ce",
+      "skia": "55c2e79008baa25a0aac1bbd39b240e5704de44b06be71ceaa6036d5868365d7",
+      "vello": "c595cb3890ef35a9095151cf553251797e24d70a97117b885374d9587f789a63"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "76835426ed497f20efe8c4d0a06dc43af6b912d96cc1ce96553283801b3b2eb4",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "live",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/live.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.103809326171875,
+        "max_channel": 94,
+        "changed_pixel_fraction": 0.009850341796875
+      },
+      "vello": {
+        "mean_abs_channel": 0.10446573893229166,
+        "max_channel": 141,
+        "changed_pixel_fraction": 0.009175537109375
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "b7f06dd82bfef8e9c705425f82cc6ca15672aa7cfe29c2a5f8cd76671ad6b5db",
+      "skia": "d6e4d0c87068b198a34e329ad7c08ec7610c77da2ebec7a4488eb75691d4ef23",
+      "vello": "adb3c3a815130d84530cef019696dbb7e30290a48a9d8d01d61303b949c1f7fc"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "9171104967d7753ddbf7972635e9e7350f1f2cfb6c1749537f3c00107e18f848",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense100",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/dense100.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.10158292643229166,
+        "max_channel": 94,
+        "changed_pixel_fraction": 0.0087822265625
+      },
+      "vello": {
+        "mean_abs_channel": 0.0994375,
+        "max_channel": 141,
+        "changed_pixel_fraction": 0.008296630859375
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "1c0783dd334cc190fcb43b9163eb9823f3f978644b5e0552e090df4678ea624e",
+      "skia": "f6305d74090b24132f6115b4465645b61d0bfbbd1105c515b9ee4d3c322b11b9",
+      "vello": "306e1faa531ad186abad2d6ac8c0f6cdfe9cbe3e2a59d3be18c754789a4e9fba"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "2f50acbf02be01eaf7f301732bc9c7c7cdcb546c66127de5010618db3d290126",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense1000",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/dense1000.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.9228492024739583,
+        "max_channel": 103,
+        "changed_pixel_fraction": 0.082479736328125
+      },
+      "vello": {
+        "mean_abs_channel": 0.9134197591145834,
+        "max_channel": 150,
+        "changed_pixel_fraction": 0.07806298828125
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "a92a7695f114e0320c2a05380ca9c6e49dd0bedd46eaa85ee2e519d14dd837da",
+      "skia": "2c16350430685a0cd9dd3e1656de5d082a36d0cdc52a7a3e54cc3f71c5f23c19",
+      "vello": "ffe7c7c62bf82e907cd219430c09933fc4f5d2fb470891c34316caf62daffe4b"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "cba3acace5abda390d34660aec25cb09fdbb1c892fcee2807b8c41b72828f641",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "dense5000",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/dense5000.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 1.1616195475260416,
+        "max_channel": 106,
+        "changed_pixel_fraction": 0.175417724609375
+      },
+      "vello": {
+        "mean_abs_channel": 1.10212109375,
+        "max_channel": 135,
+        "changed_pixel_fraction": 0.170023681640625
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "321cfd380faf84c72e9d978ad56c9c870646bcdf910023156aa9d254540d1cfe",
+      "skia": "4a283cabaa4a383574ab3d3bc61cbe372b61e2b1aa1bd925b3d09d6cd29cfeeb",
+      "vello": "02cede40308761638547aa680ad735c5dbae1407555a1e398736525ef27d186d"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "07e4ceea897c06942d7b8fd5da670167dfc72eaffa97ceb44df0b7684f2a57f0",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "panzoom",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/panzoom.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.9127810872395834,
+        "max_channel": 103,
+        "changed_pixel_fraction": 0.081576416015625
+      },
+      "vello": {
+        "mean_abs_channel": 0.9060145670572917,
+        "max_channel": 144,
+        "changed_pixel_fraction": 0.07722998046875
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "8209a0d2bbaac08138842c0d24596eb8bc90a9624fea7b033bee5ddfb1c965e5",
+      "skia": "2cca888b0a9c749345b8932c0362373b2a7023f50f165874c6e238fa0bc99dbc",
+      "vello": "64d0de54c690e5127c3c7d667ab673cfb88023aeffe4275dee4b18d5ff9e54b9"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "d6204cb627ea18153e037a2f8bd43898497adbdd4e4f3c5c1b07a98c499d32c8",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "alpha",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/alpha.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.050769042968750004,
+        "max_channel": 58,
+        "changed_pixel_fraction": 0.06644580078125
+      },
+      "vello": {
+        "mean_abs_channel": 0.03345109049479167,
+        "max_channel": 72,
+        "changed_pixel_fraction": 0.03306298828125
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "87b6f3cd20cb8eaef3017066220a7150f6055defd2d22513714f5671a615e231",
+      "skia": "c6428f9416096358ae0509a76a535e54b40f8832a612abb5cb3dc95591e8f44b",
+      "vello": "fbb98e07f156b4922ab2cfb59a0857b95aa4e103fbacd8fddc58747fd39a2327"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "39ac7d43334e6856302f68757bce6092d7c25af986ef2c6504cc8b7febde07fc",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "clip",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/clip.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.07178808593750001,
+        "max_channel": 83,
+        "changed_pixel_fraction": 0.00621337890625
+      },
+      "vello": {
+        "mean_abs_channel": 0.070791748046875,
+        "max_channel": 142,
+        "changed_pixel_fraction": 0.00587744140625
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "a85eafcad40cf33c8ae7b99fd7d3c797ae178154a37da199279a977283013676",
+      "skia": "09b841a9dfae211ff1f897ad72cc77a949883a756c7d1b4cf4d3c926306c1b45",
+      "vello": "5de70448eb7d900f532ee830faed26832f36caea5d21b93fd277d33e677e6045"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "35ce25f7c665ff2ee92063122a24dac1d360bfa683293ac088e21e5a3f7fdadd",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  },
+  {
+    "fixture": "image",
+    "width": 2560,
+    "height": 1600,
+    "frame_index": 599,
+    "sheet": "quality/frame599-2560/image.png",
+    "rgb_diff": {
+      "skia": {
+        "mean_abs_channel": 0.07364794921875,
+        "max_channel": 125,
+        "changed_pixel_fraction": 0.03804931640625
+      },
+      "vello": {
+        "mean_abs_channel": 0.09252376302083333,
+        "max_channel": 127,
+        "changed_pixel_fraction": 0.1236142578125
+      }
+    },
+    "png_sha256": {
+      "coregraphics": "fcd3ee0d32a425d0df7047f3a1bccee04fbefefabe1dade6444425cd13c6b2d1",
+      "skia": "18b2795b5466de981d235c0718d69c2b1ba519d7932e2ce2cf719894d8349783",
+      "vello": "e5fe6b1587c0da77d99751d24e7d42d3eeeb19e3f32faa4c0994aa357ce2d8a2"
+    },
+    "rgba_hash_verified": {
+      "coregraphics": true,
+      "skia": true,
+      "vello": true
+    },
+    "state_hash": "de2c4a571f89659237d51c31782ff5269861bc882f8169dce193a14fe26eedff",
+    "provenance": "Core Graphics untimed NSView.cacheDisplay; historical Skia/Vello GPU texture readback. Same fixture state, distinct capture and color pipelines. Descriptive RGB differences are not a quality threshold or presentation proof."
+  }
+]
