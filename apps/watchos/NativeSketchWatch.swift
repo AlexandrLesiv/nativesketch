@@ -6,10 +6,11 @@ import WatchConnectivity
   @Published var navigation = ViewerNavigation()
   @Published var message = "Send a copy from iPhone"
   @Published var version = 0
+  @Published var hasError = false
   let store = WatchCopyStore(cache: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("LastCopy.json"))
   override init() {
     super.init()
-    do { try store.restore(); refresh() } catch { message = "Cached copy could not be opened. Send a copy from iPhone." }
+    do { try store.restore(); refresh() } catch { hasError = true; message = "Cached copy could not be opened. Send a copy from iPhone." }
     if WCSession.isSupported() { WCSession.default.delegate = self; WCSession.default.activate() }
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("--integration-test") {
@@ -23,16 +24,17 @@ import WatchConnectivity
         let metadata = try WatchCopyMetadata(["protocolVersion": 1, "sentAt": max(Date().timeIntervalSince1970, (store.metadata?.sentAt ?? 0) + 1), "title": title, "contentType": "dev.nativesketch.document"])
         try store.receive(boundedRead(url, limit: WatchCopyStore.limit), metadata: metadata)
         refresh(); message = "Simulator sample · No paired transfer"
-      } catch { message = "Simulator fixture failed: \(error.localizedDescription)" }
+      } catch { hasError = true; message = "Simulator fixture failed: \(error.localizedDescription)" }
     }
     #endif
   }
   func refresh() {
+    hasError = false
     if store.metadata != nil { message = "" }
     version += 1
   }
   nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-    if let error { let text = error.localizedDescription; Task { @MainActor in self.message = text } }
+    if let error { let text = error.localizedDescription; Task { @MainActor in self.message = text; self.hasError = true } }
   }
   nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
     // WCSession deletes its temporary URL after this callback: take ownership first.
@@ -43,9 +45,9 @@ import WatchConnectivity
       Task { @MainActor in
         defer { try? FileManager.default.removeItem(at: retained) }
         do { try self.store.receive(boundedRead(retained, limit: WatchCopyStore.limit), metadata: metadata); self.navigation.fit(); self.refresh() }
-        catch { self.message = "\(error.localizedDescription) Previous copy retained." }
+        catch { self.hasError = true; self.message = "\(error.localizedDescription) Previous copy retained." }
       }
-    } catch { let text = error.localizedDescription; Task { @MainActor in self.message = "\(text) Previous copy retained." } }
+    } catch { let text = error.localizedDescription; Task { @MainActor in self.hasError = true; self.message = "\(text) Previous copy retained." } }
   }
 }
 struct WatchViewer: View {
@@ -99,6 +101,7 @@ struct WatchViewer: View {
           EmptyView()
         }
       }
+      if model.hasError { Text("Copy error").font(.caption2).foregroundStyle(.red).accessibilityHint("Open Details for the full error") }
       HStack {
         Button("Fit") { crown = 1; model.navigation.fit() }
           .disabled(model.store.document.paths.isEmpty)
@@ -122,4 +125,16 @@ struct WatchViewer: View {
       }
   }
 }
-@main struct NativeSketchWatch: App { var body: some Scene { WindowGroup { WatchViewer() } } }
+@main struct NativeSketchWatch: App {
+  var body: some Scene {
+    WindowGroup {
+      #if DEBUG
+      if ProcessInfo.processInfo.arguments.contains("--preview-large-text") {
+        WatchViewer().environment(\.dynamicTypeSize, .accessibility3)
+      } else { WatchViewer() }
+      #else
+      WatchViewer()
+      #endif
+    }
+  }
+}
