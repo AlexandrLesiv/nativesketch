@@ -17,7 +17,11 @@ import CSketchFFI
 }
 @MainActor enum SourceReplay {
   static func run() async throws {
+    #if os(macOS)
     try await SourceHTTPReplay.run()
+    #else
+    print("SOURCE HTTP REPLAY SKIP: URLProtocol fixture transport is host-only; coordinator/cache/Rust tests run here")
+    #endif
     guard let fixture = Bundle.main.url(forResource: "Sample", withExtension: "nsketch") else { throw SourceFailure.metadata }
     let data = try boundedRead(fixture, limit: WatchCopyStore.limit)
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

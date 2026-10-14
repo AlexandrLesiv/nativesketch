@@ -45,5 +45,7 @@ credentials; current transport is for public/developer data only.
 
 `./scripts/check-apple-viewers` runs the actual Rust policy/validation/cache and
 coordinator replay plus URLSession URLProtocol transport tests. Simulator Watch
-`--integration-test` runs the same DEBUG replay. Fixture code is absent from device
+`--integration-test` runs the shared coordinator/cache/Rust DEBUG replay. URLProtocol
+transport fixtures run only on macOS because watchOS did not honor protocol interception
+in simulator verification; the Watch prints an explicit HTTP-test skip. Fixture code is absent from device
 builds. Real WatchConnectivity file delivery still requires paired physical devices.
