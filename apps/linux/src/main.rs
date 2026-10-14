@@ -239,7 +239,16 @@ impl Ui {
             Some(&self.window),
             None::<&gio::Cancellable>,
             move |result| {
-                if let Ok(file) = result {
+                let file = match result {
+                    Ok(file) => file,
+                    Err(error) => {
+                        if !file_dialog_cancelled(&error) {
+                            ui.error(&format!("File chooser failed: {error}"));
+                        }
+                        return;
+                    }
+                };
+                {
                     if let Some(path) = file.path() {
                         let result = ui.model.borrow_mut().editor.save(&path);
                         match result {
@@ -292,7 +301,16 @@ impl Ui {
             let dialog = gtk::FileDialog::builder().title("Open Drawing").build();
             let inner = ui.clone();
             dialog.open(Some(&ui.window), None::<&gio::Cancellable>, move |result| {
-                if let Ok(file) = result {
+                let file = match result {
+                    Ok(file) => file,
+                    Err(error) => {
+                        if !file_dialog_cancelled(&error) {
+                            inner.error(&format!("File chooser failed: {error}"));
+                        }
+                        return;
+                    }
+                };
+                {
                     if let Some(path) = file.path() {
                         inner.action(|m| m.editor.load(&path));
                     } else {
@@ -302,6 +320,11 @@ impl Ui {
             });
         }));
     }
+}
+fn file_dialog_cancelled(error: &glib::Error) -> bool {
+    error.matches(gtk::DialogError::Dismissed)
+        || error.matches(gtk::DialogError::Cancelled)
+        || error.matches(gio::IOErrorEnum::Cancelled)
 }
 fn button(label: &str) -> gtk::Button {
     gtk::Button::with_label(label)
@@ -460,7 +483,7 @@ fn build(app: &adw::Application) {
             if p.is_active() {
                 u.action(|m| {
                     m.select = false;
-                    Ok(())
+                    m.editor.select_clear()
                 });
             }
         });
@@ -783,7 +806,7 @@ fn build(app: &adw::Application) {
             }
             let op = if key == gdk::Key::Escape {
                 Some(0)
-            } else if ctrl && key == gdk::Key::z {
+            } else if ctrl && (key == gdk::Key::z || key == gdk::Key::Z) {
                 Some(if mods.contains(gdk::ModifierType::SHIFT_MASK) {
                     2
                 } else {

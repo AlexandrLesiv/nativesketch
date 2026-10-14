@@ -34,7 +34,21 @@ const error = (e: unknown) => {
     el<HTMLDialogElement>("error").showModal();
 };
 let failed = false,
-    lastDirty = false;
+    lastDirty = false,
+    protectFailedDocument = false;
+function disableEngine(message: string, protectDocument: boolean) {
+    failed = true;
+    protectFailedDocument = protectDocument;
+    document
+        .querySelectorAll<
+            HTMLButtonElement | HTMLInputElement
+        >("header button,.tools button,.tools input")
+        .forEach((control) => (control.disabled = true));
+    canvas.setAttribute("aria-disabled", "true");
+    el("status").textContent = message;
+    el("reload").hidden = false;
+}
+el("reload").addEventListener("click", () => location.reload());
 const safe = (fn: () => void) => {
     if (!engine || failed) return;
     try {
@@ -43,15 +57,10 @@ const safe = (fn: () => void) => {
     } catch (e) {
         cancel();
         if (!engine.isAvailable()) {
-            failed = true;
-            document
-                .querySelectorAll<
-                    HTMLButtonElement | HTMLInputElement
-                >("header button,.tools button,.tools input")
-                .forEach((control) => (control.disabled = true));
-            canvas.setAttribute("aria-disabled", "true");
-            el("status").textContent =
-                "Drawing engine stopped. Reload to recover; unsaved work may be lost.";
+            disableEngine(
+                "Drawing engine stopped. Reload to recover; unsaved work may be lost.",
+                true,
+            );
             error(
                 "The drawing engine stopped unexpectedly. Reload this page to recover. Unsaved changes cannot be recovered from this failed engine.",
             );
@@ -384,6 +393,7 @@ new ResizeObserver(() => {
 function chooseTool(next: string) {
     cancel();
     tool = next;
+    if (tool === "pen") engine.command(9);
     el("pen").setAttribute("aria-pressed", String(tool === "pen"));
     el("select").setAttribute("aria-pressed", String(tool === "select"));
     refresh();
@@ -492,7 +502,7 @@ el<HTMLInputElement>("file").addEventListener("change", async (e) => {
     }
 });
 window.addEventListener("beforeunload", (e) => {
-    if (failed || lastDirty) {
+    if (protectFailedDocument || lastDirty) {
         e.preventDefault();
         e.returnValue = "";
     }
@@ -504,10 +514,11 @@ document.addEventListener("keydown", (e) => {
         )
     )
         return;
-    if (!engine) return;
+    if (!engine?.isAvailable() || failed) return;
+    const canvasFocused = e.target === canvas;
     const modifier = e.ctrlKey || e.metaKey;
     const key = e.key.toLowerCase();
-    if (key === " ") {
+    if (canvasFocused && key === " ") {
         space = true;
         e.preventDefault();
         return;
@@ -523,9 +534,12 @@ document.addEventListener("keydown", (e) => {
     else if (modifier && key === "s") action = download;
     else if (modifier && key === "o") action = () => el("open").click();
     else if (modifier && key === "n") action = () => el("new").click();
-    else if (!modifier && key === "p") action = () => chooseTool("pen");
-    else if (!modifier && key === "v") action = () => chooseTool("select");
+    else if (canvasFocused && !modifier && key === "p")
+        action = () => chooseTool("pen");
+    else if (canvasFocused && !modifier && key === "v")
+        action = () => chooseTool("select");
     else if (
+        canvasFocused &&
         (key === "delete" || key === "backspace") &&
         engine.state().selected
     )
@@ -553,6 +567,6 @@ try {
     if ("serviceWorker" in navigator)
         void navigator.serviceWorker.register("./sw.js").catch(() => {});
 } catch (e) {
+    disableEngine("Drawing engine failed to load. Reload to try again.", false);
     error(e);
-    el("status").textContent = "Drawing engine failed to load";
 }
