@@ -145,6 +145,41 @@ final class PulseGate {
     return ["opportunities": opportunities, "coalesced": coalesced, "requests": requests]
   }
 }
+// Posted workspace/display transitions are recorded without depending on main-queue delivery.
+// Main-thread AppKit state is sampled separately; restoration never erases the first event.
+final class LifecycleLedger {
+  private let lock = NSLock()
+  private var enabled = false
+  private var history: [[String: Any]] = []
+  func reset() {
+    lock.lock()
+    history = []
+    enabled = true
+    lock.unlock()
+  }
+  func disableIfCount(_ expected: Int) -> Bool {
+    lock.lock()
+    defer { lock.unlock() }
+    guard history.count == expected else { return false }
+    enabled = false
+    return true
+  }
+  func record(_ name: String, invalidating: Bool) {
+    lock.lock()
+    defer { lock.unlock() }
+    if enabled {
+      history.append([
+        "event": name, "invalidating": invalidating, "observed_s": now(),
+        "delivery": "posting-thread ledger",
+      ])
+    }
+  }
+  func snapshot() -> [[String: Any]] {
+    lock.lock()
+    defer { lock.unlock() }
+    return history
+  }
+}
 final class Canvas: NSView {
   var ticket: ((CGContext) -> Void)?, painter: ((CGContext) -> Void)?
   var benchmarkDraws = 0, unsolicitedDraws = 0
@@ -180,13 +215,19 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
       .userInitiated, .latencyCritical, .idleDisplaySleepDisabled,
     ]
   var active = false, finishing = false, exitCode: Int32 = 0, phase = "first-use",
-    index: UInt64 = 0, measuredBegin: Double?, measuredElapsed = 0.0
+    index: UInt64 = 0, measuredBegin: Double?, measuredEnd: Double?, measuredElapsed = 0.0
   var rows: [Row] = [], manifest: [String: Any] = [:], metadata: [String: Any] = [:],
     lifecycleStart: [String: Any] = [:], events: [[String: Any]] = [],
     observations: [NSObjectProtocol] = []
   var paths: [(CGPath, CGColor)] = [], clip: CGPath?, image: CGImage?, frame = RcFixtureFrame(),
     ctm: [Double] = [], outputValid = false
   var sessionResigned = false, sleeping = false, displaySleeping = false
+  let ledger = LifecycleLedger()
+  var finishResult = "complete", finishReason = "", closeAfterFinish = false
+  var finalizationDelay = 0.0
+  var finalWrittenEventCount = -1
+  var finalWrittenResult = ""
+  var outputStages: [[String: Any]] = []
   let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
   init(_ o: Options) { options = o }
   func write(_ object: Any, _ name: String) throws {
@@ -237,6 +278,10 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
       "backing_width": b.width, "backing_height": b.height, "point_width": canvas.bounds.width,
       "point_height": canvas.bounds.height, "scale": window.backingScaleFactor,
       "backing_origin": [b.minX, b.minY], "ctm": ctm,
+      "coordinate_mapping":
+        "Fixture physical coordinates divided by NSView backingScale into logical view points; native CGContext CTM is recorded, not assumed to expose backing pixel transform",
+      "context_type":
+        "AppKit-supplied layer drawing context; may record deferred commands rather than expose a bitmap raster",
     ]
   }
   func checkDimensions() throws {
@@ -296,9 +341,26 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
       NSWorkspace.screensDidWakeNotification,
     ] {
       observations.append(
-        NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main)
-        { [weak self] note in self?.workspace(note) })
+        NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: nil) {
+          [weak self] note in
+          guard let self else { return }
+          let invalid = [
+            NSWorkspace.sessionDidResignActiveNotification, NSWorkspace.willSleepNotification,
+            NSWorkspace.screensDidSleepNotification,
+          ].contains(note.name)
+          self.ledger.record(note.name.rawValue, invalidating: invalid)
+          DispatchQueue.main.async { self.workspace(note) }
+        })
     }
+    CGDisplayRegisterReconfigurationCallback(
+      { display, flags, context in
+        guard let context else { return }
+        let host = Unmanaged<Host>.fromOpaque(context).takeUnretainedValue()
+        host.ledger.record(
+          "Display configuration changed: display=\(display) flags=\(flags.rawValue)",
+          invalidating: true)
+        DispatchQueue.main.async { host.invalidate("Display configuration changed") }
+      }, Unmanaged.passUnretained(self).toOpaque())
     canvas.painter = { [weak self] context in self?.paint(context) }
     window.center()
     window.makeKeyAndOrderFront(nil)
@@ -315,11 +377,17 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     case NSWorkspace.screensDidWakeNotification: displaySleeping = false
     default: break
     }
+    if active {
+      events.append([
+        "event": n.name.rawValue, "invalidating": sessionResigned || sleeping || displaySleeping,
+        "state": state(), "observed_s": now(),
+      ])
+    }
     if sessionResigned || sleeping || displaySleeping { invalidate(n.name.rawValue) }
   }
   func invalidate(_ reason: String) {
     guard active else { return }
-    events.append(["event": reason, "invalidating": true, "state": state()])
+    events.append(["event": reason, "invalidating": true, "state": state(), "observed_s": now()])
     finish("invalidated", reason)
   }
   func windowDidMiniaturize(_ n: Notification) { invalidate("Window minimized") }
@@ -335,12 +403,20 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
   }
   func windowShouldClose(_ sender: NSWindow) -> Bool {
-    if active { finish("cancelled", "Window closed") }
-    NSApp.terminate(nil)
+    if active {
+      closeAfterFinish = true
+      finish("cancelled", "Window closed")
+    } else {
+      NSApp.terminate(nil)
+    }
     return false
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-    if active { finish("cancelled", "Quit requested") }
+    if active {
+      closeAfterFinish = true
+      finish("cancelled", "Quit requested")
+      return .terminateCancel
+    }
     return .terminateNow
   }
   func applicationWillTerminate(_ n: Notification) {
@@ -349,7 +425,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
   }
   @objc func cancel() { finish("cancelled", "Stop requested") }
   @objc func start() {
-    guard !active else { return }
+    guard !active && !finishing else { return }
     if FileManager.default.fileExists(atPath: options.output + "/manifest.json")
       || FileManager.default.fileExists(atPath: options.output + "/host-status.json")
     {
@@ -366,7 +442,15 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     phase = "first-use"
     index = 0
     measuredBegin = nil
+    measuredEnd = nil
     measuredElapsed = 0
+    finishResult = "complete"
+    finishReason = ""
+    closeAfterFinish = false
+    finalWrittenEventCount = -1
+    finalWrittenResult = ""
+    outputStages = []
+    ledger.reset()
     rows = []
     manifest = [:]
     metadata = [:]
@@ -383,6 +467,16 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     do {
       try FileManager.default.createDirectory(
         atPath: options.output, withIntermediateDirectories: true)
+      if let rawDelay = ProcessInfo.processInfo.environment[
+        "COREGRAPHICS_VALIDATION_FINALIZE_DELAY_SECONDS"]
+      {
+        guard let delay = Double(rawDelay), delay.isFinite, delay > 0, delay <= 15 else {
+          throw fail("Validation finalization delay must be >0 and <=15 seconds")
+        }
+        finalizationDelay = delay
+      } else {
+        finalizationDelay = 0
+      }
       try checkDimensions()
       guard eligible() else { throw fail("Visible unoccluded window and active console required") }
       lifecycleStart = state()
@@ -412,7 +506,9 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
       manifest = metadata
       manifest.merge(
         [
-          "schema_version": 2, "experiment": "coregraphics-appkit-v1", "backend": options.backend,
+          "schema_version": 2, "experiment": "coregraphics-appkit-v1",
+          "validation_only": finalizationDelay > 0,
+          "validation_finalization_delay_seconds": finalizationDelay, "backend": options.backend,
           "mode": options.mode, "fixture": options.fixture, "width": options.width,
           "height": options.height, "warmup": options.warmup,
           "frames_requested": options.duration == nil ? options.frames as Any : NSNull(),
@@ -451,7 +547,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             "clock": "CACurrentMediaTime monotonic seconds; Rust Instant stage durations",
             "service_ms":
               "NSView.draw entry through fixture preparation, CGPath construction and Core Graphics paint calls; excludes state hashing/output; draw return may exclude deferred compositor work",
-            "draw_ms": "nested Core Graphics painting body only",
+            "draw_ms":
+              "nested Core Graphics painting body only; may encode deferred drawing commands",
+            "measured_start_s": "first measured NSView.draw callback start",
+            "measured_end_s":
+              "monotonic sample after final measured row identity bookkeeping and displayIfNeeded return; before finalization",
+            "final_postdraw_seconds":
+              "measured_end_s minus final draw_end_s; bookkeeping and native draw-return overhead, not presentation latency",
             "scheduling":
               "CVDisplayLink opportunities; at most one pending main-thread request; no trace advance on coalesced opportunities",
             "request_to_draw": "display-link scheduling diagnostic, not physical input latency",
@@ -581,11 +683,12 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     do {
       guard eligible() else { throw fail("Lifecycle guard failed before draw") }
       try checkDimensions()
-      if phase == "measured" && measuredBegin == nil { measuredBegin = now() }
+
       let p = phase
       let i = index
       canvas.ticket = { context in
         let start = now()
+        if p == "measured" && self.measuredBegin == nil { self.measuredBegin = start }
         do {
           try self.prepare(i)
           let pathStart = now()
@@ -596,10 +699,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
           if self.ctm.isEmpty {
             let m = context.ctm
             self.ctm = [m.a, m.b, m.c, m.d, m.tx, m.ty]
-            let s = self.window.backingScaleFactor
-            guard abs(abs(m.a) - s) < 0.01, abs(abs(m.d) - s) < 0.01, abs(m.b) < 0.01,
-              abs(m.c) < 0.01, abs(m.tx.rounded() - m.tx) < 0.01, abs(m.ty.rounded() - m.ty) < 0.01
-            else { throw fail("Unexpected native drawing-context scale/alignment") }
+            // NSView coordinates are logical points. Layer-backed contexts may be
+            // deferred recording contexts with identity CTM; backing resolution is
+            // validated via convertToBacking and the separate bitmap capture.
+            guard self.ctm.allSatisfy({ $0.isFinite }), abs(m.a) > 0, abs(m.d) > 0,
+              abs(m.b) < 0.01, abs(m.c) < 0.01,
+              abs(m.tx.rounded() - m.tx) < 0.01, abs(m.ty.rounded() - m.ty) < 0.01
+            else { throw fail("Unexpected native drawing-context transform/alignment") }
           }
           let identity = try self.hash(i, 0)
           self.rows.append(
@@ -616,7 +722,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         canvas.ticket = nil
         throw fail("Requested redraw did not invoke NSView.draw")
       }
-      guard active else { return }
+      guard active && !finishing else { return }
       if p == "first-use" {
         phase = options.warmup == 0 ? "measured" : "warmup"
         index = 0
@@ -628,7 +734,8 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
       } else {
         index += 1
-        measuredElapsed = now() - (measuredBegin ?? now())
+        measuredEnd = now()
+        measuredElapsed = measuredEnd! - measuredBegin!
         if options.duration.map({ measuredElapsed >= $0 }) ?? (index >= UInt64(options.frames)) {
           finish("complete", "")
         }
@@ -671,47 +778,81 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
           "Untimed NSView.cacheDisplay of final measured frame; normalized opaque sRGB RGBA8; not proof of exact displayed pixels",
       ], "readback.json")
   }
+  func latchOutcome(_ supplied: String, _ reason: String) {
+    // The first failure/cancellation/invalidation wins. A later restore or complete
+    // request must never turn a rejected trial back into valid evidence.
+    if supplied != "complete" && finishResult == "complete" {
+      finishResult = supplied
+      finishReason = reason
+      outputValid = false
+    }
+  }
+  func collectFinalizationEvents() {
+    if let first = ledger.snapshot().first(where: { $0["invalidating"] as? Bool == true }) {
+      latchOutcome("invalidated", first["event"] as? String ?? "Posted lifecycle transition")
+    }
+    if !eligible() { latchOutcome("invalidated", "Lifecycle guard failed during finalization") }
+    do { try checkDimensions() } catch { latchOutcome("invalidated", String(describing: error)) }
+  }
+  func nextFinalizationStage(_ name: String, delay: Double = 0.05, _ action: @escaping () -> Void) {
+    // Return to AppKit between stages so queued native window/workspace events run.
+    // This is a dispatch/runloop observation opportunity, not a presentation fence.
+    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+      self.outputStages.append(["stage": name, "start_s": now()])
+      self.collectFinalizationEvents()
+      action()
+    }
+  }
   func finish(_ supplied: String, _ suppliedReason: String) {
+    latchOutcome(supplied, suppliedReason)
     guard !finishing else { return }
     finishing = true
+    run.isEnabled = false
     gate.setStopped(true)
     if let link { CVDisplayLinkStop(link) }
     canvas.ticket = nil
-    var result = supplied
-    var reason = suppliedReason
+    nextFinalizationStage("capture") { self.captureStage() }
+  }
+  func captureStage() {
     do {
       try FileManager.default.createDirectory(
         atPath: options.output, withIntermediateDirectories: true)
-      if result == "complete" {
-        guard eligible() else { throw fail("Lifecycle invalid at output start") }
-        try checkDimensions()
+      if finishResult == "complete" {
         guard let last = rows.last(where: { $0.phase == "measured" }) else {
           throw fail("No measured frames")
         }
         let actual = try hash(last.index, 1)
-        guard last.stateHash == actual else {
+        guard actual == last.stateHash else {
           throw fail("Final measured geometry identity mismatch")
         }
         manifest["final_expected_state_hash"] = last.stateHash
         manifest["final_actual_state_hash"] = actual
         try capture(last.index)
-        try checkDimensions()
-        guard eligible() else { throw fail("Lifecycle invalid after capture") }
         outputValid = true
       }
+    } catch { latchOutcome("failed", String(describing: error)) }
+    if finalizationDelay > 0 {
+      status.stringValue =
+        "Validating finalization guard — minimize/restore now\nValidation-only run; excluded from measurement evidence"
+    }
+    nextFinalizationStage("artifact writes", delay: max(0.05, finalizationDelay)) {
+      self.artifactStage()
+    }
+  }
+  func artifactStage() {
+    do {
       let header =
         "phase,index,state_hash,request_s,draw_start_s,draw_end_s,input_ms,outline_ms,export_ms,path_ms,draw_ms,service_ms\n"
       try Data((header + rows.map { $0.csv }.joined(separator: "\n") + "\n").utf8).write(
         to: URL(fileURLWithPath: options.output + "/frames.csv"), options: .atomic)
-    } catch {
-      result = "failed"
-      reason += " \(error)"
-      outputValid = false
-    }
-    manifest["status"] = result
-    manifest["error"] = reason
+    } catch { latchOutcome("failed", String(describing: error)) }
     manifest["completed_sample_count"] = rows.filter { $0.phase == "measured" }.count
+    manifest["measured_start_s"] = measuredBegin as Any? ?? NSNull()
+    manifest["measured_end_s"] = measuredEnd as Any? ?? NSNull()
     manifest["measured_elapsed_seconds"] = measuredElapsed
+    if let end = measuredEnd, let last = rows.last(where: { $0.phase == "measured" }) {
+      manifest["final_postdraw_seconds"] = end - last.end
+    }
     manifest["first_use"] = rows.first(where: { $0.phase == "first-use" })?.json ?? [:]
     manifest["physical_canvas"] = physical()
     var counts = gate.counts()
@@ -721,31 +862,54 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var usage = rusage()
     getrusage(RUSAGE_SELF, &usage)
     manifest["os_peak_rss_bytes"] = usage.ru_maxrss
+    manifest["finalization_policy"] =
+      "Staged asynchronous capture/output with main-runloop yields, posting-thread lifecycle ledger, first noncomplete outcome latch, and authoritative host-status after drain. Not a presentation fence."
+    nextFinalizationStage("authoritative output") { self.writeFinalStatus() }
+  }
+  func writeFinalStatus() {
+    collectFinalizationEvents()
+    let posted = ledger.snapshot()
+    finalWrittenEventCount = posted.count + events.count
+    finalWrittenResult = finishResult
+    manifest["status"] = finishResult
+    manifest["error"] = finishReason
+    manifest["output_stages"] = outputStages
     do {
       try write(manifest, "manifest.json")
-      log("FINISH \(result) \(reason)")
-      // Retain assertion through all evidence writes; sample lifecycle at the final write.
-      if result == "complete" && !eligible() {
-        result = "invalidated"
-        reason = "Lifecycle changed during output"
-        outputValid = false
-      }
+      log("FINISH candidate \(finishResult) \(finishReason)")
       try write(
         [
-          "status": result, "reason": reason, "lifecycle_start": lifecycleStart,
-          "lifecycle_end": state(), "lifecycle_events": events,
+          "status": finishResult, "reason": finishReason,
+          "lifecycle_start": lifecycleStart, "lifecycle_end": state(),
+          "lifecycle_events": events + posted,
           "activity_assertion": [
             "held_through_output": activity != nil,
             "options": ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"],
-          ], "output_validation": ["valid": outputValid, "reason": reason],
+          ],
+          "output_validation": [
+            "valid": outputValid && finishResult == "complete", "reason": finishReason,
+          ],
           "final_dimensions": [
             "width": canvas.convertToBacking(canvas.bounds).width,
             "height": canvas.convertToBacking(canvas.bounds).height,
-          ], "thermal_after": ProcessInfo.processInfo.thermalState.rawValue,
+          ],
+          "thermal_after": ProcessInfo.processInfo.thermalState.rawValue,
+          "finalization_policy": manifest["finalization_policy"] ?? "",
+          "output_stages": outputStages,
         ], "host-status.json")
-    } catch {
-      result = "failed"
-      reason += " Output write failed: \(error)"
+    } catch { latchOutcome("failed", "Output write failed: \(error)") }
+    nextFinalizationStage("post-write lifecycle drain") { self.completeFinalization() }
+  }
+  func completeFinalization() {
+    collectFinalizationEvents()
+    // A transition posted or delivered during final writes requires rewriting the
+    // authoritative evidence before releasing the activity or permitting exit.
+    let postedCount = ledger.snapshot().count
+    if finalWrittenEventCount != postedCount + events.count || finalWrittenResult != finishResult
+      || !ledger.disableIfCount(postedCount)
+    {
+      writeFinalStatus()
+      return
     }
     if let activity {
       ProcessInfo.processInfo.endActivity(activity)
@@ -759,13 +923,14 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     window.level = .normal
     run.isEnabled = true
     stop.isEnabled = false
-    exitCode = result == "complete" ? 0 : 1
-    status.stringValue = "\(result.capitalized): \(reason)\n\(options.output)"
-    print("\(result): \(options.output) \(reason)")
+    exitCode = finishResult == "complete" ? 0 : 1
+    status.stringValue = "\(finishResult.capitalized): \(finishReason)\n\(options.output)"
+    print("\(finishResult): \(options.output) \(finishReason)")
     fflush(nil)
-    if !options.interactive { NSApp.terminate(nil) }
     finishing = false
+    if !options.interactive || closeAfterFinish { NSApp.terminate(nil) }
   }
+
 }
 do {
   let o = try Options.parse()
