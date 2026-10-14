@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Relink preserved size variants with -dead_strip, without rebuilding their Rust archives.
+
+This creates a separate packaging lane. build.json remains byte-identical to the
+original; relink-provenance.json beside the app records the additional link operation.
+No app is launched. Existing output directories are rejected rather than overwritten.
+"""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import shutil
+import subprocess
+
+
+def command(*args):
+    return subprocess.check_output(args, text=True).strip()
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main():
+    root = Path(__file__).resolve().parents[2]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--input-root', type=Path, default=root / 'artifacts/renderer-size')
+    parser.add_argument('--output-root', type=Path, default=root / 'artifacts/renderer-size-dead-strip')
+    args = parser.parse_args()
+    source = root / 'experiments/renderer-comparison/macos/main.swift'
+    header = root / 'experiments/renderer-comparison/include/renderer_comparison.h'
+    prepared = []
+    # Validate all four before writing or linking any output.
+    for variant in ['baseline', 'skia', 'vello', 'both']:
+        original = args.input_root.resolve() / variant
+        app = original / 'RendererComparison.app'
+        metadata_file = app / 'Contents/Resources/build.json'
+        metadata = json.loads(metadata_file.read_text())
+        if metadata['variant'] != variant or metadata['profile'] != 'release':
+            raise ValueError(f'{variant}: incorrect variant/profile')
+        for path in [source, header]:
+            expected = subprocess.check_output(['git', '-C', str(root), 'show', f"{metadata['source_revision']}:{path.relative_to(root)}"])
+            if path.read_bytes() != expected:
+                raise ValueError(f'{path}: changed since original build')
+        current_swift = command('xcrun', 'swiftc', '--version')
+        if metadata['swift'] != current_swift or metadata['sdk_version'] != command('xcrun', '--show-sdk-version'):
+            raise ValueError(f'{variant}: toolchain changed since original build')
+        linkmap = (original / 'link-map.txt').read_text(errors='replace')
+        matches = set(re.findall(r'([^\n]+?/release)/librenderer_comparison\.a\(renderer_comparison-([0-9a-f]+)\.', linkmap))
+        # Link-map object entries begin with [ n]; retain only the path after it.
+        matches = {(re.sub(r'^\[\s*\d+\]\s*', '', path), crate_hash) for path, crate_hash in matches}
+        if len(matches) != 1:
+            raise ValueError(f'{variant}: cannot uniquely identify cached Rust archive: {matches}')
+        release, crate_hash = matches.pop()
+        archive = Path(release) / 'deps' / f'librenderer_comparison-{crate_hash}.a'
+        archive_bytes = archive.read_bytes()
+        if metadata_file.read_bytes().strip() not in archive_bytes:
+            raise ValueError(f'{variant}: cached archive lacks exact embedded build metadata')
+        members = command('ar', '-t', str(archive))
+        if f'renderer_comparison-{crate_hash}.' not in members:
+            raise ValueError(f'{variant}: archive members differ from original linker map')
+        output = args.output_root.resolve() / variant
+        if output.exists():
+            raise FileExistsError(f'Refusing to replace {output}')
+        prepared.append((variant, original, app, metadata, archive, output, hashlib.sha256(archive_bytes).hexdigest()))
+    for variant, original, app, metadata, archive, output, archive_sha in prepared:
+        destination = output / 'RendererComparison.app'
+        (destination / 'Contents/MacOS').mkdir(parents=True)
+        shutil.copytree(app / 'Contents/Resources', destination / 'Contents/Resources')
+        shutil.copy2(app / 'Contents/Info.plist', destination / 'Contents/Info.plist')
+        shutil.copy2(original / 'cargo-tree.txt', output / 'cargo-tree.txt')
+        executable = destination / 'Contents/MacOS/RendererComparison'
+        module_cache = output.parent / 'swift-module-cache'
+        module_cache.mkdir(exist_ok=True)
+        invocation = ['xcrun', 'swiftc', '-swift-version', '5', '-target', metadata['swift_target'], '-O', '-module-cache-path', str(module_cache), '-import-objc-header', str(header), str(source), str(archive)]
+        for framework in ['AppKit', 'QuartzCore', 'Metal', 'CoreVideo', 'CoreGraphics', 'CoreFoundation', 'Foundation', 'Security', 'IOKit', 'IOSurface', 'CoreText', 'ImageIO']:
+            invocation += ['-framework', framework]
+        invocation += ['-lc++', '-Xlinker', '-dead_strip', '-Xlinker', '-map', '-Xlinker', str(output / 'link-map.txt'), '-o', str(executable)]
+        provenance = {
+            'lane': 'explicit-linker-dead-strip',
+            'source_revision': metadata['source_revision'],
+            'source_diff_hash': metadata['source_diff_hash'],
+            'variant': variant,
+            'original_app': str(app),
+            'original_executable_sha256': sha(app / 'Contents/MacOS/RendererComparison'),
+            'original_build_json_sha256': sha(app / 'Contents/Resources/build.json'),
+            'cached_rust_archive': str(archive),
+            'cached_rust_archive_sha256': archive_sha,
+            'swift_source_sha256': sha(source),
+            'header_sha256': sha(header),
+            'swift_command': invocation,
+            'extra_linker_flags': ['-dead_strip'],
+            'rust_rebuilt': False,
+            'build_metadata_note': 'App build.json and Rust embedded metadata are preserved from the original build. This file records the separate relink operation.',
+        }
+        subprocess.run(invocation, check=True)
+        if sha(archive) != archive_sha:
+            raise ValueError(f'{variant}: cached archive changed during relink')
+        subprocess.run(['codesign', '--force', '--sign', '-', str(destination)], check=True)
+        subprocess.run(['codesign', '--verify', '--strict', str(destination)], check=True)
+        if '# Dead Stripped Symbols:' not in (output / 'link-map.txt').read_text(errors='replace'):
+            raise ValueError(f'{variant}: no dead-stripped symbols section')
+        provenance.update({'executable_sha256': sha(executable), 'executable_bytes': executable.stat().st_size, 'logical_bundle_bytes': sum(p.stat().st_size for p in destination.rglob('*') if p.is_file()), 'codesign_verified': True})
+        (output / 'relink-provenance.json').write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
+        print(f"{variant}: {provenance['logical_bundle_bytes']} bundle bytes; {executable.stat().st_size} executable bytes", flush=True)
+
+
+if __name__ == '__main__':
+    main()
