@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+case "${1:-release}" in release|debug) ;; *) echo 'usage: build-renderer-comparison [release|debug]' >&2; exit 2;; esac
+[ "$#" -le 1 ] || exit 2
+exec "$ROOT/experiments/renderer-comparison/build-host" "${1:-release}"

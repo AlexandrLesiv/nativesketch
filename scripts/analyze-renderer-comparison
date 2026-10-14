@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""Strict schema-v1 validation and descriptive per-process/paired summaries."""
+import argparse
+import csv
+import json
+import math
+from pathlib import Path
+import sys
+
+FIELDS = 'phase frame_index state_hash input_ms outline_ms scene_ms acquire_ms render_submit_ms present_enqueue_ms completion_wait_ms service_ms cpu_frame_start_s cpu_submit_s gpu_span_ms gpu_start_s gpu_end_s presented_s gpu_missing_reason present_missing_reason'.split()
+METRICS = [f for f in FIELDS if f.endswith('_ms')]
+
+def distribution(values):
+    if not values:
+        return {'count': 0, 'p50': None, 'p95': None, 'p99': None, 'max': None}
+    ordered = sorted(values)
+    return dict(count=len(values), **{f'p{p}': ordered[max(0, math.ceil(p / 100 * len(ordered)) - 1)] for p in (50,95,99)}, max=ordered[-1])
+
+def validate(path):
+    m = json.loads((path / 'manifest.json').read_text())
+    required = 'schema_version status backend backend_variant fixture width height mode warmup frames_requested duration_seconds repeat_id source_revision source_diff_hash build dependencies runtime display power timing_provenance unsupported fixture_hash input_hash image_hash init_ms first_use completed_sample_count'.split()
+    missing = set(required) - m.keys()
+    if missing: raise ValueError(f'{path}: missing manifest fields {sorted(missing)}')
+    if m['schema_version'] != 1 or m['status'] != 'complete': raise ValueError(f'{path}: incompatible or incomplete manifest')
+    if m['backend'] not in ('skia','vello') or m['mode'] not in ('completion','paced'): raise ValueError('invalid backend/mode')
+    with (path / 'frames.csv').open(newline='') as f:
+        reader = csv.DictReader(f)
+        if reader.fieldnames != FIELDS: raise ValueError(f'{path}: CSV schema mismatch')
+        rows = list(reader)
+    seen = set()
+    phases = {p: [] for p in ('first-use','warmup','measured')}
+    for row in rows:
+        phase = row['phase']
+        index = int(row['frame_index'])
+        key = (phase,index)
+        if phase not in phases or index < 0 or key in seen or not row['state_hash']: raise ValueError('invalid/duplicate frame identity')
+        seen.add(key)
+        for field in FIELDS:
+            if field.endswith(('_ms','_s')):
+                if row[field] == '':
+                    if field not in ('gpu_span_ms','gpu_start_s','gpu_end_s','presented_s'): raise ValueError(f'missing required timing {field}')
+                    row[field] = None
+                else:
+                    row[field] = float(row[field])
+                    if not math.isfinite(row[field]) or row[field] < 0: raise ValueError(f'invalid timing {field}')
+        gpu = [row[k] for k in ('gpu_span_ms','gpu_start_s','gpu_end_s')]
+        if any(x is None for x in gpu) and not (all(x is None for x in gpu) and row['gpu_missing_reason']): raise ValueError('partial GPU timing or missing reason')
+        if row['presented_s'] is not None and row['presented_s'] <= 0: raise ValueError('invalid zero presentation timestamp')
+        if row['presented_s'] is None and not row['present_missing_reason']: raise ValueError('missing presentation reason')
+        if row['cpu_submit_s'] < row['cpu_frame_start_s']: raise ValueError('reversed CPU timestamps')
+        if gpu[1] is not None and gpu[2] < gpu[1]: raise ValueError('reversed GPU timestamps')
+        phases[phase].append(row)
+    for phase, expected in (('first-use',1),('warmup',m['warmup']),('measured',m['completed_sample_count'])):
+        values = phases[phase]
+        if len(values) != expected or sorted(int(r['frame_index']) for r in values) != list(range(expected)): raise ValueError(f'{phase}: frame count/sequence mismatch')
+    if not phases['measured']: raise ValueError('no measured frames')
+    if m['duration_seconds'] is None and m['completed_sample_count'] != m['frames_requested']: raise ValueError('partial fixed-frame run')
+    readback = json.loads((path / 'readback.json').read_text())
+    if readback.get('width') != m['width'] or readback.get('height') != m['height']: raise ValueError('readback dimension mismatch')
+    if not (path / 'final.png').is_file() or not (path / 'run.log').is_file(): raise ValueError('missing image/log evidence')
+    return m, phases
+
+def analyze(paths):
+    runs, pairs = [], {}
+    for path in paths:
+        m, phases = validate(path)
+        metrics = {k: distribution([r[k] for r in phases['measured'] if r[k] is not None]) for k in METRICS}
+        run = dict(path=str(path), backend=m['backend'], fixture=m['fixture'], mode=m['mode'], width=m['width'], height=m['height'], repeat_id=m['repeat_id'], source_revision=m['source_revision'], metrics=metrics, first_use=m['first_use'], unsupported=m['unsupported'], actual_presentation_deadline_misses=None, actual_presentation_deadline_missing_reason='No display deadline classification in schema v1')
+        refresh = m['display'].get('refresh_hz')
+        run['service_budget_overruns'] = {'count': sum(r['service_ms'] > 1000/refresh for r in phases['measured']), 'denominator': len(phases['measured']), 'budget_ms':1000/refresh} if isinstance(refresh,(int,float)) and refresh > 0 else None
+        starts = [r['cpu_frame_start_s'] for r in phases['measured']]
+        if any(y < x for x,y in zip(starts,starts[1:])): raise ValueError('nonmonotonic frame starts')
+        run['cpu_frame_interval_ms'] = distribution([(y-x)*1000 for x,y in zip(starts,starts[1:])])
+        run['frame_interval_definition'] = 'Consecutive CPU frame starts; includes retirement backpressure only when host records start before retirement wait, see timing provenance'
+        runs.append(run)
+        key = (m['fixture'], m['width'],m['height'],m['mode'],m['repeat_id'],m['duration_seconds'])
+        pair = pairs.setdefault(key,{})
+        if m['backend'] in pair: raise ValueError(f'duplicate backend in pair {key}')
+        pair[m['backend']] = (m,phases,run)
+    paired = []
+    for key, pair in pairs.items():
+        if set(pair) != {'skia','vello'}: raise ValueError(f'unpaired trial {key}')
+        a,b = pair['skia'],pair['vello']
+        for field in ('fixture_hash','input_hash','image_hash','source_revision','source_diff_hash'):
+            if a[0][field] != b[0][field]: raise ValueError(f'pair mismatch {field}')
+        # Sustained runs can complete different frame counts. Their shared prefix must agree.
+        for phase in ('first-use','warmup','measured'):
+            for x,y in zip(a[1][phase],b[1][phase]):
+                if x['state_hash'] != y['state_hash']: raise ValueError('paired state hash mismatch')
+        deltas = {metric: {p: (b[2]['metrics'][metric][p]-a[2]['metrics'][metric][p]) if a[2]['metrics'][metric][p] is not None and b[2]['metrics'][metric][p] is not None else None for p in ('p50','p95','p99','max')} for metric in METRICS}
+        paired.append({'cell':list(key),'vello_minus_skia_ms':deltas})
+    return {'schema_version':1,'quantiles':'nearest rank per process, never pooled','caution':'600-frame p99 has few tail observations; paired variation and longer symmetric trials are needed for uncertain conclusions. GPU spans include scheduling/CPU gaps, not pure execution. Service overruns are not display misses.','runs':runs,'paired':paired}
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('root',type=Path)
+    parser.add_argument('--output',type=Path)
+    args = parser.parse_args()
+    try:
+        paths = sorted(p.parent for p in args.root.glob('*/manifest.json'))
+        if not paths: raise ValueError('no trial manifests')
+        suite_path = args.root / 'suite.json'
+        if suite_path.exists():
+            suite = json.loads(suite_path.read_text())
+            if suite.get('status') not in ('running','complete') or suite.get('completed') != len(suite.get('trials',[])) or len(paths) != len(suite.get('trials',[])):
+                raise ValueError('incomplete/failed suite; preserve partial evidence without claiming completion')
+        result = analyze(paths)
+        output = args.output or args.root / 'summary.json'
+        output.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n')
+        print(output)
+    except (ValueError,KeyError,OSError,TypeError) as e:
+        print(f'analysis failed: {e}',file=sys.stderr)
+        return 1
+    return 0
+if __name__ == '__main__': sys.exit(main())

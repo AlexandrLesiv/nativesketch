@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Run fresh-process paired trials serially; never silently reduce a declared matrix."""
+import argparse
+import datetime
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+import threading
+
+FIXTURES = ['live','dense100','dense1000','dense5000','panzoom','alpha','clip','image']
+
+def matrix(suite):
+    cells = [('live',1600,1000,'completion')] if suite == 'pilot' else ([('panzoom',1600,1000,'paced')] if suite == 'sustained' else [(f,w,h,m) for f in FIXTURES for w,h in [(1600,1000),(2560,1600)] for m in ['completion','paced']])
+    repeats = {'pilot':1,'primary':5,'sustained':3}[suite]
+    return [dict(fixture=f,width=w,height=h,mode=m,repeat_id=f'{suite}-{r}',backend=b) for f,w,h,m in cells for r in range(repeats) for b in (['skia','vello'] if r % 2 == 0 else ['vello','skia'])]
+
+def observation():
+    result = {'utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    for name,args in [('power',['pmset','-g','batt']),('thermal',['pmset','-g','therm'])]:
+        try:
+            p = subprocess.run(args,capture_output=True,text=True,timeout=10)
+            result[name] = {'exit_code':p.returncode,'text':p.stdout.strip(),'error':p.stderr.strip()}
+        except (OSError,subprocess.TimeoutExpired) as e: result[name] = {'unavailable':str(e)}
+    return result
+
+def sample_memory(pid, stop, output, interval):
+    with output.open('w') as f:
+        f.write('monotonic_s,rss_bytes,missing_reason\n')
+        while not stop.is_set():
+            now = time.monotonic()
+            try:
+                p = subprocess.run(['ps','-o','rss=','-p',str(pid)],capture_output=True,text=True,timeout=2)
+                rss = int(p.stdout.strip()) * 1024
+                f.write(f'{now},{rss},\n')
+            except (ValueError,OSError,subprocess.TimeoutExpired): f.write(f'{now},,process unavailable\n')
+            f.flush()
+            stop.wait(interval)
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--suite',choices=['pilot','primary','sustained'],required=True)
+    parser.add_argument('--output',type=Path,required=True)
+    root = Path(__file__).resolve().parent.parent
+    parser.add_argument('--binary',type=Path,default=root/'artifacts/renderer-comparison-build/RendererComparison.app/Contents/MacOS/RendererComparison')
+    parser.add_argument('--dry-run',action='store_true')
+    parser.add_argument('--memory-sampling',choices=['on','off'],default='on')
+    parser.add_argument('--memory-interval',type=float,default=.25)
+    parser.add_argument('--window-seconds',type=float,default=14400)
+    args = parser.parse_args()
+    if not (args.memory_interval >= .05 and args.memory_interval < 60 and 0 < args.window_seconds <= 14400): parser.error('invalid sampling interval or window (maximum four hours)')
+    output = args.output.resolve()
+    plan = matrix(args.suite)
+    if args.dry_run:
+        print(json.dumps({'suite':args.suite,'trial_count':len(plan),'trials':plan},indent=2)); return 0
+    # Keep disposable evidence under the repository ignored artifact tree.
+    if not output.is_relative_to(root/'artifacts'/'renderer-comparison'): parser.error('output must be under repository artifacts/renderer-comparison/')
+    if output.exists(): parser.error('output exists: preserve it and choose a fresh run directory')
+    if not args.binary.is_file(): parser.error('build the native binary first')
+    output.mkdir(parents=True)
+    metadata = {'schema_version':1,'suite':args.suite,'status':'running','trials':plan,'completed':0,'memory_sampling':args.memory_sampling,'memory_interval_s':args.memory_interval,'memory_definition':'external ps resident set, not footprint or GPU allocation','start':observation()}
+    def save(): (output/'suite.json').write_text(json.dumps(metadata,indent=2)+'\n')
+    save()
+    start = time.monotonic()
+    inhibitor = None
+    try:
+        if sys.platform == 'darwin': inhibitor = subprocess.Popen(['caffeinate','-di','-w',str(os.getpid())])
+        for i,trial in enumerate(plan):
+            remaining = args.window_seconds - (time.monotonic()-start)
+            if remaining <= 0: raise RuntimeError('measurement window expired; pending cells retained in suite manifest')
+            path = output / f'{i:03d}-{trial["fixture"]}-{trial["width"]}-{trial["mode"]}-{trial["repeat_id"]}-{trial["backend"]}'
+            path.mkdir()
+            command = [str(args.binary.resolve())]
+            for key,value in trial.items(): command += ['--'+key.replace('_','-'),str(value)]
+            command += ['--warmup','120','--output',str(path)]
+            command += ['--duration-seconds','180'] if args.suite == 'sustained' else ['--frames','600']
+            info = {'command':command,'before':observation()}
+            stop = threading.Event()
+            with (path/'launcher.log').open('w') as log:
+                process = subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT)
+                sampler = threading.Thread(target=sample_memory,args=(process.pid,stop,path/'memory.csv',args.memory_interval),daemon=True) if args.memory_sampling == 'on' else None
+                if sampler: sampler.start()
+                try: code = process.wait(timeout=remaining)
+                except (subprocess.TimeoutExpired,KeyboardInterrupt):
+                    process.terminate()
+                    try: process.wait(timeout=10)
+                    except subprocess.TimeoutExpired: process.kill(); process.wait()
+                    raise
+                finally:
+                    stop.set()
+                    if sampler: sampler.join(timeout=3)
+                    info['after'] = observation()
+                    info['elapsed_s'] = time.monotonic()-start
+                    (path/'launcher.json').write_text(json.dumps(info,indent=2)+'\n')
+            if code: raise RuntimeError(f'trial failed ({code}): {path}')
+            # Load the sibling analyzer without requiring a package or installed dependency.
+            import runpy
+            runpy.run_path(str(root/'scripts/analyze-renderer-comparison'))['validate'](path)
+            metadata['completed'] += 1
+            save()
+            print(f'{metadata["completed"]}/{len(plan)} {path.name}',flush=True)
+        subprocess.run([sys.executable,str(root/'scripts/analyze-renderer-comparison'),str(output)],check=True)
+        metadata['status'] = 'complete'
+        return 0
+    except (Exception,KeyboardInterrupt) as e:
+        metadata['status'] = 'failed'
+        metadata['error'] = str(e) or type(e).__name__
+        print(f'run failed: {metadata["error"]}',file=sys.stderr)
+        return 1
+    finally:
+        metadata['elapsed_s'] = time.monotonic()-start
+        metadata['end'] = observation()
+        save()
+        if inhibitor: inhibitor.terminate(); inhibitor.wait()
+
+if __name__ == '__main__': sys.exit(main())
