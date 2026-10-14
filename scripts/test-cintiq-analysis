@@ -93,6 +93,27 @@ class AnalysisTests(unittest.TestCase):
         result=subprocess.run([sys.executable,str(HERE/'run-cintiq-comparison'),'run',str(self.root),'--binary',str(binary),'--build-json',str(build)],capture_output=True,text=True)
         self.assertNotEqual(result.returncode,0)
         self.assertIn('process exit',json.loads((self.root/'HALTED.json').read_text())['reason'])
+    def test_cpu_fields_preserved_without_relabeling(self):
+        folder=self.fixture(); m=json.loads((folder/'manifest.json').read_text())
+        cpu={'measured_cpu_user_s':1.25,'measured_cpu_system_s':.5,'measured_cpu_scope':'Process measured CPU; not GPU or WindowServer CPU','draw_cpu_total_ms':1700,'draw_cpu_max_ms':44,'draw_cpu_count':23,'draw_cpu_scope':'Callback wall duration, not CPU utilization'}
+        m['final'].update(cpu); self.write(folder/'manifest.json',m)
+        result=A['analyze_run'](folder,self.c,self.identity)
+        for key,value in cpu.items(): self.assertEqual(result['resource_observations']['final'][key],value)
+        self.assertIn('wall durations',result['resource_scope'])
+    def test_missing_cpu_is_unknown(self):
+        result=A['analyze_run'](self.fixture(),self.c,self.identity)
+        self.assertIsNone(result['resource_observations']['final']['measured_cpu_user_s'])
+        self.assertIsNone(result['resource_observations']['final']['measured_cpu_system_s'])
+    def test_report_cpu_labels_and_responsive_text(self):
+        configs=R['matrix'](1,3)[:2]; self.collection(configs)
+        for c in configs:
+            folder=self.fixture(c); m=json.loads((folder/'manifest.json').read_text()); m['final'].update(measured_cpu_user_s=1.25,measured_cpu_system_s=None,draw_cpu_total_ms=345.6,draw_cpu_max_ms=12.34,draw_cpu_count=7); self.write(folder/'manifest.json',m)
+        analysis=self.root/'analysis.json'; self.write(analysis,A['analyze'](self.root)); output=self.root/'report.html'
+        subprocess.run([sys.executable,str(HERE/'build-cintiq-report'),str(analysis),'--output',str(output)],check=True,capture_output=True)
+        report=output.read_text()
+        for text in ('Measured process CPU and callback wall time','External WindowServer CPU and GPU execution are not included','<td>1.25</td><td>—</td><td>345.60</td>','white-space:pre-wrap','overflow-wrap:anywhere',configs[0]['cell'],str(configs[0]['width'])+'×'+str(configs[0]['height'])+' px'):
+            self.assertIn(text,report)
+        self.assertIn('Cached base + live ink (C)' if configs[0]['policy']=='C' else 'Full redraw (R)',report)
     def test_matrix(self):
         a=R['matrix'](1,3); self.assertEqual(a,R['matrix'](1,3)); self.assertNotEqual(a,R['matrix'](2,3)); self.assertEqual(len({c['id'] for c in a}),372)
         self.assertEqual(sum(c['duration_s'] for c in a),216*60)
