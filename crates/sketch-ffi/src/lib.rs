@@ -62,6 +62,84 @@ pub struct SketchPathCommand {
     pub x3: f64,
     pub y3: f64,
 }
+/// Borrowed UTF-8 bytes, never retained by Rust.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SketchSourceText {
+    pub bytes: *const u8,
+    pub length: usize,
+}
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct SketchSourceVersion {
+    pub namespace_id: SketchSourceText,
+    pub document_id: SketchSourceText,
+    pub revision_id: SketchSourceText,
+    pub parent_revision_id: SketchSourceText,
+    pub content_sha256: SketchSourceText,
+    pub server_generation: u64,
+    pub kind: u32,
+}
+// Safety: nonempty fields address initialized bytes for their stated lengths;
+// caller keeps them alive and immutable through the comparison.
+unsafe fn source_text<'a>(text: SketchSourceText) -> Result<&'a str, u32> {
+    if text.length > 256 || (text.length != 0 && text.bytes.is_null()) {
+        return Err(1);
+    }
+    if text.length == 0 {
+        return Ok("");
+    }
+    std::str::from_utf8(unsafe { std::slice::from_raw_parts(text.bytes, text.length) })
+        .map_err(|_| 1)
+}
+// Safety: all fields obey source_text's borrowed input contract.
+unsafe fn source_version<'a>(
+    version: &SketchSourceVersion,
+) -> Result<sketch_core::source_policy::Version<'a>, u32> {
+    use sketch_core::source_policy::{Kind, Version};
+    Ok(Version {
+        namespace_id: unsafe { source_text(version.namespace_id)? },
+        document_id: unsafe { source_text(version.document_id)? },
+        revision_id: unsafe { source_text(version.revision_id)? },
+        parent_revision_id: unsafe { source_text(version.parent_revision_id)? },
+        content_sha256: unsafe { source_text(version.content_sha256)? },
+        server_generation: version.server_generation,
+        kind: match version.kind {
+            0 => Kind::Draft,
+            1 => Kind::Published,
+            _ => return Err(1),
+        },
+    })
+}
+/// Compare metadata without modifying a document or retaining any pointers.
+/// # Safety
+/// Current may be null. Candidate must address a valid struct. All nonempty text
+/// fields address initialized bytes, immutable and alive throughout the call.
+/// Output must address writable u32 storage disjoint from all borrowed inputs.
+/// May run concurrently on any thread if those memory rules are respected.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sketch_source_compare(
+    current: *const SketchSourceVersion,
+    candidate: *const SketchSourceVersion,
+    out_decision: *mut u32,
+) -> u32 {
+    protect(|| {
+        if out_decision.is_null() {
+            return Err(1);
+        }
+        let candidate = unsafe { candidate.as_ref() }.ok_or(1u32)?;
+        let candidate = unsafe { source_version(candidate)? };
+        let current = unsafe { current.as_ref() }
+            .map(|v| unsafe { source_version(v) })
+            .transpose()?;
+        let decision =
+            sketch_core::source_policy::compare(current.as_ref(), &candidate).map_err(status)?;
+        unsafe {
+            *out_decision = decision as u32;
+        }
+        Ok(())
+    })
+}
 fn status(error: Error) -> u32 {
     match error {
         Error::InvalidArgument => 1,
@@ -519,6 +597,125 @@ mod tests {
             assert_eq!(sketch_editor_state(e, ptr::null_mut()), 1);
             sketch_editor_free(e);
             sketch_editor_free(ptr::null_mut());
+        }
+    }
+}
+
+#[cfg(test)]
+mod source_tests {
+    use super::*;
+    fn text(s: &'static str) -> SketchSourceText {
+        SketchSourceText {
+            bytes: s.as_ptr(),
+            length: s.len(),
+        }
+    }
+    fn version() -> SketchSourceVersion {
+        SketchSourceVersion {
+            namespace_id: text("account/library"),
+            document_id: text("drawing"),
+            revision_id: text("revision"),
+            parent_revision_id: SketchSourceText {
+                bytes: ptr::null(),
+                length: 0,
+            },
+            content_sha256: text(
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            ),
+            server_generation: 0,
+            kind: 0,
+        }
+    }
+    #[test]
+    fn ffi_source_comparison_validates_buffers_and_preserves_output_on_failure() {
+        let valid = version();
+        let mut decision = 999;
+        unsafe {
+            assert_eq!(sketch_source_compare(ptr::null(), &valid, &mut decision), 0);
+            assert_eq!(decision, 0);
+            assert_eq!(sketch_source_compare(&valid, &valid, &mut decision), 0);
+            assert_eq!(decision, 1);
+            assert_eq!(
+                sketch_source_compare(ptr::null(), ptr::null(), &mut decision),
+                1
+            );
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &valid, ptr::null_mut()),
+                1
+            );
+            assert_eq!(decision, 1);
+            let mut invalid = valid;
+            invalid.kind = 2;
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &invalid, &mut decision),
+                1
+            );
+            invalid = valid;
+            invalid.namespace_id = SketchSourceText {
+                bytes: ptr::null(),
+                length: 1,
+            };
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &invalid, &mut decision),
+                1
+            );
+            invalid.namespace_id = SketchSourceText {
+                bytes: ptr::null(),
+                length: 257,
+            };
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &invalid, &mut decision),
+                1
+            );
+            invalid.namespace_id = SketchSourceText {
+                bytes: b"\xff".as_ptr(),
+                length: 1,
+            };
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &invalid, &mut decision),
+                1
+            );
+            assert_eq!(sketch_source_compare(&invalid, &valid, &mut decision), 1);
+            invalid.namespace_id = text("account\nother");
+            assert_eq!(
+                sketch_source_compare(ptr::null(), &invalid, &mut decision),
+                1
+            );
+            assert_eq!(decision, 1);
+        }
+    }
+    #[test]
+    fn ffi_policy_reports_nonmutating_conflicts_and_identity_mismatch() {
+        let current = version();
+        let mut candidate = current;
+        let mut decision = 999;
+        unsafe {
+            candidate.namespace_id = text("another-account/library");
+            assert_eq!(
+                sketch_source_compare(&current, &candidate, &mut decision),
+                0
+            );
+            assert_eq!(decision, 4);
+            candidate = current;
+            candidate.revision_id = text("another-revision");
+            candidate.content_sha256 =
+                text("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+            assert_eq!(
+                sketch_source_compare(&current, &candidate, &mut decision),
+                0
+            );
+            assert_eq!(decision, 3);
+            candidate.parent_revision_id = current.revision_id;
+            assert_eq!(
+                sketch_source_compare(&current, &candidate, &mut decision),
+                0
+            );
+            assert_eq!(decision, 0);
+            assert_eq!(
+                sketch_source_compare(&candidate, &current, &mut decision),
+                0
+            );
+            assert_eq!(decision, 2);
         }
     }
 }
