@@ -154,7 +154,7 @@ struct WatchViewer: View {
       if model.catalog.isEmpty { Text("No cached drawings. Share a copy from iPhone, or configure server access.") }
       ForEach(model.catalog) { item in
         Button { model.choose(item); showingDetails = false } label: {
-          VStack(alignment: .leading) { Text(item.title); Text(item.phoneOnly ? "iPhone copy" : "Synced drawing").font(.caption2) }
+          VStack(alignment: .leading) { Text(item.title).lineLimit(2).truncationMode(.tail).accessibilityLabel(item.title); Text(item.phoneOnly ? "iPhone copy" : "Synced drawing").font(.caption2) }
         }
         .disabled(model.busy)
         .swipeActions { if model.store.archive.entries.contains(where: { $0.copy.descriptor.id == item.id }) { Button("Remove Cache", role: .destructive) { model.remove(item) } } }
