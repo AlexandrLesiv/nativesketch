@@ -1,7 +1,7 @@
 # Native Sketch
 
 A macOS-first vector sketching prototype with a shared Rust editor and native AppKit UI.
-Task 001 is under implementation review; this is not a production drawing application.
+Task 001 is ready for owner review; this is not a production drawing application.
 
 ## First-stroke milestone
 
@@ -59,6 +59,7 @@ review before owner acceptance. Local task-branch commits are allowed; the owner
 merges and release distribution. No cloud repository, CI provider, remote branch protection,
 release identity, or open-source license is configured.
 
+- [First-stroke evidence and limitations](docs/evidence/001-first-stroke.md)
 - [First-stroke design](docs/design/first-stroke.md)
 - [Architecture](docs/architecture.md)
 - [Provisional renderer boundary](docs/decisions/0002-first-stroke-rendering.md)

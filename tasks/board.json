@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "tasks": [
-    {"id": "001", "title": "First editable stroke on macOS", "status": "active", "depends_on": [], "brief": "tasks/001-first-stroke.md", "roles": ["ui_ux_designer", "rust_engine", "macos_ui", "reviewer"]},
+    {"id": "001", "title": "First editable stroke on macOS", "status": "review", "depends_on": [], "brief": "tasks/001-first-stroke.md", "roles": ["ui_ux_designer", "rust_engine", "macos_ui", "reviewer"]},
     {"id": "002", "title": "Renderer comparison", "status": "ready", "depends_on": [], "brief": "tasks/002-renderer-comparison.md", "roles": ["rendering_performance", "build_reliability", "reviewer"]},
     {"id": "003", "title": "Input recorder and replay", "status": "waiting", "depends_on": ["001"], "brief": "tasks/003-input-replay.md", "roles": ["rust_engine", "build_reliability", "reviewer"]},
     {"id": "004", "title": "Windows native host spike", "status": "waiting", "depends_on": ["001", "002"], "brief": "tasks/004-windows-spike.md", "roles": ["windows_ui", "rendering_performance", "reviewer"]}
