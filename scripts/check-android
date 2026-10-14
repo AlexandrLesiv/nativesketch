@@ -2,7 +2,7 @@
 set -euo pipefail
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 : "${ANDROID_HOME:=$HOME/Library/Android/sdk}"
-: "${ANDROID_SERIAL:=emulator-5554}"
+: "${ANDROID_SERIAL:?Set ANDROID_SERIAL explicitly to the dedicated Native Sketch test device before running this installation and replay}"
 export ANDROID_SERIAL
 adb="$ANDROID_HOME/platform-tools/adb"
 "$adb" install -r "$repo_root/artifacts/NativeSketch-android.apk"

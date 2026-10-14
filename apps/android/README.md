@@ -8,8 +8,9 @@ Build with JDK 17+, Gradle 9.3.1, Android SDK 37 / build tools 36.0.0, NDK r30, 
 Rust targets `aarch64-linux-android` and `x86_64-linux-android`. Set `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`,
 and optionally `GRADLE` to local tool locations, then run `scripts/build-android`.
 The resulting ARM64 + x86-64 debug APK is `artifacts/NativeSketch-android.apk`.
-`ANDROID_SERIAL=emulator-5554 scripts/check-android` installs and runs a debug-only
-on-device JNI/touch replay. Coordinate this with other native UI automation.
+`ANDROID_SERIAL=<dedicated-test-device-serial> scripts/check-android` installs and runs a debug-only
+on-device JNI/touch replay. An explicit dedicated test-device serial is required; the script
+has no default target. Coordinate this with other native UI automation.
 
 Pen draws with finger or stylus. Pressure is present only when a stylus reports a
 valid pressure axis; its device range is normalized. Select taps hit-test; dragging
