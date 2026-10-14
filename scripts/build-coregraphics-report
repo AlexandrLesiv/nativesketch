@@ -160,7 +160,7 @@ def main():
         if len(context)!=16:raise ValueError('Historical paced table requires all 16 workload/resolution cells')
         parts.append(table(['Workload','Texture pixels','Skia p95 median [min, max] (ms)','Vello p95 median [min, max] (ms)','Evidence caveat'],context,'Historical CPU service excluding acquisition: median and range of five process p95 values'))
     parts.append('<p>The high-resolution alpha anomaly is retained in the original table. The <a href="renderer-comparison/guarded-replay.json">separate guarded replay</a> records later controlled lifecycle observations; its values are not silently substituted or pooled with the historical matrix.</p></section>')
-    parts.append('<section id="sizes"><h2>Application size and platform implications</h2><p>The table reports actual existing artifacts, not isolated engine overhead. Different apps, configurations, architectures and packaging cannot be subtracted to estimate the cost of one renderer. Static archives are build inputs, not shipped application size.</p>')
+    parts.append('<section id="sizes"><h2>Application size and platform implications</h2><p class="notice"><a href="renderer-bundle-size.html">New: separately built Skia and Vello bundles</a>, including a matching blank host, symbol removal and unused-code removal. The earlier artifact audit below remains separate.</p><p>The table reports actual existing artifacts, not isolated engine overhead. Different apps, configurations, architectures and packaging cannot be subtracted to estimate the cost of one renderer. Static archives are build inputs, not shipped application size.</p>')
     records=(sizes or {}).get('artifacts',[])
     if records:
         size_rows=[]
@@ -170,10 +170,10 @@ def main():
         parts.append('<p>Audit date: '+esc(sizes.get('audit_date','Unrecorded'))+'. '+esc(sizes.get('definition',''))+'</p>')
         wasm=sizes.get('wasm')
         if wasm:parts.append('<p>Shared logic Wasm: '+esc(wasm.get('bytes'))+' bytes; local gzip-9 encoding: '+esc(wasm.get('gzip9_bytes'))+' bytes. '+esc(wasm.get('notes',''))+'</p>')
-        parts.append('<p><strong>Independent renderer overhead:</strong> '+esc(sizes.get('renderer_overhead','Not measured.'))+'</p>')
+        parts.append('<p><strong>Earlier mixed-artifact audit — independent renderer overhead:</strong> '+esc(sizes.get('renderer_overhead','Not measured.'))+'</p>')
     else:parts.append('<p class="notice">Artifact-size export pending. No per-backend size estimate is implied.</p>')
     parts.append(table(['Platform','Current system/browser route','Bundled Skia or Vello route','Independent backend size impact'],[
-        ['macOS','AppKit / Core Graphics uses the OS engine','Ship renderer and integration code with the app','Unmeasured; combined benchmark is not independent overhead'],
+        ['macOS','AppKit / Core Graphics uses the OS engine','Ship renderer and integration code with the app','See the separate macOS bundle study; combined artifact alone cannot isolate overhead'],
         ['iPhone / iPad','UIKit / Core Graphics uses the OS engine','Ship renderer and target-specific integration code','Unmeasured on these targets'],
         ['Android','Android Canvas uses the platform engine','Ship renderer and target-specific native code','Unmeasured; current debug dual-ABI APK is not a backend delta'],
         ['Web','Canvas 2D uses the browser engine; Rust/Wasm supplies shared logic','Ship the selected Wasm/JS renderer payload','Unmeasured; current logic Wasm does not contain Skia/Vello'],

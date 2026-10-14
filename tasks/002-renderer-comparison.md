@@ -12,7 +12,9 @@ selection remains OPEN.
 Follow-up: the [native AppKit/Core Graphics comparison](../docs/evidence/coregraphics-comparison.html)
 adds 48 primary and three sustained trials, matched visual captures and an artifact-size
 audit. Its CPU callback scope differs from the Metal trials; no three-backend speedup
-ranking or isolated engine-size delta is claimed.
+ranking or isolated engine-size delta is claimed by that artifact audit.
+The [separate renderer bundle study](../docs/evidence/renderer-bundle-size.html) adds
+matched macOS Skia/Vello/blank/both builds and distinct linker optimization lanes.
 
 ## Outcome and boundaries
 

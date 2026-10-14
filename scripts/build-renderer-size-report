@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Render audited bundle sizes without extrapolating to other targets."""
+import argparse
+import html
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+LABELS = {'baseline': 'Common blank host', 'skia': 'Skia + common host', 'vello': 'Vello + common host', 'both': 'Both + common host'}
+COLORS = {'baseline': '#78929d', 'skia': '#5bc4e4', 'vello': '#ffac79', 'both': '#bca4ef'}
+
+
+def e(value):
+    return html.escape(str(value), quote=True)
+
+
+def mib(value):
+    return f'{value / 1048576:.2f}'
+
+
+def table(headers, rows, caption):
+    return '<div class="scroll" tabindex="0" role="region" aria-label="'+e(caption)+'"><table><caption>'+e(caption)+'</caption><thead><tr>'+''.join('<th scope="col">'+e(h)+'</th>' for h in headers)+'</tr></thead><tbody>'+''.join('<tr>'+''.join(('<th scope="row">' if i == 0 else '<td>')+e(v)+('</th>' if i == 0 else '</td>') for i, v in enumerate(row))+'</tr>' for row in rows)+'</tbody></table></div>'
+
+
+def chart(variants, key, title):
+    maximum = max(v['lanes']['stripped'][key] for v in variants.values()) * 1.15
+    svg=['<div class="scroll chart" tabindex="0" role="region" aria-label="'+e(title)+'"><svg viewBox="0 0 960 260" role="img" aria-label="'+e(title)+'; exact values follow in the table">']
+    for tick in range(5):
+        x = 240 + 640 * tick / 4
+        svg.append(f'<path d="M{x} 15V220" class="grid"/><text x="{x}" y="246" text-anchor="middle">{mib(maximum * tick / 4)}</text>')
+    for i, (name, label) in enumerate(LABELS.items()):
+        value = variants[name]['lanes']['stripped'][key]
+        y = 25 + i * 48
+        width = value / maximum * 640
+        svg.append(f'<text x="225" y="{y+21}" text-anchor="end">{e(label)}</text><rect x="240" y="{y}" width="{width:.2f}" height="30" rx="4" fill="{COLORS[name]}"/><text x="{248+width:.2f}" y="{y+21}">{mib(value)}</text>')
+    return ''.join(svg)+'</svg></div><p class="muted">MiB, after identical symbol stripping and ad-hoc signing. Zero-based axis.</p>'
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--data', type=Path, default=ROOT/'docs/evidence/renderer-size/size-audit.json')
+    parser.add_argument('--output', type=Path, default=ROOT/'docs/evidence/renderer-bundle-size.html')
+    args = parser.parse_args()
+    data = json.loads(args.data.read_text())
+    if data['status'] != 'complete' or set(data['variants']) != set(LABELS):
+        raise ValueError('Complete four-variant audit required')
+    optimized_path=args.data.with_name('dead-strip-audit.json')
+    optimized=json.loads(optimized_path.read_text()) if optimized_path.exists() else None
+    if optimized and (optimized['status'] != 'complete' or optimized['measured_build'] != data['measured_build'] or set(optimized.get('relink_provenance',{})) != set(LABELS)):
+        raise ValueError('Matched complete dead-strip audit required')
+    variants = data['variants']
+    chart_variants = optimized['variants'] if optimized else variants
+    comparison = optimized or data
+    source = data['measured_build']['source_revision']
+    p=['<p class="eyebrow">Native Sketch · macOS arm64 · packaging investigation</p><h1>Skia and Vello, bundled separately</h1><p class="intro">Four release builds of the same experiment: a common blank host, Skia only, Vello GPU only, and both. These are actual linked application sizes, with the same stripping and compression applied to each.</p><nav aria-label="Report sections"><a href="#results">Results</a> · <a href="#increments">Added code</a> · <a href="#method">Method</a> · <a href="#limits">Interpretation</a></nav>']
+    p.append('<p class="notice"><strong>Important boundary:</strong> every variant includes the benchmark’s shared wgpu/Metal infrastructure and vello_common geometry utilities. “Skia only” excludes the Vello GPU renderer, but does not remove wgpu. This is not the smallest possible direct-Metal Skia application.</p>')
+    if data.get('runtime_coverage',{}).get('optimized_pending'):
+        p.append('<p class="notice"><strong>Correctness coverage:</strong> all 38 original-build checks passed. The unused-code-removal builds passed 23 of 38 checks; 15 rendering checks and the final unavailable-backend checks remain pending at the owner’s request after an interrupted check. Size measurements are complete, but the optimized builds have partial runtime coverage.</p>')
+    p.append('<section id="results"><h2>What the bundles actually contain</h2><p>Charts show '+('explicit unused-code removal plus symbol stripping' if optimized else 'the original linker settings plus symbol stripping')+'. The full tables preserve every build lane.</p><h3>Installed bundle files</h3>'+chart(chart_variants, 'bundle_bytes', 'Stripped application bundle size'))
+    p.append('<h3>Compressed application package</h3>'+chart(chart_variants, 'zip_deflate9_bytes', 'Deterministic ZIP deflate-9 size'))
+    for lane, title in [('linked', 'Original linker settings — linked release'), ('stripped', 'Original linker settings — symbol stripping only')]:
+        rows=[]
+        for name, label in LABELS.items():
+            v = variants[name]['lanes'][lane]
+            rows.append([label, mib(v['bundle_bytes']), mib(v['executable_bytes']), mib(v['zip_deflate9_bytes']), mib(v['executable_gzip9_bytes']), f"{v['bundle_bytes']:,}"])
+        p.append(table(['Variant', 'Bundle MiB', 'Executable MiB', 'ZIP MiB', 'Executable gzip MiB', 'Exact bundle bytes'], rows, title))
+    if optimized:
+        for lane,title in [('linked','Unused-code removal (-dead_strip) — linked release'),('stripped','Unused-code removal plus symbol stripping — measured size reference')]:
+            rows=[]
+            for name,label in LABELS.items():
+                v=optimized['variants'][name]['lanes'][lane]
+                rows.append([label,mib(v['bundle_bytes']),mib(v['executable_bytes']),mib(v['zip_deflate9_bytes']),mib(v['executable_gzip9_bytes']),f"{v['bundle_bytes']:,}"])
+            p.append(table(['Variant','Bundle MiB','Executable MiB','ZIP MiB','Executable gzip MiB','Exact bundle bytes'],rows,title))
+        p.append('<p class="notice"><strong>Unused-code removal matters.</strong> The unused-code-removal configuration re-links the exact cached Rust archives and identical Swift host with <code>-dead_strip</code>. Rust is not rebuilt. This removes unreachable linked code; <code>strip -S -x</code> alone removes symbol information. The original build metadata identifies the unchanged sources, while separate relink provenance records the additional flag and input/output hashes.</p>')
+    p.append('<p>ZIP contains only the app bundle. Executable gzip contains only the executable. These two compressed numbers have different contents and must not be interchanged. A MiB is 1,048,576 bytes.</p></section>')
+    p.append('<section id="increments"><h2>What adding each renderer costs in this host</h2>')
+    rows=[]
+    labels={'skia_minus_baseline':'Add Skia to blank host','vello_minus_baseline':'Add Vello to blank host','both_minus_baseline':'Add both to blank host','both_minus_skia':'Add Vello to Skia host','both_minus_vello':'Add Skia to Vello host'}
+    for key, label in labels.items():
+        delta=comparison['differences']['stripped'][key]
+        rows.append([label,mib(delta['bundle_bytes']),mib(delta['executable_bytes']),mib(delta['zip_deflate9_bytes'])])
+    p.append(table(['Change','Bundle increase MiB','Executable increase MiB','ZIP increase MiB'],rows,'Differences with unused-code removal and symbol stripping' if optimized else 'Differences between equally stripped builds'))
+    p.append('<p>These increments include the renderer, its adapter and any additional reachable code. The blank host does not render the vector scene. Shared dependencies and linker reachability mean the combined bundle need not equal the sum of the two single-engine bundles. Compressed deltas also depend on how well the whole package compresses.</p></section>')
+    p.append('<section id="method"><h2>Matching build and validation conditions</h2><p>Source: <code>'+e(source)+'</code>. All four builds have the same clean source identity, lockfile, compiler, SDK and release optimization settings. The audit rejects mixed identities or unexpected selected renderer dependencies.</p><ul><li>Swift -O and Rust release with thin LTO; arm64 only.</li><li>Skia Ganesh/Metal 0.153.3 with the existing JPEG/PDF-enabled binary package. No custom minimal Skia build is claimed.</li><li>Vello GPU Sparse Strips 0.3.0, using wgpu 30.0.0 with Metal.</li><li>Original release bundles preserved. Copies stripped using Apple strip -S -x, re-signed locally and signature-verified.</li><li>Deterministic ZIP uses deflate level 9, fixed timestamps, stable ordering and normalized file modes. Executable gzip uses level 9 and zero timestamp.</li><li>Per-file hashes, dynamic library lists, Mach-O sections and selected dependency names accompany the evidence. Link maps stay outside the app.</li></ul>')
+    validation=data.get('validation')
+    if validation:
+        p.append('<h3>Checks performed</h3><ul>'+''.join('<li>'+e(value)+'</li>' for value in validation.values())+'</ul>')
+    else:
+        p.append('<p class="notice">Native correctness smoke results and final independent review are pending. Bundle sizes alone do not prove a usable renderer.</p>')
+    p.append('</section><section id="limits"><h2>How to use these numbers</h2><p><strong>For this macOS integration:</strong> prefer the unused-code-removal plus symbol-stripping lane for size planning, after its correctness checks. Keep both renderer and linker settings pinned. Use the baseline increments to understand the extra linked code in this harness. They are stronger evidence than comparing an unrelated debug drawing app with a combined release benchmark.</p><p><strong>For a production application:</strong> removing benchmark instrumentation, changing renderer features, linking Skia directly to Metal, adding fonts/codecs or changing optimization can alter the result. Skia’s enabled JPEG/PDF features do not establish their retained size; unused code can be removed by the linker. Static library size is not app size.</p><p><strong>For iOS/iPadOS, Android or web:</strong> do not reuse the macOS deltas. Architecture, graphics backend, linker, language runtime, shaders and delivery compression differ. Those targets require their own separate builds.</p><p>These are local arm64 applications with ad-hoc signatures. They are not universal binaries, notarized releases, App Store download measurements, RAM usage or performance results. Size does not change the qualified performance findings or settle the production renderer decision.</p><p><a href="coregraphics-comparison.html">Core Graphics performance and artifact audit</a> · <a href="renderer-comparison.html">Skia/Vello performance comparison</a> · <a href="renderer-size/size-audit.json">Original size audit JSON</a> · <a href="renderer-size/dead-strip-audit.json">Unused-code-removal audit JSON</a></p></section>')
+    css='''html{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111820;color:#e8eef5;font:16px/1.65 system-ui,sans-serif}main{max-width:1120px;margin:auto;padding:42px 24px 70px}h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.1;max-width:900px}h2{line-height:1.25}h3{margin-bottom:8px}section{margin-top:44px;border-top:1px solid #354553;padding-top:22px}.intro{font-size:1.2rem;color:#c5d4e0}.eyebrow,.muted{color:#abc2d3}nav{margin:24px 0}a{color:#8edbff;text-underline-offset:3px}.notice{background:#263448;border-left:4px solid #ffc674;padding:16px}.scroll{overflow-x:auto;margin:20px 0}a:focus-visible,.scroll:focus-visible{outline:3px solid #ffc674;outline-offset:4px}table{border-collapse:collapse;width:100%;font-size:.9rem}caption{text-align:left;font-weight:700;margin-bottom:12px}th,td{text-align:left;padding:10px;border-bottom:1px solid #354553;vertical-align:top}td{font-variant-numeric:tabular-nums}thead{background:#253243}.chart{background:#18232e;border-radius:10px}svg{display:block;width:100%;min-width:900px}svg text{fill:#d9e6ef;font:16px system-ui,sans-serif}.grid{stroke:#354553}code{overflow-wrap:anywhere}p{max-width:950px}@media(max-width:640px){main{padding:26px 16px 50px}th,td{padding:8px}}'''
+    document='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Skia and Vello bundle sizes — Native Sketch</title><style>'+css+'</style></head><body><main>'+''.join(p)+'</main></body></html>'
+    args.output.write_text(document)
+    print(args.output)
+
+
+if __name__ == '__main__':
+    main()

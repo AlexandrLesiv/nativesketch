@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""Audit separate macOS release bundles; never treats build archives as shipped bytes."""
+import argparse
+import gzip
+import hashlib
+import json
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import zipfile
+import zlib
+
+ROOT = Path(__file__).resolve().parent.parent
+VARIANTS = ('baseline', 'skia', 'vello', 'both')
+EMPTY_DIFF = hashlib.sha256(b'').hexdigest()
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def command(*args):
+    return subprocess.check_output([str(a) for a in args], text=True, stderr=subprocess.STDOUT).strip()
+
+
+def inventory(bundle):
+    result = []
+    for path in sorted(bundle.rglob('*')):
+        if path.is_symlink():
+            raise ValueError(f'Symlink requires an explicit packaging policy: {path}')
+        if path.is_file():
+            result.append(dict(path=str(path.relative_to(bundle)), bytes=path.stat().st_size, sha256=sha(path)))
+    return result
+
+
+def package_zip(bundle, target):
+    # Stable path, timestamp, ordering and modes; compress only the actual app files.
+    with zipfile.ZipFile(target, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for path in sorted(bundle.rglob('*')):
+            if not path.is_file():
+                continue
+            info = zipfile.ZipInfo('RendererComparison.app/' + str(path.relative_to(bundle)), (1980, 1, 1, 0, 0, 0))
+            info.create_system = 3
+            mode = 0o755 if path.stat().st_mode & stat.S_IXUSR else 0o644
+            info.external_attr = (stat.S_IFREG | mode) << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+
+
+def validate_inputs(root):
+    inputs = {}
+    shared = None
+    for variant in VARIANTS:
+        directory = root / variant
+        bundle = directory / 'RendererComparison.app'
+        build = json.loads((bundle / 'Contents/Resources/build.json').read_text())
+        if build.get('profile') != 'release':
+            raise ValueError(f'{variant}: release build required')
+        if build.get('variant') != variant:
+            raise ValueError(f'{variant}: build variant identity differs')
+        if build.get('source_diff_hash') != EMPTY_DIFF:
+            raise ValueError(f'{variant}: clean source diff required')
+        keys = ('source_revision', 'source_diff_hash', 'source_tree_sha256', 'cargo_lock_sha256', 'rustc', 'swift', 'sdk_version', 'swift_flags', 'build_environment', 'rust_target', 'swift_target', 'release_profile_defaults')
+        identity = {k: build[k] for k in keys}
+        if shared is not None and identity != shared:
+            raise ValueError(f'{variant}: mixed source, compiler, SDK, lockfile or Swift flags')
+        shared = identity
+        if not (directory / 'link-map.txt').is_file():
+            raise ValueError(f'{variant}: required linker map missing')
+        tree = (directory / 'cargo-tree.txt').read_text()
+        packages = set(re.findall(r'^([A-Za-z0-9_-]+) v\S+', tree, re.MULTILINE))
+        for dependency, wanted in [('skia-safe', variant in ('skia', 'both')), ('vello_gpu', variant in ('vello', 'both'))]:
+            if (dependency in packages) != wanted:
+                raise ValueError(f'{variant}: unexpected selected dependency {dependency}')
+        if not {'wgpu', 'vello_common'}.issubset(packages):
+            raise ValueError(f'{variant}: expected shared harness dependencies missing')
+        inputs[variant] = dict(directory=directory, bundle=bundle, build=build, selected_packages=sorted(packages))
+    return inputs, shared
+
+
+def inspect_lane(bundle, output):
+    executable = bundle / 'Contents/MacOS/RendererComparison'
+    command('codesign', '--verify', '--strict', bundle)
+    files = inventory(bundle)
+    archive = output / 'bundle.zip'
+    package_zip(bundle, archive)
+    compressed = output / 'executable.gz'
+    compressed.write_bytes(gzip.compress(executable.read_bytes(), compresslevel=9, mtime=0))
+    details = {}
+    for name, args in {
+        'architecture': ('lipo', '-archs', executable),
+        'dynamic_libraries': ('otool', '-L', executable),
+        'macho_sections': ('size', '-m', executable),
+        'macho_segments': ('size', executable),
+    }.items():
+        result = command('xcrun', *args)
+        (output / f'{name}.txt').write_text(result + '\n')
+        details[name] = result.replace(str(executable), 'RendererComparison')
+    if details['architecture'] != 'arm64':
+        raise ValueError(f'Expected single arm64 executable: {details["architecture"]}')
+    return dict(bundle_bytes=sum(f['bytes'] for f in files), executable_bytes=executable.stat().st_size,
+                zip_deflate9_bytes=archive.stat().st_size, zip_sha256=sha(archive),
+                executable_gzip9_bytes=compressed.stat().st_size, executable_gzip9_sha256=sha(compressed),
+                files=files, **details)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--input-root', type=Path, default=ROOT / 'artifacts/renderer-size')
+    parser.add_argument('--output-root', type=Path, required=True)
+    args = parser.parse_args()
+    inputs, identity = validate_inputs(args.input_root.resolve())
+    relinks = {name: json.loads((item['directory']/'relink-provenance.json').read_text()) for name,item in inputs.items() if (item['directory']/'relink-provenance.json').exists()}
+    if relinks and set(relinks) != set(VARIANTS):
+        raise ValueError('Relink provenance must cover all four variants')
+    for name, relink in relinks.items():
+        bundle = inputs[name]['bundle']
+        if relink.get('extra_linker_flags') != ['-dead_strip'] or relink.get('rust_rebuilt') is not False:
+            raise ValueError('Unsupported relink policy')
+        if relink.get('source_revision') != identity['source_revision'] or relink.get('source_diff_hash') != EMPTY_DIFF:
+            raise ValueError('Relink source identity differs')
+        if relink.get('original_build_json_sha256') != sha(bundle/'Contents/Resources/build.json') or relink.get('executable_sha256') != sha(bundle/'Contents/MacOS/RendererComparison'):
+            raise ValueError('Relink input hashes differ')
+    output = args.output_root.resolve()
+    if output.exists():
+        parser.error('Output exists; preserve it and choose a fresh audit directory')
+    if not output.is_relative_to(ROOT / 'artifacts'):
+        parser.error('Output must be inside this checkout artifacts directory')
+    output.mkdir(parents=True)
+    report = dict(schema_version=1, status='incomplete', measured_build=identity,
+                  tools={'strip': command('xcrun', '--find', 'strip'), 'python': command('python3', '--version'),
+                         'system': command('sw_vers'), 'zlib_runtime': zlib.ZLIB_RUNTIME_VERSION, 'zip_policy': 'Python zipfile, deflate level9, fixed1980timestamps, normalized file modes, stable path/order',
+                         'strip_policy': 'xcrun strip -S -x; codesign --force --sign -; codesign --verify --strict'},
+                  interpretation={'scope': 'macOS arm64 benchmark integrations; no cross-platform extrapolation',
+                                  'baseline': 'Blank target through the common host, fixtures, wgpu/Metal and vello_common geometry; no Skia or Vello GPU renderer',
+                                  'skia': 'Skia renderer with shared wgpu harness; not a minimal direct-Metal Skia app',
+                                  'increments': 'Bundle/executable differences within this fixed harness include reachable integration code and metadata, not universal library overhead',
+                                  'compression': 'Reproducible local ZIP and gzip encodings, not observed HTTP transfer, App Store download or notarized distribution sizes'},
+                  variants={}, relink_provenance=relinks)
+    summary = output / 'size-audit.json'
+    def save():
+        summary.write_text(json.dumps(report, indent=2) + '\n')
+    save()
+    for variant, source in inputs.items():
+        before = inventory(source['bundle'])
+        result = dict(build=source['build'], selected_packages=source['selected_packages'], lanes={})
+        for lane in ('linked', 'stripped'):
+            destination = output / variant / lane
+            destination.mkdir(parents=True)
+            bundle = destination / 'RendererComparison.app'
+            shutil.copytree(source['bundle'], bundle)
+            if lane == 'stripped':
+                command('xcrun', 'strip', '-S', '-x', bundle / 'Contents/MacOS/RendererComparison')
+                command('codesign', '--force', '--sign', '-', bundle)
+            result['lanes'][lane] = inspect_lane(bundle, destination)
+        if inventory(source['bundle']) != before:
+            raise ValueError(f'{variant}: source bundle changed during audit')
+        for name in ('cargo-tree.txt', 'link-map.txt'):
+            file = source['directory'] / name
+            if file.exists():
+                shutil.copy2(file, output / variant / name)
+                result[name + '_sha256'] = sha(file)
+        report['variants'][variant] = result
+        save()
+        print(variant, {k: v['bundle_bytes'] for k, v in result['lanes'].items()}, flush=True)
+    report['differences'] = {}
+    metrics = ('bundle_bytes', 'executable_bytes', 'zip_deflate9_bytes', 'executable_gzip9_bytes')
+    for lane in ('linked', 'stripped'):
+        cells = {v: report['variants'][v]['lanes'][lane] for v in VARIANTS}
+        report['differences'][lane] = {
+            f'{a}_minus_{b}': {metric: cells[a][metric] - cells[b][metric] for metric in metrics}
+            for a, b in [('skia', 'baseline'), ('vello', 'baseline'), ('both', 'baseline'), ('both', 'skia'), ('both', 'vello')]
+        }
+    report['status'] = 'complete'
+    save()
+    print(summary)
+
+
+if __name__ == '__main__':
+    main()

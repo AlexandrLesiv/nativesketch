@@ -1,0 +1,1055 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "measured_build": {
+    "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+    "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_tree_sha256": "a5e003250dee3e297a4213d4982f03e91504031dcbe2ff2444c53af1066d808b",
+    "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+    "sdk_version": "27.0",
+    "swift_flags": "-swift-version 5 -O",
+    "build_environment": {
+      "CARGO_BUILD_RUSTFLAGS": null,
+      "CARGO_BUILD_TARGET": null,
+      "CARGO_ENCODED_RUSTFLAGS": null,
+      "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": null,
+      "CARGO_PROFILE_RELEASE_DEBUG": null,
+      "CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS": null,
+      "CARGO_PROFILE_RELEASE_INCREMENTAL": null,
+      "CARGO_PROFILE_RELEASE_LTO": null,
+      "CARGO_PROFILE_RELEASE_OPT_LEVEL": null,
+      "CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS": null,
+      "CARGO_PROFILE_RELEASE_PANIC": null,
+      "CARGO_PROFILE_RELEASE_STRIP": null,
+      "CARGO_TARGET_DIR": "/Users/oleksandr/.codex/worktrees/native-platforms/native-sketch/.build-cache/renderer-comparison",
+      "MACOSX_DEPLOYMENT_TARGET": null,
+      "RUSTC_WORKSPACE_WRAPPER": null,
+      "RUSTC_WRAPPER": null,
+      "RUSTFLAGS": null
+    },
+    "rust_target": "aarch64-apple-darwin",
+    "swift_target": "arm64-apple-macosx13.0",
+    "release_profile_defaults": {
+      "codegen_units": 16,
+      "debug": false,
+      "debug_assertions": false,
+      "incremental": false,
+      "lto": "thin",
+      "opt_level": 3,
+      "overflow_checks": false,
+      "panic": "unwind",
+      "strip": "none"
+    }
+  },
+  "tools": {
+    "strip": "/Library/Developer/CommandLineTools/usr/bin/strip",
+    "python": "Python 3.9.6",
+    "system": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+    "zlib_runtime": "1.2.12",
+    "zip_policy": "Python zipfile, deflate level9, fixed1980timestamps, normalized file modes, stable path/order",
+    "strip_policy": "xcrun strip -S -x; codesign --force --sign -; codesign --verify --strict"
+  },
+  "interpretation": {
+    "scope": "macOS arm64 benchmark integrations; no cross-platform extrapolation",
+    "baseline": "Blank target through the common host, fixtures, wgpu/Metal and vello_common geometry; no Skia or Vello GPU renderer",
+    "skia": "Skia renderer with shared wgpu harness; not a minimal direct-Metal Skia app",
+    "increments": "Bundle/executable differences within this fixed harness include reachable integration code and metadata, not universal library overhead",
+    "compression": "Reproducible local ZIP and gzip encodings, not observed HTTP transfer, App Store download or notarized distribution sizes"
+  },
+  "variants": {
+    "baseline": {
+      "build": {
+        "architecture": "arm64",
+        "available_backends": [
+          "baseline"
+        ],
+        "build_environment": {
+          "CARGO_BUILD_RUSTFLAGS": null,
+          "CARGO_BUILD_TARGET": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": null,
+          "CARGO_PROFILE_RELEASE_DEBUG": null,
+          "CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS": null,
+          "CARGO_PROFILE_RELEASE_INCREMENTAL": null,
+          "CARGO_PROFILE_RELEASE_LTO": null,
+          "CARGO_PROFILE_RELEASE_OPT_LEVEL": null,
+          "CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS": null,
+          "CARGO_PROFILE_RELEASE_PANIC": null,
+          "CARGO_PROFILE_RELEASE_STRIP": null,
+          "CARGO_TARGET_DIR": "/Users/oleksandr/.codex/worktrees/native-platforms/native-sketch/.build-cache/renderer-comparison",
+          "MACOSX_DEPLOYMENT_TARGET": null,
+          "RUSTC_WORKSPACE_WRAPPER": null,
+          "RUSTC_WRAPPER": null,
+          "RUSTFLAGS": null
+        },
+        "cargo_features": [
+          "size-baseline"
+        ],
+        "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+        "profile": "release",
+        "release_profile_defaults": {
+          "codegen_units": 16,
+          "debug": false,
+          "debug_assertions": false,
+          "incremental": false,
+          "lto": "thin",
+          "opt_level": 3,
+          "overflow_checks": false,
+          "panic": "unwind",
+          "strip": "none"
+        },
+        "rendering_comparison_eligible": false,
+        "result_root": "/Users/oleksandr/.codex/worktrees/renderer-native/native-sketch/artifacts/renderer-comparison",
+        "rust_target": "aarch64-apple-darwin",
+        "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+        "sdk_path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "sdk_version": "27.0",
+        "shared_harness": "wgpu/Metal and vello_common fixture geometry retained in all variants; not direct-Metal Skia minimum",
+        "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+        "source_tree_sha256": "a5e003250dee3e297a4213d4982f03e91504031dcbe2ff2444c53af1066d808b",
+        "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+        "swift_flags": "-swift-version 5 -O",
+        "swift_target": "arm64-apple-macosx13.0",
+        "variant": "baseline"
+      },
+      "selected_packages": [
+        "adler2",
+        "arrayvec",
+        "bit-set",
+        "bit-vec",
+        "bitflags",
+        "block-buffer",
+        "block2",
+        "bytemuck",
+        "bytemuck_derive",
+        "cfg-if",
+        "codespan-reporting",
+        "color",
+        "cpufeatures",
+        "crc32fast",
+        "crypto-common",
+        "digest",
+        "dispatch2",
+        "document-features",
+        "equivalent",
+        "euclid",
+        "fdeflate",
+        "fearless_simd",
+        "flate2",
+        "foldhash",
+        "generic-array",
+        "guillotiere",
+        "half",
+        "hashbrown",
+        "indexmap",
+        "itoa",
+        "kurbo",
+        "libc",
+        "libloading",
+        "libm",
+        "linebender_resource_handle",
+        "litrs",
+        "lock_api",
+        "log",
+        "memchr",
+        "miniz_oxide",
+        "naga",
+        "naga-types",
+        "num-traits",
+        "objc2",
+        "objc2-core-foundation",
+        "objc2-core-graphics",
+        "objc2-core-video",
+        "objc2-encode",
+        "objc2-foundation",
+        "objc2-metal",
+        "objc2-quartz-core",
+        "once_cell",
+        "parking_lot",
+        "parking_lot_core",
+        "peniko",
+        "png",
+        "pollster",
+        "polycool",
+        "proc-macro2",
+        "profiling",
+        "quote",
+        "raw-window-handle",
+        "raw-window-metal",
+        "renderer-comparison",
+        "rustc-hash",
+        "scopeguard",
+        "serde",
+        "serde_core",
+        "serde_derive",
+        "serde_json",
+        "sha2",
+        "simd-adler32",
+        "sketch-core",
+        "smallvec",
+        "static_assertions",
+        "syn",
+        "thiserror",
+        "thiserror-impl",
+        "typenum",
+        "unicode-ident",
+        "unicode-width",
+        "vello_common",
+        "wgpu",
+        "wgpu-core",
+        "wgpu-core-deps-apple",
+        "wgpu-hal",
+        "wgpu-naga-bridge",
+        "wgpu-types",
+        "zerocopy",
+        "zerocopy-derive",
+        "zmij"
+      ],
+      "lanes": {
+        "linked": {
+          "bundle_bytes": 15160508,
+          "executable_bytes": 15155328,
+          "zip_deflate9_bytes": 4270180,
+          "zip_sha256": "e2333d13c5de0a39d3c6f595d0ae895c906bb2579c07575f4c0c1dce88cc0d74",
+          "executable_gzip9_bytes": 4267448,
+          "executable_gzip9_sha256": "7acdf5b4e8dec7155c7f64be872e59e52b24efea6f7cfe22c327980264baabfd",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 15155328,
+              "sha256": "30a42a3d01a13cdd981d8f453102a51aef9b6fa5115ce4619abcdf29f6813815"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2202,
+              "sha256": "d024a4c6110d6d236acc13118e4ba94ab0e41ad582b2be99c6518c67f99bcc79"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "64d6f6b7bc6dc01de8020f6f91f73cbe2b646a1d141eec584804615b8fe0b307"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 8339456\n\tSection __text: 5754364\n\tSection __stubs: 5316\n\tSection __objc_stubs: 3680\n\tSection __objc_methlist: 1964\n\tSection __const: 743280\n\tSection __swift5_typeref: 786\n\tSection __cstring: 272452\n\tSection __objc_methname: 7115\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 212996\n\tSection __unwind_info: 191304\n\tSection __eh_frame: 1130388\n\ttotal 8328501\nSegment __DATA_CONST: 327680\n\tSection __const: 315064\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 3968\n\ttotal 319096\nSegment __DATA: 81920\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 1912\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 216\n\tSection __objc_data: 584\n\tSection __data: 4888\n\tSection __thread_vars: 360\n\tSection __thread_data: 72\n\tSection __thread_bss: 464 (zerofill)\n\tSection __common: 18840 (zerofill)\n\tSection __bss: 48264 (zerofill)\n\ttotal 78568\nSegment __LINKEDIT: 6488064\ntotal 4310204416",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n8339456\t81920\t0\t4301783040\t4310204416\t100e88000"
+        },
+        "stripped": {
+          "bundle_bytes": 11638540,
+          "executable_bytes": 11633360,
+          "zip_deflate9_bytes": 3839047,
+          "zip_sha256": "186e642132f565da16d72766ca68f67deaafee37750aee7828bdec8422410606",
+          "executable_gzip9_bytes": 3836315,
+          "executable_gzip9_sha256": "b75ac7bb370ae6c37bfc12564f6eada91bb2681994a25a699890baf7c4cfc9a4",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 11633360,
+              "sha256": "77c9e77423b6e7403d7dd077632a2fcb2d900f18e4ad75469a309518371a1d63"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2202,
+              "sha256": "d024a4c6110d6d236acc13118e4ba94ab0e41ad582b2be99c6518c67f99bcc79"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "64d6f6b7bc6dc01de8020f6f91f73cbe2b646a1d141eec584804615b8fe0b307"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 8339456\n\tSection __text: 5754364\n\tSection __stubs: 5316\n\tSection __objc_stubs: 3680\n\tSection __objc_methlist: 1964\n\tSection __const: 743280\n\tSection __swift5_typeref: 786\n\tSection __cstring: 272452\n\tSection __objc_methname: 7115\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 212996\n\tSection __unwind_info: 191304\n\tSection __eh_frame: 1130388\n\ttotal 8328501\nSegment __DATA_CONST: 327680\n\tSection __const: 315064\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 3968\n\ttotal 319096\nSegment __DATA: 81920\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 1912\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 216\n\tSection __objc_data: 584\n\tSection __data: 4888\n\tSection __thread_vars: 360\n\tSection __thread_data: 72\n\tSection __thread_bss: 464 (zerofill)\n\tSection __common: 18840 (zerofill)\n\tSection __bss: 48264 (zerofill)\n\ttotal 78568\nSegment __LINKEDIT: 2965504\ntotal 4306681856",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n8339456\t81920\t0\t4298260480\t4306681856\t100b2c000"
+        }
+      },
+      "cargo-tree.txt_sha256": "4c21ebf0babb7ae98148959390152d80e23e1ef878fea7cafa67fe3b2823903d",
+      "link-map.txt_sha256": "2a6eddd863d47f62f0b07f0cac5a1f575b09e0a05c9dcc373e591ca3ec33bb03"
+    },
+    "skia": {
+      "build": {
+        "architecture": "arm64",
+        "available_backends": [
+          "skia"
+        ],
+        "build_environment": {
+          "CARGO_BUILD_RUSTFLAGS": null,
+          "CARGO_BUILD_TARGET": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": null,
+          "CARGO_PROFILE_RELEASE_DEBUG": null,
+          "CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS": null,
+          "CARGO_PROFILE_RELEASE_INCREMENTAL": null,
+          "CARGO_PROFILE_RELEASE_LTO": null,
+          "CARGO_PROFILE_RELEASE_OPT_LEVEL": null,
+          "CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS": null,
+          "CARGO_PROFILE_RELEASE_PANIC": null,
+          "CARGO_PROFILE_RELEASE_STRIP": null,
+          "CARGO_TARGET_DIR": "/Users/oleksandr/.codex/worktrees/native-platforms/native-sketch/.build-cache/renderer-comparison",
+          "MACOSX_DEPLOYMENT_TARGET": null,
+          "RUSTC_WORKSPACE_WRAPPER": null,
+          "RUSTC_WRAPPER": null,
+          "RUSTFLAGS": null
+        },
+        "cargo_features": [
+          "skia-backend"
+        ],
+        "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+        "profile": "release",
+        "release_profile_defaults": {
+          "codegen_units": 16,
+          "debug": false,
+          "debug_assertions": false,
+          "incremental": false,
+          "lto": "thin",
+          "opt_level": 3,
+          "overflow_checks": false,
+          "panic": "unwind",
+          "strip": "none"
+        },
+        "rendering_comparison_eligible": true,
+        "result_root": "/Users/oleksandr/.codex/worktrees/renderer-native/native-sketch/artifacts/renderer-comparison",
+        "rust_target": "aarch64-apple-darwin",
+        "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+        "sdk_path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "sdk_version": "27.0",
+        "shared_harness": "wgpu/Metal and vello_common fixture geometry retained in all variants; not direct-Metal Skia minimum",
+        "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+        "source_tree_sha256": "a5e003250dee3e297a4213d4982f03e91504031dcbe2ff2444c53af1066d808b",
+        "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+        "swift_flags": "-swift-version 5 -O",
+        "swift_target": "arm64-apple-macosx13.0",
+        "variant": "skia"
+      },
+      "selected_packages": [
+        "adler2",
+        "arrayvec",
+        "bit-set",
+        "bit-vec",
+        "bitflags",
+        "block-buffer",
+        "block2",
+        "bytemuck",
+        "bytemuck_derive",
+        "cfg-if",
+        "codespan-reporting",
+        "color",
+        "cpufeatures",
+        "crc32fast",
+        "crypto-common",
+        "digest",
+        "dispatch2",
+        "document-features",
+        "equivalent",
+        "euclid",
+        "fdeflate",
+        "fearless_simd",
+        "flate2",
+        "foldhash",
+        "generic-array",
+        "guillotiere",
+        "half",
+        "hashbrown",
+        "indexmap",
+        "itoa",
+        "kurbo",
+        "libc",
+        "libloading",
+        "libm",
+        "linebender_resource_handle",
+        "litrs",
+        "lock_api",
+        "log",
+        "memchr",
+        "miniz_oxide",
+        "naga",
+        "naga-types",
+        "num-traits",
+        "objc2",
+        "objc2-core-foundation",
+        "objc2-core-graphics",
+        "objc2-core-video",
+        "objc2-encode",
+        "objc2-foundation",
+        "objc2-metal",
+        "objc2-quartz-core",
+        "once_cell",
+        "parking_lot",
+        "parking_lot_core",
+        "peniko",
+        "png",
+        "pollster",
+        "polycool",
+        "proc-macro2",
+        "profiling",
+        "quote",
+        "raw-window-handle",
+        "raw-window-metal",
+        "renderer-comparison",
+        "rustc-hash",
+        "scopeguard",
+        "serde",
+        "serde_core",
+        "serde_derive",
+        "serde_json",
+        "sha2",
+        "simd-adler32",
+        "sketch-core",
+        "skia-bindings",
+        "skia-safe",
+        "smallvec",
+        "static_assertions",
+        "syn",
+        "thiserror",
+        "thiserror-impl",
+        "typenum",
+        "unicode-ident",
+        "unicode-width",
+        "vello_common",
+        "wgpu",
+        "wgpu-core",
+        "wgpu-core-deps-apple",
+        "wgpu-hal",
+        "wgpu-naga-bridge",
+        "wgpu-types",
+        "zerocopy",
+        "zerocopy-derive",
+        "zmij"
+      ],
+      "lanes": {
+        "linked": {
+          "bundle_bytes": 23040834,
+          "executable_bytes": 23035664,
+          "zip_deflate9_bytes": 7281183,
+          "zip_sha256": "55e6c93191334d9ac18b67b53374d5f14f467254151a6ec0cce281edf8621745",
+          "executable_gzip9_bytes": 7278451,
+          "executable_gzip9_sha256": "93ff0ecc9546807402b2d9d9d8fd454068e6a4d5c867020b3c3db6178867d0c8",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 23035664,
+              "sha256": "41cb497eca0b2285184346394929136ec8ab704bea96c9d26649a244d02254ae"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2192,
+              "sha256": "68bed7fbc8bc01f7de1f2e236e9052518649c9b37b304d963fc85c9834f32cb6"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "4d17c6945c99cae79719ff06747df933451cbad89aac79deba9a8e97cd677f48"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 13893632\n\tSection __text: 10804092\n\tSection __stubs: 7968\n\tSection __objc_stubs: 8672\n\tSection __objc_methlist: 1964\n\tSection __const: 883936\n\tSection __swift5_typeref: 786\n\tSection __cstring: 446500\n\tSection __objc_methname: 11035\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 226364\n\tSection __unwind_info: 277296\n\tSection __eh_frame: 1199752\n\ttotal 13873221\nSegment __DATA_CONST: 475136\n\tSection __const: 456552\n\tSection __cfstring: 544\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 5976\n\ttotal 463136\nSegment __DATA: 98304\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 3152\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 304\n\tSection __objc_data: 584\n\tSection __data: 11720\n\tSection __thread_vars: 528\n\tSection __thread_data: 88\n\tSection __thread_bss: 496 (zerofill)\n\tSection __common: 18896 (zerofill)\n\tSection __bss: 58624 (zerofill)\n\ttotal 97360\nSegment __LINKEDIT: 8634368\ntotal 4318068736",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n13893632\t98304\t0\t4304076800\t4318068736\t101608000"
+        },
+        "stripped": {
+          "bundle_bytes": 17784210,
+          "executable_bytes": 17779040,
+          "zip_deflate9_bytes": 6527268,
+          "zip_sha256": "94aa0cf915a308caa0f31a6af4482295a5c6bf27ea298e2e1f94b9566f52de19",
+          "executable_gzip9_bytes": 6524536,
+          "executable_gzip9_sha256": "8002577d9e3a6b1de3f7a669518205d03ea60b7d9a1a024d9aa8a27e4c08d664",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 17779040,
+              "sha256": "5b6f440f246f1b94e6d5d336b0f4041685183a3423d5feac08aeceb55c7ef97d"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2192,
+              "sha256": "68bed7fbc8bc01f7de1f2e236e9052518649c9b37b304d963fc85c9834f32cb6"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "4d17c6945c99cae79719ff06747df933451cbad89aac79deba9a8e97cd677f48"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 13893632\n\tSection __text: 10804092\n\tSection __stubs: 7968\n\tSection __objc_stubs: 8672\n\tSection __objc_methlist: 1964\n\tSection __const: 883936\n\tSection __swift5_typeref: 786\n\tSection __cstring: 446500\n\tSection __objc_methname: 11035\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 226364\n\tSection __unwind_info: 277296\n\tSection __eh_frame: 1199752\n\ttotal 13873221\nSegment __DATA_CONST: 475136\n\tSection __const: 456552\n\tSection __cfstring: 544\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 5976\n\ttotal 463136\nSegment __DATA: 98304\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 3152\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 304\n\tSection __objc_data: 584\n\tSection __data: 11720\n\tSection __thread_vars: 528\n\tSection __thread_data: 88\n\tSection __thread_bss: 496 (zerofill)\n\tSection __common: 18896 (zerofill)\n\tSection __bss: 58624 (zerofill)\n\ttotal 97360\nSegment __LINKEDIT: 3391488\ntotal 4312825856",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n13893632\t98304\t0\t4298833920\t4312825856\t101108000"
+        }
+      },
+      "cargo-tree.txt_sha256": "d7fdd1f4a89d299f947a4cfe323fbe2df56061284763a51a94a56f6fe22b6513",
+      "link-map.txt_sha256": "ee7ce220493fb7aa76ab7428ca497af185c9111f9fb095f6eae6f7373104faef"
+    },
+    "vello": {
+      "build": {
+        "architecture": "arm64",
+        "available_backends": [
+          "vello"
+        ],
+        "build_environment": {
+          "CARGO_BUILD_RUSTFLAGS": null,
+          "CARGO_BUILD_TARGET": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": null,
+          "CARGO_PROFILE_RELEASE_DEBUG": null,
+          "CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS": null,
+          "CARGO_PROFILE_RELEASE_INCREMENTAL": null,
+          "CARGO_PROFILE_RELEASE_LTO": null,
+          "CARGO_PROFILE_RELEASE_OPT_LEVEL": null,
+          "CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS": null,
+          "CARGO_PROFILE_RELEASE_PANIC": null,
+          "CARGO_PROFILE_RELEASE_STRIP": null,
+          "CARGO_TARGET_DIR": "/Users/oleksandr/.codex/worktrees/native-platforms/native-sketch/.build-cache/renderer-comparison",
+          "MACOSX_DEPLOYMENT_TARGET": null,
+          "RUSTC_WORKSPACE_WRAPPER": null,
+          "RUSTC_WRAPPER": null,
+          "RUSTFLAGS": null
+        },
+        "cargo_features": [
+          "vello-backend"
+        ],
+        "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+        "profile": "release",
+        "release_profile_defaults": {
+          "codegen_units": 16,
+          "debug": false,
+          "debug_assertions": false,
+          "incremental": false,
+          "lto": "thin",
+          "opt_level": 3,
+          "overflow_checks": false,
+          "panic": "unwind",
+          "strip": "none"
+        },
+        "rendering_comparison_eligible": true,
+        "result_root": "/Users/oleksandr/.codex/worktrees/renderer-native/native-sketch/artifacts/renderer-comparison",
+        "rust_target": "aarch64-apple-darwin",
+        "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+        "sdk_path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "sdk_version": "27.0",
+        "shared_harness": "wgpu/Metal and vello_common fixture geometry retained in all variants; not direct-Metal Skia minimum",
+        "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+        "source_tree_sha256": "a5e003250dee3e297a4213d4982f03e91504031dcbe2ff2444c53af1066d808b",
+        "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+        "swift_flags": "-swift-version 5 -O",
+        "swift_target": "arm64-apple-macosx13.0",
+        "variant": "vello"
+      },
+      "selected_packages": [
+        "adler2",
+        "arrayvec",
+        "bit-set",
+        "bit-vec",
+        "bitflags",
+        "block-buffer",
+        "block2",
+        "bytemuck",
+        "bytemuck_derive",
+        "cfg-if",
+        "codespan-reporting",
+        "color",
+        "cpufeatures",
+        "crc32fast",
+        "crypto-common",
+        "digest",
+        "dispatch2",
+        "document-features",
+        "equivalent",
+        "euclid",
+        "fdeflate",
+        "fearless_simd",
+        "flate2",
+        "foldhash",
+        "generic-array",
+        "guillotiere",
+        "half",
+        "hashbrown",
+        "indexmap",
+        "itoa",
+        "kurbo",
+        "libc",
+        "libloading",
+        "libm",
+        "linebender_resource_handle",
+        "litrs",
+        "lock_api",
+        "log",
+        "memchr",
+        "miniz_oxide",
+        "naga",
+        "naga-types",
+        "num-traits",
+        "objc2",
+        "objc2-core-foundation",
+        "objc2-core-graphics",
+        "objc2-core-video",
+        "objc2-encode",
+        "objc2-foundation",
+        "objc2-metal",
+        "objc2-quartz-core",
+        "once_cell",
+        "parking_lot",
+        "parking_lot_core",
+        "peniko",
+        "png",
+        "pollster",
+        "polycool",
+        "proc-macro2",
+        "profiling",
+        "quote",
+        "raw-window-handle",
+        "raw-window-metal",
+        "renderer-comparison",
+        "rustc-hash",
+        "scopeguard",
+        "serde",
+        "serde_core",
+        "serde_derive",
+        "serde_json",
+        "sha2",
+        "simd-adler32",
+        "sketch-core",
+        "smallvec",
+        "static_assertions",
+        "syn",
+        "thiserror",
+        "thiserror-impl",
+        "typenum",
+        "unicode-ident",
+        "unicode-width",
+        "vello_common",
+        "vello_gpu",
+        "vello_gpu_shaders",
+        "wgpu",
+        "wgpu-core",
+        "wgpu-core-deps-apple",
+        "wgpu-hal",
+        "wgpu-naga-bridge",
+        "wgpu-types",
+        "zerocopy",
+        "zerocopy-derive",
+        "zmij"
+      ],
+      "lanes": {
+        "linked": {
+          "bundle_bytes": 15611781,
+          "executable_bytes": 15606608,
+          "zip_deflate9_bytes": 4427489,
+          "zip_sha256": "e9122220af8102e5413300bb1a7d751c32fa4bf51fa3f33b83999b99b7728e66",
+          "executable_gzip9_bytes": 4424757,
+          "executable_gzip9_sha256": "de1a8302262ba47e2c535d9a5d1738d8397d6268fc2968518c0915557a752f22",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 15606608,
+              "sha256": "91608acb6e8e57e7a5ded517361bb8cb7872524c7ba66c0609ded5cba757eeea"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2195,
+              "sha256": "8a9ecc20351cf4bbbc650776cfb141bcc04abe79c641324554c8f3dafecbc1d1"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "beba8ef401e5492892a2a313b697f694222c3f3c7e0b547d47adb8c2fb5474e0"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 8634368\n\tSection __text: 5959292\n\tSection __stubs: 5316\n\tSection __objc_stubs: 3680\n\tSection __objc_methlist: 1964\n\tSection __const: 779232\n\tSection __swift5_typeref: 786\n\tSection __cstring: 276089\n\tSection __objc_methname: 7115\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 221092\n\tSection __unwind_info: 196344\n\tSection __eh_frame: 1160276\n\ttotal 8616042\nSegment __DATA_CONST: 327680\n\tSection __const: 321168\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 3968\n\ttotal 325200\nSegment __DATA: 81920\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 1912\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 216\n\tSection __objc_data: 584\n\tSection __data: 4888\n\tSection __thread_vars: 360\n\tSection __thread_data: 72\n\tSection __thread_bss: 464 (zerofill)\n\tSection __common: 18840 (zerofill)\n\tSection __bss: 48264 (zerofill)\n\ttotal 78568\nSegment __LINKEDIT: 6635520\ntotal 4310646784",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n8634368\t81920\t0\t4301930496\t4310646784\t100ef4000"
+        },
+        "stripped": {
+          "bundle_bytes": 11959525,
+          "executable_bytes": 11954352,
+          "zip_deflate9_bytes": 3978515,
+          "zip_sha256": "226a3077ab8eadabc29acd24ae27ff2d45f9e0c1315406a6fd3a1301c4ccb189",
+          "executable_gzip9_bytes": 3975783,
+          "executable_gzip9_sha256": "d10ca6172ba5e82982d931a5197cfd978e8dd8d9814a026af6dd04680346e519",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 11954352,
+              "sha256": "894b4123edafda85b880a8da1e68eb7a3ce32e6d7016c33f82d5618285f11455"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2195,
+              "sha256": "8a9ecc20351cf4bbbc650776cfb141bcc04abe79c641324554c8f3dafecbc1d1"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "beba8ef401e5492892a2a313b697f694222c3f3c7e0b547d47adb8c2fb5474e0"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 8634368\n\tSection __text: 5959292\n\tSection __stubs: 5316\n\tSection __objc_stubs: 3680\n\tSection __objc_methlist: 1964\n\tSection __const: 779232\n\tSection __swift5_typeref: 786\n\tSection __cstring: 276089\n\tSection __objc_methname: 7115\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 221092\n\tSection __unwind_info: 196344\n\tSection __eh_frame: 1160276\n\ttotal 8616042\nSegment __DATA_CONST: 327680\n\tSection __const: 321168\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 3968\n\ttotal 325200\nSegment __DATA: 81920\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 1912\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 216\n\tSection __objc_data: 584\n\tSection __data: 4888\n\tSection __thread_vars: 360\n\tSection __thread_data: 72\n\tSection __thread_bss: 464 (zerofill)\n\tSection __common: 18840 (zerofill)\n\tSection __bss: 48264 (zerofill)\n\ttotal 78568\nSegment __LINKEDIT: 2981888\ntotal 4306993152",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n8634368\t81920\t0\t4298276864\t4306993152\t100b78000"
+        }
+      },
+      "cargo-tree.txt_sha256": "dce9ab924a5b5bb12c874b479ab5ad5d4c299802eb603893d3742eca7a88e984",
+      "link-map.txt_sha256": "c56af27db781af171e9d83e5295760da29e9804c17d94c70e559b9ce19c8dde9"
+    },
+    "both": {
+      "build": {
+        "architecture": "arm64",
+        "available_backends": [
+          "skia",
+          "vello"
+        ],
+        "build_environment": {
+          "CARGO_BUILD_RUSTFLAGS": null,
+          "CARGO_BUILD_TARGET": null,
+          "CARGO_ENCODED_RUSTFLAGS": null,
+          "CARGO_PROFILE_RELEASE_CODEGEN_UNITS": null,
+          "CARGO_PROFILE_RELEASE_DEBUG": null,
+          "CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS": null,
+          "CARGO_PROFILE_RELEASE_INCREMENTAL": null,
+          "CARGO_PROFILE_RELEASE_LTO": null,
+          "CARGO_PROFILE_RELEASE_OPT_LEVEL": null,
+          "CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS": null,
+          "CARGO_PROFILE_RELEASE_PANIC": null,
+          "CARGO_PROFILE_RELEASE_STRIP": null,
+          "CARGO_TARGET_DIR": "/Users/oleksandr/.codex/worktrees/native-platforms/native-sketch/.build-cache/renderer-comparison",
+          "MACOSX_DEPLOYMENT_TARGET": null,
+          "RUSTC_WORKSPACE_WRAPPER": null,
+          "RUSTC_WRAPPER": null,
+          "RUSTFLAGS": null
+        },
+        "cargo_features": [
+          "skia-backend",
+          "vello-backend"
+        ],
+        "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+        "profile": "release",
+        "release_profile_defaults": {
+          "codegen_units": 16,
+          "debug": false,
+          "debug_assertions": false,
+          "incremental": false,
+          "lto": "thin",
+          "opt_level": 3,
+          "overflow_checks": false,
+          "panic": "unwind",
+          "strip": "none"
+        },
+        "rendering_comparison_eligible": true,
+        "result_root": "/Users/oleksandr/.codex/worktrees/renderer-native/native-sketch/artifacts/renderer-comparison",
+        "rust_target": "aarch64-apple-darwin",
+        "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+        "sdk_path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "sdk_version": "27.0",
+        "shared_harness": "wgpu/Metal and vello_common fixture geometry retained in all variants; not direct-Metal Skia minimum",
+        "source_diff_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+        "source_tree_sha256": "a5e003250dee3e297a4213d4982f03e91504031dcbe2ff2444c53af1066d808b",
+        "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+        "swift_flags": "-swift-version 5 -O",
+        "swift_target": "arm64-apple-macosx13.0",
+        "variant": "both"
+      },
+      "selected_packages": [
+        "adler2",
+        "arrayvec",
+        "bit-set",
+        "bit-vec",
+        "bitflags",
+        "block-buffer",
+        "block2",
+        "bytemuck",
+        "bytemuck_derive",
+        "cfg-if",
+        "codespan-reporting",
+        "color",
+        "cpufeatures",
+        "crc32fast",
+        "crypto-common",
+        "digest",
+        "dispatch2",
+        "document-features",
+        "equivalent",
+        "euclid",
+        "fdeflate",
+        "fearless_simd",
+        "flate2",
+        "foldhash",
+        "generic-array",
+        "guillotiere",
+        "half",
+        "hashbrown",
+        "indexmap",
+        "itoa",
+        "kurbo",
+        "libc",
+        "libloading",
+        "libm",
+        "linebender_resource_handle",
+        "litrs",
+        "lock_api",
+        "log",
+        "memchr",
+        "miniz_oxide",
+        "naga",
+        "naga-types",
+        "num-traits",
+        "objc2",
+        "objc2-core-foundation",
+        "objc2-core-graphics",
+        "objc2-core-video",
+        "objc2-encode",
+        "objc2-foundation",
+        "objc2-metal",
+        "objc2-quartz-core",
+        "once_cell",
+        "parking_lot",
+        "parking_lot_core",
+        "peniko",
+        "png",
+        "pollster",
+        "polycool",
+        "proc-macro2",
+        "profiling",
+        "quote",
+        "raw-window-handle",
+        "raw-window-metal",
+        "renderer-comparison",
+        "rustc-hash",
+        "scopeguard",
+        "serde",
+        "serde_core",
+        "serde_derive",
+        "serde_json",
+        "sha2",
+        "simd-adler32",
+        "sketch-core",
+        "skia-bindings",
+        "skia-safe",
+        "smallvec",
+        "static_assertions",
+        "syn",
+        "thiserror",
+        "thiserror-impl",
+        "typenum",
+        "unicode-ident",
+        "unicode-width",
+        "vello_common",
+        "vello_gpu",
+        "vello_gpu_shaders",
+        "wgpu",
+        "wgpu-core",
+        "wgpu-core-deps-apple",
+        "wgpu-hal",
+        "wgpu-naga-bridge",
+        "wgpu-types",
+        "zerocopy",
+        "zerocopy-derive",
+        "zmij"
+      ],
+      "lanes": {
+        "linked": {
+          "bundle_bytes": 23457884,
+          "executable_bytes": 23452688,
+          "zip_deflate9_bytes": 7424064,
+          "zip_sha256": "532d98c1ab217b877bdef785e876b2e80deb08882e2f4dbde1e48710ecce5f61",
+          "executable_gzip9_bytes": 7421328,
+          "executable_gzip9_sha256": "77020cb93bf289a8b16db63484f5b5c96453cec05dfa3c341e097dbbbfc7a23b",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 23452688,
+              "sha256": "c649c2ae5c7e52d531a9c2e6dbe3f202ecb26873048a459c0139133085f2163f"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2218,
+              "sha256": "912cb2a73cacb9df70b9a14a4c87917aa414d343582212df3255353c849867cd"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "419fbc6a200849e0f3f5e320b225e0faf8ebc0ca2fec4428a0d0042af0fdaf36"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 14155776\n\tSection __text: 10988668\n\tSection __stubs: 7968\n\tSection __objc_stubs: 8672\n\tSection __objc_methlist: 1964\n\tSection __const: 918992\n\tSection __swift5_typeref: 786\n\tSection __cstring: 450085\n\tSection __objc_methname: 11035\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 234432\n\tSection __unwind_info: 280880\n\tSection __eh_frame: 1227120\n\ttotal 14135458\nSegment __DATA_CONST: 475136\n\tSection __const: 462072\n\tSection __cfstring: 544\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 5976\n\ttotal 468656\nSegment __DATA: 98304\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 3152\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 304\n\tSection __objc_data: 584\n\tSection __data: 11720\n\tSection __thread_vars: 528\n\tSection __thread_data: 88\n\tSection __thread_bss: 496 (zerofill)\n\tSection __common: 18896 (zerofill)\n\tSection __bss: 58624 (zerofill)\n\ttotal 97360\nSegment __LINKEDIT: 8798208\ntotal 4318494720",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n14155776\t98304\t0\t4304240640\t4318494720\t101670000"
+        },
+        "stripped": {
+          "bundle_bytes": 18068332,
+          "executable_bytes": 18063136,
+          "zip_deflate9_bytes": 6654980,
+          "zip_sha256": "d81bf3e6bc666acd78196f729db72fc7291ced5cd43a0394b5aa2f6a2cde6dbe",
+          "executable_gzip9_bytes": 6652244,
+          "executable_gzip9_sha256": "a3fed546e95454d792e923690a47b3f374dc9c326354db808bfa0f64b5ea2e69",
+          "files": [
+            {
+              "path": "Contents/Info.plist",
+              "bytes": 536,
+              "sha256": "73089160aea4d21a2084e93545a909bffdb6690c8decba9e5133c05d734dd9a6"
+            },
+            {
+              "path": "Contents/MacOS/RendererComparison",
+              "bytes": 18063136,
+              "sha256": "8218ab21cf442dcfc574b6436e09e4aefee83d112e4dac12ffe35a818df7f0ab"
+            },
+            {
+              "path": "Contents/Resources/build.json",
+              "bytes": 2218,
+              "sha256": "912cb2a73cacb9df70b9a14a4c87917aa414d343582212df3255353c849867cd"
+            },
+            {
+              "path": "Contents/_CodeSignature/CodeResources",
+              "bytes": 2442,
+              "sha256": "419fbc6a200849e0f3f5e320b225e0faf8ebc0ca2fec4428a0d0042af0fdaf36"
+            }
+          ],
+          "architecture": "arm64",
+          "dynamic_libraries": "RendererComparison:\n\t/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit (compatibility version 45.0.0, current version 2775.10.103)\n\t/System/Library/Frameworks/QuartzCore.framework/Versions/A/QuartzCore (compatibility version 1.2.0, current version 1223.2.2)\n\t/System/Library/Frameworks/Metal.framework/Versions/A/Metal (compatibility version 1.0.0, current version 382.5.3)\n\t/System/Library/Frameworks/CoreVideo.framework/Versions/A/CoreVideo (compatibility version 1.2.0, current version 758.27.0)\n\t/System/Library/Frameworks/CoreGraphics.framework/Versions/A/CoreGraphics (compatibility version 64.0.0, current version 2050.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation (compatibility version 300.0.0, current version 5027.0.69)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 62460.1.2)\n\t/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit (compatibility version 1.0.0, current version 275.0.0)\n\t/System/Library/Frameworks/IOSurface.framework/Versions/A/IOSurface (compatibility version 1.0.0, current version 1.0.0)\n\t/System/Library/Frameworks/CoreText.framework/Versions/A/CoreText (compatibility version 1.0.0, current version 904.0.0)\n\t/System/Library/Frameworks/ImageIO.framework/Versions/A/ImageIO (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2200.27.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1359.0.0)\n\t/usr/lib/libobjc.A.dylib (compatibility version 1.0.0, current version 228.0.0)\n\t/usr/lib/swift/libswiftCore.dylib (compatibility version 0.0.0, current version 0.0.0)\n\t/usr/lib/swift/libswiftCoreFoundation.dylib (compatibility version 1.0.0, current version 120.100.0)\n\t/usr/lib/swift/libswiftCoreImage.dylib (compatibility version 1.0.0, current version 3.0.0, weak)\n\t/usr/lib/swift/libswiftDarwin.dylib (compatibility version 1.0.0, current version 428.0.10)\n\t/usr/lib/swift/libswiftDispatch.dylib (compatibility version 1.0.0, current version 1605.0.2)\n\t/usr/lib/swift/libswiftIOKit.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftMetal.dylib (compatibility version 1.0.0, current version 382.5.3, weak)\n\t/usr/lib/swift/libswiftOSLog.dylib (compatibility version 1.0.0, current version 10.0.0, weak)\n\t/usr/lib/swift/libswiftObjectiveC.dylib (compatibility version 1.0.0, current version 973.1.0)\n\t/usr/lib/swift/libswiftQuartzCore.dylib (compatibility version 1.0.0, current version 5.0.0, weak)\n\t/usr/lib/swift/libswiftSpatial.dylib (compatibility version 1.0.0, current version 1.0.0, weak)\n\t/usr/lib/swift/libswiftUniformTypeIdentifiers.dylib (compatibility version 1.0.0, current version 917.0.1, weak)\n\t/usr/lib/swift/libswiftXPC.dylib (compatibility version 1.0.0, current version 167.0.2, weak)\n\t/usr/lib/swift/libswiftos.dylib (compatibility version 1.0.0, current version 1090.0.0, weak)\n\t/usr/lib/swift/libswiftsimd.dylib (compatibility version 1.0.0, current version 25.0.0, weak)",
+          "macho_sections": "Segment __PAGEZERO: 4294967296 (zero fill) \nSegment __TEXT: 14155776\n\tSection __text: 10988668\n\tSection __stubs: 7968\n\tSection __objc_stubs: 8672\n\tSection __objc_methlist: 1964\n\tSection __const: 918992\n\tSection __swift5_typeref: 786\n\tSection __cstring: 450085\n\tSection __objc_methname: 11035\n\tSection __swift5_capture: 120\n\tSection __objc_methtype: 2578\n\tSection __swift5_entry: 8\n\tSection __constg_swiftt: 396\n\tSection __swift5_reflstr: 460\n\tSection __swift5_fieldmd: 708\n\tSection __objc_classname: 206\n\tSection __swift5_builtin: 80\n\tSection __swift5_assocty: 192\n\tSection __swift5_proto: 72\n\tSection __swift5_types: 36\n\tSection __gcc_except_tab: 234432\n\tSection __unwind_info: 280880\n\tSection __eh_frame: 1227120\n\ttotal 14135458\nSegment __DATA_CONST: 475136\n\tSection __const: 462072\n\tSection __cfstring: 544\n\tSection __objc_classlist: 24\n\tSection __objc_protolist: 32\n\tSection __objc_imageinfo: 8\n\tSection __got: 5976\n\ttotal 468656\nSegment __DATA: 98304\n\tSection __objc_const: 2936\n\tSection __objc_selrefs: 3152\n\tSection __objc_protorefs: 32\n\tSection __objc_classrefs: 304\n\tSection __objc_data: 584\n\tSection __data: 11720\n\tSection __thread_vars: 528\n\tSection __thread_data: 88\n\tSection __thread_bss: 496 (zerofill)\n\tSection __common: 18896 (zerofill)\n\tSection __bss: 58624 (zerofill)\n\ttotal 97360\nSegment __LINKEDIT: 3407872\ntotal 4313104384",
+          "macho_segments": "__TEXT\t__DATA\t__OBJC\tothers\tdec\thex\n14155776\t98304\t0\t4298850304\t4313104384\t10114c000"
+        }
+      },
+      "cargo-tree.txt_sha256": "c397a6109252f86fe08ce90946ae0d3a0ee4c1f83b8ab46e5ca6c55839ad36b3",
+      "link-map.txt_sha256": "a51520ee4d7f8bfe4351ae5653e67847d87bace1d4653089d92c2bb4aec3aa16"
+    }
+  },
+  "differences": {
+    "linked": {
+      "skia_minus_baseline": {
+        "bundle_bytes": 7880326,
+        "executable_bytes": 7880336,
+        "zip_deflate9_bytes": 3011003,
+        "executable_gzip9_bytes": 3011003
+      },
+      "vello_minus_baseline": {
+        "bundle_bytes": 451273,
+        "executable_bytes": 451280,
+        "zip_deflate9_bytes": 157309,
+        "executable_gzip9_bytes": 157309
+      },
+      "both_minus_baseline": {
+        "bundle_bytes": 8297376,
+        "executable_bytes": 8297360,
+        "zip_deflate9_bytes": 3153884,
+        "executable_gzip9_bytes": 3153880
+      },
+      "both_minus_skia": {
+        "bundle_bytes": 417050,
+        "executable_bytes": 417024,
+        "zip_deflate9_bytes": 142881,
+        "executable_gzip9_bytes": 142877
+      },
+      "both_minus_vello": {
+        "bundle_bytes": 7846103,
+        "executable_bytes": 7846080,
+        "zip_deflate9_bytes": 2996575,
+        "executable_gzip9_bytes": 2996571
+      }
+    },
+    "stripped": {
+      "skia_minus_baseline": {
+        "bundle_bytes": 6145670,
+        "executable_bytes": 6145680,
+        "zip_deflate9_bytes": 2688221,
+        "executable_gzip9_bytes": 2688221
+      },
+      "vello_minus_baseline": {
+        "bundle_bytes": 320985,
+        "executable_bytes": 320992,
+        "zip_deflate9_bytes": 139468,
+        "executable_gzip9_bytes": 139468
+      },
+      "both_minus_baseline": {
+        "bundle_bytes": 6429792,
+        "executable_bytes": 6429776,
+        "zip_deflate9_bytes": 2815933,
+        "executable_gzip9_bytes": 2815929
+      },
+      "both_minus_skia": {
+        "bundle_bytes": 284122,
+        "executable_bytes": 284096,
+        "zip_deflate9_bytes": 127712,
+        "executable_gzip9_bytes": 127708
+      },
+      "both_minus_vello": {
+        "bundle_bytes": 6108807,
+        "executable_bytes": 6108784,
+        "zip_deflate9_bytes": 2676465,
+        "executable_gzip9_bytes": 2676461
+      }
+    }
+  },
+  "runtime_coverage": {
+    "original_accepted": 38,
+    "original_unavailable_backend_rejections": 3,
+    "optimized_accepted": 23,
+    "optimized_pending": 15,
+    "optimized_reason": "User requested leaving remaining checks pending after a Stop during finalization. Interrupted attempt excluded.",
+    "cross_linker_equal_captures": 23
+  },
+  "validation": {
+    "builds": "Source 307f700: four release builds and strict Clippy checks; nine Rust tests per variant (36 total). Swift warnings-as-errors typecheck and negative feature/build-variant checks passed.",
+    "integration": "Repository ./scripts/check passed at 307f700 with untracked audit tools, including formatting, clippy, Rust tests, macOS build and Swift/Rust integration. Three audit failure/packaging tests passed.",
+    "original_smokes": "Original linker settings: all 38 native checks passed, including all eight fixtures through single/combined stripped renderers, four linked live cases and two white baseline controls. Three unavailable-backend requests were rejected. An expected-error-wording assertion was corrected and those three cases rerun; the app did not change.",
+    "optimized_smokes": "Unused-code-removal configuration: 23 of 38 checks passed. The next Vello transparency attempt received Stop during finalization and was excluded. The user requested leaving all remaining 15 checks pending; optimized blank-baseline execution and final unavailable-backend checks were not run.",
+    "pixels": "Every accepted capture hash matches decoded PNG bytes. Same-backend output agrees across single/combined/strip variants in original checks; all 23 accepted optimized captures match their original-linker counterparts exactly.",
+    "review": "Fresh reviewer independently reproduced both audits: file inventories, exact ZIP/gzip bytes, signatures, architectures, original preservation, selected dependencies, source/archive identities and differences. Independently verified all 38 original and 23 accepted optimized smoke records, including decoded pixels and cross-lane equality. Cancelled attempt excluded; 15 optimized rendering checks and final rejection checks remain pending at the owner\u2019s request.",
+    "design": "Designer reviewed desktop/mobile screenshots and report source; no visual blocker. Clarified the name of the unused-code-removal configuration as requested. Browser document has no overflow at 390 px."
+  },
+  "raw_evidence": {
+    "original_audit": {
+      "path": "artifacts/renderer-size-audit-307f700/size-audit.json",
+      "sha256": "4feed5be97a019a2e1db8128e4d81300c5c224fcb36bed1431244faa1f60cc87"
+    },
+    "dead_strip_audit": {
+      "path": "artifacts/renderer-size-dead-strip-audit-307f700/size-audit.json",
+      "sha256": "d4ce23d281e338cbf0e16855af589a261f567749575c2c87b537e526e6ed25c4"
+    },
+    "retention": "Bundles, compressed files, linker maps and raw smoke artifacts retained locally; source, compact audits and smoke summaries committed."
+  }
+}

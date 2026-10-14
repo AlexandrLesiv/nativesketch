@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Short, serial correctness checks for audited bundles. Never performance evidence."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import runpy
+import subprocess
+
+ROOT=Path(__file__).resolve().parent.parent
+FIXTURES=('live','dense100','dense1000','dense5000','panzoom','alpha','clip','image')
+
+
+def check_unavailable(audit_root):
+    failures=[]
+    for variant,unavailable in [('skia','vello'),('vello','skia'),('baseline','skia')]:
+        binary=audit_root/variant/'stripped/RendererComparison.app/Contents/MacOS/RendererComparison'
+        result=subprocess.run([str(binary),'--backend',unavailable],capture_output=True,text=True,timeout=15)
+        if result.returncode==0 or f'Backend {unavailable} is not compiled' not in result.stderr:raise ValueError('Unavailable backend was not explicitly rejected')
+        failures.append(dict(variant=variant,requested_backend=unavailable,exit_code=result.returncode,message=result.stderr.strip()))
+    return failures
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--audit-root',type=Path,required=True)
+    parser.add_argument('--output',type=Path,required=True)
+    args=parser.parse_args()
+    output=args.output.resolve()
+    if output.exists() or not output.is_relative_to(ROOT/'artifacts'):
+        parser.error('Choose a fresh output inside artifacts')
+    audit_root=args.audit_root.resolve()
+    audit=json.loads((audit_root/'size-audit.json').read_text())
+    if audit['status']!='complete':parser.error('Complete audit required')
+    validate=runpy.run_path(str(ROOT/'scripts/analyze-renderer-comparison'))['validate']
+    from PIL import Image
+    output.mkdir(parents=True)
+    records=[];images={}
+    def save():
+        (output/'smoke.json').write_text(json.dumps({'status':'running','purpose':'correctness only; not performance evidence','runs':records},indent=2)+'\n')
+    plan=[]
+    for backend in ('skia','vello'):
+        for variant in (backend,'both'):
+            plan += [(variant,'stripped',backend,f) for f in FIXTURES]
+            plan.append((variant,'linked',backend,'live'))
+    plan += [('baseline',lane,'baseline','live') for lane in ('linked','stripped')]
+    save()
+    for variant,lane,backend,fixture in plan:
+        bundle=audit_root/variant/lane/'RendererComparison.app'
+        binary=bundle/'Contents/MacOS/RendererComparison'
+        expected=next(f['sha256'] for f in audit['variants'][variant]['lanes'][lane]['files'] if f['path']=='Contents/MacOS/RendererComparison')
+        if hashlib.sha256(binary.read_bytes()).hexdigest()!=expected:raise ValueError('Executable differs from size audit')
+        directory=output/f'{variant}-{lane}-{backend}-{fixture}'
+        result=subprocess.run([str(binary),'--backend',backend,'--fixture',fixture,'--mode','completion','--width','800','--height','500','--warmup','2','--frames','12','--repeat-id','size-correctness','--output',str(directory)],capture_output=True,text=True,timeout=90)
+        directory.mkdir(exist_ok=True)
+        (directory/'launcher.log').write_text(result.stdout+result.stderr)
+        if result.returncode:raise ValueError(f'{directory.name}: process exited {result.returncode}')
+        manifest=json.loads((directory/'manifest.json').read_text());host=json.loads((directory/'host-status.json').read_text())
+        build=json.loads((bundle/'Contents/Resources/build.json').read_text())
+        if manifest['status']!='complete' or host['status']!='complete':raise ValueError('Native run did not complete')
+        if manifest['backend']!=backend or manifest['build_embedded']!=build or manifest['build']!=build:raise ValueError('Runtime backend or build identity differs')
+        if manifest['source_revision']!=audit['measured_build']['source_revision']:raise ValueError('Runtime source differs from audit')
+        readback=json.loads((directory/'readback.json').read_text())
+        with Image.open(directory/'final.png') as image:
+            rgba=image.convert('RGBA');raw=rgba.tobytes();extrema=rgba.getextrema()
+            if rgba.size!=(800,500):raise ValueError('Wrong capture dimensions')
+        digest=hashlib.sha256(raw).hexdigest()
+        if digest!=readback['rgba_sha256']:raise ValueError('Decoded capture differs from native readback')
+        if backend=='baseline':
+            if extrema!=((255,255),)*4 or manifest['rendering_comparison_eligible'] is not False:raise ValueError('Baseline is not white/ineligible')
+            try:validate(directory)
+            except ValueError as error:
+                if 'invalid backend/mode' not in str(error):raise
+            else:raise ValueError('Baseline wrongly admitted as performance data')
+        else:
+            validate(directory)
+            key=(backend,fixture)
+            if key in images and images[key]!=digest:raise ValueError('Same backend capture differs across build/strip variants')
+            images[key]=digest
+        records.append(dict(variant=variant,lane=lane,backend=backend,fixture=fixture,rgba_sha256=digest,source_revision=manifest['source_revision'],path=str(directory.relative_to(ROOT))))
+        save();print(f'{len(records)}/{len(plan)} {directory.name}: PASS',flush=True)
+    failures=check_unavailable(audit_root)
+    (output/'smoke.json').write_text(json.dumps({'status':'complete','purpose':'correctness only; not performance evidence','runs':records,'unavailable_backend_checks':failures,'same_backend_rgba_equal':True,'baseline_white_and_analyzer_rejected':True},indent=2)+'\n')
+    print(f'PASS: {len(records)} runs; exact same-backend captures across variants; 3 unavailable-backend rejections')
+
+
+if __name__=='__main__':main()

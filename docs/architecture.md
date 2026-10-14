@@ -84,6 +84,9 @@ The [decision proposal](decisions/0003-renderer-comparison.md) remains subject t
 The [native AppKit/Core Graphics follow-up](evidence/coregraphics-comparison.html)
 adds CPU callback measurements and shipped-artifact size context, with different timing
 boundaries from the Metal experiment.
+The [separate renderer bundle study](evidence/renderer-bundle-size.html) measures
+matched macOS builds and linker settings; its shared-harness deltas are not portable
+engine-size estimates.
 Choose using the app's latency, correctness, memory, and integration evidence.
 For an illustrated explanation of these layers and input-to-display delay, see the
 [rendering layers and pen latency guide](evidence/rendering-layers-and-latency.html).

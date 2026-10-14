@@ -1,0 +1,313 @@
+{
+  "status": "partial_user_stopped",
+  "purpose": "correctness only; not performance evidence",
+  "runs": [
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "live",
+      "rgba_sha256": "8d32aaf16ff8f9777590fec43b49e2e344463d0f92c66b216d45f44a46dd8f9d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-live"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense100",
+      "rgba_sha256": "195a21c8bae197bfeeed89ff04d883304220d2099bc2ca025039583a6f9a315a",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-dense100"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense1000",
+      "rgba_sha256": "7d38a214491fcf95f3318e4ada054e0e4e1df1496f054d96d9626db008486ce1",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-dense1000"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense5000",
+      "rgba_sha256": "99def638721b72eaaf0b6ad02bd7ebd5c26aad1245f2311e6b1becfdcdb80e0d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-dense5000"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "panzoom",
+      "rgba_sha256": "e6b5de39d4709001e00b5cc0fd68332850f23ded263c6cef035a90f38d9ee03a",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-panzoom"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "alpha",
+      "rgba_sha256": "a150e68c9445ca953fcddeb49a74b43c4350bff3ffd1ddd9f80ed6025eb039c4",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-alpha"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "clip",
+      "rgba_sha256": "0e5613592a5df64541ec87333be0a1892dcf0d93899196e7fb43ac6173ed88b6",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-clip"
+    },
+    {
+      "variant": "skia",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "image",
+      "rgba_sha256": "512ac0d472396e2a9b97f60e1a96f8429ef1dea1f87aeec87b47b475bd041baa",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-stripped-skia-image"
+    },
+    {
+      "variant": "skia",
+      "lane": "linked",
+      "backend": "skia",
+      "fixture": "live",
+      "rgba_sha256": "8d32aaf16ff8f9777590fec43b49e2e344463d0f92c66b216d45f44a46dd8f9d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/skia-linked-skia-live"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "live",
+      "rgba_sha256": "8d32aaf16ff8f9777590fec43b49e2e344463d0f92c66b216d45f44a46dd8f9d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-live"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense100",
+      "rgba_sha256": "195a21c8bae197bfeeed89ff04d883304220d2099bc2ca025039583a6f9a315a",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-dense100"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense1000",
+      "rgba_sha256": "7d38a214491fcf95f3318e4ada054e0e4e1df1496f054d96d9626db008486ce1",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-dense1000"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "dense5000",
+      "rgba_sha256": "99def638721b72eaaf0b6ad02bd7ebd5c26aad1245f2311e6b1becfdcdb80e0d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-dense5000"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "panzoom",
+      "rgba_sha256": "e6b5de39d4709001e00b5cc0fd68332850f23ded263c6cef035a90f38d9ee03a",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-panzoom"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "alpha",
+      "rgba_sha256": "a150e68c9445ca953fcddeb49a74b43c4350bff3ffd1ddd9f80ed6025eb039c4",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-alpha"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "clip",
+      "rgba_sha256": "0e5613592a5df64541ec87333be0a1892dcf0d93899196e7fb43ac6173ed88b6",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-clip"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "skia",
+      "fixture": "image",
+      "rgba_sha256": "512ac0d472396e2a9b97f60e1a96f8429ef1dea1f87aeec87b47b475bd041baa",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-stripped-skia-image"
+    },
+    {
+      "variant": "both",
+      "lane": "linked",
+      "backend": "skia",
+      "fixture": "live",
+      "rgba_sha256": "8d32aaf16ff8f9777590fec43b49e2e344463d0f92c66b216d45f44a46dd8f9d",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/both-linked-skia-live"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "live",
+      "rgba_sha256": "784d61408f2445f0f94ed02a2292200fae671e31137dc146ec1ed505517a8eda",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-live"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense100",
+      "rgba_sha256": "b1c2c44a8014418b16f55c5efbb533d0cbaea48dd9ba1814929ebbb6cdaaefc1",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-dense100"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense1000",
+      "rgba_sha256": "64dc52a6549764b5e2d1d26a20aac262bc6cc66ad38460385a7fc5e57b0637f7",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-dense1000"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense5000",
+      "rgba_sha256": "c081bf1b4dd55f63cda0904b8a6b71948bc0e433fbd06c4a9601a0565f417571",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-dense5000"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "panzoom",
+      "rgba_sha256": "1007d0ccca69ea763da0272eb2718e277c9b00a5367fbccd77fcc461bde6fdc9",
+      "source_revision": "307f700fd11f962933d6b61290e3dbd783bacf2d",
+      "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-panzoom"
+    }
+  ],
+  "accepted_count": 23,
+  "pending_count": 15,
+  "pending": [
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "alpha"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "clip"
+    },
+    {
+      "variant": "vello",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "image"
+    },
+    {
+      "variant": "vello",
+      "lane": "linked",
+      "backend": "vello",
+      "fixture": "live"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "live"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense100"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense1000"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "dense5000"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "panzoom"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "alpha"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "clip"
+    },
+    {
+      "variant": "both",
+      "lane": "stripped",
+      "backend": "vello",
+      "fixture": "image"
+    },
+    {
+      "variant": "both",
+      "lane": "linked",
+      "backend": "vello",
+      "fixture": "live"
+    },
+    {
+      "variant": "baseline",
+      "lane": "linked",
+      "backend": "baseline",
+      "fixture": "live"
+    },
+    {
+      "variant": "baseline",
+      "lane": "stripped",
+      "backend": "baseline",
+      "fixture": "live"
+    }
+  ],
+  "interrupted_attempt": {
+    "path": "artifacts/renderer-size-dead-strip-smoke-307f700/vello-stripped-vello-alpha",
+    "authoritative_status": "cancelled",
+    "reason": "Stop requested during finalization; excluded from accepted checks"
+  },
+  "user_direction": "Leave the remaining checks pending; no further native runs."
+}

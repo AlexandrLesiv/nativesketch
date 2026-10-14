@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Failure and packaging checks for the size audit; no native build or GPU required."""
+import json
+import os
+from pathlib import Path
+import runpy
+import tempfile
+import unittest
+import zipfile
+
+AUDIT = runpy.run_path(str(Path(__file__).resolve().with_name('audit-renderer-size')))
+
+
+class SizeAuditTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+
+    def inputs(self):
+        for variant in AUDIT['VARIANTS']:
+            directory = self.root / variant
+            resources = directory / 'RendererComparison.app/Contents/Resources'
+            resources.mkdir(parents=True)
+            build = {key: 'same' for key in ('source_revision', 'source_tree_sha256', 'cargo_lock_sha256', 'rustc', 'swift', 'sdk_version', 'swift_flags', 'rust_target', 'swift_target')}
+            build.update(profile='release', variant=variant, source_diff_hash=AUDIT['EMPTY_DIFF'], build_environment={}, release_profile_defaults={})
+            (resources / 'build.json').write_text(json.dumps(build))
+            packages = ['wgpu v30.0.0', 'vello_common v0.3.0']
+            if variant in ('skia', 'both'):
+                packages.append('skia-safe v0.153.3')
+            if variant in ('vello', 'both'):
+                packages.append('vello_gpu v0.3.0')
+            (directory / 'cargo-tree.txt').write_text('\n'.join(packages))
+            (directory / 'link-map.txt').write_text('synthetic presence fixture')
+
+    def test_rejects_mixed_build_and_environment(self):
+        self.inputs()
+        AUDIT['validate_inputs'](self.root)
+        path = self.root/'vello/RendererComparison.app/Contents/Resources/build.json'
+        original = json.loads(path.read_text())
+        for key, value in [('source_revision', 'other'), ('build_environment', {'RUSTFLAGS': '-C opt-level=z'}), ('rust_target', 'other')]:
+            changed = dict(original); changed[key] = value
+            path.write_text(json.dumps(changed))
+            with self.assertRaisesRegex(ValueError, 'mixed source'):
+                AUDIT['validate_inputs'](self.root)
+
+    def test_rejects_wrong_engine_dirty_source_and_missing_map(self):
+        self.inputs()
+        tree = self.root/'skia/cargo-tree.txt'
+        original = tree.read_text()
+        tree.write_text(original+'\nvello_gpu v0.3.0')
+        with self.assertRaisesRegex(ValueError, 'unexpected selected dependency'):
+            AUDIT['validate_inputs'](self.root)
+        tree.write_text(original)
+        path = self.root/'skia/RendererComparison.app/Contents/Resources/build.json'
+        build = json.loads(path.read_text()); build['source_diff_hash']='dirty'; path.write_text(json.dumps(build))
+        with self.assertRaisesRegex(ValueError, 'clean source'):
+            AUDIT['validate_inputs'](self.root)
+        build['source_diff_hash']=AUDIT['EMPTY_DIFF']; path.write_text(json.dumps(build))
+        (self.root/'vello/link-map.txt').unlink()
+        with self.assertRaisesRegex(ValueError, 'linker map missing'):
+            AUDIT['validate_inputs'](self.root)
+
+    def test_zip_is_stable_preserves_bytes_and_executable_permission(self):
+        bundle = self.root/'test.app'; bundle.mkdir()
+        file = bundle/'binary'; file.write_bytes(b'fixture'*1000); file.chmod(0o755)
+        first, second = self.root/'first.zip', self.root/'second.zip'
+        AUDIT['package_zip'](bundle, first)
+        os.utime(file, (100000, 100000))
+        AUDIT['package_zip'](bundle, second)
+        self.assertEqual(first.read_bytes(), second.read_bytes())
+        with zipfile.ZipFile(first) as archive:
+            self.assertEqual(archive.read('RendererComparison.app/binary'), file.read_bytes())
+            item = archive.infolist()[0]
+            self.assertEqual(item.compress_type, zipfile.ZIP_DEFLATED)
+            self.assertEqual((item.external_attr >> 16) & 0o777, 0o755)
+
+
+if __name__ == '__main__':
+    unittest.main()
