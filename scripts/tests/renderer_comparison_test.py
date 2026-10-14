@@ -59,6 +59,18 @@ class EvidenceTests(unittest.TestCase):
     def test_nan_rejected(self):
         p,rows=self.fixture('skia');rows[-1]['service_ms']='nan';self.write_rows(p,rows)
         with self.assertRaisesRegex(ValueError,'invalid timing'): A['validate'](p)
+    def test_truncated_sustained_duration_rejected(self):
+        p,_=self.fixture('skia')
+        m=json.loads((p/'manifest.json').read_text())
+        m.update(duration_seconds=180,frames_requested=None,measured_elapsed_s=179.999)
+        (p/'manifest.json').write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError,'truncated sustained'): A['validate'](p)
+        m['measured_elapsed_s']=180.001
+        (p/'manifest.json').write_text(json.dumps(m))
+        A['validate'](p)
+        m['measured_elapsed_s']=float('nan')
+        (p/'manifest.json').write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError,'truncated sustained'): A['validate'](p)
     def test_command_failure_and_recovery(self):
         for b in ('skia','vello'): self.fixture(b)
         suite = self.root/'suite.json'

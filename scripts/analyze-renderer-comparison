@@ -55,6 +55,13 @@ def validate(path):
         if len(values) != expected or sorted(int(r['frame_index']) for r in values) != list(range(expected)): raise ValueError(f'{phase}: frame count/sequence mismatch')
     if not phases['measured']: raise ValueError('no measured frames')
     if m['duration_seconds'] is None and m['completed_sample_count'] != m['frames_requested']: raise ValueError('partial fixed-frame run')
+    if m['duration_seconds'] is not None:
+        duration = m['duration_seconds']
+        elapsed = m.get('measured_elapsed_s')
+        if not isinstance(duration,(int,float)) or not math.isfinite(duration) or duration <= 0:
+            raise ValueError('invalid requested sustained duration')
+        if not isinstance(elapsed,(int,float)) or not math.isfinite(elapsed) or elapsed < duration:
+            raise ValueError('truncated sustained duration or missing measured_elapsed_s')
     readback = json.loads((path / 'readback.json').read_text())
     if readback.get('width') != m['width'] or readback.get('height') != m['height']: raise ValueError('readback dimension mismatch')
     if not (path / 'final.png').is_file() or not (path / 'run.log').is_file(): raise ValueError('missing image/log evidence')
@@ -71,6 +78,11 @@ def analyze(paths):
         starts = [r['cpu_frame_start_s'] for r in phases['measured']]
         if any(y < x for x,y in zip(starts,starts[1:])): raise ValueError('nonmonotonic frame starts')
         run['measured_frames'] = len(starts)
+        run['measured_elapsed_s'] = m.get('measured_elapsed_s')
+        presentations = sorted(r['presented_s'] for r in phases['measured'] if r['presented_s'] is not None)
+        run['presentation_callback_count'] = len(presentations)
+        run['presentation_interval_ms'] = distribution([(y-x)*1000 for x,y in zip(presentations,presentations[1:])])
+        run['presentation_interval_definition'] = 'Observed presentation callback timestamp intervals; missing callbacks can span multiple frames. Not a deadline miss classification.'
         run['measured_start_span_s'] = starts[-1]-starts[0]
         run['trace_cycle_coverage'] = {'cycle_frames':600 if m['fixture']=='panzoom' else (240 if m['fixture']=='live' else None), 'submitted_frames':len(starts)}
         memory_path = path/'memory.csv'
