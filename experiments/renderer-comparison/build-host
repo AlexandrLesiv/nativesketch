@@ -27,7 +27,7 @@ printf '%s\n' "$RENDERER_BUILD_JSON" > "$app/Contents/Resources/build.json"
 cargo_args=(); swift_args=(-Onone -g)
 if [[ "$profile" == release ]]; then cargo_args=(--release); swift_args=(-O); fi
 cargo build --locked --manifest-path "$package/Cargo.toml" --target-dir "$target" "${cargo_args[@]}" >&2
-xcrun swiftc -swift-version 5 "${swift_args[@]}" -module-cache-path "$target/swift-module-cache" \
+xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macosx13.0" "${swift_args[@]}" -module-cache-path "$target/swift-module-cache" \
   -import-objc-header "$package/include/renderer_comparison.h" "$package/macos/main.swift" \
   -L "$target/$profile" -lrenderer_comparison \
   -framework AppKit -framework QuartzCore -framework Metal -framework CoreVideo \
