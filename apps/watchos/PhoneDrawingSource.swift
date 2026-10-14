@@ -37,16 +37,10 @@ import WatchConnectivity
         self?.finish(id, .failure(SourceFailure.timeout))
       }
       requests[id] = Pending(resume: { continuation.resume(with: $0) }, deadline: deadline)
-      WCSession.default.sendMessage(message, replyHandler: { [weak self] reply in
-        let responseID = reply["requestID"] as? String
-        let payload = reply["payload"] as? Data
-        let queued = reply["queued"] as? Bool == true
-        Task { @MainActor [weak self] in
-          guard responseID == id else { self?.finish(id, .failure(SourceFailure.metadata)); return }
-          if let payload, payload.count <= 48 * 1024 { self?.finish(id, .success(payload)) }
-          else if !queued { self?.finish(id, .failure(SourceFailure.unavailable)) }
-        }
-      }, errorHandler: { [weak self] _ in Task { @MainActor [weak self] in self?.finish(id, .failure(SourceFailure.unavailable)) } })
+      let callbacks = PhoneMessageCallbacks(requestID: id) { [weak self] result in
+        self?.finish(id, result)
+      }
+      WCSession.default.sendMessage(message, replyHandler: callbacks.reply, errorHandler: callbacks.error)
     }
   }
   private func finish(_ id: String, _ result: Result<Data, Error>) {

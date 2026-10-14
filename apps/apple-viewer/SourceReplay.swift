@@ -17,6 +17,25 @@ import CSketchFFI
 }
 @MainActor enum SourceReplay {
   static func run() async throws {
+    // Invoke the exact production callback boundary from a utility queue, as WC does.
+    let backgroundError: Bool = await withCheckedContinuation { continuation in
+      let callbacks = PhoneMessageCallbacks(requestID: "callback-test") { result in
+        MainActor.assertIsolated()
+        if case .failure = result { continuation.resume(returning: true) }
+        else { continuation.resume(returning: false) }
+      }
+      DispatchQueue.global(qos: .utility).async { callbacks.error(SourceFailure.unavailable) }
+    }
+    let backgroundReply: Bool = await withCheckedContinuation { continuation in
+      let callbacks = PhoneMessageCallbacks(requestID: "callback-test") { result in
+        MainActor.assertIsolated()
+        if case .success(let data) = result { continuation.resume(returning: data == Data([1])) }
+        else { continuation.resume(returning: false) }
+      }
+      DispatchQueue.global(qos: .utility).async { callbacks.reply(["requestID": "callback-test", "payload": Data([1])]) }
+    }
+    guard backgroundError, backgroundReply else { throw SourceFailure.metadata }
+    print("SOURCE CALLBACK REPLAY: utility-queue error/reply safely hop to MainActor PASS")
     #if os(macOS)
     try await SourceHTTPReplay.run()
     #else
