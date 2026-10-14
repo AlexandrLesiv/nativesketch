@@ -13,23 +13,35 @@ EXPECTED = [58,59,70,71,72,73,224,225,226,227,228,229,230,231,232,233]
 RUNNER = runpy.run_path(str(ROOT/'scripts/run-renderer-comparison'))
 ANALYZER = runpy.run_path(str(ROOT/'scripts/analyze-renderer-comparison'))
 
-def assemble(sources, output, expected=EXPECTED):
+def assemble(sources, output, expected=None, suite_type="primary", original=None):
     if output.exists(): raise ValueError('output already exists; original evidence must never be overwritten')
     if len(set(sources)) != len(sources): raise ValueError('duplicate source suite')
     chosen, excluded, provenance = {}, [], []
-    source_identity = None
+    source_identity = (str(original),hashlib.sha256((original/'suite.json').read_bytes()).hexdigest()) if original is not None else None
     common = None
     elapsed = 0.0
-    expected = sorted(expected)
+    expected = sorted(expected if expected is not None else (EXPECTED if suite_type == "primary" else list(range(6))))
     if any(i ^ 1 not in expected for i in expected): raise ValueError('expected indices must contain whole backend pairs')
-    full = RUNNER['matrix']('primary')
+    full = RUNNER['matrix'](suite_type)
+    if original is not None:
+        original_meta = json.loads((original/'suite.json').read_text())
+        if original_meta.get('suite') != suite_type or original_meta.get('status') != 'complete' or original_meta.get('trials') != full or original_meta.get('completed') != len(full):
+            raise ValueError('explicit original must be a complete matching full suite')
     signatures = {}
     for source in sources:
         raw = (source/'suite.json').read_bytes()
         suite = json.loads(raw)
-        if not suite.get('replay') or suite.get('suite') != 'primary' or suite.get('original_trial_count') != len(full):
-            raise ValueError('input must be a targeted primary replay suite')
-        identity = (suite['source_suite'],suite['source_suite_sha256'])
+        if suite.get('suite') != suite_type:
+            raise ValueError('input suite type differs from requested suite')
+        if suite.get('replay'):
+            if suite.get('original_trial_count') != len(full): raise ValueError('invalid replay original count')
+            identity = (suite['source_suite'],suite['source_suite_sha256'])
+            indices = suite['original_trial_indices']
+        else:
+            if suite_type != 'sustained' or original is None or suite.get('trials') != full:
+                raise ValueError('full guarded input requires sustained suite and explicit original')
+            identity = source_identity
+            indices = list(range(len(full)))
         if source_identity is None: source_identity = identity
         if identity != source_identity: raise ValueError('different original evidence sources')
         if hashlib.sha256((Path(identity[0])/'suite.json').read_bytes()).hexdigest() != identity[1]:
@@ -38,7 +50,6 @@ def assemble(sources, output, expected=EXPECTED):
         if settings[0] != 'on': raise ValueError('GPU timing must be on')
         if common is None: common = settings
         if common != settings: raise ValueError('mixed instrumentation settings')
-        indices = suite['original_trial_indices']
         if len(indices) != len(set(indices)) or suite['trials'] != [full[i] for i in indices]:
             raise ValueError('source trial indices/matrix mismatch')
         valid, revisions = {}, set()
@@ -74,7 +85,7 @@ def assemble(sources, output, expected=EXPECTED):
     if sorted(chosen) != expected: raise ValueError(f'incomplete explicit coverage: missing {sorted(set(expected)-chosen.keys())}')
     summary = ANALYZER['analyze']([chosen[i] for i in expected])
     output.mkdir(parents=True)
-    metadata = dict(schema_version=1,suite='primary',status='running',completed=0,trials=[full[i] for i in expected],replay=True,source_suite=source_identity[0],source_suite_sha256=source_identity[1],source_revisions=sorted({r['source_revision'] for r in summary['runs']}),requested_trial_indices=expected,original_trial_indices=expected,original_trial_count=len(full),coverage='Derived targeted paired replay only; not full matrix. Original evidence retained; no pooling across measured revisions.',gpu_timing=common[0],memory_sampling=common[1],memory_interval_s=common[2],elapsed_s=elapsed,elapsed_definition='Sum of supplied suite elapsed times including failed/incomplete trials; not selected-trial rendering time',assembly_sources=provenance,excluded_trials=excluded)
+    metadata = dict(schema_version=1,suite=suite_type,status='running',completed=0,trials=[full[i] for i in expected],replay=True,source_suite=source_identity[0],source_suite_sha256=source_identity[1],source_revisions=sorted({r['source_revision'] for r in summary['runs']}),requested_trial_indices=expected,original_trial_indices=expected,original_trial_count=len(full),coverage='Derived targeted paired replay only; not full matrix. Original evidence retained; no pooling across measured revisions.',gpu_timing=common[0],memory_sampling=common[1],memory_interval_s=common[2],elapsed_s=elapsed,elapsed_definition='Sum of supplied suite elapsed times including failed/incomplete trials; not selected-trial rendering time',assembly_sources=provenance,excluded_trials=excluded)
     def save(): (output/'suite.json').write_text(json.dumps(metadata,indent=2)+'\n')
     save()
     try:
@@ -93,13 +104,15 @@ def assemble(sources, output, expected=EXPECTED):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--suite',choices=['primary','sustained'],default='primary')
+    parser.add_argument('--original',type=Path,help='Original complete suite; required to combine full guarded sustained input with replay input')
     parser.add_argument('--source',type=Path,action='append',required=True)
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     output=args.output.resolve()
     if not output.is_relative_to(ROOT/'artifacts/renderer-comparison'): parser.error('output must be under repository artifacts/renderer-comparison')
     try:
-        result=assemble([p.resolve() for p in args.source],output)
+        result=assemble([p.resolve() for p in args.source],output,suite_type=args.suite,original=args.original.resolve() if args.original else None)
         print(f'Assembled {result["completed"]} explicitly selected trials: {output}')
     except (ValueError,OSError,KeyError,TypeError) as error:
         print(f'assembly failed: {error}',file=sys.stderr);return 1
