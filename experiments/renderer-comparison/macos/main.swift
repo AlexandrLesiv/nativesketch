@@ -99,6 +99,48 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
     var active: StopState?, closing = false, exitCode: Int32 = 0
     var runNumber = 0
     let originalOutput: String
+    // Main-thread-only lifecycle state; the worker only accesses the locked StopState.
+    var workspaceObservers: [NSObjectProtocol] = []
+    var activity: NSObjectProtocol?
+    let activityOptions: ProcessInfo.ActivityOptions = [.userInitiated, .latencyCritical, .idleDisplaySleepDisabled]
+    var lifecycleStart: [String: Any]?
+    var lifecycleEvents: [[String: Any]] = []
+    var sessionResigned = false, systemSleeping = false, screensSleeping = false
+    var measuredElapsed = 0.0
+    func visibleState() -> [String: Any] {
+        precondition(Thread.isMainThread)
+        let session = CGSessionCopyCurrentDictionary() as? [String: Any]
+        let onConsole = (session?[kCGSessionOnConsoleKey as String] as? NSNumber)?.boolValue ?? false
+        let screenID = (window.screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? CGMainDisplayID()
+        return ["window_visible": window.isVisible, "window_unoccluded": window.occlusionState.contains(.visible),
+                "window_miniaturized": window.isMiniaturized, "session_on_console": onConsole,
+                "session_resigned": sessionResigned, "system_sleeping": systemSleeping,
+                "screens_sleeping": screensSleeping, "display_asleep": CGDisplayIsAsleep(screenID) != 0,
+                "system_uptime_seconds": ProcessInfo.processInfo.systemUptime]
+    }
+    func canMeasure(_ state: [String: Any]) -> Bool {
+        ["window_visible", "window_unoccluded", "session_on_console"].allSatisfy { state[$0] as? Bool == true }
+            && ["window_miniaturized", "session_resigned", "system_sleeping", "screens_sleeping", "display_asleep"].allSatisfy { state[$0] as? Bool == false }
+    }
+    func lifecycleEvent(_ name: String, invalidating: Bool) {
+        precondition(Thread.isMainThread)
+        guard active != nil else { return }
+        if invalidating { invalidate(name) }
+        else { lifecycleEvents.append(["event": name, "invalidating": false, "state": visibleState()]) }
+    }
+    @objc func workspaceEvent(_ notification: Notification) {
+        precondition(Thread.isMainThread)
+        switch notification.name {
+        case NSWorkspace.sessionDidResignActiveNotification: sessionResigned = true
+        case NSWorkspace.sessionDidBecomeActiveNotification: sessionResigned = false
+        case NSWorkspace.willSleepNotification: systemSleeping = true
+        case NSWorkspace.didWakeNotification: systemSleeping = false
+        case NSWorkspace.screensDidSleepNotification: screensSleeping = true
+        case NSWorkspace.screensDidWakeNotification: screensSleeping = false
+        default: return
+        }
+        lifecycleEvent(notification.name.rawValue, invalidating: sessionResigned || systemSleeping || screensSleeping)
+    }
     init(_ options: Options) { self.options = options; originalOutput = options.output }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         if menuItem.action == #selector(start) { return active == nil }
@@ -106,6 +148,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         return true
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
+        for name in [NSWorkspace.sessionDidResignActiveNotification, NSWorkspace.sessionDidBecomeActiveNotification,
+                     NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification,
+                     NSWorkspace.screensDidSleepNotification, NSWorkspace.screensDidWakeNotification] {
+            workspaceObservers.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
+                self?.workspaceEvent(notification)
+            })
+        }
         let menuBar = NSMenu()
         let applicationItem = NSMenuItem(); menuBar.addItem(applicationItem)
         let applicationMenu = NSMenu(title: "Renderer Comparison")
@@ -143,8 +192,11 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
     }
     func setStatus(_ value: String) { status.stringValue = value; NSAccessibility.post(element: status, notification: .valueChanged) }
     @objc func revealResults() { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: options.output) }
-    @objc func cancel() { active?.request("cancelled", "Stop requested"); setStatus("Stopping safely; partial results will be retained…") }
-    func invalidate(_ reason: String) { guard let active else { return }; active.request("invalidated", reason); setStatus("Trial invalidated: \(reason). Finishing partial results…") }
+    @objc func cancel() { if active != nil { lifecycleEvents.append(["event": "Stop requested", "invalidating": false, "state": visibleState()]) }; active?.request("cancelled", "Stop requested"); setStatus("Stopping safely; partial results will be retained…") }
+    func invalidate(_ reason: String) { guard let active else { return }; lifecycleEvents.append(["event": reason, "invalidating": true, "state": visibleState()]); active.request("invalidated", reason); setStatus("Trial invalidated: \(reason). Finishing partial results…") }
+    func windowDidChangeOcclusionState(_ n: Notification) {
+        lifecycleEvent("Window occlusion changed", invalidating: !window.occlusionState.contains(.visible))
+    }
     func windowWillStartLiveResize(_ n: Notification) { invalidate("Window resize") }
     func windowDidResize(_ n: Notification) { invalidate("Window dimensions changed") }
     func windowDidMiniaturize(_ n: Notification) { invalidate("Window minimized") }
@@ -157,6 +209,14 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         if options.interactive && runNumber > 0 { options.output = originalOutput + "-" + UUID().uuidString }
         runNumber += 1
         if FileManager.default.fileExists(atPath: options.output + "/manifest.json") || FileManager.default.fileExists(atPath: options.output + "/host-status.json") { finishUI("failed", "Output already contains results; choose a fresh directory"); return }
+        lifecycleEvents = []; measuredElapsed = 0
+        lifecycleStart = visibleState()
+        let startState = lifecycleStart!
+        guard canMeasure(startState) else {
+            finishUI("invalidated", "Start requires a visible, unoccluded window in the console session on an awake display")
+            return
+        }
+        activity = ProcessInfo.processInfo.beginActivity(options: activityOptions, reason: "Renderer comparison measurement and result drain")
         options.backend = backend.titleOfSelectedItem!; options.fixture = fixture.titleOfSelectedItem!; options.mode = mode.titleOfSelectedItem!
         let dims = resolution.titleOfSelectedItem!.components(separatedBy: " × "); options.width = Int(dims[0])!; options.height = Int(dims[1])!
         let state = StopState(); active = state
@@ -167,6 +227,12 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         let period = link.map { CVDisplayLinkGetNominalOutputVideoRefreshPeriod($0) }
         let hz = period.flatMap { $0.timeValue > 0 && $0.flags == 0 ? Double($0.timeScale) / Double($0.timeValue) : nil }
         var config: [String: Any] = ["backend": options.backend, "fixture": options.fixture, "width": options.width, "height": options.height, "mode": options.mode, "warmup": options.warmup, "repeat_id": options.repeatID, "output": options.output, "display": ["refresh_hz": hz as Any? ?? NSNull(), "refresh_source": "CVDisplayLink nominal period; not observed presentation rate", "backing_scale": window.backingScaleFactor, "window_points_width": window.frame.width, "window_points_height": window.frame.height], "runtime": ["os": ProcessInfo.processInfo.operatingSystemVersionString, "cpu_count": ProcessInfo.processInfo.processorCount, "physical_memory_bytes": ProcessInfo.processInfo.physicalMemory], "power": ["thermal_before": ProcessInfo.processInfo.thermalState.rawValue, "low_power_mode": ProcessInfo.processInfo.isLowPowerModeEnabled]]
+        var runtime = config["runtime"] as! [String: Any]
+        runtime["lifecycle_start"] = startState
+        runtime["activity_options"] = ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"]
+        runtime["activity_options_raw"] = activityOptions.rawValue
+        runtime["lifecycle_policy"] = "Invalidate full window occlusion, session resignation, system/display sleep; focus loss alone is allowed. Host status is authoritative through output completion."
+        config["runtime"] = runtime
         if let d = options.duration { config["duration_seconds"] = d } else { config["frames_requested"] = options.frames }
         if let url = Bundle.main.url(forResource: "build", withExtension: "json"), let data = try? Data(contentsOf: url), let metadata = try? JSONSerialization.jsonObject(with: data) { config["build"] = metadata }
         guard let bytes = try? JSONSerialization.data(withJSONObject: config, options: [.sortedKeys]), let json = String(data: bytes, encoding: .utf8) else { finishUI("failed", "Cannot encode configuration"); return }
@@ -197,14 +263,46 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
                 if result.withCString({ rc_finish(handle, $0, elapsed) }) != 0 { result = "failed"; detail += " " + errorText() }
                 rc_destroy(handle)
             }
-            // Host-only interruption detail supplements the renderer's retained partial artifacts.
-            let extra: [String: Any] = ["status": result, "reason": detail, "thermal_after": ProcessInfo.processInfo.thermalState.rawValue, "measured_elapsed_seconds": elapsed]
-            if let data = try? JSONSerialization.data(withJSONObject: extra, options: [.prettyPrinted, .sortedKeys]) { try? FileManager.default.createDirectory(atPath: captured.output, withIntermediateDirectories: true); try? data.write(to: URL(fileURLWithPath: captured.output).appendingPathComponent("host-status.json")) }
-            let finalResult = result, finalDetail = detail
-            DispatchQueue.main.async { self.finishUI(finalResult, finalDetail) }
+            let finalResult = result, finalDetail = detail, finalElapsed = elapsed
+            DispatchQueue.main.async {
+                self.measuredElapsed = finalElapsed
+                // An interruption during rc_finish/readback still invalidates the trial.
+                // The retained renderer manifest can already say complete; host-status
+                // is the authoritative host lifecycle verdict for the whole operation.
+                let interruption = state.read()
+                self.finishUI(finalResult == "complete" ? interruption?.0 ?? finalResult : finalResult,
+                              finalResult == "complete" ? interruption?.1 ?? finalDetail : finalDetail)
+            }
         }
     }
-    func finishUI(_ result: String, _ detail: String) {
+    func finishUI(_ suppliedResult: String, _ suppliedDetail: String) {
+        precondition(Thread.isMainThread)
+        var result = suppliedResult, detail = suppliedDetail
+        let endState = visibleState()
+        if result == "complete", !canMeasure(endState) {
+            result = "invalidated"; detail = "Window/session/display not eligible at output completion"
+            lifecycleEvents.append(["event": detail, "invalidating": true, "state": endState])
+        }
+        if let startState = lifecycleStart {
+            let extra: [String: Any] = ["status": result, "reason": detail,
+                "thermal_after": ProcessInfo.processInfo.thermalState.rawValue,
+                "measured_elapsed_seconds": measuredElapsed, "lifecycle_start": startState,
+                "lifecycle_end": endState, "lifecycle_events": lifecycleEvents,
+                "activity_options": ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"],
+                "activity_held_through_output": activity != nil]
+            do {
+                let data = try JSONSerialization.data(withJSONObject: extra, options: [.prettyPrinted, .sortedKeys])
+                try FileManager.default.createDirectory(atPath: options.output, withIntermediateDirectories: true)
+                try data.write(to: URL(fileURLWithPath: options.output).appendingPathComponent("host-status.json"), options: .atomic)
+            } catch {
+                lifecycleStart = nil
+                finishUI("failed", "Cannot write host lifecycle evidence: \(error)")
+                return
+            }
+        }
+        lifecycleStart = nil
+        if let activity { ProcessInfo.processInfo.endActivity(activity); self.activity = nil }
+
         active = nil; for c in [backend, fixture, resolution, mode] { c.isEnabled = true }; run.isEnabled = true; stop.isEnabled = false
         setStatus("\(result.capitalized)\(detail.isEmpty ? "" : ": " + detail)\n\(options.output)")
         exitCode = result == "complete" ? 0 : 1
