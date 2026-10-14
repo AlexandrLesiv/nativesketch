@@ -69,6 +69,19 @@
         "build_reliability",
         "reviewer"
       ]
+    },
+    {
+      "id": "006",
+      "title": "Apple editors and view-only companions",
+      "status": "active",
+      "depends_on": [],
+      "brief": "tasks/006-apple-device-family.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "reviewer"
+      ]
     }
   ]
 }
