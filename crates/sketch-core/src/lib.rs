@@ -140,7 +140,7 @@ struct Resize {
     original: Transform,
     preview: Transform,
 }
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Editor {
     document: Document,
     ink: Option<Ink>,
@@ -170,13 +170,25 @@ pub struct PathCommand {
     pub verb: u32,
     pub points: [f64; 6],
 }
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            document: Document::default(),
+            ink: None,
+            resize: None,
+            selected: None,
+            undo: Vec::new(),
+            redo: Vec::new(),
+            revision: 0,
+            saved_revision: 0,
+            next_revision: 1,
+            next_id: 1,
+        }
+    }
+}
 impl Editor {
     pub fn new() -> Self {
-        Self {
-            next_id: 1,
-            next_revision: 1,
-            ..Self::default()
-        }
+        Self::default()
     }
     pub fn document(&self) -> &Document {
         &self.document
@@ -226,6 +238,9 @@ impl Editor {
     }
     pub fn begin(&mut self, pointer_id: u64, device: u32, brush: Brush) -> Result<()> {
         self.idle()?;
+        if self.next_id == u64::MAX {
+            return Err(Error::InvalidState);
+        }
         brush.validate()?;
         if device > 2 || self.document.strokes.len() >= MAX_STROKES {
             return Err(Error::InvalidArgument);
