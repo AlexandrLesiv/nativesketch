@@ -1,62 +1,67 @@
 # Native Sketch
 
-A macOS-first vector sketching application with a shared Rust engine and native UI.
-This repository is the **project and agent-workflow foundation**, not a finished drawing app.
+A macOS-first vector sketching prototype with a shared Rust editor and native AppKit UI.
+Task 001 is under implementation review; this is not a production drawing application.
 
-## What works now
+## First-stroke milestone
 
-- Dependency-free Rust workspace with a core crate and a small C ABI boundary.
-- Native AppKit application shell that links to Rust and checks the ABI version.
-- Local build/check commands and a headless Swift-to-Rust integration smoke check.
-- Project-local GPT-6 Astra roles, design and quality standards, and a ready task backlog.
+- Draw with a mouse or pressure-capable pen; mouse width is fixed and absent pressure
+  remains absent in the document. Pen width uses nominal width × (0.2 + 0.8 × pressure).
+- Select strokes by clicking or with Edit → Select Next/Previous Stroke. Resize uniformly
+  using corner handles or Scale percent. Geometry and width scale together.
+- Undo/redo drawing, resize, and deletion; Escape cancels an active operation.
+- Pan with Space-drag/scroll and zoom with pinch or View commands.
+- Save/open versioned `.nsketch` documents with geometry/style preserved. Atomic replacement
+  protects the previous file on save failure; unsaved replacement/close is guarded.
 
-Drawing, renderer integration, selection, undo, and document saving are next milestones.
-Windows is planned as C# + WinUI 3; no Windows application is implemented yet.
+Native controls surround a custom white-paper canvas. The temporary CoreGraphics painter
+consumes Rust paths. **Production renderer selection remains OPEN** pending task 002's
+Rust-Skia/Metal versus Vello comparison; no GPU-performance winner is claimed.
 
-## Start in Codex
-
-Open this folder as a local project. Project configuration may require Codex's normal
-trust confirmation when opening a new repository. Select GPT-6 Astra if an existing chat
-has a different model; project defaults do not replace explicit chat overrides.
-
-The primary agent is the lead. Seven specialist configurations are in `.codex/agents/`.
-Use this request to begin the first feature:
-
-> Follow AGENTS.md and tasks/001-first-stroke.md. Start with ui_ux_designer to define
-> the first macOS drawing interaction. Delegate the independent Rust and AppKit work
-> after agreeing the input contract. Use isolated worktrees for concurrent writers.
-> Implement and test the milestone, obtain a fresh review, and bring me a running app
-> and evidence for merge approval. Keep the renderer decision explicit.
-
-Nothing runs on a schedule. Agents are invoked by a project task. Role files give
-instructions, not independent permission boundaries. See docs/workflow.md.
-
-## Local development
+## Build and run
 
 Prerequisites: Rust 1.85+ with cargo, rustfmt, and clippy; Swift 6+ and a macOS SDK;
-Python 3.9+ for the small task-board checks. macOS 14 is the provisional shell minimum.
-The scaffold has no external Rust or Swift package dependencies.
+Python 3.9+ for task-board checks. macOS 14 is the provisional minimum. No external Rust
+or Swift packages are needed.
 
 ```sh
-./scripts/check            # metadata, Rust checks, Swift build and ABI smoke check
-./scripts/run-macos        # build a development .app bundle and open it
-./scripts/board            # show ready tasks and dependencies
-./scripts/check --core     # metadata and Rust checks only; supports non-Mac hosts
+./scripts/check            # board, Rust fmt/clippy/tests, Swift build + integration
+./scripts/run-macos        # build and launch a development .app
+./scripts/board            # task status and dependencies
+./scripts/check --core     # Rust and metadata checks on non-Mac hosts
+./scripts/build-macos release
+./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --integration-test
+./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --native-smoke-test
+./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --timing
 ```
 
-Generated build output and local evidence belong under ignored `target/`, `.build-cache/`,
-and `artifacts/`. Do not use personal documents as automated-test fixtures.
+Native smoke uses synthetic AppKit mouse events on a real Mac. Timing is a provisional
+CPU workload, not GPU, presentation, or physical input latency. Run timing alone after
+other agent builds and native automation stop. `--appearance light` / `--appearance dark`
+inspect app-local appearance without changing system settings.
 
-## Read as needed
+## Scope and limitations
 
-- [Product scope](docs/product.md)
+Single-document window; single-stroke selection and uniform resize. File I/O is synchronous
+outside drawing gestures. The current path painter is deliberately uncached; large-document
+responsiveness is not established. There is no autosave/recovery, production renderer,
+Windows app, image import, layers UI, distribution signing, or physical tablet certification.
+The versioned file schema is an early local format, not a compatibility promise for release.
+
+Generated output and local evidence belong under ignored `target/`, `.build-cache/`, and
+`artifacts/`. Tests use disposable synthetic documents. No baselines or thresholds should
+be weakened to pass checks.
+
+## Project workflow
+
+The lead integrates scoped specialists, with design before UI implementation and a fresh
+review before owner acceptance. Local task-branch commits are allowed; the owner approves
+merges and release distribution. No cloud repository, CI provider, remote branch protection,
+release identity, or open-source license is configured.
+
+- [First-stroke design](docs/design/first-stroke.md)
 - [Architecture](docs/architecture.md)
-- [UI/UX principles](docs/design/principles.md)
+- [Provisional renderer boundary](docs/decisions/0002-first-stroke-rendering.md)
+- [Quality and evidence](docs/quality.md)
 - [Agent workflow](docs/workflow.md)
-- [Quality gates](docs/quality.md)
-- [Foundation validation](docs/setup-validation.md)
 - [Tasks](tasks/README.md)
-
-No cloud repository, CI provider, release identity, or open-source license is selected.
-Local setup does not enable remote branch protection or validate physical pen latency.
-

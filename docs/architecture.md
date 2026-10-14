@@ -1,10 +1,17 @@
 # Architecture boundaries
 
-## Bootstrap status
+## First-stroke boundary
 
-`sketch-core` is an intentionally empty, platform-independent domain crate.
-`sketch-ffi` exports only an ABI-version handshake. The AppKit shell links this static
-library. No drawing/document API is implied by this handshake.
+`sketch-core` owns editable stroke samples, brush style, selection, uniform transforms,
+undo/redo, and versioned local persistence. `sketch-ffi` exposes ABI 2 through an opaque,
+uniquely owned editor handle. The AppKit adapter captures input, maps viewport points
+into document coordinates, and paints caller-owned Rust path commands with a provisional
+CoreGraphics painter. This is an interaction prototype, not the production renderer.
+
+Handles must be used serially, input buffers are borrowed for one call, output buffers
+are caller-owned, and Rust catches panics at the boundary. A panic invalidates the handle.
+The canonical header documents status values and ownership. Save/load are synchronous
+and run outside pointer transactions; large-document background I/O is a remaining limit.
 
 ## Intended ownership
 
@@ -20,7 +27,7 @@ library. No drawing/document API is implied by this handshake.
 Keep document state, editor-session state, and native UI state distinct.
 Rendering caches are disposable and are not the document format.
 
-## Input and rendering contracts to design in task 001
+## Input and rendering contracts
 
 Normalize pointer ID, event phase, monotonic timestamp, coordinate space, device type,
 optional pressure/orientation, buttons, cancellation, and sample corrections.
@@ -52,3 +59,6 @@ renderer variant. Compare identical scenes, quality, scale, input traces, and pr
 Choose using the app's latency, correctness, memory, and integration evidence.
 Do not introduce a permanent abstraction supporting hypothetical backends before the spike.
 
+
+See [first-stroke interactions](design/first-stroke.md) and the
+[provisional presentation decision](decisions/0002-first-stroke-rendering.md).

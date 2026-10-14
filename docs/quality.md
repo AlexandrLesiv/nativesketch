@@ -7,9 +7,11 @@ unless new changes or evidence justify it.
 ## Local baseline
 
 `./scripts/check` validates the task board, checks Rust formatting and clippy, runs the
-Rust tests, builds the macOS shell, and runs its Swift-to-Rust ABI smoke check.
-Initially the domain crate has zero behavior tests; a green scaffold check proves build
-and linkage only. UI, drawing, saving, Windows, and physical pen latency are not covered.
+Rust tests, builds the macOS shell, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
+editing, pressure replay, persistence, and FFI failure behavior. The Swift integration
+check covers geometry/style round-trips and editing through the actual C boundary.
+Running-app interaction, native event replay, Windows, physical tablets, and GPU or
+pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
 `./scripts/check --core` skips macOS and is suitable for a non-Mac Rust runner.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.

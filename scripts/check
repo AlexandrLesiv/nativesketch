@@ -14,4 +14,4 @@ if [[ "${1:-}" != --core && "$(uname -s)" == Darwin ]]; then
 else
     echo "SKIP: macOS build and ABI smoke check"
 fi
-echo "PASS: applicable scaffold checks (drawing behavior is not implemented yet)"
+echo "PASS: applicable integration checks (native interaction and physical pen checks are separate)"
