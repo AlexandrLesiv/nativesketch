@@ -24,6 +24,8 @@
 	<true/>
 	<key>WKCompanionAppBundleIdentifier</key>
 	<string>dev.nativesketch.ios</string>
+	<key>WKSupportsRunningWithoutiOSApp</key>
+	<true/>
 	<key>WKWatchOnly</key>
 	<false/>
 </dict>
