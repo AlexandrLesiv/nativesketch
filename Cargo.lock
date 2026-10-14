@@ -12,3 +12,10 @@ version = "0.1.0"
 dependencies = [
  "sketch-core",
 ]
+
+[[package]]
+name = "sketch-wasm"
+version = "0.1.0"
+dependencies = [
+ "sketch-core",
+]

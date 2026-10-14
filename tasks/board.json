@@ -1,10 +1,210 @@
 {
   "schema_version": 1,
   "tasks": [
-    {"id": "001", "title": "First editable stroke on macOS", "status": "ready", "depends_on": [], "brief": "tasks/001-first-stroke.md", "roles": ["ui_ux_designer", "rust_engine", "macos_ui", "reviewer"]},
-    {"id": "002", "title": "Renderer comparison", "status": "ready", "depends_on": [], "brief": "tasks/002-renderer-comparison.md", "roles": ["rendering_performance", "build_reliability", "reviewer"]},
-    {"id": "003", "title": "Input recorder and replay", "status": "waiting", "depends_on": ["001"], "brief": "tasks/003-input-replay.md", "roles": ["rust_engine", "build_reliability", "reviewer"]},
-    {"id": "004", "title": "Windows native host spike", "status": "waiting", "depends_on": ["001", "002"], "brief": "tasks/004-windows-spike.md", "roles": ["windows_ui", "rendering_performance", "reviewer"]}
+    {
+      "id": "001",
+      "title": "First editable stroke on macOS",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/001-first-stroke.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "002",
+      "title": "Renderer comparison",
+      "status": "ready",
+      "depends_on": [],
+      "brief": "tasks/002-renderer-comparison.md",
+      "roles": [
+        "rendering_performance",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "003",
+      "title": "Input recorder and replay",
+      "status": "waiting",
+      "depends_on": [
+        "001"
+      ],
+      "brief": "tasks/003-input-replay.md",
+      "roles": [
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "004",
+      "title": "Windows native host spike",
+      "status": "waiting",
+      "depends_on": [
+        "001",
+        "002"
+      ],
+      "brief": "tasks/004-windows-spike.md",
+      "roles": [
+        "windows_ui",
+        "rendering_performance",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "005",
+      "title": "Native first-stroke hosts",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/005-native-platforms.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "windows_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "006",
+      "title": "Apple editors and view-only companions",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/006-apple-device-family.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "007",
+      "title": "Independent Watch document sources",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/007-watch-document-sources.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "008",
+      "title": "ChromeOS and Googlebook desktop adapter",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/008-android-desktop.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "009",
+      "title": "Apple editor ports: iPhone, iPad and Vision Pro",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "006"
+      ],
+      "brief": "tasks/009-apple-editor-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "010",
+      "title": "Android, ChromeOS and Googlebook port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "008"
+      ],
+      "brief": "tasks/010-android-desktop-acceptance.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "011",
+      "title": "Linux native GTK4/libadwaita port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "005"
+      ],
+      "brief": "tasks/011-linux-native-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "012",
+      "title": "Browser Rust/Wasm editor production port",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "005"
+      ],
+      "brief": "tasks/012-browser-wasm-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "013",
+      "title": "Apple TV and independent Watch viewer ports",
+      "status": "waiting",
+      "depends_on": [
+        "002",
+        "006",
+        "007"
+      ],
+      "brief": "tasks/013-apple-viewer-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "014",
+      "title": "Network document source and account integration",
+      "status": "waiting",
+      "depends_on": [
+        "007"
+      ],
+      "brief": "tasks/014-network-document-source.md",
+      "roles": [
+        "rust_engine",
+        "macos_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    }
   ]
 }
-

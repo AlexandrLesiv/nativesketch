@@ -7,12 +7,46 @@ unless new changes or evidence justify it.
 ## Local baseline
 
 `./scripts/check` validates the task board, checks Rust formatting and clippy, runs the
-Rust tests, builds the macOS shell, and runs its Swift-to-Rust ABI smoke check.
-Initially the domain crate has zero behavior tests; a green scaffold check proves build
-and linkage only. UI, drawing, saving, Windows, and physical pen latency are not covered.
+Rust tests, builds the macOS shell, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
+editing, pressure replay, persistence, and FFI failure behavior. The Swift integration
+check covers geometry/style round-trips and editing through the actual C boundary.
+Running-app interaction, native event replay, Windows, physical tablets, and GPU or
+pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
 `./scripts/check --core` skips macOS and is suitable for a non-Mac Rust runner.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.
+
+## Portable host checks
+
+`scripts/check-wasm` verifies the raw Wasm bridge and native byte equivalence.
+`scripts/check-web` builds TypeScript and runs real-Wasm adapter/lifecycle regressions.
+`scripts/check-linux` builds GTK/libadwaita, runs clippy and the native adapter test;
+running this on macOS does not certify Linux display servers or portals.
+`scripts/check-android` runs the JNI/input replay on the selected Android device or
+emulator. Always identify the disposable test device before choosing `ANDROID_SERIAL`.
+Desktop replay covers keyboard callbacks, resize cancellation, native MIME eligibility,
+mouse/stylus/touch provenance and large-document Fit/zoom. Real input dispatch, small/short
+window usability and file-provider permissions also require native runtime inspection.
+Dual-ABI packaging alone does not certify ChromeOS/Googlebook hardware.
+`scripts/run-ios <UUID> --integration-test` runs the UIKit replay in that
+simulator. Coordinate device runs and native UI inspection exclusively on the host.
+`scripts/check-windows.ps1` builds the x64 Rust DLL/WinUI host and runs C# conformance
+on Windows. Cross-host C# compilation or interop checks do not replace Windows launch.
+
+`scripts/build-apple-family simulator` builds all Apple hosts and embeds the Watch
+companion in the iPhone app. Device variants require owner provisioning.
+`scripts/check-apple-viewers` exercises actual Rust read-only imports, byte identity,
+stale/corrupt/oversized transfer retention, atomic caches and HTTPS download policy.
+Watch source checks additionally cover Rust version decisions, staged update ordering,
+legacy migration, phone-first fallback, and actual utility-queue callback delivery to
+MainActor. URLProtocol HTTP fixtures run on macOS; watchOS explicitly skips that fixture
+because its runtime did not intercept the requests. Watch replay launch validates the
+PASS marker as well as process launch status.
+Simulator viewer replays are debug-only and exit with a result; physical WatchConnectivity
+delivery and Vision input require separate device evidence.
+
+Record OS, SDK, exact source revision, build, adapter execution, and visible interaction
+as separate evidence. See `docs/evidence/005-native-platforms.md` for current coverage.
 
 ## Feature-specific merge evidence
 

@@ -1,0 +1,16 @@
+# 009: Apple editor ports: iPhone, iPad and Vision Pro
+
+Status: waiting. Roles: ui_ux_designer, rust_engine, macos_ui, build_reliability, reviewer.
+Dependencies: 002, 006.
+
+Extend the existing UIKit prototypes into verified native editor ports, in order iPad/iPhone, then Vision Pro. Reuse shared Rust semantics and the accepted renderer; preserve native UIKit controls and system appearance, using SwiftUI only where control behavior remains correct. Vision Pro remains a 2D window unless separately authorized.
+
+Acceptance:
+- Integrate the accepted GPU backend without introducing platform-specific document/history logic.
+- Inspect phone compact/large text, iPad split/resizable windows and Vision window resize; preserve committed work and cancel temporary gestures across lifecycle changes.
+- Validate real Pencil/finger/palm cancellation on available hardware, keyboard focus and VoiceOver. Record unavailable hardware honestly.
+- Implement/test reliable document lifecycle and a separately specified recovery policy; do not equate retained configuration state with crash recovery.
+- Run same-file interoperability and corrupt/import/save failure retention against the Rust fixtures.
+- Deliver signed development builds where provisioning is available, per-device evidence, designer review and fresh independent review. Store distribution remains owner-approved.
+
+Existing evidence: docs/evidence/005-native-platforms.md and 006-apple-device-family.md. Simulator builds already exist; this task does not claim that those are device acceptance.

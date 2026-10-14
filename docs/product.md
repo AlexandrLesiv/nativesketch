@@ -6,7 +6,10 @@
 - Infinite vector sketching inspired by Concepts: editable strokes rather than a raster-only canvas.
 - Native platform controls wherever possible; custom drawing graphics where necessary.
 - Swift/macOS is the first application. Shared behavior is implemented in Rust.
-- Windows uses C# + WinUI 3, with a Rust C ABI adapter.
+- First-stroke hosts use UIKit on iOS/iPadOS, Material Views on Android,
+  C#/WinUI 3 on Windows, GTK4/libadwaita on Linux, and HTML + Rust/Wasm in browsers.
+- These parallel prototypes were authorized on 2026-10-14; shipping every platform
+  simultaneously remains outside this milestone.
 - Responsiveness and consistent drawing behavior are primary quality requirements.
 - Start with Codex. Agents implement/test autonomously; the owner approves merges.
 - GPT-6 Astra is the requested model. Agent budget and reference hardware are undecided.
@@ -24,8 +27,8 @@ advanced vector booleans, textured brush engine, and simultaneous launch on ever
 
 ## Proposed, not yet committed
 
-iPadOS is the likely second full app. Prototype its input adapter early to challenge
-desktop assumptions. Skia-over-Metal is a benchmark baseline; evaluate Vello with the same
+iPadOS/iOS is the intended second full app. Its touch prototype challenges desktop
+assumptions; production platform acceptance remains separate from simulator checks. Skia-over-Metal is a benchmark baseline; evaluate Vello with the same
 geometry and presentation conditions before choosing the production renderer.
 
 ## Open decisions

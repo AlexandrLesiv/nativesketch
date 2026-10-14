@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+platform="${1:-simulator}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+swift_flags=(-D NATIVE_SKETCH)
+case "$platform" in
+ simulator) sdk=xrsimulator; rust_target=aarch64-apple-visionos-sim; swift_target=arm64-apple-xros1.0-simulator; swift_flags=(-D NATIVE_SKETCH -D DEBUG) ;;
+ device) sdk=xros; rust_target=aarch64-apple-visionos; swift_target=arm64-apple-xros1.0 ;;
+ *) echo 'Usage: scripts/build-visionos [simulator|device]' >&2; exit 2 ;;
+esac
+export CARGO_TARGET_DIR="$repo_root/target"
+export SDKROOT="$(xcrun --sdk "$sdk" --show-sdk-path)"
+cargo build --locked --release -p sketch-ffi --target "$rust_target"
+app="$repo_root/artifacts/visionos-$platform/NativeSketch.app"
+mkdir -p "$app" "$repo_root/.build-cache/visionos-module-cache"
+xcrun --sdk "$sdk" swiftc -swift-version 6 -parse-as-library -O \
+ "${swift_flags[@]}" -target "$swift_target" -sdk "$SDKROOT" -module-cache-path "$repo_root/.build-cache/visionos-module-cache" \
+ -I "$repo_root/apps/macos/Sources/CSketchFFI" \
+ "$repo_root"/apps/ios/Sources/*.swift "$repo_root/target/$rust_target/release/libsketch_ffi.a" \
+ -framework UIKit -framework UniformTypeIdentifiers -framework Security -o "$app/NativeSketch"
+cp "$repo_root/apps/visionos/Info.plist" "$app/Info.plist"
+/usr/bin/codesign --force --sign - "$app"
+echo "Built $app; ad-hoc signed for local simulator use; device installation requires owner provisioning."

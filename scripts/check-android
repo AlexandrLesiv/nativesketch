@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+: "${ANDROID_HOME:=$HOME/Library/Android/sdk}"
+: "${ANDROID_SERIAL:?Set ANDROID_SERIAL explicitly to the dedicated Native Sketch test device before running this installation and replay}"
+export ANDROID_SERIAL
+adb="$ANDROID_HOME/platform-tools/adb"
+"$adb" install -r "$repo_root/artifacts/NativeSketch-android.apk"
+"$adb" logcat -c
+launch_ready=false
+for launch_attempt in {1..6}; do
+    launch_output="$("$adb" shell am start -S -W -n dev.nativesketch/.MainActivity --ez replay true)"
+    printf 'Replay launch attempt %s:\n%s\n' "$launch_attempt" "$launch_output"
+    if [[ "$launch_output" == *"Status: ok"* && "$launch_output" != *"Error:"* && "$launch_output" != *"Activity not started"* && "$launch_output" != *"PackageUpdateActivity"* ]]; then
+        launch_ready=true
+        break
+    fi
+    # Android can briefly foreground its package-update activity after install.
+    # Retry only that known transient/not-started response, never arbitrary launch errors.
+    if [[ "$launch_output" == *"Error:"* || ( "$launch_output" != *"Activity not started"* && "$launch_output" != *"PackageUpdateActivity"* ) ]]; then
+        echo "Replay activity failed to start" >&2
+        exit 1
+    fi
+    if (( launch_attempt < 6 )); then sleep 2; fi
+done
+if [[ "$launch_ready" != true ]]; then
+    echo "Replay activity did not start after the bounded package-update wait" >&2
+    exit 1
+fi
+for attempt in {1..30}; do
+    output="$("$adb" logcat -d -s NativeSketchReplay:I AndroidRuntime:E)"
+    if [[ "$output" == *"FAIL: Android replay"* ]]; then printf '%s\n' "$output"; exit 1; fi
+    if [[ "$output" == *"PASS: JNI"* ]]; then printf '%s\n' "$output"; exit 0; fi
+    sleep 1
+done
+printf '%s\n' "$output"
+exit 1

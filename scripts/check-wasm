@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+export CARGO_TARGET_DIR="$repo_root/target"
+./scripts/build-wasm
+fixture="$(mktemp -t native-sketch-wasm)"
+trap 'rm -f "$fixture"' EXIT
+cargo run --locked --quiet -p sketch-ffi --example portable-fixture -- "$fixture"
+node crates/sketch-wasm/tests/conformance.mjs artifacts/web/sketch_wasm.wasm "$fixture"
