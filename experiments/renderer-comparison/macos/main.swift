@@ -113,7 +113,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         let onConsole = (session?[kCGSessionOnConsoleKey as String] as? NSNumber)?.boolValue ?? false
         let screenID = (window.screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? CGMainDisplayID()
         return ["window_visible": window.isVisible, "window_unoccluded": window.occlusionState.contains(.visible),
-                "window_miniaturized": window.isMiniaturized, "session_on_console": onConsole,
+                "window_miniaturized": window.isMiniaturized, "window_level": window.level.rawValue, "session_on_console": onConsole,
                 "session_resigned": sessionResigned, "system_sleeping": systemSleeping,
                 "screens_sleeping": screensSleeping, "display_asleep": CGDisplayIsAsleep(screenID) != 0,
                 "system_uptime_seconds": ProcessInfo.processInfo.systemUptime]
@@ -167,6 +167,9 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         experimentMenu.addItem(runItem); experimentMenu.addItem(stopItem); experimentItem.submenu = experimentMenu
         NSApp.mainMenu = menuBar
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 680), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        // A controlled automatic trial must remain visible when the orchestration UI updates.
+        // This local level is restored after output; ordinary interactive launches stay normal.
+        if !options.interactive { window.level = .floating }
         window.title = "Native Sketch — Renderer Comparison"; window.delegate = self; window.minSize = NSSize(width: 640, height: 480)
         backend.addItems(withTitles: ["skia", "vello"]); fixture.addItems(withTitles: fixtures); resolution.addItems(withTitles: ["1600 × 1000", "2560 × 1600"]); mode.addItems(withTitles: ["completion", "paced"])
         backend.selectItem(withTitle: options.backend); fixture.selectItem(withTitle: options.fixture); mode.selectItem(withTitle: options.mode)
@@ -238,6 +241,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         var config: [String: Any] = ["backend": options.backend, "fixture": options.fixture, "width": options.width, "height": options.height, "mode": options.mode, "warmup": options.warmup, "repeat_id": options.repeatID, "output": options.output, "display": ["refresh_hz": hz as Any? ?? NSNull(), "refresh_source": "CVDisplayLink nominal period; not observed presentation rate", "backing_scale": window.backingScaleFactor, "window_points_width": window.frame.width, "window_points_height": window.frame.height], "runtime": ["os": ProcessInfo.processInfo.operatingSystemVersionString, "cpu_count": ProcessInfo.processInfo.processorCount, "physical_memory_bytes": ProcessInfo.processInfo.physicalMemory], "power": ["thermal_before": ProcessInfo.processInfo.thermalState.rawValue, "low_power_mode": ProcessInfo.processInfo.isLowPowerModeEnabled]]
         var runtime = config["runtime"] as! [String: Any]
         runtime["lifecycle_start"] = startState
+        runtime["window_level_policy"] = options.interactive ? "normal interactive window" : "temporary floating automatic benchmark window; restored after output"
         runtime["automatic_launch_settle_seconds"] = options.interactive ? 0.0 : 2.0
         runtime["activity_options"] = ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"]
         runtime["activity_options_raw"] = activityOptions.rawValue
@@ -299,7 +303,8 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
                 "measured_elapsed_seconds": measuredElapsed, "lifecycle_start": startState,
                 "lifecycle_end": endState, "lifecycle_events": lifecycleEvents,
                 "activity_options": ["userInitiated", "latencyCritical", "idleDisplaySleepDisabled"],
-                "activity_held_through_output": activity != nil]
+                "activity_held_through_output": activity != nil,
+                "window_level_policy": options.interactive ? "normal interactive window" : "temporary floating automatic benchmark window; restored after output"]
             do {
                 let data = try JSONSerialization.data(withJSONObject: extra, options: [.prettyPrinted, .sortedKeys])
                 try FileManager.default.createDirectory(atPath: options.output, withIntermediateDirectories: true)
@@ -313,6 +318,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         lifecycleStart = nil
         if let activity { ProcessInfo.processInfo.endActivity(activity); self.activity = nil }
 
+        window.level = .normal
         active = nil; for c in [backend, fixture, resolution, mode] { c.isEnabled = true }; run.isEnabled = true; stop.isEnabled = false
         setStatus("\(result.capitalized)\(detail.isEmpty ? "" : ": " + detail)\n\(options.output)")
         exitCode = result == "complete" ? 0 : 1
