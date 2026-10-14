@@ -73,8 +73,12 @@ percentiles. Preserve all session boundaries and the original environmental reje
 
 ## Review and remaining scope
 
-A fresh reviewer accepted this methodology after inspecting the diagnostic stack sample;
-the implemented classifier still requires code/tests review before continuation.
+A fresh reviewer accepted the methodology and reviewed the integrated classifier and
+paired-outcome repair at `8bb8560`. All 49 portable tests passed independently.
+The declared Skia partner completed all 43,201 samples at 180.424 seconds; its
+scheduled-to-first-draw p95 was 300.20 ms (maximum 439.33 ms). Input/display identities
+match the failed Core Graphics partner. Retain its separate session boundary. This
+one pair is descriptive evidence, not a final comparison or physical latency result.
 No native threshold or quality requirement is relaxed. Physical pen-to-screen evidence,
 real Wacom input characterization and the previously stopped bundle-size checks remain
 pending. The permanent renderer decision remains open.
