@@ -77,8 +77,12 @@ final class Canvas: NSView {
     // callbacks for this backing-layer class. Metal invalidation is dispatched
     // explicitly on the same main runloop, while CG retains NSView.draw semantics.
     func requestPaint() {
-        if isMetal { DispatchQueue.main.async { [weak self] in self?.painter?(nil) } }
-        else { needsDisplay = true }
+        // Defer both requests beyond any current draw callback. AppKit can clear
+        // needsDisplay set from inside draw(_:) during the warm/reset handoff.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if self.isMetal { self.painter?(nil) } else { self.needsDisplay = true }
+        }
     }
     override var isOpaque: Bool { true }
     override var acceptsFirstResponder: Bool { true }
