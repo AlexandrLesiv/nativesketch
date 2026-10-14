@@ -94,7 +94,17 @@ class MainActivity : androidx.activity.ComponentActivity() {
             pendingUri = retained.uri
             dropPermission = retained.permission
         }
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val background = com.google.android.material.color.MaterialColors.getColor(
+            this, android.R.attr.colorBackground, Color.WHITE)
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(background)
+        }
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
+            val lightBackground = androidx.core.graphics.ColorUtils.calculateLuminance(background) > .5
+            isAppearanceLightStatusBars = lightBackground
+            isAppearanceLightNavigationBars = lightBackground
+        }
         root.setOnApplyWindowInsetsListener { v, i ->
             if (android.os.Build.VERSION.SDK_INT >= 30) {
                 val b = i.getInsets(WindowInsets.Type.systemBars())
@@ -141,6 +151,23 @@ class MainActivity : androidx.activity.ComponentActivity() {
                 minWidth = 0
                 minHeight = dp(48)
             }
+        val checkedState = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        fun themedColor(attribute: Int) = com.google.android.material.color.MaterialColors.getColor(
+            this, attribute, Color.BLACK)
+        val selectedBackground = themedColor(com.google.android.material.R.attr.colorSecondaryContainer)
+        val selectedForeground = themedColor(com.google.android.material.R.attr.colorOnSecondaryContainer)
+        val normalBackground = themedColor(com.google.android.material.R.attr.colorSurface)
+        val normalForeground = themedColor(com.google.android.material.R.attr.colorOnSurface)
+        val outline = themedColor(com.google.android.material.R.attr.colorOutline)
+        for (toolButton in listOf(penButton, selectButton)) {
+            toolButton.backgroundTintList = android.content.res.ColorStateList(
+                checkedState, intArrayOf(selectedBackground, normalBackground))
+            toolButton.setTextColor(android.content.res.ColorStateList(
+                checkedState, intArrayOf(selectedForeground, normalForeground)))
+            toolButton.strokeColor = android.content.res.ColorStateList(
+                checkedState, intArrayOf(selectedBackground, outline))
+            toolButton.strokeWidth = dp(1)
+        }
         tools.addView(penButton, LinearLayout.LayoutParams(0, dp(52), 1f))
         tools.addView(selectButton, LinearLayout.LayoutParams(0, dp(52), 1f))
         tools.check(if (pen) penButton.id else selectButton.id)
