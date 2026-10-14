@@ -227,7 +227,15 @@ class MainActivity : androidx.activity.ComponentActivity() {
                 applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
         ) {
             intent.removeExtra("replay")
-            canvas.post { safe { replay() } }
+            canvas.post {
+                safe {
+                    try { replay() }
+                    catch (error: Exception) {
+                        android.util.Log.e("NativeSketchReplay", "FAIL: Android replay", error)
+                        throw error
+                    }
+                }
+            }
         }
     }
 
