@@ -61,6 +61,10 @@ import CSketchFFI
     phone.delay = .zero; phone.copies = [changed]; coordinator.navigating = true
     await coordinator.refresh(b.descriptor)
     guard coordinator.pending != nil, store.document.source == data else { throw SourceFailure.rejected }
+    let stagedNewer = SourceCopy(descriptor: SourceDescriptor(namespaceID: "test", documentID: "b", revisionID: "three", parentRevisionID: "", contentSHA256: SourceDescriptor.hash(empty), serverGeneration: 3, kind: 1, title: "b"), document: empty)
+    try coordinator.pushed(stagedNewer)
+    do { try coordinator.pushed(changed); throw SourceFailure.metadata } catch SourceFailure.rejected {}
+    guard coordinator.pending?.0.descriptor.revisionID == "three" else { throw SourceFailure.rejected }
     try coordinator.apply()
     guard coordinator.pending == nil, store.document.source == empty else { throw SourceFailure.rejected }
     let legacy = WatchCopyStore(cache: root.appendingPathComponent("legacy.json"))

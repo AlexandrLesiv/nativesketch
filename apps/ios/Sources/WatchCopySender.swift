@@ -12,7 +12,7 @@
     var documentID = UUID().uuidString
     private let catalog = SharedDrawingCatalog(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("WatchShared"))
     private var session: WCSession?
-    private var pending: (Data, String, (String) -> Void)?
+    private var pending: (Data, String, String, (String) -> Void)?
     private var completions: [URL: (String) -> Void] = [:]
     func activate() {
       guard WCSession.isSupported() else { return }
@@ -38,13 +38,13 @@
       self.session = session
       session.delegate = self
       if session.activationState != .activated {
-        pending = (data, title, report)
+        pending = (data, title, documentID, report)
         session.activate()
         return
       }
-      enqueue(data, title: title, report: report)
+      enqueue(data, title: title, documentID: documentID, report: report)
     }
-    private func enqueue(_ data: Data, title: String, report: @escaping (String) -> Void) {
+    private func enqueue(_ data: Data, title: String, documentID: String, report: @escaping (String) -> Void) {
       guard let session, session.isPaired else {
         report("Pair an Apple Watch with this iPhone first.")
         return
@@ -82,9 +82,9 @@
         guard let pending = self.pending else { return }
         self.pending = nil
         if activated {
-          self.enqueue(pending.0, title: pending.1, report: pending.2)
+          self.enqueue(pending.0, title: pending.1, documentID: pending.2, report: pending.3)
         } else {
-          pending.2("Could not connect to Apple Watch: \(message ?? "try again after pairing")")
+          pending.3("Could not connect to Apple Watch: \(message ?? "try again after pairing")")
         }
       }
     }
