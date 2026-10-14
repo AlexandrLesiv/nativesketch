@@ -32,3 +32,17 @@ owner provisioning/signing. Simulator replays are synthetic, not physical touch 
 Pencil evidence. See the central evidence report for the tested revision and actual
 runtime coverage. No autosave/process-termination recovery, multiwindow editing,
 physical Pencil certification, VoiceOver speech or release distribution is provided.
+
+## Apple Watch copies
+
+On iPhone, Document → Send Copy to Apple Watch takes an explicit Rust document
+snapshot after cancelling temporary input and queues a `.nsketch` copy through
+WatchConnectivity. The sender rejects copies larger than 8 MiB, explains pairing
+or installation failures, and retains the outgoing file until the transfer
+completion callback. A queued transfer may arrive later; transport completion does
+not certify import on Watch. Sending never marks the editing document saved.
+
+The Watch app must be embedded in the iPhone package and provisioned for a real
+paired device; `build-ios` alone intentionally remains independent. No automatic
+sync or Watch editing is provided. Actual paired hardware delivery is unverified.
+Simulator-only adapter replay also checks oversized-copy rejection without sending.

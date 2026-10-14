@@ -78,7 +78,15 @@ import UniformTypeIdentifiers
     self.owner = owner
     super.init(frame: .zero)
     backgroundColor = .white
-    isMultipleTouchEnabled = true
+    #if os(visionOS)
+      let drag = UIPanGestureRecognizer(target: self, action: #selector(spatialDrag))
+      addGestureRecognizer(drag)
+      let tap = UITapGestureRecognizer(target: self, action: #selector(spatialTap))
+      tap.require(toFail: drag)
+      addGestureRecognizer(tap)
+    #else
+      isMultipleTouchEnabled = true
+    #endif
     isAccessibilityElement = true
     accessibilityLabel = "Drawing canvas"
     accessibilityHint =
@@ -122,14 +130,57 @@ import UniformTypeIdentifiers
       offset.y += (bounds.height - oldSize.height) / 2
     }
     oldSize = bounds.size
-    contentScaleFactor = window?.screen.scale ?? traitCollection.displayScale
+    contentScaleFactor = traitCollection.displayScale
     setNeedsDisplay()
   }
   override func didMoveToWindow() {
     super.didMoveToWindow()
     if window == nil { cancelAll() }
-    contentScaleFactor = window?.screen.scale ?? traitCollection.displayScale
+    contentScaleFactor = traitCollection.displayScale
   }
+  #if os(visionOS)
+    var panOrigin = CGPoint.zero
+    // Indirect spatial input may expose zero UITouches. Recognizer locations and
+    // translations, not touch counts, own this entire sequence.
+    @objc func spatialDrag(_ gesture: UIPanGestureRecognizer) {
+      let p = gesture.location(in: self)
+      switch gesture.state {
+      case .began:
+        cancelAll()
+        panOrigin = offset
+        if owner.tool.selectedSegmentIndex != 2 {
+          begin(
+            at: p, timestamp: ProcessInfo.processInfo.systemUptime, pressure: nil, pencil: false)
+        }
+      case .changed:
+        if owner.tool.selectedSegmentIndex == 2 {
+          let translation = gesture.translation(in: self)
+          offset = CGPoint(x: panOrigin.x + translation.x, y: panOrigin.y + translation.y)
+          owner.refresh()
+        } else {
+          move(to: p, timestamp: ProcessInfo.processInfo.systemUptime, pressure: nil)
+        }
+      case .ended:
+        if owner.tool.selectedSegmentIndex == 2 {
+          let translation = gesture.translation(in: self)
+          offset = CGPoint(x: panOrigin.x + translation.x, y: panOrigin.y + translation.y)
+          owner.refresh()
+        } else {
+          move(to: p, timestamp: ProcessInfo.processInfo.systemUptime, pressure: nil)
+          end()
+        }
+      case .cancelled, .failed: cancelAll()
+      default: break
+      }
+    }
+    @objc func spatialTap(_ gesture: UITapGestureRecognizer) {
+      guard gesture.state == .ended, owner.tool.selectedSegmentIndex != 2 else { return }
+      begin(
+        at: gesture.location(in: self), timestamp: ProcessInfo.processInfo.systemUptime,
+        pressure: nil, pencil: false)
+      end()
+    }
+  #endif
   func corners(_ b: SketchBounds) -> [CGPoint] {
     [
       CGPoint(x: b.x, y: b.y), CGPoint(x: b.x + b.width, y: b.y),
@@ -254,67 +305,70 @@ import UniformTypeIdentifiers
     ownerTouch = nil
     owner.refresh()
   }
-  func pressure(_ t: UITouch) -> Double? {
-    t.type == .pencil && t.maximumPossibleForce > 0 ? Double(t.force / t.maximumPossibleForce) : nil
-  }
-  func navigationPair() -> (CGPoint, Double)? {
-    let points = navigationTouches.filter { contacts.contains($0) }.map { $0.location(in: self) }
-    guard points.count >= 2 else { return nil }
-    let a = points[0]
-    let b = points[1]
-    return (CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2), hypot(a.x - b.x, a.y - b.y))
-  }
-  func beginNavigation() {
-    cancel()
-    navigating = true
-    owner.refresh()
-  }
-  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    contacts.formUnion(touches)
-    if contacts.count > 1 {
-      if !navigating {
-        navigationTouches = Array(contacts.prefix(2))
-        beginNavigation()
+  #if !os(visionOS)
+    func pressure(_ t: UITouch) -> Double? {
+      t.type == .pencil && t.maximumPossibleForce > 0
+        ? Double(t.force / t.maximumPossibleForce) : nil
+    }
+    func navigationPair() -> (CGPoint, Double)? {
+      let points = navigationTouches.filter { contacts.contains($0) }.map { $0.location(in: self) }
+      guard points.count >= 2 else { return nil }
+      let a = points[0]
+      let b = points[1]
+      return (CGPoint(x: (a.x + b.x) / 2, y: (a.y + b.y) / 2), hypot(a.x - b.x, a.y - b.y))
+    }
+    func beginNavigation() {
+      cancel()
+      navigating = true
+      owner.refresh()
+    }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+      contacts.formUnion(touches)
+      if contacts.count > 1 {
+        if !navigating {
+          navigationTouches = Array(contacts.prefix(2))
+          beginNavigation()
+          previousNavigation = navigationPair()
+        }
+        return
+      }
+      guard !navigating, let t = touches.first else { return }
+      ownerTouch = t
+      begin(
+        at: t.location(in: self), timestamp: t.timestamp, pressure: pressure(t),
+        pencil: t.type == .pencil)
+    }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+      if navigating {
+        if let current = navigationPair(), let previous = previousNavigation {
+          let d = document(previous.0)
+          if previous.1 > 1 { zoom = min(16, max(0.1, zoom * current.1 / previous.1)) }
+          offset = CGPoint(x: current.0.x - d.x * zoom, y: current.0.y - d.y * zoom)
+          owner.refresh()
+        }
         previousNavigation = navigationPair()
+        return
       }
-      return
+      guard let t = ownerTouch, touches.contains(t) else { return }
+      for sample in event?.coalescedTouches(for: t) ?? [t] {
+        move(to: sample.location(in: self), timestamp: sample.timestamp, pressure: pressure(sample))
+      }
     }
-    guard !navigating, let t = touches.first else { return }
-    ownerTouch = t
-    begin(
-      at: t.location(in: self), timestamp: t.timestamp, pressure: pressure(t),
-      pencil: t.type == .pencil)
-  }
-  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    if navigating {
-      if let current = navigationPair(), let previous = previousNavigation {
-        let d = document(previous.0)
-        if previous.1 > 1 { zoom = min(16, max(0.1, zoom * current.1 / previous.1)) }
-        offset = CGPoint(x: current.0.x - d.x * zoom, y: current.0.y - d.y * zoom)
-        owner.refresh()
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+      if !navigating, let t = ownerTouch, touches.contains(t) {
+        move(to: t.location(in: self), timestamp: t.timestamp, pressure: pressure(t))
+        end()
       }
+      contacts.subtract(touches)
       previousNavigation = navigationPair()
-      return
+      if contacts.isEmpty {
+        navigating = false
+        previousNavigation = nil
+        navigationTouches.removeAll()
+      }
     }
-    guard let t = ownerTouch, touches.contains(t) else { return }
-    for sample in event?.coalescedTouches(for: t) ?? [t] {
-      move(to: sample.location(in: self), timestamp: sample.timestamp, pressure: pressure(sample))
-    }
-  }
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    if !navigating, let t = ownerTouch, touches.contains(t) {
-      move(to: t.location(in: self), timestamp: t.timestamp, pressure: pressure(t))
-      end()
-    }
-    contacts.subtract(touches)
-    previousNavigation = navigationPair()
-    if contacts.isEmpty {
-      navigating = false
-      previousNavigation = nil
-      navigationTouches.removeAll()
-    }
-  }
-  override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { cancelAll() }
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { cancelAll() }
+  #endif
 }
 
 @MainActor
@@ -323,7 +377,12 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
 {
   let editor = MobileEditor()
   lazy var canvas = DrawingView(owner: self)
-  let tool = UISegmentedControl(items: ["Pen", "Select"])
+  #if os(visionOS)
+    let tool = UISegmentedControl(items: ["Pen", "Select", "Pan"])
+  #else
+    let tool = UISegmentedControl(items: ["Pen", "Select"])
+    lazy var watchSender = WatchCopySender()
+  #endif
   let status = UILabel()
   var ink = UIColor.black
   var strokeWidth = 6.0
@@ -342,10 +401,20 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
           ? "The drawing engine stopped. Use New or Open to recover. Unsaved changes are unavailable."
           : "The operation failed (engine error \(code)). Your committed drawing is retained.")
     }
-    tool.selectedSegmentIndex = 0
+    #if os(visionOS)
+      tool.selectedSegmentIndex = 1
+      canvas.accessibilityHint =
+        "Select strokes or choose Pan to navigate. Choose Pen explicitly to draw. Use Drawing options to zoom."
+    #else
+      tool.selectedSegmentIndex = 0
+    #endif
     tool.addTarget(self, action: #selector(changeTool), for: .valueChanged)
     tool.accessibilityLabel = "Drawing tool"
-    tool.widthAnchor.constraint(equalToConstant: 150).isActive = true
+    #if os(visionOS)
+      tool.widthAnchor.constraint(equalToConstant: 260).isActive = true
+    #else
+      tool.widthAnchor.constraint(equalToConstant: 150).isActive = true
+    #endif
     tool.heightAnchor.constraint(equalToConstant: 44).isActive = true
     undoButton = UIBarButtonItem(
       image: UIImage(systemName: "arrow.uturn.backward"), style: .plain, target: self,
@@ -356,19 +425,29 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       action: #selector(redoEdit))
     redoButton.accessibilityLabel = "Redo"
     navigationItem.rightBarButtonItems = [redoButton, undoButton]
+    var documentActions: [UIMenuElement] = [
+      UIAction(title: "New", image: UIImage(systemName: "doc")) { [weak self] _ in
+        self?.newDocument()
+      },
+      UIAction(title: "Open…", image: UIImage(systemName: "folder")) { [weak self] _ in
+        self?.openDocument()
+      },
+      UIAction(title: "Save to Files…", image: UIImage(systemName: "square.and.arrow.up")) {
+        [weak self] _ in self?.saveDocument()
+      },
+    ]
+    #if !os(visionOS)
+      if UIDevice.current.userInterfaceIdiom == .phone {
+        watchSender.activate()
+        documentActions.append(
+          UIAction(title: "Send Copy to Apple Watch", image: UIImage(systemName: "applewatch")) {
+            [weak self] _ in
+            self?.sendToWatch()
+          })
+      }
+    #endif
     navigationItem.leftBarButtonItem = UIBarButtonItem(
-      title: "Document",
-      menu: UIMenu(children: [
-        UIAction(title: "New", image: UIImage(systemName: "doc")) { [weak self] _ in
-          self?.newDocument()
-        },
-        UIAction(title: "Open…", image: UIImage(systemName: "folder")) { [weak self] _ in
-          self?.openDocument()
-        },
-        UIAction(title: "Save to Files…", image: UIImage(systemName: "square.and.arrow.up")) {
-          [weak self] _ in self?.saveDocument()
-        },
-      ]))
+      title: "Document", menu: UIMenu(children: documentActions))
     let options = UIBarButtonItem(
       image: UIImage(systemName: "ellipsis.circle"),
       menu: UIMenu(children: [
@@ -380,6 +459,7 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
             UIAction(title: "Zoom In") { [weak self] _ in self?.zoomIn() },
             UIAction(title: "Zoom Out") { [weak self] _ in self?.zoomOut() },
             UIAction(title: "Actual Size") { [weak self] _ in self?.actualSize() },
+            UIAction(title: "Fit Drawing") { [weak self] _ in self?.fitDrawing() },
           ]),
       ]))
     options.accessibilityLabel = "Drawing options: style, selection, and zoom"
@@ -412,7 +492,9 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     canvas.becomeFirstResponder()
-    if ProcessInfo.processInfo.arguments.contains("--integration-test") { runReplay() }
+    #if DEBUG
+      if ProcessInfo.processInfo.arguments.contains("--integration-test") { runReplay() }
+    #endif
   }
   override func viewWillTransition(
     to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator
@@ -488,6 +570,38 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
   @objc func zoomIn() { setZoom(canvas.zoom * 1.25) }
   @objc func zoomOut() { setZoom(canvas.zoom / 1.25) }
   @objc func actualSize() { setZoom(1) }
+  @objc func fitDrawing() {
+    canvas.cancelAll()
+    let path = CGMutablePath()
+    for command in editor.commands() {
+      switch command.verb {
+      case 0: path.move(to: CGPoint(x: command.x1, y: command.y1))
+      case 1: path.addLine(to: CGPoint(x: command.x1, y: command.y1))
+      case 2:
+        path.addCurve(
+          to: CGPoint(x: command.x3, y: command.y3),
+          control1: CGPoint(x: command.x1, y: command.y1),
+          control2: CGPoint(x: command.x2, y: command.y2))
+      default: path.closeSubpath()
+      }
+    }
+    guard !path.isEmpty else {
+      actualSize()
+      return
+    }
+    let b = path.boundingBoxOfPath
+    canvas.zoom = min(
+      16,
+      max(
+        0.1,
+        min(
+          max(1, canvas.bounds.width - 64) / max(1, b.width),
+          max(1, canvas.bounds.height - 64) / max(1, b.height))))
+    canvas.offset = CGPoint(
+      x: canvas.bounds.midX - b.midX * canvas.zoom,
+      y: canvas.bounds.midY - b.midY * canvas.zoom)
+    refresh()
+  }
   func setZoom(_ zoom: Double) {
     canvas.cancelAll()
     let p = CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY)
@@ -726,56 +840,95 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       refresh()
     } catch { self.error(error.localizedDescription) }
   }
-  func runReplay() {
-    editor.failure = nil
-    canvas.begin(at: CGPoint(x: 50, y: 50), timestamp: 1, pressure: nil, pencil: false)
-    canvas.move(to: CGPoint(x: 140, y: 110), timestamp: 2, pressure: nil)
-    canvas.end()
-    precondition(editor.state.stroke_count == 1)
-    canvas.begin(at: CGPoint(x: 180, y: 160), timestamp: 3, pressure: 0.5, pencil: true)
-    canvas.beginNavigation()
-    precondition(canvas.navigating && canvas.mode == 0)
-    canvas.cancelAll()
-    canvas.end()
-    precondition(editor.state.stroke_count == 1)
-    _ = nextStroke()
-    precondition(applyScale("150"))
-    undoEdit()
-    redoEdit()
-    let fixture = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-    try! Data(repeating: 42, count: 65).write(to: fixture)
-    do {
-      _ = try Self.readDocument(fixture, limit: 64)
-      preconditionFailure("Oversize import accepted")
-    } catch {}
-    precondition((try! Self.readDocument(fixture, limit: 65)).count == 65)
-    try? FileManager.default.removeItem(at: fixture)
-    let snapshot = editor.snapshot()!
-    precondition(editor.state.dirty != 0)
-    precondition(!editor.load(Data("bad".utf8)))
-    precondition(editor.state.stroke_count == 1)
-    precondition(editor.check(sketch_document_mark_saved(editor.handle, snapshot.1)))
-    precondition(editor.state.dirty == 0)
-    precondition(editor.load(snapshot.0))
-    precondition(editor.state.stroke_count == 1)
-    let point = CGPoint(x: 45, y: 70)
-    canvas.zoom = 2
-    canvas.offset = CGPoint(x: 14, y: 34)
-    let mapped = canvas.document(canvas.screen(point))
-    precondition(abs(mapped.x - point.x) < 1e-9 && abs(mapped.y - point.y) < 1e-9)
-    let previous = canvas.document(CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY))
-    canvas.frame.size = CGSize(width: 320, height: 480)
-    canvas.layoutSubviews()
-    let center = canvas.document(CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY))
-    precondition(abs(previous.x - center.x) < 1e-9 && abs(previous.y - center.y) < 1e-9)
-    let text =
-      "PASS UIKit adapter replay: ink, cancellation, selection, scale/history, invalid import retention, revision save acknowledgement, roundtrip and rotation center mapping. Synthetic scalar input; no physical touch/Pencil."
-    print(text)
-    try? text.write(
-      to: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("replay-result.txt"), atomically: true, encoding: .utf8)
-    exit(0)
-  }
+  #if !os(visionOS)
+    func sendToWatch() {
+      canvas.cancelAll()
+      guard let (data, _) = editor.snapshot() else { return }
+      watchSender.send(data, title: name) { [weak self] message in
+        guard let self else { return }
+        let alert = UIAlertController(
+          title: "Apple Watch Copy", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        if self.presentedViewController == nil { self.present(alert, animated: true) }
+      }
+    }
+  #endif
+  #if DEBUG
+    func runReplay() {
+      editor.failure = nil
+      #if os(visionOS)
+        precondition(tool.selectedSegmentIndex == 1)
+        canvas.begin(at: CGPoint(x: 50, y: 50), timestamp: 0, pressure: nil, pencil: false)
+        canvas.end()
+        precondition(editor.state.stroke_count == 0)
+        tool.selectedSegmentIndex = 0
+      #endif
+      canvas.begin(at: CGPoint(x: 50, y: 50), timestamp: 1, pressure: nil, pencil: false)
+      canvas.move(to: CGPoint(x: 140, y: 110), timestamp: 2, pressure: nil)
+      canvas.end()
+      precondition(editor.state.stroke_count == 1)
+      #if os(visionOS)
+        canvas.begin(at: CGPoint(x: 180, y: 160), timestamp: 3, pressure: nil, pencil: false)
+      #else
+        canvas.begin(at: CGPoint(x: 180, y: 160), timestamp: 3, pressure: 0.5, pencil: true)
+      #endif
+      canvas.cancel()
+      canvas.navigating = true
+      precondition(canvas.navigating && canvas.mode == 0)
+      canvas.cancelAll()
+      canvas.end()
+      precondition(editor.state.stroke_count == 1)
+      _ = nextStroke()
+      precondition(applyScale("150"))
+      undoEdit()
+      redoEdit()
+      let fixture = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+      try! Data(repeating: 42, count: 65).write(to: fixture)
+      do {
+        _ = try Self.readDocument(fixture, limit: 64)
+        preconditionFailure("Oversize import accepted")
+      } catch {}
+      precondition((try! Self.readDocument(fixture, limit: 65)).count == 65)
+      try? FileManager.default.removeItem(at: fixture)
+      #if os(iOS)
+        let beforeWatch = editor.snapshot()!.0
+        var oversizedRejected = false
+        watchSender.send(Data(repeating: 0, count: 8 * 1024 * 1024 + 1), title: "Fixture") {
+          oversizedRejected = $0.contains("8 MiB")
+        }
+        precondition(
+          oversizedRejected && editor.snapshot()!.0 == beforeWatch && editor.state.dirty != 0)
+      #endif
+      let beforeFit = editor.snapshot()!.0
+      fitDrawing()
+      precondition(editor.snapshot()!.0 == beforeFit)
+      let snapshot = editor.snapshot()!
+      precondition(editor.state.dirty != 0)
+      precondition(!editor.load(Data("bad".utf8)))
+      precondition(editor.state.stroke_count == 1)
+      precondition(editor.check(sketch_document_mark_saved(editor.handle, snapshot.1)))
+      precondition(editor.state.dirty == 0)
+      precondition(editor.load(snapshot.0))
+      precondition(editor.state.stroke_count == 1)
+      let point = CGPoint(x: 45, y: 70)
+      canvas.zoom = 2
+      canvas.offset = CGPoint(x: 14, y: 34)
+      let mapped = canvas.document(canvas.screen(point))
+      precondition(abs(mapped.x - point.x) < 1e-9 && abs(mapped.y - point.y) < 1e-9)
+      let previous = canvas.document(CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY))
+      canvas.frame.size = CGSize(width: 320, height: 480)
+      canvas.layoutSubviews()
+      let center = canvas.document(CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY))
+      precondition(abs(previous.x - center.x) < 1e-9 && abs(previous.y - center.y) < 1e-9)
+      let text =
+        "PASS UIKit adapter replay: ink, cancellation, selection, scale/history, invalid import retention, revision save acknowledgement, roundtrip and rotation center mapping. Synthetic scalar input; no physical touch/Pencil."
+      print(text)
+      try? text.write(
+        to: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+          .appendingPathComponent("replay-result.txt"), atomically: true, encoding: .utf8)
+      exit(0)
+    }
+  #endif
 }
 
 @main @MainActor final class NativeSketchApplication: UIResponder, UIApplicationDelegate {
