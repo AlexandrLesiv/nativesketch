@@ -20,7 +20,7 @@ files=sorted(p for p in package.rglob('*') if p.is_file() and '.DS_Store' != p.n
 h=hashlib.sha256()
 for p in files:
     h.update(str(p.relative_to(root)).encode()); h.update(b'\0'); h.update(p.read_bytes())
-print(json.dumps({'profile':sys.argv[2], 'source_tree_sha256':h.hexdigest(), 'rustc':command('rustc','-Vv'), 'swift':command('xcrun','swiftc','--version'), 'sdk_path':command('xcrun','--show-sdk-path'), 'sdk_version':command('xcrun','--show-sdk-version'), 'cargo_lock_sha256':hashlib.sha256((package/'Cargo.lock').read_bytes()).hexdigest(), 'swift_flags':'-swift-version 5 -O' if sys.argv[2]=='release' else '-swift-version 5 -Onone -g'},sort_keys=True))
+print(json.dumps({'result_root':str(root/'artifacts/renderer-comparison'), 'profile':sys.argv[2], 'source_tree_sha256':h.hexdigest(), 'rustc':command('rustc','-Vv'), 'swift':command('xcrun','swiftc','--version'), 'sdk_path':command('xcrun','--show-sdk-path'), 'sdk_version':command('xcrun','--show-sdk-version'), 'cargo_lock_sha256':hashlib.sha256((package/'Cargo.lock').read_bytes()).hexdigest(), 'swift_flags':'-swift-version 5 -O' if sys.argv[2]=='release' else '-swift-version 5 -Onone -g'},sort_keys=True))
 PY
 )"
 printf '%s\n' "$RENDERER_BUILD_JSON" > "$app/Contents/Resources/build.json"

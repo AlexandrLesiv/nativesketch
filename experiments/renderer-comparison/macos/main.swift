@@ -8,8 +8,38 @@ struct Options {
     var width = 1600, height = 1000, warmup = 120, frames = 600
     var repeatID = "0"
     var duration: Double? = nil
-    var output = FileManager.default.currentDirectoryPath + "/artifacts/renderer-comparison/manual-" + UUID().uuidString
+    var output = ""
     var interactive = true
+    // Finder/Launch Services may launch with / as the working directory. Never derive
+    // interactive result paths from it. Explicit CLI output remains authoritative.
+    static func writableResultRoot(_ candidates: [URL]) throws -> URL {
+        let files = FileManager.default
+        for root in candidates {
+            do {
+                try files.createDirectory(at: root, withIntermediateDirectories: true)
+                // A real probe also catches ACL/read-only-volume restrictions.
+                let probe = root.appendingPathComponent(".write-probe-" + UUID().uuidString)
+                try Data().write(to: probe, options: .withoutOverwriting)
+                try files.removeItem(at: probe)
+                return root
+            } catch { continue }
+        }
+        throw HostError.message("No writable result directory. Relaunch with --output /absolute/writable/path")
+    }
+    static func defaultOutput() throws -> String {
+        var candidates: [URL] = []
+        if let resource = Bundle.main.url(forResource: "build", withExtension: "json"),
+           let data = try? Data(contentsOf: resource),
+           let metadata = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+           let root = metadata["result_root"] as? String, root.hasPrefix("/") {
+            candidates.append(URL(fileURLWithPath: root, isDirectory: true))
+        }
+        if let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first {
+            candidates.append(caches.appendingPathComponent("org.nativesketch.renderer-comparison/results", isDirectory: true))
+        }
+        candidates.append(FileManager.default.temporaryDirectory.appendingPathComponent("org.nativesketch.renderer-comparison/results", isDirectory: true))
+        return try writableResultRoot(candidates).appendingPathComponent("manual-" + UUID().uuidString, isDirectory: true).path
+    }
     static func parse() throws -> Options {
         var o = Options(); let a = Array(CommandLine.arguments.dropFirst()); o.interactive = a.isEmpty || a.contains("--interactive")
         var i = 0; var seen = Set<String>()
@@ -34,6 +64,7 @@ struct Options {
             }
         }
         guard ["skia", "vello"].contains(o.backend), fixtures.contains(o.fixture), ["completion", "paced"].contains(o.mode), o.width > 0, o.height > 0, o.width <= 16384, o.height <= 16384, o.frames > 0, !(seen.contains("--frames") && o.duration != nil) else { throw HostError.message("Invalid backend, fixture, mode, dimensions, or frame/duration combination") }
+        if o.output.isEmpty { o.output = try defaultOutput() }
         return o
     }
 }
