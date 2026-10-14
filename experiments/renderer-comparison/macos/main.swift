@@ -3,8 +3,18 @@ import QuartzCore
 import Metal
 import CoreVideo
 
+// The same host code is linked in every size variant. Build-host records the exact
+// Cargo selection; Rust validates it again before creating a GPU/session.
+let availableBackends: [String] = {
+    guard let url = Bundle.main.url(forResource: "build", withExtension: "json"),
+          let data = try? Data(contentsOf: url),
+          let metadata = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+          let backends = metadata["available_backends"] as? [String],
+          [["skia", "vello"], ["skia"], ["vello"], ["baseline"]].contains(backends) else { return [] }
+    return backends
+}()
 struct Options {
-    var backend = "skia", fixture = "live", mode = "completion"
+    var backend = availableBackends.first ?? "", fixture = "live", mode = "completion"
     var width = 1600, height = 1000, warmup = 120, frames = 600
     var repeatID = "0"
     var duration: Double? = nil
@@ -41,6 +51,7 @@ struct Options {
         return try writableResultRoot(candidates).appendingPathComponent("manual-" + UUID().uuidString, isDirectory: true).path
     }
     static func parse() throws -> Options {
+        guard !availableBackends.isEmpty else { throw HostError.message("Missing or invalid build.json available_backends; rebuild with build-host") }
         var o = Options(); let a = Array(CommandLine.arguments.dropFirst()); o.interactive = a.isEmpty || a.contains("--interactive")
         var i = 0; var seen = Set<String>()
         while i < a.count {
@@ -63,7 +74,8 @@ struct Options {
             default: throw HostError.message("Unknown option: \(key)")
             }
         }
-        guard ["skia", "vello"].contains(o.backend), fixtures.contains(o.fixture), ["completion", "paced"].contains(o.mode), o.width > 0, o.height > 0, o.width <= 16384, o.height <= 16384, o.frames > 0, !(seen.contains("--frames") && o.duration != nil) else { throw HostError.message("Invalid backend, fixture, mode, dimensions, or frame/duration combination") }
+        guard availableBackends.contains(o.backend) else { throw HostError.message("Backend \(o.backend) is not compiled; available: \(availableBackends.joined(separator: ", "))") }
+        guard fixtures.contains(o.fixture), ["completion", "paced"].contains(o.mode), o.width > 0, o.height > 0, o.width <= 16384, o.height <= 16384, o.frames > 0, !(seen.contains("--frames") && o.duration != nil) else { throw HostError.message("Invalid backend, fixture, mode, dimensions, or frame/duration combination") }
         if o.output.isEmpty { o.output = try defaultOutput() }
         return o
     }
@@ -171,10 +183,10 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         // This local level is restored after output; ordinary interactive launches stay normal.
         if !options.interactive { window.level = .floating }
         window.title = "Native Sketch — Renderer Comparison"; window.delegate = self; window.minSize = NSSize(width: 640, height: 480)
-        backend.addItems(withTitles: ["skia", "vello"]); fixture.addItems(withTitles: fixtures); resolution.addItems(withTitles: ["1600 × 1000", "2560 × 1600"]); mode.addItems(withTitles: ["completion", "paced"])
+        backend.addItems(withTitles: availableBackends); fixture.addItems(withTitles: fixtures); resolution.addItems(withTitles: ["1600 × 1000", "2560 × 1600"]); mode.addItems(withTitles: ["completion", "paced"])
         backend.selectItem(withTitle: options.backend); fixture.selectItem(withTitle: options.fixture); mode.selectItem(withTitle: options.mode)
         let sizeTitle = "\(options.width) × \(options.height)"; if resolution.item(withTitle: sizeTitle) == nil { resolution.addItem(withTitle: sizeTitle) }; resolution.selectItem(withTitle: sizeTitle)
-        let grid = NSGridView(views: [[NSTextField(labelWithString: "Backend"), backend, NSTextField(labelWithString: "Fixture"), fixture], [NSTextField(labelWithString: "Physical pixels"), resolution, NSTextField(labelWithString: "Mode"), mode]])
+        let grid = NSGridView(views: [[NSTextField(labelWithString: availableBackends == ["baseline"] ? "Blank size control" : "Backend"), backend, NSTextField(labelWithString: "Fixture"), fixture], [NSTextField(labelWithString: "Physical pixels"), resolution, NSTextField(labelWithString: "Mode"), mode]])
         // Keep labels next to their selectors at every window size. This bounded
         // native control group fits inside the 640-point minimum window's insets.
         grid.translatesAutoresizingMaskIntoConstraints = false

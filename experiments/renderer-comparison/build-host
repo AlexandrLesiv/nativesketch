@@ -2,32 +2,52 @@
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 profile="${1:-release}"
-if [[ "$profile" != release && "$profile" != debug ]] || [[ $# -gt 1 ]]; then
-  echo "Usage: $0 [release|debug]" >&2; exit 2
+if [[ "$profile" != release && "$profile" != debug ]] || [[ $# -gt 2 ]]; then
+  echo "Usage: $0 [release|debug] [both|skia|vello|baseline]" >&2; exit 2
 fi
+variant="${2:-both}"
+features="skia-backend,vello-backend"; link_args=()
+case "$variant" in
+  both) ;;
+  skia) features="skia-backend" ;;
+  vello) features="vello-backend" ;;
+  baseline) features="size-baseline" ;;
+  *) echo "Unknown variant: $variant (expected both, skia, vello or baseline)" >&2; exit 2 ;;
+esac
 package="$root/experiments/renderer-comparison"
-target="$root/.build-cache/renderer-comparison"
+target="${CARGO_TARGET_DIR:-$root/.build-cache/renderer-comparison}"
 app="$root/artifacts/renderer-comparison-build/RendererComparison.app"
+if [[ $# -eq 2 ]]; then
+  variant_root="$root/artifacts/renderer-size/$variant"
+  app="$variant_root/RendererComparison.app"
+  link_args=(-Xlinker -map -Xlinker "$variant_root/link-map.txt")
+fi
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$target/swift-module-cache"
 export RENDERER_SOURCE_REVISION="$(git -C "$root" rev-parse HEAD)"
 export RENDERER_SOURCE_DIFF_HASH="$(git -C "$root" diff HEAD --binary | shasum -a 256 | cut -d ' ' -f 1)"
 export RENDERER_BUILD_JSON
-RENDERER_BUILD_JSON="$(python3 - "$root" "$profile" <<'PY'
-import hashlib,json,pathlib,subprocess,sys
+RENDERER_BUILD_JSON="$(python3 - "$root" "$profile" "$variant" "$features" <<'PY'
+import hashlib,json,os,pathlib,subprocess,sys
 root=pathlib.Path(sys.argv[1]); package=root/'experiments/renderer-comparison'
 def command(*args): return subprocess.check_output(args,text=True).strip()
 files=sorted(p for p in package.rglob('*') if p.is_file() and '.DS_Store' != p.name and 'target' not in p.parts)
 h=hashlib.sha256()
 for p in files:
     h.update(str(p.relative_to(root)).encode()); h.update(b'\0'); h.update(p.read_bytes())
-print(json.dumps({'result_root':str(root/'artifacts/renderer-comparison'), 'profile':sys.argv[2], 'source_tree_sha256':h.hexdigest(), 'rustc':command('rustc','-Vv'), 'swift':command('xcrun','swiftc','--version'), 'sdk_path':command('xcrun','--show-sdk-path'), 'sdk_version':command('xcrun','--show-sdk-version'), 'cargo_lock_sha256':hashlib.sha256((package/'Cargo.lock').read_bytes()).hexdigest(), 'swift_flags':'-swift-version 5 -O' if sys.argv[2]=='release' else '-swift-version 5 -Onone -g'},sort_keys=True))
+build_env = {k:os.environ.get(k) for k in ['RUSTFLAGS','CARGO_ENCODED_RUSTFLAGS','MACOSX_DEPLOYMENT_TARGET','CARGO_BUILD_TARGET','CARGO_BUILD_RUSTFLAGS','RUSTC_WRAPPER','RUSTC_WORKSPACE_WRAPPER','CARGO_PROFILE_RELEASE_OPT_LEVEL','CARGO_PROFILE_RELEASE_LTO','CARGO_PROFILE_RELEASE_STRIP','CARGO_PROFILE_RELEASE_DEBUG','CARGO_PROFILE_RELEASE_CODEGEN_UNITS','CARGO_PROFILE_RELEASE_PANIC','CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS','CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS','CARGO_PROFILE_RELEASE_INCREMENTAL']}
+build_env.update({k:v for k,v in os.environ.items() if k.startswith(('CARGO_PROFILE_RELEASE_', 'CARGO_TARGET_'))})
+rust_host = next(line.removeprefix('host: ') for line in command('rustc','-Vv').splitlines() if line.startswith('host: '))
+print(json.dumps({'build_environment':build_env, 'rust_target':os.environ.get('CARGO_BUILD_TARGET') or rust_host, 'swift_target':command('uname','-m')+'-apple-macosx13.0', 'release_profile_defaults':{'opt_level':3,'lto':'thin','strip':'none','debug':False,'codegen_units':16,'panic':'unwind','overflow_checks':False,'debug_assertions':False,'incremental':False}, 'variant':sys.argv[3], 'cargo_features':sys.argv[4].split(','), 'available_backends':{'both':['skia','vello'], 'skia':['skia'], 'vello':['vello'], 'baseline':['baseline']}[sys.argv[3]], 'rendering_comparison_eligible':sys.argv[3]!='baseline', 'source_revision':os.environ['RENDERER_SOURCE_REVISION'], 'source_diff_hash':os.environ['RENDERER_SOURCE_DIFF_HASH'], 'shared_harness':'wgpu/Metal and vello_common fixture geometry retained in all variants; not direct-Metal Skia minimum', 'architecture':command('uname','-m'), 'result_root':str(root/'artifacts/renderer-comparison'), 'profile':sys.argv[2], 'source_tree_sha256':h.hexdigest(), 'rustc':command('rustc','-Vv'), 'swift':command('xcrun','swiftc','--version'), 'sdk_path':command('xcrun','--show-sdk-path'), 'sdk_version':command('xcrun','--show-sdk-version'), 'cargo_lock_sha256':hashlib.sha256((package/'Cargo.lock').read_bytes()).hexdigest(), 'swift_flags':'-swift-version 5 -O' if sys.argv[2]=='release' else '-swift-version 5 -Onone -g'},sort_keys=True))
 PY
 )"
 printf '%s\n' "$RENDERER_BUILD_JSON" > "$app/Contents/Resources/build.json"
 cargo_args=(); swift_args=(-Onone -g)
 if [[ "$profile" == release ]]; then cargo_args=(--release); swift_args=(-O); fi
-cargo build --locked --manifest-path "$package/Cargo.toml" --target-dir "$target" "${cargo_args[@]}" >&2
-xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macosx13.0" "${swift_args[@]}" -module-cache-path "$target/swift-module-cache" \
+if [[ $# -eq 2 ]]; then
+  cargo tree --locked --manifest-path "$package/Cargo.toml" --target "$(uname -m | sed s/arm64/aarch64/)-apple-darwin" -e normal --prefix none --no-default-features --features "$features" > "$variant_root/cargo-tree.txt"
+fi
+cargo build --no-default-features --features "$features" --locked --manifest-path "$package/Cargo.toml" --target-dir "$target" "${cargo_args[@]}" >&2
+xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macosx13.0" "${swift_args[@]}" "${link_args[@]}" -module-cache-path "$target/swift-module-cache" \
   -import-objc-header "$package/include/renderer_comparison.h" "$package/macos/main.swift" \
   -L "$target/$profile" -lrenderer_comparison \
   -framework AppKit -framework QuartzCore -framework Metal -framework CoreVideo \

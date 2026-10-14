@@ -6,10 +6,16 @@ edition = "2024"
 publish = false
 [lib]
 crate-type = ["staticlib", "rlib"]
+[features]
+default = ["skia-backend", "vello-backend"]
+skia-backend = ["dep:skia-safe"]
+vello-backend = ["dep:vello_gpu"]
+# Blank common-host control for packaging attribution, never a rendering candidate.
+size-baseline = []
 [dependencies]
 sketch-core = { path = "../../crates/sketch-core" }
-skia-safe = { version = "=0.153.3", default-features = false, features = ["binary-cache", "ganesh", "metal", "jpeg", "pdf"] }
-vello_gpu = { version = "=0.3.0", default-features = false, features = ["wgpu"] }
+skia-safe = { optional = true, version = "=0.153.3", default-features = false, features = ["binary-cache", "ganesh", "metal", "jpeg", "pdf"] }
+vello_gpu = { optional = true, version = "=0.3.0", default-features = false, features = ["wgpu"] }
 vello_common = { version = "=0.3.0", default-features = false, features = ["std"] }
 wgpu = { version = "=30.0.0", default-features = false, features = ["std", "metal", "wgsl"] }
 objc2 = "=0.6.3"

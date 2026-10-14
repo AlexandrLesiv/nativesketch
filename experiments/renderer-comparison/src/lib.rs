@@ -1,4 +1,15 @@
 //! Standalone renderer experiment; no production ABI or backend commitment.
+#[cfg(not(any(
+    feature = "skia-backend",
+    feature = "vello-backend",
+    feature = "size-baseline"
+)))]
+compile_error!("Select skia-backend, vello-backend, or the explicit size-baseline control");
+#[cfg(all(
+    feature = "size-baseline",
+    any(feature = "skia-backend", feature = "vello-backend")
+))]
+compile_error!("size-baseline must be built alone with --no-default-features");
 mod fixtures;
 mod gpu;
 mod native_fixture;
@@ -41,8 +52,14 @@ struct Config {
 }
 impl Config {
     fn validate(&self) -> Result<(), String> {
-        if !["skia", "vello"].contains(&self.backend.as_str())
-            || !fixtures::IDS.contains(&self.fixture.as_str())
+        if !gpu::available_backends().contains(&self.backend.as_str()) {
+            return Err(format!(
+                "Backend {:?} is not compiled; available: {:?}",
+                self.backend,
+                gpu::available_backends()
+            ));
+        }
+        if !fixtures::IDS.contains(&self.fixture.as_str())
             || !["completion", "paced"].contains(&self.mode.as_str())
         {
             return Err("Invalid backend, fixture or mode".into());
@@ -154,12 +171,43 @@ impl Session {
             serde_json::from_str(option_env!("RENDERER_BUILD_JSON").unwrap_or("{} "))
                 .unwrap_or(json!({}));
         manifest["dependencies"] = json!({"skia-safe":"0.153.3","vello_gpu":"0.3.0","vello_common":"0.3.0","wgpu":"30.0.0","lockfile_sha256":fixtures::hash(include_bytes!("../Cargo.lock")),"skia_features":["ganesh","metal","binary-cache","jpeg","pdf"],"skia_upstream_ref":"m153-0.101.2","skia_binary_url":"https://github.com/rust-skia/skia-binaries/releases/download/0.153.3/skia-binaries-b7f043e0b1e2a850e702-aarch64-apple-darwin-ganesh-jpegd-jpege-metal-pdf.tar.gz","skia_binary_release_digest":"sha256:59ac182e5b81445ba8bb84c5a65468e3aec7b6ee1b642868603a3725f29a1059","skia_packaging_note":"Minimal ganesh-metal binary unavailable (404); published jpeg/pdf feature package used. JPEG/PDF APIs not exercised."});
-        manifest["backend_variant"] = json!(if config.backend == "skia" {
+        manifest["compiled_backends"] = json!(gpu::available_backends());
+        manifest["rendering_comparison_eligible"] = json!(config.backend != "baseline");
+        manifest["shared_harness"] = json!(
+            "wgpu/Metal host and vello_common fixture geometry remain in every packaging variant; baseline paints white only"
+        );
+        if !cfg!(feature = "skia-backend") {
+            for key in [
+                "skia-safe",
+                "skia_features",
+                "skia_upstream_ref",
+                "skia_binary_url",
+                "skia_binary_release_digest",
+                "skia_packaging_note",
+            ] {
+                manifest["dependencies"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove(key);
+            }
+        }
+        if !cfg!(feature = "vello-backend") {
+            manifest["dependencies"]
+                .as_object_mut()
+                .unwrap()
+                .remove("vello_gpu");
+        }
+        manifest["backend_variant"] = json!(if config.backend == "baseline" {
+            "Packaging control: blank wgpu/Metal host, no renderer"
+        } else if config.backend == "skia" {
             "Ganesh Metal"
         } else {
             "Sparse Strips CPU preprocessing / wgpu Metal GPU rasterization and compositing"
         });
         manifest["quality"] = json!({"target":"BGRA8Unorm","alpha":"premultiplied target / unpremultiplied source RGBA","color_space":"sRGB numeric channels; no linear-light conversion","blend":"source-over","fill":"nonzero once per complete stroke","image_filter":"bilinear no mipmaps","antialiasing":if config.backend=="skia"{"Ganesh analytic coverage AA; sample_count=1"}else{"Sparse Strips analytic coverage; sample_count=1"}});
+        if config.backend == "baseline" {
+            manifest["quality"] = json!({"target":"BGRA8Unorm", "blank_control":true, "validation":"Blank white only; NOT eligible for rendering or visual equivalence comparison"});
+        }
         manifest["timing_provenance"] = json!({"cpu_clock":"CACurrentMediaTime monotonic seconds; durations Instant","cpu_frame_start_s":"entry BEFORE retirement wait; successive starts include backpressure/host scheduling/hash overhead","service_ms":"after prior-frame retirement, before input through common presentation enqueue; excludes hash/readback/output; includes acquisition","gpu_span_ms":"Metal marker before backend scene preparation GPUStartTime through shared blit/present command GPUEndTime; includes all backend CPU preprocessing/encoding gaps and queue scheduling; excludes common input/outline and drawable acquisition; NOT pure GPU execution","presented_s":"MTLDrawable.addPresentedHandler presentedTime (seconds); callback positive-only","completion_wait_ms":"retirement wait before service plus completion-mode current-frame wait","image_upload":"first-use scene preparation/queue staging and render submission; no eager GPU upload","state_hash":"live: cached 240-frame expected core geometry/state identities, precomputed before GPU initialization; actual input/outline work still executed each frame; final actual identity recomputed outside timing. Other fixtures cache immutable geometry and hash only the changing transforms after presentation enqueue.","inflight":if config.mode=="paced"{2}else{1},"presentation":"same Metal queue, tracked BGRA output, full texture blit, CAMetalLayer displaySync mode dependent"});
         manifest["unsupported"] = json!({"gpu_execution_ms":"No equivalent pure-pass timing; common timeline span only","physical_pen_latency":"No external measurement equipment","presentation_deadline_misses":"Callback intervals available; no independent display deadline schedule","gpu_peak_memory":"No comparable peak resident GPU counter","physical_footprint":"Not implemented; OS peak RSS and external sampler separate"});
         write_json(config.output.join("manifest.json"), &manifest)?;
@@ -434,13 +482,13 @@ impl Session {
                 .filter(|p| p[0] < 250 || p[1] < 250 || p[2] < 250)
                 .count();
             let opaque = rgba.as_chunks::<4>().0.iter().all(|p| p[3] == 255);
-            if nonwhite == 0 || !opaque {
+            if (nonwhite == 0 && self.config.backend != "baseline") || !opaque {
                 return Err("Readback failed basic nonblank/opaque-white-background check".into());
             }
             let last = self.frames.last().unwrap();
             write_json(
                 self.config.output.join("readback.json"),
-                &json!({"width":self.config.width,"height":self.config.height,"phase":last.phase,"frame_index":last.index,"state_hash":last.state_hash,"actual_state_hash":actual_state_hash,"identity_validation":"actual final geometry recomputed after timing and matched expected state","rgba_sha256":fixtures::hash(&rgba),"image_hash":self.fixture.image_hash,"nonwhite_pixels":nonwhite,"opaque_background":opaque,"validation":"basic structural check only; visual equivalence requires inspection"}),
+                &json!({"width":self.config.width,"height":self.config.height,"phase":last.phase,"frame_index":last.index,"state_hash":last.state_hash,"actual_state_hash":actual_state_hash,"identity_validation":"actual final geometry recomputed after timing and matched expected state","rgba_sha256":fixtures::hash(&rgba),"image_hash":self.fixture.image_hash,"nonwhite_pixels":nonwhite,"opaque_background":opaque,"rendering_comparison_eligible":self.config.backend != "baseline","validation":if self.config.backend == "baseline" {"blank packaging control; NOT rendering evidence"} else {"basic structural check only; visual equivalence requires inspection"}}),
             )?;
         }
         let mut usage: libc::rusage = unsafe { std::mem::zeroed() };
@@ -604,11 +652,36 @@ mod tests {
     #[test]
     fn rejects_ambiguous_or_invalid_run_config() {
         let mut c:Config=serde_json::from_value(json!({"backend":"skia","fixture":"live","width":1600,"height":1000,"mode":"paced","warmup":120,"frames_requested":600,"repeat_id":"test","output":"/tmp/test"})).unwrap();
+        c.backend = gpu::available_backends()[0].into();
         assert!(c.validate().is_ok());
         c.duration_seconds = Some(180.0);
         assert!(c.validate().is_err());
         c.duration_seconds = None;
         c.output = PathBuf::from("relative");
         assert!(c.validate().is_err());
+    }
+    #[test]
+    fn compiled_backend_config_is_exact() {
+        let mut c: Config = serde_json::from_value(json!({"backend":"unknown","fixture":"live","width":1600,"height":1000,"mode":"paced","warmup":120,"frames_requested":600,"repeat_id":"test","output":"/tmp/test"})).unwrap();
+        for backend in ["skia", "vello", "baseline", "unknown", "Skia", ""] {
+            c.backend = backend.into();
+            assert_eq!(
+                c.validate().is_ok(),
+                gpu::available_backends().contains(&backend),
+                "{backend}"
+            );
+        }
+        assert_eq!(
+            gpu::available_backends().contains(&"skia"),
+            cfg!(feature = "skia-backend")
+        );
+        assert_eq!(
+            gpu::available_backends().contains(&"vello"),
+            cfg!(feature = "vello-backend")
+        );
+        assert_eq!(
+            gpu::available_backends().contains(&"baseline"),
+            cfg!(feature = "size-baseline")
+        );
     }
 }

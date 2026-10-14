@@ -1,10 +1,13 @@
 //! Experiment-only shared Metal device, queue, offscreen texture and presenter.
 //! All operations are serialized by the host. Imported objects are retained and never destroyed
 //! through HAL handles. Backend work and presentation use the SAME tracked-resource queue.
-use crate::fixtures::{Fixture, Outline, clip_curve, image_transform, transform};
+use crate::fixtures::Fixture;
+#[cfg(any(feature = "skia-backend", feature = "vello-backend"))]
+use crate::fixtures::{Outline, clip_curve, image_transform, transform};
 use objc2::{Message, rc::Retained, runtime::ProtocolObject};
 use objc2_metal::*;
 use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer};
+#[cfg(feature = "skia-backend")]
 use skia_safe::{self as sk, gpu as sg};
 use std::{
     sync::{
@@ -13,8 +16,11 @@ use std::{
     },
     time::Instant,
 };
+#[cfg(any(feature = "skia-backend", feature = "vello-backend"))]
+use vello_common::kurbo::BezPath;
+#[cfg(feature = "vello-backend")]
 use vello_common::{
-    kurbo::{Affine, BezPath, Rect},
+    kurbo::{Affine, Rect},
     paint::{Image, ImageSource},
     peniko::{
         Fill, ImageQuality,
@@ -29,6 +35,7 @@ pub struct Gpu {
     pub metal_device: Retained<ProtocolObject<dyn MTLDevice>>,
     pub metal_queue: Retained<ProtocolObject<dyn MTLCommandQueue>>,
     pub texture: wgpu::Texture,
+    #[cfg(any(feature = "vello-backend", feature = "size-baseline"))]
     pub view: wgpu::TextureView,
     pub raw_texture: Retained<ProtocolObject<dyn MTLTexture>>,
     pub layer: Retained<CAMetalLayer>,
@@ -155,6 +162,7 @@ impl Gpu {
             metal_device,
             metal_queue,
             texture,
+            #[cfg(any(feature = "vello-backend", feature = "size-baseline"))]
             view,
             raw_texture,
             layer,
@@ -283,16 +291,32 @@ impl Gpu {
         Ok(rgba)
     }
 }
-pub enum Backend {
-    Skia(Skia),
-    Vello(Box<Vello>),
+pub fn available_backends() -> &'static [&'static str] {
+    &[
+        #[cfg(feature = "skia-backend")]
+        "skia",
+        #[cfg(feature = "vello-backend")]
+        "vello",
+        #[cfg(feature = "size-baseline")]
+        "baseline",
+    ]
 }
+pub enum Backend {
+    #[cfg(feature = "skia-backend")]
+    Skia(Skia),
+    #[cfg(feature = "vello-backend")]
+    Vello(Box<Vello>),
+    #[cfg(feature = "size-baseline")]
+    Baseline,
+}
+#[cfg(feature = "skia-backend")]
 pub struct Skia {
     context: sg::DirectContext,
     surface: sk::Surface,
     paths: Vec<(sk::Path, sk::Paint)>,
     image: Option<sk::Image>,
 }
+#[cfg(feature = "vello-backend")]
 pub struct Vello {
     renderer: vello_gpu::Renderer,
     resources: vello_gpu::Resources,
@@ -305,6 +329,7 @@ pub struct Vello {
 impl Backend {
     pub fn new(name: &str, g: &Gpu) -> Result<Self, String> {
         match name {
+            #[cfg(feature = "skia-backend")]
             "skia" => {
                 let backend = unsafe {
                     sg::mtl::BackendContext::new(
@@ -335,6 +360,7 @@ impl Backend {
                     image: None,
                 }))
             }
+            #[cfg(feature = "vello-backend")]
             "vello" => {
                 let (renderer, resources) = vello_gpu::Renderer::new(
                     &g.device,
@@ -361,7 +387,15 @@ impl Backend {
                     pending: None,
                 })))
             }
-            _ => Err("Unknown backend".into()),
+            #[cfg(feature = "size-baseline")]
+            "baseline" => {
+                let _ = g;
+                Ok(Self::Baseline)
+            }
+            _ => Err(format!(
+                "Backend {name:?} is not compiled; available: {:?}",
+                available_backends()
+            )),
         }
     }
     pub fn prepare(
@@ -372,7 +406,11 @@ impl Backend {
         changed: bool,
     ) -> Result<f64, String> {
         let timer = Instant::now();
+        let _ = (f, g, frame, changed); // Some arguments are used by only one compiled adapter.
         match self {
+            #[cfg(feature = "size-baseline")]
+            Self::Baseline => {}
+            #[cfg(feature = "skia-backend")]
             Self::Skia(s) => {
                 if changed {
                     s.paths = f
@@ -407,6 +445,7 @@ impl Backend {
                     }
                 }
             }
+            #[cfg(feature = "vello-backend")]
             Self::Vello(v) => {
                 if changed {
                     v.paths = f
@@ -480,7 +519,29 @@ impl Backend {
         Ok(timer.elapsed().as_secs_f64() * 1000.0)
     }
     pub fn render(&mut self, f: &Fixture, g: &Gpu, frame: usize) -> Result<(), String> {
+        let _ = (f, frame);
         match self {
+            #[cfg(feature = "size-baseline")]
+            Self::Baseline => {
+                let mut encoder = g.device.create_command_encoder(&Default::default());
+                {
+                    let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Packaging baseline: blank target, no renderer"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &g.view,
+                            depth_slice: None,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        ..Default::default()
+                    });
+                }
+                g.queue.submit([encoder.finish()]);
+            }
+            #[cfg(feature = "skia-backend")]
             Self::Skia(s) => {
                 let canvas = s.surface.canvas();
                 canvas.clear(sk::Color::WHITE);
@@ -508,6 +569,7 @@ impl Backend {
                 canvas.restore();
                 s.context.flush_and_submit();
             }
+            #[cfg(feature = "vello-backend")]
             Self::Vello(v) => {
                 let mut encoder = v
                     .pending
@@ -538,6 +600,7 @@ impl Backend {
         Ok(())
     }
 }
+#[cfg(feature = "skia-backend")]
 fn matrix(a: [f64; 6]) -> sk::Matrix {
     sk::Matrix::new_all(
         a[0] as f32,
@@ -551,6 +614,7 @@ fn matrix(a: [f64; 6]) -> sk::Matrix {
         1.0,
     )
 }
+#[cfg(any(feature = "skia-backend", feature = "vello-backend"))]
 fn bez_path(p: &Outline) -> BezPath {
     let mut path = BezPath::new();
     for c in &p.commands {
@@ -564,9 +628,11 @@ fn bez_path(p: &Outline) -> BezPath {
     }
     path
 }
+#[cfg(feature = "skia-backend")]
 fn sk_path(p: &Outline) -> sk::Path {
     sk_from_bez(&bez_path(p))
 }
+#[cfg(feature = "skia-backend")]
 fn sk_from_bez(path: &BezPath) -> sk::Path {
     let mut p = sk::PathBuilder::new();
     for el in path.elements() {
