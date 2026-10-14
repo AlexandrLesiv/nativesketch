@@ -18,6 +18,7 @@ class MainActivity : Activity() {
     private lateinit var status: TextView
     private lateinit var undo: MaterialButton
     private lateinit var redo: MaterialButton
+    private lateinit var tools: com.google.android.material.button.MaterialButtonToggleGroup
     private var busy = false
     private var pendingReplace = 0 // 1 new, 2 open
     private var savedBytes: ByteArray? = null
@@ -81,8 +82,17 @@ class MainActivity : Activity() {
         }
         val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         root.setOnApplyWindowInsetsListener { v, i ->
-            val b = i.getInsets(WindowInsets.Type.systemBars())
-            v.setPadding(b.left, b.top, b.right, b.bottom)
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                val b = i.getInsets(WindowInsets.Type.systemBars())
+                v.setPadding(b.left, b.top, b.right, b.bottom)
+            } else {
+                v.setPadding(
+                    i.systemWindowInsetLeft,
+                    i.systemWindowInsetTop,
+                    i.systemWindowInsetRight,
+                    i.systemWindowInsetBottom,
+                )
+            }
             i
         }
         val toolbar =
@@ -96,8 +106,37 @@ class MainActivity : Activity() {
             }
         root.addView(toolbar)
         val row = LinearLayout(this)
-        row.addView(button("Pen") { pen = true })
-        row.addView(button("Select") { pen = false })
+        tools =
+            com.google.android.material.button.MaterialButtonToggleGroup(this).apply {
+                isSingleSelection = true
+                isSelectionRequired = true
+            }
+        val penButton =
+            MaterialButton(this).apply {
+                id = View.generateViewId()
+                text = "Pen"
+                minWidth = 0
+                minHeight = dp(48)
+            }
+        val selectButton =
+            MaterialButton(this).apply {
+                id = View.generateViewId()
+                text = "Select"
+                minWidth = 0
+                minHeight = dp(48)
+            }
+        tools.addView(penButton, LinearLayout.LayoutParams(0, dp(52), 1f))
+        tools.addView(selectButton, LinearLayout.LayoutParams(0, dp(52), 1f))
+        tools.check(if (pen) penButton.id else selectButton.id)
+        tools.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked && !busy)
+                safe {
+                    canvas.cancel()
+                    pen = checkedId == penButton.id
+                    if (pen) checked(act(11))
+                }
+        }
+        row.addView(tools)
         undo = button("Undo") { checked(act(8)) }
         redo = button("Redo") { checked(act(9)) }
         row.addView(undo)
@@ -106,6 +145,7 @@ class MainActivity : Activity() {
             row.getChildAt(i).layoutParams = LinearLayout.LayoutParams(0, dp(52), 1f)
             row.getChildAt(i).minimumWidth = 0
         }
+        tools.layoutParams = LinearLayout.LayoutParams(0, dp(52), 2f)
         root.addView(row)
         canvas = SketchView()
         if (retained != null) {
@@ -194,6 +234,7 @@ class MainActivity : Activity() {
     private fun refresh() {
         if (!::canvas.isInitialized) return
         val s = engine.state(handle)
+        for (i in 0 until tools.childCount) tools.getChildAt(i).isEnabled = !busy
         undo.isEnabled = !busy && s[2] != 0.0
         redo.isEnabled = !busy && s[3] != 0.0
         status.text =
@@ -312,7 +353,7 @@ class MainActivity : Activity() {
     private fun style() {
         val col =
             LinearLayout(this).apply {
-                orientation = 1
+                orientation = LinearLayout.VERTICAL
                 setPadding(dp(24), 0, dp(24), 0)
             }
         val field =
@@ -362,7 +403,7 @@ class MainActivity : Activity() {
         val s = engine.state(handle)
         val col =
             LinearLayout(this).apply {
-                orientation = 1
+                orientation = LinearLayout.VERTICAL
                 setPadding(dp(24), 0, dp(24), 0)
             }
         col.addView(
