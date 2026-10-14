@@ -2,7 +2,8 @@
 //!
 //! The host authenticates the namespace, verifies the content hash against bytes,
 //! validates the document, and correlates selection/request identity before applying
-//! this decision. A duplicate retains current provenance. No clock orders revisions.
+//! this decision. Only identical immutable metadata is a duplicate. Accept advances
+//! metadata even when bytes match, preserving ordering and ancestry. No clock orders revisions.
 use crate::{Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,9 +90,6 @@ pub fn compare(current: Option<&Version<'_>>, candidate: &Version<'_>) -> Result
     {
         return Ok(Decision::Conflict);
     }
-    if current.content_sha256 == candidate.content_sha256 {
-        return Ok(Decision::Duplicate);
-    }
     if current.kind == Kind::Published && candidate.kind == Kind::Published {
         return Ok(if candidate.server_generation > current.server_generation {
             Decision::Accept
@@ -163,7 +161,7 @@ mod tests {
         }
     }
     #[test]
-    fn identity_and_immutable_revision_precede_hash_deduplication() {
+    fn identity_and_immutable_revision_are_checked_before_comparison() {
         let a = version("r1", "", 1, Kind::Published, A);
         let mut b = a;
         assert_eq!(compare(None, &a), Ok(Decision::Accept));
@@ -197,7 +195,7 @@ mod tests {
         b.content_sha256 = A;
         assert_eq!(compare(Some(&a), &b), Ok(Decision::Conflict));
         b.server_generation = 3;
-        assert_eq!(compare(Some(&a), &b), Ok(Decision::Duplicate));
+        assert_eq!(compare(Some(&a), &b), Ok(Decision::Accept));
     }
     #[test]
     fn drafts_require_known_parent_and_do_not_silently_downgrade() {
@@ -233,11 +231,43 @@ mod tests {
         };
         assert_eq!(
             compare(Some(&phone_only), &identical),
-            Ok(Decision::Duplicate)
+            Ok(Decision::Conflict)
         );
         // Decisions never overwrite the caller's immutable metadata.
         assert_eq!(phone_only.kind, Kind::Draft);
         assert_eq!(phone_only.server_generation, 0);
+    }
+    #[test]
+    fn same_content_published_advance_retains_generation_against_delayed_rollback() {
+        let r1 = version("r1", "", 1, Kind::Published, A);
+        let r2 = version("r2", "r1", 2, Kind::Published, B);
+        let r3 = version("r3", "r2", 3, Kind::Published, A);
+        let mut cached = r1;
+        // A revert on the server changes revision without changing r1's bytes.
+        assert_eq!(compare(Some(&cached), &r3), Ok(Decision::Accept));
+        cached = r3;
+        assert_eq!(compare(Some(&cached), &r2), Ok(Decision::Stale));
+        assert_eq!(compare(Some(&cached), &r1), Ok(Decision::Stale));
+        assert_eq!(compare(Some(&cached), &r3), Ok(Decision::Duplicate));
+    }
+    #[test]
+    fn same_content_draft_advance_preserves_parent_chain() {
+        let r1 = version("r1", "", 1, Kind::Published, A);
+        let d1 = version("d1", "r1", 1, Kind::Draft, A);
+        let d2 = version("d2", "d1", 1, Kind::Draft, B);
+        let mut cached = r1;
+        assert_eq!(compare(Some(&cached), &d1), Ok(Decision::Accept));
+        cached = d1;
+        assert_eq!(compare(Some(&cached), &d2), Ok(Decision::Accept));
+        cached = d2;
+        assert_eq!(compare(Some(&cached), &d1), Ok(Decision::Stale));
+        // Publishing unchanged bytes must likewise advance provenance.
+        let published = version("r2", "d2", 2, Kind::Published, B);
+        assert_eq!(compare(Some(&cached), &published), Ok(Decision::Accept));
+        cached = published;
+        assert_eq!(compare(Some(&cached), &d2), Ok(Decision::Stale));
+        let unrelated = version("unknown-draft", "", 2, Kind::Draft, B);
+        assert_eq!(compare(Some(&cached), &unrelated), Ok(Decision::Conflict));
     }
     #[test]
     fn malformed_metadata_and_cycles_are_rejected() {
