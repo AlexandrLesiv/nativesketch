@@ -1,0 +1,164 @@
+import AppKit
+import QuartzCore
+import Metal
+import CoreVideo
+
+struct Options {
+    var backend = "skia", fixture = "live", mode = "completion"
+    var width = 1600, height = 1000, warmup = 120, frames = 600
+    var repeatID = "0"
+    var duration: Double? = nil
+    var output = FileManager.default.currentDirectoryPath + "/artifacts/renderer-comparison/manual-" + UUID().uuidString
+    var interactive = true
+    static func parse() throws -> Options {
+        var o = Options(); let a = Array(CommandLine.arguments.dropFirst()); o.interactive = a.isEmpty || a.contains("--interactive")
+        var i = 0; var seen = Set<String>()
+        while i < a.count {
+            let key = a[i]; i += 1
+            if key == "--interactive" { continue }
+            guard i < a.count, seen.insert(key).inserted else { throw HostError.message("Missing or duplicate option: \(key)") }
+            let value = a[i]; i += 1
+            func integer() throws -> Int { guard let n = Int(value), n >= 0 else { throw HostError.message("Invalid integer for \(key)") }; return n }
+            switch key {
+            case "--backend": o.backend = value
+            case "--fixture": o.fixture = value
+            case "--mode": o.mode = value
+            case "--width": o.width = try integer()
+            case "--height": o.height = try integer()
+            case "--warmup": o.warmup = try integer()
+            case "--frames": o.frames = try integer()
+            case "--duration-seconds": guard let n = Double(value), n.isFinite, n > 0 else { throw HostError.message("Invalid duration") }; o.duration = n
+            case "--repeat-id": o.repeatID = value
+            case "--output": o.output = URL(fileURLWithPath: value).standardizedFileURL.path
+            default: throw HostError.message("Unknown option: \(key)")
+            }
+        }
+        guard ["skia", "vello"].contains(o.backend), fixtures.contains(o.fixture), ["completion", "paced"].contains(o.mode), o.width > 0, o.height > 0, o.width <= 16384, o.height <= 16384, o.frames > 0, !(seen.contains("--frames") && o.duration != nil) else { throw HostError.message("Invalid backend, fixture, mode, dimensions, or frame/duration combination") }
+        return o
+    }
+}
+let fixtures = ["live", "dense100", "dense1000", "dense5000", "panzoom", "alpha", "clip", "image"]
+enum HostError: Error { case message(String) }
+final class StopState {
+    private let lock = NSLock(); private var value: (String, String)?
+    func request(_ status: String, _ reason: String) { lock.lock(); defer { lock.unlock() }; if value == nil { value = (status, reason) } }
+    func read() -> (String, String)? { lock.lock(); defer { lock.unlock() }; return value }
+}
+final class Canvas: NSView {
+    let metal = CAMetalLayer()
+    var physicalSize = CGSize(width: 1600, height: 1000) { didSet { needsLayout = true } }
+    override init(frame: NSRect) { super.init(frame: frame); wantsLayer = true; layer = CALayer(); layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor; layer?.addSublayer(metal); metal.pixelFormat = .bgra8Unorm; metal.framebufferOnly = false; metal.maximumDrawableCount = 2; metal.colorspace = CGColorSpace(name: CGColorSpace.sRGB); setAccessibilityElement(true); setAccessibilityLabel("Deterministic renderer preview; no drawing input") }
+    override func layout() {
+        super.layout()
+        let scale = min(bounds.width / physicalSize.width, bounds.height / physicalSize.height)
+        let size = CGSize(width: physicalSize.width * scale, height: physicalSize.height * scale)
+        CATransaction.begin(); CATransaction.setDisableActions(true)
+        metal.frame = CGRect(x: (bounds.width - size.width) / 2, y: (bounds.height - size.height) / 2, width: size.width, height: size.height)
+        CATransaction.commit()
+    }
+    required init?(coder: NSCoder) { fatalError() }
+}
+final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    var options: Options
+    var window: NSWindow!
+    let canvas = Canvas(frame: .zero), status = NSTextField(wrappingLabelWithString: "Ready")
+    let backend = NSPopUpButton(), fixture = NSPopUpButton(), resolution = NSPopUpButton(), mode = NSPopUpButton()
+    let run = NSButton(title: "Run", target: nil, action: nil), stop = NSButton(title: "Stop", target: nil, action: nil), reveal = NSButton(title: "Reveal Results", target: nil, action: nil)
+    let worker = DispatchQueue(label: "org.nativesketch.renderer-experiment", qos: .userInitiated)
+    var active: StopState?, closing = false, exitCode: Int32 = 0
+    var runNumber = 0
+    let originalOutput: String
+    init(_ options: Options) { self.options = options; originalOutput = options.output }
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 680), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        window.title = "Native Sketch — Renderer Comparison"; window.delegate = self; window.minSize = NSSize(width: 640, height: 480)
+        backend.addItems(withTitles: ["skia", "vello"]); fixture.addItems(withTitles: fixtures); resolution.addItems(withTitles: ["1600 × 1000", "2560 × 1600"]); mode.addItems(withTitles: ["completion", "paced"])
+        backend.selectItem(withTitle: options.backend); fixture.selectItem(withTitle: options.fixture); mode.selectItem(withTitle: options.mode)
+        let sizeTitle = "\(options.width) × \(options.height)"; if resolution.item(withTitle: sizeTitle) == nil { resolution.addItem(withTitle: sizeTitle) }; resolution.selectItem(withTitle: sizeTitle)
+        let grid = NSGridView(views: [[NSTextField(labelWithString: "Backend"), backend, NSTextField(labelWithString: "Fixture"), fixture], [NSTextField(labelWithString: "Physical pixels"), resolution, NSTextField(labelWithString: "Mode"), mode]])
+        for (control, label) in [(backend, "Backend"), (fixture, "Fixture"), (resolution, "Physical pixel resolution"), (mode, "Execution mode")] { control.setAccessibilityLabel(label) }
+        run.target = self; run.action = #selector(start); stop.target = self; stop.action = #selector(cancel); stop.keyEquivalent = "."; stop.keyEquivalentModifierMask = .command; stop.isEnabled = false
+        reveal.target = self; reveal.action = #selector(revealResults)
+        let buttons = NSStackView(views: [run, stop, reveal]); buttons.orientation = .horizontal
+        let stack = NSStackView(views: [grid, buttons, status, canvas]); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 10; stack.edgeInsets = NSEdgeInsets(top: 14, left: 14, bottom: 14, right: 14)
+        window.contentView = stack; canvas.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([canvas.widthAnchor.constraint(equalTo: stack.widthAnchor, constant: -28), canvas.heightAnchor.constraint(greaterThanOrEqualToConstant: 260), status.widthAnchor.constraint(equalTo: canvas.widthAnchor)])
+        status.setAccessibilityLabel("Experiment status")
+        window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
+        if !options.interactive { DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.start() } }
+    }
+    func setStatus(_ value: String) { status.stringValue = value; NSAccessibility.post(element: status, notification: .valueChanged) }
+    @objc func revealResults() { NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: options.output) }
+    @objc func cancel() { active?.request("cancelled", "Stop requested"); setStatus("Stopping safely; partial results will be retained…") }
+    func invalidate(_ reason: String) { guard let active else { return }; active.request("invalidated", reason); setStatus("Trial invalidated: \(reason). Finishing partial results…") }
+    func windowWillStartLiveResize(_ n: Notification) { invalidate("Window resize") }
+    func windowDidResize(_ n: Notification) { invalidate("Window dimensions changed") }
+    func windowDidMiniaturize(_ n: Notification) { invalidate("Window minimized") }
+    func windowDidChangeScreen(_ n: Notification) { invalidate("Display changed") }
+    func windowDidChangeBackingProperties(_ n: Notification) { invalidate("Backing scale changed") }
+    func windowShouldClose(_ sender: NSWindow) -> Bool { if active != nil { closing = true; cancel(); return false }; NSApp.terminate(nil); return true }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { if active != nil { closing = true; cancel(); return .terminateCancel }; return .terminateNow }
+    @objc func start() {
+        guard active == nil else { return }
+        if options.interactive && runNumber > 0 { options.output = originalOutput + "-" + UUID().uuidString }
+        runNumber += 1
+        if FileManager.default.fileExists(atPath: options.output + "/manifest.json") || FileManager.default.fileExists(atPath: options.output + "/host-status.json") { finishUI("failed", "Output already contains results; choose a fresh directory"); return }
+        options.backend = backend.titleOfSelectedItem!; options.fixture = fixture.titleOfSelectedItem!; options.mode = mode.titleOfSelectedItem!
+        let dims = resolution.titleOfSelectedItem!.components(separatedBy: " × "); options.width = Int(dims[0])!; options.height = Int(dims[1])!
+        let state = StopState(); active = state
+        for c in [backend, fixture, resolution, mode] { c.isEnabled = false }; run.isEnabled = false; stop.isEnabled = true
+        canvas.physicalSize = CGSize(width: options.width, height: options.height); canvas.layoutSubtreeIfNeeded(); canvas.metal.drawableSize = canvas.physicalSize; canvas.metal.contentsScale = window.backingScaleFactor; canvas.metal.displaySyncEnabled = options.mode == "paced"
+        let screenID = (window.screen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? CGMainDisplayID()
+        var link: CVDisplayLink?; CVDisplayLinkCreateWithCGDisplay(screenID, &link)
+        let period = link.map { CVDisplayLinkGetNominalOutputVideoRefreshPeriod($0) }
+        let hz = period.flatMap { $0.timeValue > 0 && $0.flags == 0 ? Double($0.timeScale) / Double($0.timeValue) : nil }
+        var config: [String: Any] = ["backend": options.backend, "fixture": options.fixture, "width": options.width, "height": options.height, "mode": options.mode, "warmup": options.warmup, "repeat_id": options.repeatID, "output": options.output, "display": ["refresh_hz": hz as Any? ?? NSNull(), "refresh_source": "CVDisplayLink nominal period; not observed presentation rate", "backing_scale": window.backingScaleFactor, "window_points_width": window.frame.width, "window_points_height": window.frame.height], "runtime": ["os": ProcessInfo.processInfo.operatingSystemVersionString, "cpu_count": ProcessInfo.processInfo.processorCount, "physical_memory_bytes": ProcessInfo.processInfo.physicalMemory], "power": ["thermal_before": ProcessInfo.processInfo.thermalState.rawValue, "low_power_mode": ProcessInfo.processInfo.isLowPowerModeEnabled]]
+        if let d = options.duration { config["duration_seconds"] = d } else { config["frames_requested"] = options.frames }
+        if let url = Bundle.main.url(forResource: "build", withExtension: "json"), let data = try? Data(contentsOf: url), let metadata = try? JSONSerialization.jsonObject(with: data) { config["build"] = metadata }
+        guard let bytes = try? JSONSerialization.data(withJSONObject: config, options: [.sortedKeys]), let json = String(data: bytes, encoding: .utf8) else { finishUI("failed", "Cannot encode configuration"); return }
+        setStatus("Initializing \(options.backend) · \(options.width) × \(options.height) physical pixels · \(options.mode)\n\(options.output)")
+        let captured = options, layer = canvas.metal
+        worker.async {
+            var handle: UnsafeMutableRawPointer? = nil
+            var result = "complete", detail = "", elapsed = 0.0
+            func errorText() -> String { guard let p = rc_error(handle) else { return "Unknown renderer error" }; return String(cString: p) }
+            func phase(_ text: String) { DispatchQueue.main.async { if state.read() == nil { self.setStatus(text) } } }
+            handle = json.withCString { rc_create($0, Unmanaged.passUnretained(layer).toOpaque()) }
+            if handle == nil { result = "failed"; detail = errorText() }
+            else {
+                func step(_ p: UInt32, _ f: UInt64) -> Bool { autoreleasepool { if let stop = state.read() { result = stop.0; detail = stop.1; return false }; if rc_step(handle, p, f) != 0 { result = "failed"; detail = errorText(); return false }; return true } }
+                if step(0, 0) {
+                    phase("Warming \(captured.backend) · \(captured.warmup) frames")
+                    for f in 0..<captured.warmup { if !step(1, UInt64(f)) { break } }
+                }
+                if result == "complete" {
+                    phase("Measuring \(captured.backend) · \(captured.fixture) · \(captured.mode) · \(captured.width) × \(captured.height)")
+                    let begin = ProcessInfo.processInfo.systemUptime; var f: UInt64 = 0
+                    while captured.duration.map({ ProcessInfo.processInfo.systemUptime - begin < $0 }) ?? (f < UInt64(captured.frames)) {
+                        if !step(2, f) { break }; f += 1
+                    }
+                    elapsed = ProcessInfo.processInfo.systemUptime - begin
+                }
+                if let stop = state.read(), result == "complete" { result = stop.0; detail = stop.1 }
+                if result.withCString({ rc_finish(handle, $0, elapsed) }) != 0 { result = "failed"; detail += " " + errorText() }
+                rc_destroy(handle)
+            }
+            // Host-only interruption detail supplements the renderer's retained partial artifacts.
+            let extra: [String: Any] = ["status": result, "reason": detail, "thermal_after": ProcessInfo.processInfo.thermalState.rawValue, "measured_elapsed_seconds": elapsed]
+            if let data = try? JSONSerialization.data(withJSONObject: extra, options: [.prettyPrinted, .sortedKeys]) { try? FileManager.default.createDirectory(atPath: captured.output, withIntermediateDirectories: true); try? data.write(to: URL(fileURLWithPath: captured.output).appendingPathComponent("host-status.json")) }
+            let finalResult = result, finalDetail = detail
+            DispatchQueue.main.async { self.finishUI(finalResult, finalDetail) }
+        }
+    }
+    func finishUI(_ result: String, _ detail: String) {
+        active = nil; for c in [backend, fixture, resolution, mode] { c.isEnabled = true }; run.isEnabled = true; stop.isEnabled = false
+        setStatus("\(result.capitalized)\(detail.isEmpty ? "" : ": " + detail)\n\(options.output)")
+        exitCode = result == "complete" ? 0 : 1
+        print("\(result): \(options.output) \(detail)"); fflush(stdout)
+        if !options.interactive || closing { NSApp.terminate(nil) }
+    }
+}
+do {
+    let options = try Options.parse(); let app = NSApplication.shared; app.setActivationPolicy(.regular)
+    let host = Host(options); app.delegate = host; app.run(); exit(host.exitCode)
+} catch { fputs("RendererComparison: \(error)\n", stderr); exit(2) }
