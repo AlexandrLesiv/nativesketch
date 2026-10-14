@@ -37,7 +37,7 @@ def main():
         try: validate_build(build,revision,dirty)
         except ValueError as error: p.error(str(error))
         root.mkdir(parents=True); (root/'runs').mkdir()
-        m=dict(schema_version=1,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_revision=revision,identity=identity,seed=a.seed,binary=str(binary),runs=matrix(a.seed,a.screen_id),scope='Synthetic 240Hz software only; physical latency pending camera')
+        m=dict(schema_version=1,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_revision=revision,identity=identity,recovery_s=2,seed=a.seed,binary=str(binary),runs=matrix(a.seed,a.screen_id),scope='Synthetic 240Hz software only; physical latency pending camera')
         (root/'collection.json').write_text(json.dumps(m,indent=2)+'\n'); (root/'collection.sha256').write_text(sha(root/'collection.json')+'\n')
         print(f'Frozen {len(m["runs"])} runs. No app launched.'); return
     m=json.loads((root/'collection.json').read_text())
@@ -64,6 +64,7 @@ def main():
         if sha(binary)!=identity['binary_sha256']: halt('binary changed during collection',c['id'])
         cmd=[str(binary),'--output',str(folder),'--instrumentation','full']
         for key,flag in [('backend','backend'),('policy','policy'),('scene','scene'),('trace','trace'),('start_state','start-state'),('width','width'),('height','height'),('screen_id','screen-id'),('duration_s','duration-seconds'),('warmup_s','warmup-seconds'),('idle_s','idle-seconds')]: cmd += ['--'+flag,str(c[key])]
+        time.sleep(m['recovery_s'])  # Same fixed inter-process recovery for every candidate.
         log('start',run=c['id'],command=cmd); started=time.monotonic(); proc=None
         try:
             with (root/(c['id']+'.log')).open('xb') as output:

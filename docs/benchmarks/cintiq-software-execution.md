@@ -43,7 +43,9 @@ part of the first-paint interval or as proof of cold-system performance.
 
 Sustained: 1000 committed strokes, long growing stroke, C policy, three paired
 180-second runs per size. This adds 12 runs to 360 primary runs: 372 total and 216
-measured minutes. Warm-up, idle, startup, capture and cooldown add time.
+measured minutes. Warm-up, idle, startup, capture and recovery add time. Apply the same fixed
+two-second recovery before every process, including the first. Do not adapt recovery
+to a candidate's timing. Record thermal state rather than discarding slow valid runs.
 Pilot, logging-overhead, visual and failure tests are separately identified and never
 pooled into confirmatory results. Unfinished cells stay pending, not counted complete.
 

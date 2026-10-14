@@ -1,6 +1,9 @@
 # Skia versus Core Graphics: physical pen-to-screen comparison plan
 
-Status: planned; implementation and measurement have not started.
+Status: software harness implemented; preflight validation in progress. The authorized
+software scope and frozen matrix are specified in
+[cintiq-software-execution.md](cintiq-software-execution.md). Physical measurements
+remain pending suitable camera equipment and the real-pen input adapter/validation.
 Date: 2026-10-14. Planning baseline: `37e717b4aa08bc92fbc5edb8100112222b135aa4`.
 Follow-up to [task 002](../../tasks/002-renderer-comparison.md).
 
