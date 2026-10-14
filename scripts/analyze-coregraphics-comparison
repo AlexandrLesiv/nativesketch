@@ -61,6 +61,7 @@ def validate(path):
     required='schema_version experiment backend mode status source_revision source_diff_hash build fixture width height repeat_id warmup frames_requested duration_seconds fixture_hash input_hash image_hash quality physical_canvas display runtime timing_provenance unsupported init_ms first_use completed_sample_count measured_elapsed_seconds measured_start_s measured_end_s scheduling final_expected_state_hash final_actual_state_hash os_peak_rss_bytes'.split()
     if set(required)-m.keys():raise ValueError(f'missing manifest fields: {sorted(set(required)-m.keys())}')
     if (m['schema_version'],m['experiment'],m['backend'],m['mode'])!=(2,'coregraphics-appkit-v1','coregraphics','appkit-paced'):raise ValueError('wrong experiment identity')
+    if m.get('validation_only') is True:raise ValueError('validation-only lifecycle test cannot enter benchmark evidence')
     if m['status']!='complete' or host.get('status')!='complete':raise ValueError('manifest or authoritative host status incomplete')
     if not re.fullmatch('[0-9a-f]{40}',m['source_revision']):raise ValueError('invalid source revision')
     for field in ('source_diff_hash','fixture_hash','input_hash','image_hash','final_expected_state_hash','final_actual_state_hash'):digest(m[field],field)
