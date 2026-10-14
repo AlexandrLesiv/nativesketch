@@ -123,6 +123,13 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuItemV
         backend.selectItem(withTitle: options.backend); fixture.selectItem(withTitle: options.fixture); mode.selectItem(withTitle: options.mode)
         let sizeTitle = "\(options.width) × \(options.height)"; if resolution.item(withTitle: sizeTitle) == nil { resolution.addItem(withTitle: sizeTitle) }; resolution.selectItem(withTitle: sizeTitle)
         let grid = NSGridView(views: [[NSTextField(labelWithString: "Backend"), backend, NSTextField(labelWithString: "Fixture"), fixture], [NSTextField(labelWithString: "Physical pixels"), resolution, NSTextField(labelWithString: "Mode"), mode]])
+        // Keep labels next to their selectors at every window size. This bounded
+        // native control group fits inside the 640-point minimum window's insets.
+        grid.translatesAutoresizingMaskIntoConstraints = false
+        grid.widthAnchor.constraint(equalToConstant: 560).isActive = true
+        grid.columnSpacing = 12
+        grid.column(at: 0).width = 100
+        grid.column(at: 2).width = 55
         for (control, label) in [(backend, "Backend"), (fixture, "Fixture"), (resolution, "Physical pixel resolution"), (mode, "Execution mode")] { control.setAccessibilityLabel(label) }
         run.target = self; run.action = #selector(start); stop.target = self; stop.action = #selector(cancel); stop.keyEquivalent = "."; stop.keyEquivalentModifierMask = .command; stop.isEnabled = false
         reveal.target = self; reveal.action = #selector(revealResults)
