@@ -23,6 +23,8 @@ Save/Discard/Cancel. Non-local file-provider locations are rejected with an expl
 message; no unsafe remote-file overwrite fallback is used.
 
 Verification so far: compiled and adapter-tested on macOS with Homebrew GTK4 4.24.1 and
-libadwaita 1.10.0. This does **not** verify Linux Wayland/X11, native file portals, desktop
+libadwaita 1.10.0. The GTK window and tool controls also ran on Mac, but synthetic
+mouse movement omitted the held-button flag and correctly cancelled ink; real mouse
+drawing remains unverified. See the platform evidence report. This does **not** verify Linux Wayland/X11, native file portals, desktop
 packaging, physical tablet pressure, accessibility speech, or pen latency. Actual Linux
 runtime testing remains required. Unsaved process-crash recovery is not implemented.

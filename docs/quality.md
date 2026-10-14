@@ -16,6 +16,21 @@ pen-to-screen latency are separate evidence; a green check alone does not cover 
 `./scripts/check --core` skips macOS and is suitable for a non-Mac Rust runner.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.
 
+## Portable host checks
+
+`scripts/check-wasm` verifies the raw Wasm bridge and native byte equivalence.
+`scripts/check-web` builds TypeScript and runs real-Wasm adapter/lifecycle regressions.
+`scripts/check-linux` builds GTK/libadwaita, runs clippy and the native adapter test;
+running this on macOS does not certify Linux display servers or portals.
+`scripts/check-android` runs the JNI/input replay on the selected Android device or
+emulator. `scripts/run-ios <UUID> --integration-test` runs the UIKit replay in that
+simulator. Coordinate device runs and native UI inspection exclusively on the host.
+`scripts/check-windows.ps1` builds the x64 Rust DLL/WinUI host and runs C# conformance
+on Windows. Cross-host C# compilation or interop checks do not replace Windows launch.
+
+Record OS, SDK, exact source revision, build, adapter execution, and visible interaction
+as separate evidence. See `docs/evidence/005-native-platforms.md` for current coverage.
+
 ## Feature-specific merge evidence
 
 | Change | Required evidence |

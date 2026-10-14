@@ -1,68 +1,72 @@
 # Native Sketch
 
-A macOS-first vector sketching prototype with a shared Rust editor and native AppKit UI.
-Task 001 is ready for owner review; this is not a production drawing application.
+Editable vector sketching prototypes with shared Rust document, drawing, geometry,
+selection, history, and persistence. Native controls surround a custom canvas on each
+platform. This is the first-stroke milestone, not a production drawing application.
 
-## First-stroke milestone
+| Platform | Interface | Build / checks |
+| --- | --- | --- |
+| macOS | Swift / AppKit toolbar, menus and inspector | `scripts/run-macos`, `scripts/check` |
+| iOS / iPadOS | Swift / UIKit, touch tools and document picker | `scripts/build-ios simulator`, `scripts/build-ios device` |
+| Android | Kotlin / Material Components for Views | `scripts/build-android`, `scripts/check-android` |
+| Windows | C# / WinUI 3 | `scripts/check-windows.ps1` on Windows |
+| Linux | Rust / GTK4 + libadwaita | `scripts/check-linux` |
+| Browser | TypeScript / semantic HTML + Rust/Wasm | `scripts/run-web`, `scripts/check-web` |
 
-- Draw with a mouse or pressure-capable pen; mouse width is fixed and absent pressure
-  remains absent in the document. Pen width uses nominal width × (0.2 + 0.8 × pressure).
-- Select strokes by clicking or with Edit → Select Next/Previous Stroke. Resize uniformly
-  using corner handles or Scale percent. Geometry and width scale together.
-- Undo/redo drawing, resize, and deletion; Escape cancels an active operation.
-- Pan with Space-drag/scroll and zoom with pinch or View commands.
-- Save/open versioned `.nsketch` documents with geometry/style preserved. Atomic replacement
-  protects the previous file on save failure; unsaved replacement/close is guarded.
+Apple chrome uses standard native controls and current SDK styling; Android uses
+Material Views. Actual platform runtime verification varies: read the
+[platform evidence](docs/evidence/005-native-platforms.md) before accepting a port.
+GTK has been built on this Mac; that does not certify Linux. Windows C# compilation
+and its Rust interop check do not certify a packaged, running Windows application.
 
-Native controls surround a custom white-paper canvas. The temporary CoreGraphics painter
-consumes Rust paths. **Production renderer selection remains OPEN** pending task 002's
-Rust-Skia/Metal versus Vello comparison; no GPU-performance winner is claimed.
+## What works in this milestone
+
+Draw with optional device pressure, select one stroke, uniformly scale, delete,
+undo/redo, pan/zoom, and save/open portable `.nsketch` documents. Rust owns all
+editable content and validation. Native hosts adapt input, viewports, controls and
+file permissions. Mobile, browser and GTK two-contact navigation cancels temporary
+ink before panning/zooming. Windows cancels a second pointer but currently uses
+Space-drag/scroll for navigation.
+Failure to open preserves the current drawing; explicit replacement is guarded.
+
+Platform path painters are provisional: CoreGraphics, Android Canvas, WinUI paths,
+Cairo and Canvas2D consume Rust geometry. **Production renderer selection remains
+OPEN** for task 002's comparable Skia/Metal and Vello experiments. No GPU or physical
+pen latency claim is made.
 
 ## Build and run
 
-Prerequisites: Rust 1.85+ with cargo, rustfmt, and clippy; Swift 6+ and a macOS SDK;
-Python 3.9+ for task-board checks. macOS 14 is the provisional minimum. No external Rust
-or Swift packages are needed.
+Start on macOS with Rust 1.85+, Swift 6+ and a macOS SDK:
 
 ```sh
-./scripts/check            # board, Rust fmt/clippy/tests, Swift build + integration
-./scripts/run-macos        # build and launch a development .app
-./scripts/board            # task status and dependencies
-./scripts/check --core     # Rust and metadata checks on non-Mac hosts
-./scripts/build-macos release
-./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --integration-test
-./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --native-smoke-test
-./artifacts/NativeSketch.app/Contents/MacOS/NativeSketch --timing
+./scripts/check
+./scripts/run-macos
+./scripts/check --core
+./scripts/board
 ```
 
-Native smoke uses synthetic AppKit mouse events on a real Mac. Timing is a provisional
-CPU workload, not GPU, presentation, or physical input latency. Run timing alone after
-other agent builds and native automation stop. `--appearance light` / `--appearance dark`
-inspect app-local appearance without changing system settings.
+See prerequisites and behavior in [iOS](apps/ios/README.md),
+[Android](apps/android/README.md), [Windows](apps/windows/README.md),
+[GTK](apps/linux/README.md), and [browser](apps/web/README.md) guides.
+Mobile device signing and store distribution are not configured. Build outputs are
+ignored under `artifacts/`, `target/`, and platform build directories.
 
-## Scope and limitations
+## Limits and approval
 
-Single-document window; single-stroke selection and uniform resize. File I/O is synchronous
-outside drawing gestures. The current path painter is deliberately uncached; large-document
-responsiveness is not established. There is no autosave/recovery, production renderer,
-Windows app, image import, layers UI, distribution signing, or physical tablet certification.
-The versioned file schema is an early local format, not a compatibility promise for release.
+Single-document editing, single-stroke selection and uniform scale. No layers UI,
+image import, autosave/crash recovery, production GPU renderer or release packaging.
+File operations and full-scene path painting are synchronous; large-document
+responsiveness is unmeasured. Browser downloads cannot confirm a completed filesystem
+write, so Download copy keeps the unsaved indicator and never implies durable saving.
+Physical tablets, screen-reader speech and unavailable OS hosts need separate checks.
 
-Generated output and local evidence belong under ignored `target/`, `.build-cache/`, and
-`artifacts/`. Tests use disposable synthetic documents. No baselines or thresholds should
-be weakened to pass checks.
+Local task branch changes are ready for owner review only after the evidence report's
+checks. The owner approves merging and distribution; agents do not merge into main.
+No remote repository, CI service, license or release identity is configured.
 
-## Project workflow
-
-The lead integrates scoped specialists, with design before UI implementation and a fresh
-review before owner acceptance. Local task-branch commits are allowed; the owner approves
-merges and release distribution. No cloud repository, CI provider, remote branch protection,
-release identity, or open-source license is configured.
-
-- [First-stroke evidence and limitations](docs/evidence/001-first-stroke.md)
-- [First-stroke design](docs/design/first-stroke.md)
+- [Native platform evidence](docs/evidence/005-native-platforms.md)
+- [Original macOS milestone evidence](docs/evidence/001-first-stroke.md)
+- [Native interactions](docs/design/native-platforms.md)
 - [Architecture](docs/architecture.md)
-- [Provisional renderer boundary](docs/decisions/0002-first-stroke-rendering.md)
-- [Quality and evidence](docs/quality.md)
-- [Agent workflow](docs/workflow.md)
-- [Tasks](tasks/README.md)
+- [Renderer boundary](docs/decisions/0002-first-stroke-rendering.md)
+- [Quality](docs/quality.md) · [Workflow](docs/workflow.md) · [Tasks](tasks/README.md)

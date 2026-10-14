@@ -58,7 +58,7 @@
     {
       "id": "005",
       "title": "Native first-stroke hosts",
-      "status": "active",
+      "status": "review",
       "depends_on": [],
       "brief": "tasks/005-native-platforms.md",
       "roles": [

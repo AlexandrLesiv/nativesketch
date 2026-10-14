@@ -1,6 +1,6 @@
 # 005: Native first-stroke hosts
 
-Status: active. Authorized by owner on 2026-10-14, based on first-stroke branch 59246c3.
+Status: review. Authorized by owner on 2026-10-14, based on first-stroke branch 59246c3.
 This extends one editable-stroke milestone across hosts; it does not publish releases
 or accept the production renderer before task 002.
 
@@ -22,6 +22,14 @@ and browser TypeScript/semantic HTML + Rust/Wasm hosts.
 - Reproducible builds/tests and explicit per-platform distinction between built, executed,
   inspected, and unverified. Lack of another OS host must never become a false runtime claim.
 - Designer audit and fresh independent review; human merge approval, main unchanged.
+
+## Evidence and acceptance limits
+
+Implementation, designer review and fresh source review are complete. See
+`docs/evidence/005-native-platforms.md` for tested revisions and running-app evidence.
+Windows packaging/runtime, Linux OS input/portals, physical pen input and mobile visual
+acceptance remain unverified on this host. Review status requests owner assessment of
+this prototype implementation; it does not certify all platform releases.
 
 ## Rendering boundary
 

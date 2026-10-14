@@ -13,6 +13,24 @@ are caller-owned, and Rust catches panics at the boundary. A panic invalidates t
 The canonical header documents status values and ownership. Save/load are synchronous
 and run outside pointer transactions; large-document background I/O is a remaining limit.
 
+## Portable hosts
+
+The same Rust editor now serves AppKit/UIKit through the C header, Android through
+JNI, WinUI through C# P/Invoke, GTK directly as a Rust dependency, and browser through
+`sketch-wasm` protocol 1. The byte format is common across all hosts. Platforms own
+viewport state and native controls; no host reimplements document/history semantics.
+
+Export returns bytes and a revision; only a confirmed successful write of that
+revision may mark clean. New/import/load invalidate earlier save acknowledgements.
+The browser's download-only path keeps dirty state because dispatching a download is
+not confirmation of persistence. Android uses Storage Access Framework Save a copy;
+file-provider partial-new-file failure cannot universally be made atomic. Desktop
+path writes use the core's same-directory atomic replacement.
+
+Native painters remain disposable geometry consumers. GTK and browser packages build
+separately, keeping GUI dependencies outside the core workspace. C ABI 2 ownership
+and raw Wasm token lifetimes are documented in the header and `crates/sketch-wasm/WASM.md`.
+
 ## Intended ownership
 
 | Area | Owner |

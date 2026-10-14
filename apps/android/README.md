@@ -18,7 +18,8 @@ previous/next, delete, and numeric uniform scale. Two-finger pan/zoom cancels in
 ink/resize. Zoom sheet offers in/out/reset. Document overflow offers New/Open/Save copy.
 SAF file operations suspend editing; invalid import and failed/cancelled save keep the
 current document. Save acknowledges Rust revision only after the provider stream closes
-successfully. New/Open unsaved prompts offer Save/Discard/Cancel.
+successfully. New/Open and system Back unsaved prompts offer Save/Discard/Cancel. Back uses the
+AndroidX activity dispatcher; cancelling preserves the editor and dirty state.
 
 Configuration recreation retains the Rust editor, history, dirty flag, viewport center,
 and pending save snapshot. Process termination does **not** recover unsaved work; save

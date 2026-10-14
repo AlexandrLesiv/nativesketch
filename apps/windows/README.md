@@ -18,8 +18,8 @@ Windows SDK 10.0.19041 or later. From the repository root:
 
 The project pins Microsoft.WindowsAppSDK 1.8.260921001 and an unpackaged,
 self-contained Windows App SDK runtime. The Rust DLL is copied beside the EXE.
-Only x64 is configured and verified by the script's target assumptions; an ARM64
-Windows package is not provided. These scripts are local development builds,
+The script explicitly builds Rust for `x86_64-pc-windows-msvc` and runs the interop
+harness as `win-x64`; an ARM64 Windows package is not provided. These scripts are local development builds,
 not release packaging or distribution approval.
 
 ## Ownership and behavior
@@ -59,9 +59,18 @@ selection, resize/cancel/undo/redo, delete/undo, ink cancel, Unicode save/reopen
 replacement save, failed-save preservation and corrupt-load preservation.
 It uses the exact app wrapper, but **does not certify Windows or WinUI behavior**.
 
-A Windows-targeted build was attempted on this Mac with EnableWindowsTargeting.
-Package restore was still downloading the SDK runtime when source work finished;
-no successful WinUI compilation is claimed here. Actual Windows build/run, native
+The official SDK packages restored on this Mac. The full build reached Windows-only
+`mt.exe` / `MakePri.exe` and failed with executable-format errors, as expected on macOS.
+The real C# compiler passed against the WinUI SDK using this compile-only check:
+
+```sh
+dotnet msbuild apps/windows/NativeSketch.Windows.csproj -t:Compile \
+  -p:Configuration=Release -p:WindowsAppSDKSelfContained=false -v:minimal
+```
+
+This command skips Windows resource/deployment packaging; it does not produce a verified
+runnable Windows app. The project retains normal self-contained Windows build settings.
+Actual Windows build/run, native
 UI inspection, Narrator/accessibility, per-monitor DPI, pen/capture cancellation,
 light/dark/narrow layouts, file picker/overwrite/close flows and graphics lifecycle
 remain **not run**. This host requires those checks before platform acceptance.
