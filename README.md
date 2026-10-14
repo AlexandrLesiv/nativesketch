@@ -8,6 +8,9 @@ platform. This is the first-stroke milestone, not a production drawing applicati
 | --- | --- | --- |
 | macOS | Swift / AppKit toolbar, menus and inspector | `scripts/run-macos`, `scripts/check` |
 | iOS / iPadOS | Swift / UIKit, touch tools and document picker | `scripts/build-ios simulator`, `scripts/build-ios device` |
+| visionOS | Swift / UIKit 2D editor | `scripts/build-visionos simulator` |
+| tvOS | UIKit view-only document viewer | `scripts/build-tvos simulator` |
+| watchOS | SwiftUI view-only iPhone companion | `scripts/build-watchos simulator` |
 | Android | Kotlin / Material Components for Views | `scripts/build-android`, `scripts/check-android` |
 | Windows | C# / WinUI 3 | `scripts/check-windows.ps1` on Windows |
 | Linux | Rust / GTK4 + libadwaita | `scripts/check-linux` |
@@ -19,9 +22,15 @@ Material Views. Actual platform runtime verification varies: read the
 GTK has been built on this Mac; that does not certify Linux. Windows C# compilation
 and its Rust interop check do not certify a packaged, running Windows application.
 
+Apple TV and Apple Watch are **view only**. TV opens explicit HTTPS document links;
+Watch receives a copy sent from iPhone. Vision Pro supports editing in a native 2D
+window. Build the complete Apple family, including the embedded Watch companion, with
+`scripts/build-apple-family simulator` (or `device`, requiring owner provisioning).
+See [Apple-family evidence](docs/evidence/006-apple-device-family.md) for support limits.
+
 ## What works in this milestone
 
-Draw with optional device pressure, select one stroke, uniformly scale, delete,
+On editing-capable devices, draw with optional device pressure, select one stroke, uniformly scale, delete,
 undo/redo, pan/zoom, and save/open portable `.nsketch` documents. Rust owns all
 editable content and validation. Native hosts adapt input, viewports, controls and
 file permissions. Mobile, browser and GTK two-contact navigation cancels temporary

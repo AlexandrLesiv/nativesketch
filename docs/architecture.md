@@ -80,3 +80,16 @@ Do not introduce a permanent abstraction supporting hypothetical backends before
 
 See [first-stroke interactions](design/first-stroke.md) and the
 [provisional presentation decision](decisions/0002-first-stroke-rendering.md).
+
+## Apple device capabilities
+
+Mac, iPhone/iPad and visionOS expose editing. tvOS and watchOS expose a private Swift
+viewer adapter over the same Rust ABI, limited to validated imports, state and path
+copies. Native viewport changes do not mutate document bytes. Vision is a native 2D
+UIKit window; no spatial document schema or immersive renderer is introduced.
+
+TV downloads explicit HTTPS links with a streaming limit and imports a candidate before
+replacing the cached copy. Watch receives an explicit iPhone snapshot via WatchConnectivity;
+metadata and bytes share an atomic cache envelope. Receiving validates in a separate Rust
+handle before replacing presentation. Sending a copy never acknowledges a document save.
+The watch is a companion viewer, with stable Rust ARM64 builds; arm64_32 is not configured.

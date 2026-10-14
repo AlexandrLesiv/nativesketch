@@ -1,6 +1,6 @@
 # 006: Apple device family
 
-Status: active. Authorized by owner on 2026-10-14, based on platform branch `30d472b`.
+Status: review. Authorized by owner on 2026-10-14, based on platform branch `30d472b`.
 
 ## Outcome
 
@@ -34,3 +34,6 @@ source dirty-state retention. Run available simulator adapter replays exclusivel
 this host; inspect native interfaces where tooling permits. Keep physical Vision input,
 Siri Remote, WatchConnectivity pairing and accessibility speech distinct from replay.
 Designer review and fresh independent review precede owner merge review.
+
+Evidence: [Apple device family verification](../docs/evidence/006-apple-device-family.md).
+Final code revision `070412b`; implementation and review complete, awaiting owner merge approval.

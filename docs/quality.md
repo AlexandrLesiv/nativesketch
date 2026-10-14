@@ -28,6 +28,13 @@ simulator. Coordinate device runs and native UI inspection exclusively on the ho
 `scripts/check-windows.ps1` builds the x64 Rust DLL/WinUI host and runs C# conformance
 on Windows. Cross-host C# compilation or interop checks do not replace Windows launch.
 
+`scripts/build-apple-family simulator` builds all Apple hosts and embeds the Watch
+companion in the iPhone app. Device variants require owner provisioning.
+`scripts/check-apple-viewers` exercises actual Rust read-only imports, byte identity,
+stale/corrupt/oversized transfer retention, atomic caches and HTTPS download policy.
+Simulator viewer replays are debug-only and exit with a result; physical WatchConnectivity
+delivery and Vision input require separate device evidence.
+
 Record OS, SDK, exact source revision, build, adapter execution, and visible interaction
 as separate evidence. See `docs/evidence/005-native-platforms.md` for current coverage.
 

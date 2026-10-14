@@ -73,7 +73,7 @@
     {
       "id": "006",
       "title": "Apple editors and view-only companions",
-      "status": "active",
+      "status": "review",
       "depends_on": [],
       "brief": "tasks/006-apple-device-family.md",
       "roles": [
