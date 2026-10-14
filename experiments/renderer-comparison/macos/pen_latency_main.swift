@@ -115,13 +115,14 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if monotonicNow() - lastOcclusionCheck >= 0.25 {
                 lastOcclusionCheck = monotonicNow(); occlusionChecks += 1
                 if let info = CGWindowListCopyWindowInfo([.optionOnScreenAboveWindow, .excludeDesktopElements], CGWindowID(window.windowNumber)) as? [[String: Any]], let primary = NSScreen.screens.first {
-                    let own = CGRect(x: window.frame.minX, y: primary.frame.maxY-window.frame.maxY, width: window.frame.width, height: window.frame.height)
+                    let canvasOnScreen = window.convertToScreen(canvas.convert(canvas.bounds, to: nil))
+                    let own = CGRect(x: canvasOnScreen.minX, y: primary.frame.maxY-canvasOnScreen.maxY, width: canvasOnScreen.width, height: canvasOnScreen.height)
                     for entry in info {
                         guard (entry[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value != ProcessInfo.processInfo.processIdentifier,
                               (entry[kCGWindowAlpha as String] as? NSNumber)?.doubleValue ?? 0 > 0.01,
                               let dictionary = entry[kCGWindowBounds as String] as? [String: Any],
                               let rect = CGRect(dictionaryRepresentation: dictionary as CFDictionary), rect.intersects(own) else { continue }
-                        throw Failure.message("Another onscreen window overlaps experiment (window \(entry[kCGWindowNumber as String] ?? "unknown"))")
+                        throw Failure.message("Another onscreen window overlaps measured canvas (window \(entry[kCGWindowNumber as String] ?? "unknown"))")
                     }
                 } else { occlusionUnavailable += 1 }
             }
