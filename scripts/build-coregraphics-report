@@ -143,6 +143,23 @@ def main():
     parts.append(table(['Workload','Physical pixels','First-use service median (ms)','Initialization median (ms)','Peak RSS median (MiB)','Peak RSS range (MiB)'],first_rows,'Process first-use and whole-process memory'))
     parts.append('</section><section id="quality"><h2>Visual quality evidence</h2><p>These untimed captures are inspection proxies, not proof of exact presented pixels. Interpretation note: the raw quality policy phrase “fresh full-view raster” means full paint commands are reissued without an application bitmap cache. System caching, rasterization and composition are unobserved; the raw records remain unchanged. Frame 599 from primary runs permits matching static views of each trace. RGB differences describe pixels; they do not establish a pass threshold, perceptual equivalence or equal antialiasing.</p>'+quality_section(quality,args.data)+'</section>')
     parts.append('<section><h2>Historical Skia and Vello context</h2><p>The prior Metal experiment used fixed offscreen textures displayed inside a fitted 900 × 680-point presentation area. This experiment draws at the actual native view backing dimensions. Their presentation paths and timing scopes differ, so there is no shared three-backend render-time axis.</p><p>The original GPU matrix was measured at source <code>32361fb</code> and retained lifecycle/callback limitations. A later guarded replay measured selected pairs and all three pan/zoom sustained repeats separately. Those original and guarded measurements remain separate from this Core Graphics dataset.</p><p><a href="renderer-comparison.html">Read the separate Skia/Vello evidence report</a> · <a href="renderer-comparison/guarded-replay.json">Guarded replay data</a></p></section>')
+    historical=read(args.data.parent/'renderer-comparison/results.json',False)
+    parts.append('<section><h2>Historical Metal pipeline CPU service, excluding drawable acquisition</h2><p class="notice">Separate historical context: source 32361fb, five processes per cell, fixed textures fitted into a 900 × 680-point presentation area. Values exclude drawable acquisition and differ from the Core Graphics callback service scope. This is not a controlled Core Graphics speedup ranking. Original lifecycle and missing-presentation-callback limitations remain applicable.</p>')
+    if historical is None:
+        parts.append('<p>Historical export is unavailable; no comparison values are inferred.</p>')
+    else:
+        context=[]
+        for cell in historical.get('cells',[]):
+            if cell.get('mode')!='paced':continue
+            values=[]
+            for backend in ('skia','vello'):
+                stats=cell['backends'][backend]['metrics']['service_without_acquire_ms']['p95']
+                values.append(number(stats['median'])+' ['+number(stats['min'])+', '+number(stats['max'])+']')
+            note='Original high-resolution alpha anomaly; see separate guarded replay.' if cell['fixture']=='alpha' and cell['width']==2560 else 'Original historical trial set'
+            context.append([LABELS.get(cell['fixture'],cell['fixture']),f'{cell["width"]} × {cell["height"]}',*values,note])
+        if len(context)!=16:raise ValueError('Historical paced table requires all 16 workload/resolution cells')
+        parts.append(table(['Workload','Texture pixels','Skia p95 median [min, max] (ms)','Vello p95 median [min, max] (ms)','Evidence caveat'],context,'Historical CPU service excluding acquisition: median and range of five process p95 values'))
+    parts.append('<p>The high-resolution alpha anomaly is retained in the original table. The <a href="renderer-comparison/guarded-replay.json">separate guarded replay</a> records later controlled lifecycle observations; its values are not silently substituted or pooled with the historical matrix.</p></section>')
     parts.append('<section id="sizes"><h2>Application size and platform implications</h2><p>The table reports actual existing artifacts, not isolated engine overhead. Different apps, configurations, architectures and packaging cannot be subtracted to estimate the cost of one renderer. Static archives are build inputs, not shipped application size.</p>')
     records=(sizes or {}).get('artifacts',[])
     if records:
@@ -155,6 +172,12 @@ def main():
         if wasm:parts.append('<p>Shared logic Wasm: '+esc(wasm.get('bytes'))+' bytes; local gzip-9 encoding: '+esc(wasm.get('gzip9_bytes'))+' bytes. '+esc(wasm.get('notes',''))+'</p>')
         parts.append('<p><strong>Independent renderer overhead:</strong> '+esc(sizes.get('renderer_overhead','Not measured.'))+'</p>')
     else:parts.append('<p class="notice">Artifact-size export pending. No per-backend size estimate is implied.</p>')
+    parts.append(table(['Platform','Current system/browser route','Bundled Skia or Vello route','Independent backend size impact'],[
+        ['macOS','AppKit / Core Graphics uses the OS engine','Ship renderer and integration code with the app','Unmeasured; combined benchmark is not independent overhead'],
+        ['iPhone / iPad','UIKit / Core Graphics uses the OS engine','Ship renderer and target-specific integration code','Unmeasured on these targets'],
+        ['Android','Android Canvas uses the platform engine','Ship renderer and target-specific native code','Unmeasured; current debug dual-ABI APK is not a backend delta'],
+        ['Web','Canvas 2D uses the browser engine; Rust/Wasm supplies shared logic','Ship the selected Wasm/JS renderer payload','Unmeasured; current logic Wasm does not contain Skia/Vello'],
+    ],'Platform packaging interpretation — no estimated per-engine size deltas'))
     parts.append('<p>Bundling Skia or Vello ships application code and associated resources. Core Graphics on Apple platforms, Android Canvas and browser Canvas use engines provided by the system or browser. The existing browser prototype uses Canvas 2D and shared Rust/Wasm logic; it does not bundle Skia or Vello.</p><p>External reference integration sizes are examples from other projects, not Native Sketch measurements or predictions. Version, feature selection, compression and store delivery affect their interpretation.</p>')
     for reference in (sizes or {}).get('references',[]):
         parts.append('<p>'+esc(reference.get('claim',''))+' <a href="'+esc(reference['url'])+'">Read the upstream reference</a>.</p>')
