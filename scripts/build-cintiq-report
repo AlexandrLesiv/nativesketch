@@ -1,47 +1,190 @@
 #!/usr/bin/env python3
-"""Standalone HTML/SVG report from validated software comparison JSON."""
-import argparse, html, json
+"""Self-contained, workload-separated report from validated software comparison JSON."""
+import argparse
+import html
+import json
+import re
+import statistics
 from pathlib import Path
-p=argparse.ArgumentParser(description=__doc__); p.add_argument('analysis'); p.add_argument('--output',required=True); a=p.parse_args(); d=json.loads(Path(a.analysis).read_text()); e=lambda v:html.escape(str(v)); fmt=lambda v:f'{v:.2f}' if isinstance(v,(float,int)) else '—'
-scene_names={'empty':'Empty canvas','dense1000':'1,000 committed strokes','dense5000':'5,000 committed strokes','alpha':'Translucency','clip':'Clipping','image':'Image'}
-trace_names={'short':'Short strokes','long':'Repeated-overlap stress','panzoom':'Pan/zoom + overlap stress'}
-state_names={'warm':'Warm','first-use':'First painter use','after-idle':'After idle'}
-cell_configs={r['config']['cell']:r['config'] for r in list(d['runs'].values())+d.get('failed',[])}
-def cell_lines(cell):
-    c=cell_configs.get(cell)
-    if not c: return [cell,'Configuration unavailable']
-    return [scene_names.get(c['scene'],c['scene'])+' · '+trace_names.get(c['trace'],c['trace']),state_names.get(c['start_state'],c['start_state'])+' · '+('Full redraw (R)' if c['policy']=='R' else 'Cached base + live ink (C)')+' · '+str(c['width'])+'×'+str(c['height'])+' px']
-def cell_html(cell): return '<br>'.join(e(v) for v in cell_lines(cell))+'<br><code class="muted">'+e(cell)+'</code>'
-parts=['''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cintiq: Skia and Core Graphics software comparison</title><style>body{font:17px/1.6 system-ui,sans-serif;color:#172336;background:#f4f6fa;margin:0}main{max-width:1150px;margin:auto;padding:32px 20px}h1,h2{line-height:1.2}section{background:white;padding:24px;margin:20px 0;border-radius:12px}.notice{border-left:6px solid #ad6812}table{border-collapse:collapse;width:100%;font-size:14px}td,th{overflow-wrap:anywhere;vertical-align:top;padding:10px;border-bottom:1px solid #ccd4df;text-align:left}.scroll{max-width:100%;overflow:auto}pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}table{table-layout:fixed}section{min-width:0}@media(max-width:600px){main{padding:16px 10px}section{padding:16px}td,th{padding:7px;font-size:12px}}svg{max-width:100%;height:auto}.muted{color:#516074}a{color:#164b9c}code{overflow-wrap:anywhere}</style><main id="main"><h1>Skia / Metal and AppKit / Core Graphics on Cintiq</h1><p>Matched synthetic input, geometry, cache policy and physical canvas dimensions.</p><section class="notice"><h2>Physical pen-to-screen latency remains pending</h2><p>These results end at a software drawing callback. A suitable camera is required to observe physical pen movement and visible pixels. Generated 240 Hz replay bypasses Wacom digitizer and driver delivery. Neither backend is declared a physical-latency winner.</p></section>''']
-parts.append(f'<section><h2>Coverage: {e(d["status"])}</h2><p>{d.get("attempted_runs",d["accepted_runs"]+len(d["invalid"]))} attempted of {d["declared_runs"]} declared runs; {d["accepted_runs"]} accepted; {d.get("failed_runs",0)} classified failed observations; {len(d["pending"])} pending; {len(d["invalid"])} invalid. Missing cells are not estimated. Acceptance here means software artifact validation; cross-backend image quality and native inspection are separate review gates.</p><p>Positive paired difference below means Skia reached the drawing callback sooner. Negative means Core Graphics did. This is software scheduling evidence, not visible ink.</p></section>')
-parts.append('<section><h2>Outcomes for every declared pair</h2><p>Both candidates appear side by side, including pairs where both failed. Numeric timing differences exist only when both runs are accepted. Accepted/failed combinations are checked for matching input, canvas and power conditions before being presented as paired outcomes.</p><div class="scroll"><table><tr><th>Pair ID</th><th>Skia / Metal</th><th>Core Graphics</th><th>Matched identity checked</th><th>Numeric difference available</th></tr>')
-for outcome in d.get('pair_outcomes',[]):
-    parts.append('<tr><td>'+e(outcome['pair_id'])+'</td><td>'+e(outcome['backends']['skia']['outcome'])+'</td><td>'+e(outcome['backends']['coregraphics']['outcome'])+'</td><td>'+('Yes' if outcome['matched_identity_verified'] else 'Pending / unavailable')+'</td><td>'+('Yes' if outcome['numeric_delta_available'] else 'No')+'</td></tr>')
-parts.append('</table></div></section>')
-parts.append('<section class="notice"><h2>Adversarial sustained trace and failed outcomes</h2><p>Long traces and the ink portion of pan/zoom traces follow a repeated curve with abrupt end-to-start position resets. The 180-second sustained trace retraces the same path 90 times with abrupt position resets; a 30-second long trace makes 15 passes. These are repeated-overlap stress cases, not representative smooth motion or spatially growing lines. Short traces are separate 0.75-second strokes. A separately frozen, opt-in collector policy can continue after the exact terminal-paint watchdog only when input completeness, final expected hashes, source, configuration, display and lifecycle checks pass. The native watchdog is unchanged. Failed observations stay failed and contribute no accepted timing distribution or numeric paired difference. Stop, visibility changes and other failures still halt collection.</p>')
-parts.append('<div class="scroll"><table><tr><th>Failed condition / backend</th><th>Never-drawn samples</th><th>Max observed draw gap ms</th><th>Latest / oldest undrawn age at finish ms</th><th>Process user / system CPU s</th><th>Exact reason</th></tr>')
-for failure in d.get('failed',[]):
-    c=failure['config']
-    parts.append('<tr><td>'+cell_html(c['cell'])+'<br>'+e(c['backend'])+'<br><code>'+e(c['id'])+'</code></td><td>'+e(failure['samples_never_drawn'])+'</td><td>'+fmt(failure['maximum_observed_draw_gap_ms'])+'</td><td>'+fmt(failure['latest_undrawn_sample_age_at_finish_ms'])+' / '+fmt(failure['oldest_undrawn_sample_age_at_finish_ms'])+'</td><td>'+fmt(failure['process_cpu_user_s'])+' / '+fmt(failure['process_cpu_system_s'])+'</td><td>'+e(failure['reason'])+'</td></tr>')
-parts.append('</table></div><p>Failure gaps include the censored interval from the last draw to finish entry. Undrawn sample ages are measured at that endpoint, not photons or observed first-draw latencies. Process CPU excludes external WindowServer and GPU execution. Successful-run distributions remain separate; do not treat them as an overall reliability ranking.</p><details><summary>Frozen collector and failure policy</summary><pre>'+e(json.dumps({'collector':d.get('collector'),'failure_policy':d.get('failure_policy','strict')},indent=2))+'</pre></details></section>')
-parts.append('<section><h2>Paired p95 scheduled-to-first-draw difference</h2><p>Median of matched run differences: Core Graphics minus Skia, milliseconds. Intervals are exploratory 95% bootstrap intervals over pairs, not independent frames. Five pairs provide limited uncertainty evidence.</p>')
-cells=d['cells']; bound=max([abs(v) for c in cells for v in c['exploratory_pair_bootstrap_95']]+[1]); height=max(120,75*len(cells)+40)
-parts.append(f'<svg role="img" aria-label="Paired software timing differences; zero at center" viewBox="0 0 1080 {height}"><line x1="700" x2="700" y1="0" y2="{height-25}" stroke="#65748b"/>')
-for i,c in enumerate(cells):
-    y=25+i*75; lo,hi=c['exploratory_pair_bootstrap_95']; x=lambda v:700+300*v/bound
-    parts.append(f'<text x="0" y="{y}" font-size="14">{e(cell_lines(c["cell"])[0])}</text><text x="0" y="{y+19}" font-size="12">{e(cell_lines(c["cell"])[1])}</text><text x="0" y="{y+36}" font-size="11" fill="#516074">{e(c["cell"])}</text><line x1="{x(lo)}" x2="{x(hi)}" y1="{y-5}" y2="{y-5}" stroke="#197b9a" stroke-width="4"/><circle cx="{x(c["median_paired_delta_ms"])}" cy="{y-5}" r="5" fill="#183d6e"/>')
-parts.append(f'<text x="400" y="{height-5}" font-size="13">−{bound:.1f} ms</text><text x="695" y="{height-5}" font-size="13">0</text><text x="990" y="{height-5}" font-size="13">+{bound:.1f} ms</text></svg>')
-parts.append('<div class="scroll"><table><thead><tr><th>Cell</th><th>Pairs</th><th>Median difference ms</th><th>Exploratory interval ms</th></tr></thead><tbody>')
-for c in cells: parts.append(f'<tr><td>{cell_html(c["cell"])}</td><td>{c["pairs"]}</td><td>{fmt(c["median_paired_delta_ms"])}</td><td>{" to ".join(fmt(x) for x in c["exploratory_pair_bootstrap_95"])}</td></tr>')
-parts.append('</tbody></table></div></section><section><h2>What the comparison can decide</h2><p>Use these measurements to locate input backlog, expensive cache rebuilds and scheduling stalls. Any recommendation remains conditional on visual quality and the later optical test. Synchronous replacement caches queue incoming input during rebuilding; asynchronous replacement is deferred for both adapters.</p><table><tr><th>Approach</th><th>Advantages</th><th>Costs and limits</th></tr><tr><td>Skia / Metal</td><td>Explicit GPU submission and separate Metal observations; path to shared rendering across platforms.</td><td>Additional bundled engine and GPU resources. Metal callbacks do not measure photons; drawable waits and queueing matter.</td></tr><tr><td>AppKit / Core Graphics</td><td>System drawing API, native AppKit integration, no bundled Skia renderer.</td><td>Drawing may be deferred after callback return. Raster/compositor completion is not exposed by this measurement; a short callback cannot establish lower physical latency.</td></tr></table></section>')
-parts.append('<section><h2>Every accepted run</h2><p>p95 values in milliseconds. The full JSON retains p50, p95, exploratory p99, maxima, callback diagnostics and host aggregate Rust advance totals. Frame snapshots are not summed as Rust work.</p><div class="scroll"><table><tr><th>Run</th><th>Scheduled → receipt</th><th>Receipt → first draw</th><th>Scheduled → first draw</th></tr>')
-for name,r in d['runs'].items(): parts.append('<tr><td>'+e(name)+'</td>'+''.join('<td>'+fmt(r['metrics'][k]['p95'])+'</td>' for k in ('scheduled_to_receipt_ms','receipt_to_first_draw_ms','scheduled_to_first_draw_ms'))+'</tr>')
-parts.append('</table></div></section><section><h2>Every matched pair</h2><div class="scroll"><table><tr><th>Pair</th><th>CG − Skia p95 ms</th></tr>')
-for pair in d['pairs']: parts.append(f'<tr><td>{e(pair["pair_id"])}</td><td>{fmt(pair["delta_p95_cg_minus_skia_ms"])}</td></tr>')
-parts.append('</table></div></section><section><h2>Measured process CPU and callback wall time</h2><p>Process user and system CPU sum execution across all process threads from the measured replay epoch to finish entry. They exclude initialization, warm-up, idle, GPU retirement, capture and artifact serialization. External WindowServer CPU and GPU execution are not included. Draw callback totals are synchronous wall durations including drawable waits and painter calls; they are not CPU utilization. Missing values remain unknown (—), never zero.</p><div class="scroll"><table><tr><th>Run</th><th>User CPU s</th><th>System CPU s</th><th>Draw wall total ms</th><th>Draw wall max ms</th><th>Draw count</th></tr>')
-for name,r in d['runs'].items():
-    f=r.get('resource_observations',{}).get('final',{})
-    parts.append('<tr><td>'+e(name)+'</td>'+''.join('<td>'+fmt(f.get(k))+'</td>' for k in ('measured_cpu_user_s','measured_cpu_system_s','draw_cpu_total_ms','draw_cpu_max_ms','draw_cpu_count'))+'</tr>')
-parts.append('</table></div></section><section><h2>CPU, memory, thermal and power observations</h2><p>RSS is a process-lifetime peak including initialization and untimed capture. It excludes distinct GPU and WindowServer allocation accounting. Thermal changes are reported rather than silently discarded; power mode must remain consistent within matched pairs. These are observations, not measured energy consumption.</p><details><summary>Per-run metadata</summary><pre>'+e(json.dumps({r['config']['id']:r.get('resource_observations',{}) for r in list(d['runs'].values())+d.get('failed',[])},indent=2))+'</pre></details>')
-parts.append('</section><section><h2>Frozen collection identity</h2><pre>'+e(json.dumps(d.get('collection_identity',{}),indent=2))+'</pre></section><section><h2>Pending and rejected evidence</h2><details><summary>Pending run IDs</summary><pre>'+e('\n'.join(d['pending']))+'</pre></details><pre>'+e(json.dumps(d['invalid'],indent=2))+'</pre><p>Skipped drawing snapshots are not lost samples: acceptance requires every expected sample in the delivery ledger and a subsequent first drawing representation. Final captures are untimed painter/readback proxies; they are not proof of presented pixels. OS visibility flags do not establish absence of every partial occluder. Visibility checks run on the main queue and can miss transient occlusion while that queue is blocked; they are not continuous proof of visibility.</p></section></main></html>')
-Path(a.output).write_text('\n'.join(parts)); print(a.output)
+
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('analysis')
+p.add_argument('--output', required=True)
+a = p.parse_args()
+d = json.loads(Path(a.analysis).read_text())
+e = lambda value: html.escape(str(value))
+fmt = lambda value: f'{value:.2f}' if isinstance(value, (float, int)) else '—'
+median = lambda values: statistics.median(values) if values else None
+endpoint = 'Scheduled sample → first draw start'
+scene_names = {'empty': 'Empty canvas', 'dense1000': '1,000 committed strokes', 'dense5000': '5,000 committed strokes', 'alpha': 'Translucency', 'clip': 'Clipping', 'image': 'Image'}
+trace_names = {'short': 'Short strokes', 'long': 'Repeated-overlap stress', 'panzoom': 'Pan/zoom + overlap stress'}
+state_names = {'warm': 'Warm', 'first-use': 'First painter use', 'after-idle': 'After idle'}
+backend_names = {'skia': 'Skia / Metal', 'coregraphics': 'Core Graphics'}
+records = list(d['runs'].values())
+failures = d.get('failed', [])
+cell_configs = {r['config']['cell']: r['config'] for r in records + failures}
+# Labels for unattempted cells follow the declared matrix; never synthesize measurements.
+row_labels = [('empty', 'short', 'warm'), ('dense1000', 'long', 'warm'), ('dense5000', 'short', 'warm'), ('alpha', 'short', 'warm'), ('clip', 'short', 'warm'), ('image', 'short', 'warm'), ('dense1000', 'panzoom', 'warm'), ('empty', 'short', 'first-use'), ('dense1000', 'short', 'after-idle')]
+for outcome in d.get('pair_outcomes', []):
+    cell = outcome['pair_id'].rsplit('-pair', 1)[0]
+    if cell in cell_configs:
+        continue
+    primary = re.fullmatch(r'primary-(\d+)-([RC])-(\d+)x(\d+)', cell)
+    sustained = re.fullmatch(r'sustained-C-(\d+)x(\d+)', cell)
+    if primary and int(primary[1]) < len(row_labels):
+        scene, trace, state = row_labels[int(primary[1])]
+        cell_configs[cell] = dict(cell=cell, scene=scene, trace=trace, start_state=state, policy=primary[2], width=int(primary[3]), height=int(primary[4]), duration_s=30)
+    elif sustained:
+        cell_configs[cell] = dict(cell=cell, scene='dense1000', trace='long', start_state='warm', policy='C', width=int(sustained[1]), height=int(sustained[2]), duration_s=180)
+
+
+def lines(cell):
+    c = cell_configs[cell]
+    policy = 'Full redraw (R)' if c['policy'] == 'R' else 'Cached base + live ink (C)'
+    return [scene_names.get(c['scene'], c['scene']) + ' · ' + trace_names.get(c['trace'], c['trace']), state_names.get(c['start_state'], c['start_state']) + ' · ' + policy + f" · {c['width']}×{c['height']} px"]
+
+
+def label(cell):
+    return '<br>'.join(e(x) for x in lines(cell)) + '<br><code class="muted">' + e(cell) + '</code>'
+
+
+def run_values(cell, backend, quantile):
+    return [r['metrics']['scheduled_to_first_draw_ms'][quantile] for r in records if r['config']['cell'] == cell and r['config']['backend'] == backend]
+
+
+def counts(cells, backend):
+    result = dict(accepted=0, failed=0, invalid=0, pending=0)
+    for pair in d.get('pair_outcomes', []):
+        if pair['pair_id'].rsplit('-pair', 1)[0] in cells:
+            result[pair['backends'][backend]['outcome']] += 1
+    return ', '.join(f'{number} {state}' for state, number in result.items())
+
+
+parts = ['''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cintiq software comparison: Skia and Core Graphics</title><style>
+:root{color-scheme:light}body{font:17px/1.6 system-ui,sans-serif;color:#182638;background:#f2f5f9;margin:0}main{max-width:1180px;margin:auto;padding:36px 22px}h1,h2,h3{line-height:1.22}h1{font-size:2.4rem;max-width:900px}h2{margin-top:0}section{background:#fff;padding:26px;margin:22px 0;border:1px solid #dbe2ea;border-radius:14px;min-width:0}.notice{border-left:6px solid #b46e12}.subgroup{border-top:1px solid #dbe2ea;padding:22px 0}.muted{color:#536276}a{color:#174e91}.scroll{max-width:100%;overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;min-width:720px}td,th{text-align:left;vertical-align:top;padding:10px;border-bottom:1px solid #dbe2ea;overflow-wrap:anywhere}th{background:#f2f5f9}th:first-child{width:34%}pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:13px}code{overflow-wrap:anywhere}details{margin:16px 0}summary{cursor:pointer;font-weight:650;padding:10px 0}svg{display:block;width:100%;min-width:1020px;height:auto}.key{display:inline-block;width:14px;height:14px;margin:0 6px 0 14px;vertical-align:middle}.skia{background:#2267a4}.cg{background:#b36118}nav{display:flex;flex-wrap:wrap;gap:18px}.caption{font-size:14px;color:#536276}.badge{font-weight:650;color:#174e91}@media(max-width:650px){main{padding:20px 12px}section{padding:18px}h1{font-size:1.8rem}td,th{padding:8px}table{min-width:760px}}@media print{details{display:block}svg{min-width:0}section{break-inside:avoid}}</style></head><body><main id="main">
+<h1>Skia / Metal and Core Graphics on the Cintiq</h1><p>Matched synthetic input and native canvas conditions. Read ordinary short-stroke behavior first, then stress cases and completion outcomes.</p><nav aria-label="Report sections"><a href="#ordinary">Short strokes</a><a href="#stress">Overlap stress</a><a href="#sustained">Sustained</a><a href="#failures">Failures</a><a href="#recommendation">Recommendation</a><a href="#evidence">Evidence</a></nav>
+<section class="notice"><h2>Physical pen-to-screen latency remains pending</h2><p><strong>Endpoint: Scheduled sample → first draw start.</strong> This is neither drawing completion nor visible ink. Generated 240 Hz replay bypasses Wacom digitizer and driver delivery. A suitable camera is still required to measure physical pen movement through visible pixels. Neither backend is declared a physical-latency winner.</p></section>''']
+parts.append(f'<section><h2>Coverage: {e(d["status"])}</h2><p>{d.get("attempted_runs", d["accepted_runs"] + len(d["invalid"]))} attempted of {d["declared_runs"]} declared runs; {d["accepted_runs"]} accepted; {d.get("failed_runs", 0)} classified failed observations; {len(d["pending"])} pending; {len(d["invalid"])} invalid.</p><p>Acceptance means software artifact validation; image quality and native inspection remain separate review gates. Missing cells are shown as pending, never estimated. Failed runs are excluded from accepted percentiles, so completion counts must be read alongside timings.</p></section>')
+
+
+def chart_and_table(cells, title):
+    """Each homogeneous group has an independent absolute timing scale."""
+    if not cells:
+        return
+    parts.append('<div class="subgroup"><h3>' + e(title) + '</h3><p><strong>' + e(endpoint) + '</strong> · milliseconds. Bars: median of per-run p95. White marks: median of per-run p50. These are medians of run statistics, not pooled sample percentiles.</p>')
+    parts.append('<p><span class="key skia"></span>Skia / Metal <span class="key cg"></span>Core Graphics. Accepted run count is shown beside each bar. This group has its own scale.</p>')
+    values = [(cell, backend, run_values(cell, backend, 'p50'), run_values(cell, backend, 'p95')) for cell in cells for backend in ('skia', 'coregraphics')]
+    if any(p95 for _, _, _, p95 in values):
+        bound = max([median(p95) for _, _, _, p95 in values if p95] + [1]) * 1.12
+        height = len(cells) * 102 + 48
+        parts.append(f'<div class="scroll" tabindex="0" role="region" aria-label="Scrollable absolute timing chart: {e(title)}"><svg role="img" aria-label="{e(endpoint)}; absolute medians of per-run p50 and p95; textual table follows" viewBox="0 0 1120 {height}">')
+        for tick in range(5):
+            x = 430 + tick * 145
+            parts.append(f'<line x1="{x}" x2="{x}" y1="20" y2="{height-28}" stroke="#dce3ec"/><text x="{x}" y="{height-7}" font-size="12">{bound*tick/4:.1f}</text>')
+        for index, cell in enumerate(cells):
+            y = 35 + index * 102
+            parts.append(f'<text x="0" y="{y}" font-size="14">{e(scene_names.get(cell_configs[cell]["scene"], cell_configs[cell]["scene"]))}</text><text x="0" y="{y+20}" font-size="12">{e(lines(cell)[1])}</text><text x="0" y="{y+39}" font-size="11" fill="#536276">{e(cell)}</text>')
+            for offset, backend, color in ((0, 'skia', '#2267a4'), (30, 'coregraphics', '#b36118')):
+                p50, p95 = run_values(cell, backend, 'p50'), run_values(cell, backend, 'p95')
+                yy = y - 15 + offset
+                if p95:
+                    width = median(p95) / bound * 580
+                    marker = 430 + median(p50) / bound * 580
+                    parts.append(f'<rect x="430" y="{yy}" width="{width}" height="20" fill="{color}"/><line x1="{marker}" x2="{marker}" y1="{yy+2}" y2="{yy+18}" stroke="white" stroke-width="3"/><text x="{438+width}" y="{yy+15}" font-size="12">{median(p95):.2f} · n={len(p95)}</text>')
+                else:
+                    parts.append(f'<text x="438" y="{yy+15}" font-size="12" fill="{color}">{e(backend_names[backend])}: no accepted run</text>')
+        parts.append('</svg></div><p class="caption">On narrow screens, scroll the chart horizontally. The table below contains the same timing values plus completion counts.</p>')
+    else:
+        parts.append('<p>No accepted timings are available for this group; no numeric chart is drawn.</p>')
+    parts.append('<div class="scroll"><table><tr><th>Condition</th><th>Backend</th><th>Median run p50 ms</th><th>Median run p95 ms</th><th>Accepted n</th><th>Declared outcomes</th></tr>')
+    for cell, backend, p50, p95 in values:
+        parts.append('<tr><td>' + label(cell) + '</td><td>' + e(backend_names[backend]) + '</td><td>' + fmt(median(p50)) + '</td><td>' + fmt(median(p95)) + '</td><td>' + str(len(p95)) + '</td><td>' + e(counts([cell], backend)) + '</td></tr>')
+    parts.append('</table></div><details><summary>Paired p95 differences for these conditions</summary><p>Core Graphics minus Skia. Positive values favor Skia for this software endpoint; negative values favor Core Graphics. Only both-accepted pairs enter numeric comparisons. Bootstrap intervals are exploratory over pairs, not independent frames; they do not establish equivalence or a physical winner.</p><div class="scroll"><table><tr><th>Condition</th><th>Both-accepted pairs</th><th>Median paired delta ms</th><th>Exploratory 95% interval ms</th></tr>')
+    by_cell = {c['cell']: c for c in d['cells']}
+    for cell in cells:
+        item = by_cell.get(cell)
+        parts.append('<tr><td>' + label(cell) + '</td><td>' + str(item['pairs'] if item else 0) + '</td><td>' + fmt(item['median_paired_delta_ms'] if item else None) + '</td><td>' + (' to '.join(fmt(x) for x in item['exploratory_pair_bootstrap_95']) if item else 'Pending / no both-accepted pair') + '</td></tr>')
+    parts.append('</table></div></details></div>')
+
+
+def workload_section(section_id, title, predicate, intro):
+    parts.append(f'<section id="{section_id}"><h2>{e(title)}</h2><p>{intro}</p>')
+    selected = {cell: c for cell, c in cell_configs.items() if predicate(c)}
+    if not selected:
+        parts.append('<p>These conditions are pending; no matching measurement configuration is available in this analysis.</p>')
+    for policy in ('C', 'R'):
+        groups = {}
+        for cell, c in selected.items():
+            if c['policy'] == policy:
+                groups.setdefault((c['width'], c['height'], c['start_state'], c['trace']), []).append(cell)
+        if not groups:
+            continue
+        if policy == 'R':
+            parts.append('<details><summary>Full redraw (R) controls — separate scales and tables</summary>')
+        else:
+            parts.append('<p class="badge">Cached base + live ink (C): primary application-oriented comparison</p>')
+        state_order = {'warm': 0, 'first-use': 1, 'after-idle': 2}
+        for (width, height, state, trace), cells in sorted(groups.items(), key=lambda item: (state_order.get(item[0][2], 9), item[0][0], item[0][3])):
+            chart_and_table(sorted(cells), f'{state_names.get(state,state)} · {width}×{height} physical px · {trace_names.get(trace,trace)} · policy {policy}')
+        if policy == 'R':
+            parts.append('</details>')
+    parts.append('</section>')
+
+
+workload_section('ordinary', '1. Ordinary short-stroke traces', lambda c: c['trace'] == 'short', 'Separate 0.75-second strokes. Cached rendering is shown first; full redraw is a control. Warm, first-painter-use and after-idle runs, and the two physical canvas sizes, stay separate. “Ordinary” describes this generated trace shape, not a measurement of real pen feel.')
+workload_section('stress', '2. Repeated-overlap stress: 30 seconds', lambda c: c['trace'] != 'short' and c['duration_s'] < 180, 'Long traces and the ink portion of pan/zoom traces follow a repeated curve with abrupt end-to-start position resets. A 30-second long trace makes 15 passes. These are repeated-overlap stress cases, not representative smooth motion or spatially growing lines. Their scales are independent of ordinary short strokes.')
+workload_section('sustained', '3. Sustained stress and paired completion: 180 seconds', lambda c: c['duration_s'] == 180, 'The sustained trace retraces the same path 90 times with abrupt position resets. Completion is an outcome alongside software timing. Three declared pairs per size provide limited evidence; failed members contribute no accepted timing distribution or numeric paired difference.')
+sustained_pairs = [pair for pair in d.get('pair_outcomes', []) if pair['pair_id'].startswith('sustained-')]
+parts.append('<section><h2>Sustained paired completion outcomes</h2><p>All declared 180-second pairs are shown here, including both-failed and unfinished pairs. Completion counts are not latency percentiles.</p><div class="scroll"><table><tr><th>Pair / physical size</th><th>Skia / Metal</th><th>Core Graphics</th><th>Numeric timing comparison</th></tr>')
+for pair in sustained_pairs:
+    parts.append('<tr><td>' + e(pair['pair_id']) + '</td><td>' + e(pair['backends']['skia']['outcome']) + '</td><td>' + e(pair['backends']['coregraphics']['outcome']) + '</td><td>' + ('Available' if pair['numeric_delta_available'] else 'Excluded / pending') + '</td></tr>')
+both_accepted = sum(all(pair['backends'][b]['outcome'] == 'accepted' for b in ('skia', 'coregraphics')) for pair in sustained_pairs)
+both_failed = sum(all(pair['backends'][b]['outcome'] == 'failed' for b in ('skia', 'coregraphics')) for pair in sustained_pairs)
+mixed = sum({pair['backends'][b]['outcome'] for b in ('skia', 'coregraphics')} == {'accepted', 'failed'} for pair in sustained_pairs)
+parts.append(f'</table></div><p>{len(sustained_pairs)} declared sustained pairs: {both_accepted} both accepted; {mixed} accepted/failed; {both_failed} both failed; {len(sustained_pairs)-both_accepted-mixed-both_failed} pending or invalid.</p></section>')
+parts.append('<section id="failures" class="notice"><h2>Failed observations remain visible</h2><p>A separately frozen opt-in collector policy permits continuation only for the exact sustained terminal-paint watchdog after input completeness, final expected hashes, source, configuration, display and lifecycle checks. The native watchdog is unchanged. Stop, visibility changes and other failures still halt collection.</p><div class="scroll"><table><tr><th>Failed condition / backend</th><th>Never-drawn samples</th><th>Max observed draw gap ms</th><th>Latest / oldest undrawn age at finish ms</th><th>Process user / system CPU s</th><th>Exact reason</th></tr>')
+for failure in failures:
+    c = failure['config']
+    parts.append('<tr><td>' + label(c['cell']) + '<br>' + e(c['backend']) + '<br><code>' + e(c['id']) + '</code></td><td>' + e(failure['samples_never_drawn']) + '</td><td>' + fmt(failure['maximum_observed_draw_gap_ms']) + '</td><td>' + fmt(failure['latest_undrawn_sample_age_at_finish_ms']) + ' / ' + fmt(failure['oldest_undrawn_sample_age_at_finish_ms']) + '</td><td>' + fmt(failure['process_cpu_user_s']) + ' / ' + fmt(failure['process_cpu_system_s']) + '</td><td>' + e(failure['reason']) + '</td></tr>')
+parts.append('</table></div><p>Failure gaps include the censored interval from the last draw to finish entry. Undrawn sample ages are measured at that endpoint, not photons or observed first-draw latencies. Failed runs are excluded from accepted percentiles. Empty failure tables mean no classified failure in this analysis, not proof that every pending run will succeed.</p></section>')
+
+parts.append('<section id="recommendation"><h2>Recommendation and remaining decision</h2>')
+if d['status'] == 'partial' or d['pending'] or d['invalid']:
+    parts.append('<p><strong>Comparison recommendation pending.</strong> Collection or validation is incomplete. Do not choose a backend from the currently available subset, or interpret missing cells as successful runs.</p>')
+else:
+    ordinary_c = {cell for cell, c in cell_configs.items() if c['trace'] == 'short' and c['policy'] == 'C'}
+    eligible = [c for c in d['cells'] if c['cell'] in ordinary_c and c['pairs'] >= 5]
+    if ordinary_c and len(eligible) == len(ordinary_c):
+        skia_lower = sum(c['median_paired_delta_ms'] > 0 for c in eligible)
+        cg_lower = sum(c['median_paired_delta_ms'] < 0 for c in eligible)
+        parts.append(f'<p>Among {len(eligible)} fully paired ordinary cached conditions, Skia has the lower median paired run-p95 in {skia_lower}; Core Graphics in {cg_lower}; the remainder tie. This counts condition-level directions without pooling percentiles or inventing a latency budget. Inspect effect sizes and completion outcomes above before deciding whether differences matter.</p>')
+        resolved_skia = all(c['exploratory_pair_bootstrap_95'][0] > 0 for c in eligible)
+        resolved_cg = all(c['exploratory_pair_bootstrap_95'][1] < 0 for c in eligible)
+        if resolved_skia or resolved_cg:
+            candidate = 'Skia / Metal' if resolved_skia else 'Core Graphics'
+            parts.append('<p><strong>Conditional next interaction candidate: ' + e(candidate) + '.</strong> Its software scheduling result and exploratory pair intervals point in the same direction across the completed ordinary cached cells; this remains limited exploratory evidence. Prioritize it for the next real-input and camera experiment only after reviewing image quality and stress failures. This is not a permanent backend selection or a physical-latency winner.</p>')
+        else:
+            parts.append('<p><strong>No uniformly resolved software advantage across ordinary cached conditions.</strong> Keep the choice workload-specific and carry both candidates into the physical measurement decision.</p>')
+    else:
+        parts.append('<p><strong>Comparison recommendation pending.</strong> Not every ordinary cached condition has five accepted matched pairs. Preserve the failure outcomes and obtain the missing decision evidence rather than selecting from accepted survivors alone.</p>')
+parts.append('<p>Synchronous cache replacement queues incoming input during rebuilds in both adapters. Asynchronous replacement is deferred. Physical pen-to-screen latency remains pending a suitable camera regardless of software results.</p><div class="scroll"><table><tr><th>Approach</th><th>Advantages</th><th>Costs and limits</th></tr><tr><td>Skia / Metal</td><td>Explicit GPU submission and separate Metal observations; potential renderer reuse across platforms.</td><td>Additional bundled engine and GPU resources. Drawable waits and queueing matter; Metal callbacks do not measure photons.</td></tr><tr><td>AppKit / Core Graphics</td><td>System drawing API and native AppKit integration without bundling Skia.</td><td>Drawing can be deferred beyond callback return. Raster/compositor work is not captured by a short callback or process-only CPU accounting.</td></tr></table></div></section>')
+
+parts.append('<section id="evidence"><h2>Expandable evidence: every run and pair</h2><p>All declared outcomes are retained, including both-failed pairs. Numeric timing differences exist only when both runs are accepted. Accepted/failed combinations are checked for matching input, canvas and power conditions.</p><details><summary>Outcomes for every declared pair</summary><div class="scroll"><table><tr><th>Pair ID</th><th>Skia / Metal</th><th>Core Graphics</th><th>Matched identity checked</th><th>Numeric difference available</th></tr>')
+for outcome in d.get('pair_outcomes', []):
+    parts.append('<tr><td>' + e(outcome['pair_id']) + '</td><td>' + e(outcome['backends']['skia']['outcome']) + '</td><td>' + e(outcome['backends']['coregraphics']['outcome']) + '</td><td>' + ('Yes' if outcome['matched_identity_verified'] else 'Pending / unavailable') + '</td><td>' + ('Yes' if outcome['numeric_delta_available'] else 'No') + '</td></tr>')
+parts.append('</table></div></details><details><summary>Every accepted run: software timing distributions</summary><p>Each p50 and p95 is computed within its run. No pooled percentile is used. Full per-run records below retain exploratory p99, maxima and callback diagnostics.</p><div class="scroll"><table><tr><th>Run</th><th>Scheduled → receipt p95 ms</th><th>Receipt → first draw start p95 ms</th><th>Scheduled → first draw start p50 ms</th><th>Scheduled → first draw start p95 ms</th></tr>')
+for name, r in d['runs'].items():
+    values = [r['metrics'][key][quantile] for key, quantile in [('scheduled_to_receipt_ms', 'p95'), ('receipt_to_first_draw_ms', 'p95'), ('scheduled_to_first_draw_ms', 'p50'), ('scheduled_to_first_draw_ms', 'p95')]]
+    parts.append('<tr><td>' + e(name) + '</td>' + ''.join('<td>' + fmt(value) + '</td>' for value in values) + '</tr>')
+parts.append('</table></div></details><details><summary>Every numeric matched pair</summary><div class="scroll"><table><tr><th>Pair</th><th>Core Graphics − Skia run-p95 ms</th></tr>')
+for pair in d['pairs']:
+    parts.append('<tr><td>' + e(pair['pair_id']) + '</td><td>' + fmt(pair['delta_p95_cg_minus_skia_ms']) + '</td></tr>')
+parts.append('</table></div></details><details><summary>Measured process CPU and callback wall time</summary><p>Process user and system CPU sum execution across all process threads from the measured replay epoch to finish entry. They exclude initialization, warm-up, idle, GPU retirement, capture and artifact serialization. External WindowServer CPU and GPU execution are not included. Draw callback totals are synchronous wall durations including drawable waits and painter calls; they are not CPU utilization. RSS is process-lifetime peak memory including initialization and untimed capture, excluding distinct GPU/WindowServer allocations. Missing values remain unknown (—), never zero. These are descriptive measurements, not energy estimates.</p><div class="scroll"><table><tr><th>Run / outcome</th><th>User CPU s</th><th>System CPU s</th><th>Draw wall total ms</th><th>Draw wall max ms</th><th>Draw count</th><th>Peak RSS MiB</th></tr>')
+for r in records + failures:
+    f = r.get('resource_observations', {}).get('final', {})
+    rss = f.get('process_lifetime_peak_rss_bytes')
+    parts.append('<tr><td>' + e(r['config']['id']) + '<br>' + e(r.get('outcome', 'accepted')) + '</td>' + ''.join('<td>' + fmt(f.get(key)) + '</td>' for key in ('measured_cpu_user_s', 'measured_cpu_system_s', 'draw_cpu_total_ms', 'draw_cpu_max_ms', 'draw_cpu_count')) + '<td>' + fmt(rss / 1048576 if rss is not None else None) + '</td></tr>')
+parts.append('</table></div></details><details><summary>Complete per-run records, including CPU/RSS/thermal metadata and failures</summary><pre>' + e(json.dumps({'accepted': d['runs'], 'failed': failures}, indent=2)) + '</pre></details><details><summary>Frozen native and collector identity</summary><pre>' + e(json.dumps({'native': d.get('collection_identity', {}), 'collector': d.get('collector'), 'failure_policy': d.get('failure_policy', 'strict')}, indent=2)) + '</pre></details><details><summary>Pending and invalid evidence</summary><pre>' + e(json.dumps({'pending': d['pending'], 'invalid': d['invalid']}, indent=2)) + '</pre></details></section>')
+parts.append('<section><h2>Measurement limits</h2><p>Skipped drawing snapshots are not lost input samples: acceptance requires every expected sample in the delivery ledger and a subsequent first drawing representation. Frame input timing fields are not summed as Rust work; host aggregate advance totals are retained. Final captures are untimed painter/readback proxies, not proof of presented pixels. OS visibility flags do not establish absence of every partial occluder. Visibility checks run on the main queue and can miss transient occlusion while that queue is blocked; they are not continuous proof of visibility. A nominal display refresh rate is not an observed pen-to-screen latency or a performance budget.</p></section></main></body></html>')
+Path(a.output).write_text('\n'.join(parts))
+print(a.output)
