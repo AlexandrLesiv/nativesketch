@@ -24,11 +24,13 @@ struct Options {
     var width = 1600, height = 1000, display: UInt32 = 0
     var duration = 30.0, warmup = 5.0, idle = 0.0
     var startState = "warm"
+    var holdResults = false
     var interactive = false, selfTest = false, logging = true
     static func parse() throws -> Options {
         var o = Options(), i = 1; let a = CommandLine.arguments; var seen = Set<String>()
         while i < a.count {
             let key = a[i]; i += 1
+            if key == "--hold-results" { o.holdResults = true; continue }
             if key == "--interactive" { o.interactive = true; continue }
             if key == "--self-test" { o.selfTest = true; continue }
             if key == "--logging-disabled" { o.logging = false; continue }
@@ -91,6 +93,8 @@ final class Canvas: NSView {
 final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let o: Options, canvas = Canvas(), status = NSTextField(wrappingLabelWithString: "Software replay — physical latency NOT measured")
     let run = NSButton(title: "Run", target: nil, action: nil), stop = NSButton(title: "Stop", target: nil, action: nil)
+    let results = NSButton(title: "Show Results", target: nil, action: nil)
+    var closeAfterFinished = false
     let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!, gate = WakeGate()
     var window: NSWindow!, target: NSScreen!, device: MTLDevice?, queue: MTLCommandQueue?
     var replay: UnsafeMutableRawPointer?, skia: UnsafeMutableRawPointer?
@@ -99,7 +103,8 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var active = false, finalizing = false, measured = false, outcome = "complete", reason = ""
     var epoch = 0.0, initialFrame = NSRect.zero, initialMode: [Int] = [], rows: [[String: Any]] = [], events: [[String: Any]] = []
     var advanceCount = 0, advanceCPUms = 0.0, inputTotalMs = 0.0, outlineTotalMs = 0.0, exportTotalMs = 0.0
-    var measuredFrames = 0
+    var measuredFrames = 0, drawCPUTotalMs = 0.0, drawCPUMaxMs = 0.0
+    var measuredCPUStart: (user: Double, system: Double)?
     var deliveries: [[String: Any]] = [], lastDrawSample: UInt64 = 0, lastDrawTime = 0.0, latestReceipt = 0.0
     var inputEvents: [[String: Any]] = [], presentations: [[String: Any]] = []
     var frameIndex: UInt64 = 0, requestTime = 0.0, requestPending = false, generation: UInt64 = 0
@@ -155,12 +160,17 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 layer.framebufferOnly = false; layer.drawableSize = CGSize(width: o.width, height: o.height)
                 layer.contentsScale = s.backingScaleFactor; layer.maximumDrawableCount = 3; layer.displaySyncEnabled = true; layer.isOpaque = true
             }
-            status.frame = NSRect(x: 12, y: h + 20, width: max(w - 180, 390), height: 50)
+            status.frame = NSRect(x: 12, y: h + 20, width: max(w - 285, 290), height: 50)
+            results.frame = NSRect(x: max(w - 265, 320), y: h + 28, width: 100, height: 32)
+            results.target = self; results.action = #selector(showResults); results.isEnabled = false
             run.frame = NSRect(x: max(w - 160, 430), y: h + 28, width: 75, height: 32)
             stop.frame = NSRect(x: max(w - 80, 510), y: h + 28, width: 75, height: 32)
             run.target = self; run.action = #selector(start); stop.target = self; stop.action = #selector(stopRun); stop.isEnabled = false
             stop.keyEquivalent = "."; stop.keyEquivalentModifierMask = .command
-            for v in [canvas, status, run, stop] { content.addSubview(v) }
+            status.stringValue = "Ready — \(o.backend) / \(o.policy) · \(o.scene) / \(o.trace)\nSynthetic replay · \(s.localizedName) · \(o.width) × \(o.height) pixels\nPhysical pen-to-screen latency NOT measured"
+            status.setAccessibilityLabel("Experiment configuration and status")
+            canvas.setAccessibilityLabel("\(o.backend) policy \(o.policy), \(o.scene) \(o.trace) synthetic replay, \(o.width) by \(o.height) physical pixels on \(s.localizedName); physical latency not measured")
+            for v in [canvas, status, results, run, stop] { content.addSubview(v) }
             let menu = NSMenu(), item = NSMenuItem(), appMenu = NSMenu(); appMenu.addItem(withTitle: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); item.submenu = appMenu; menu.addItem(item); NSApp.mainMenu = menu
             canvas.painter = { [weak self] c in self?.draw(c) }
             canvas.input = { [weak self] e, phase in self?.nativeInput(e, phase) }
@@ -185,7 +195,11 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func windowDidChangeScreen(_ n: Notification) { invalidate("Window screen changed") }
     func windowDidChangeBackingProperties(_ n: Notification) { invalidate("Backing scale changed") }
     func windowDidChangeOcclusionState(_ n: Notification) { if !window.occlusionState.contains(.visible) { invalidate("Window occluded") } }
-    func windowShouldClose(_ sender: NSWindow) -> Bool { if active || finalizing { stopRun(); return false }; return true }
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        if active || finalizing { closeAfterFinished = true; stopRun(); return false }
+        DispatchQueue.main.async { NSApp.terminate(nil) }; return true
+    }
+    @objc func showResults() { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: o.output, isDirectory: true)]) }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { if active || finalizing { stopRun(); return .terminateCancel }; return .terminateNow }
     @objc func stopRun() { guard active || finalizing else { return }; outcome = "cancelled"; reason = "Stop requested"; if active { finish() } }
     func abort(_ error: Error) { fputs("\(error)\n", stderr); if active || finalizing { outcome = "failed"; reason = "\(error)"; if active { finish() } } else { exit(1) } }
@@ -209,7 +223,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         initialization.append(["stage": "replay_creation_and_reference_oracle", "duration_ms": (constructed-constructionStart)*1000, "initial_snapshot_ms": (monotonicNow()-constructed)*1000, "initial_sample_applied": false])
         requestedViewport = .max; baseRevision = .max; liveRevision = .max; cacheKey = ""; cacheImage = nil; decodedImage = nil; retainedClip = nil
         if let skia { try ffiCheck(pc_skia_reset(skia)) }
-        epoch = monotonicNow(); latestReceipt = epoch; terminalDrawn = false
+        if measured { beginMeasuredEpoch() } else { epoch = monotonicNow() }; latestReceipt = epoch; terminalDrawn = false
     }
     @objc func start() {
         guard !active && !finalizing else { return }
@@ -351,7 +365,11 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 command.present(drawable); command.commit(); presentEnqueue = (monotonicNow() - p) * 1000
             }
             let ended = monotonicNow()
-            if measured { measuredFrames += 1 }
+            if measured {
+                measuredFrames += 1
+                let duration = (ended-started)*1000
+                drawCPUTotalMs += duration; drawCPUMaxMs = max(drawCPUMaxMs, duration)
+            }
             if measured && o.logging {
                 rows.append(["frame": frame, "draw_start_s": started, "host_launch_to_draw_ms": (started-hostLaunchTime)*1000, "draw_return_s": ended, "request_to_draw_ms": (started-requestTime)*1000,
                     "sample_id": sample, "previous_draw_sample_id": lastDrawSample, "newly_represented_samples": sample >= lastDrawSample ? sample-lastDrawSample : 0, "latest_receipt_to_draw_ms": (started-latestReceipt)*1000, "draw_interval_ms": lastDrawTime == 0 ? NSNull() : (started-lastDrawTime)*1000, "epoch_s": epoch, "sample_scheduled_s": sampleTime, "sample_age_at_draw_ms": (started-epoch-sampleTime)*1000,
@@ -371,7 +389,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 preparingMeasured = false; requestPending = false
                 status.stringValue = "Cache ready; idle \(o.idle)s — physical latency pending"
                 DispatchQueue.main.asyncAfter(deadline: .now() + o.idle) {
-                    guard self.active else { return }; do { try self.check(); self.measured = true; self.frameIndex = 0; self.lastDrawSample = 0; self.lastDrawTime = 0; self.epoch = monotonicNow(); self.startTimer() } catch { self.abort(error) }
+                    guard self.active else { return }; do { try self.check(); self.measured = true; self.frameIndex = 0; self.lastDrawSample = 0; self.lastDrawTime = 0; self.beginMeasuredEpoch(); self.startTimer() } catch { self.abort(error) }
                 }
             } else if snapshot.trace_complete != 0 {
                 if measured { terminalDrawn = true; finish() }
@@ -434,8 +452,32 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         try? write(["schema_version": 1, "status": outcome, "reason": reason, "backend": o.backend, "policy": o.policy, "initial": initialState, "final": finalMetadata, "lifecycle": events], "manifest.json")
         fputs("\(message)\n", stderr); exit(1)
     }
+    func processCPU() -> (user: Double, system: Double)? {
+        var usage = rusage()
+        guard getrusage(RUSAGE_SELF, &usage) == 0 else { return nil }
+        return (Double(usage.ru_utime.tv_sec) + Double(usage.ru_utime.tv_usec) / 1_000_000,
+                Double(usage.ru_stime.tv_sec) + Double(usage.ru_stime.tv_usec) / 1_000_000)
+    }
+    func beginMeasuredEpoch() {
+        measuredCPUStart = processCPU()
+        epoch = monotonicNow()
+    }
     func finish() {
-        guard active else { return }; active = false; finalizing = true; timer?.cancel(); timer = nil; watchdog?.cancel(); watchdog = nil
+        guard active else { return }
+        let cpuEnd = measured ? processCPU() : nil
+        if let cpuStart = measuredCPUStart, let cpuEnd {
+            finalMetadata["measured_cpu_user_s"] = cpuEnd.user - cpuStart.user
+            finalMetadata["measured_cpu_system_s"] = cpuEnd.system - cpuStart.system
+        } else {
+            finalMetadata["measured_cpu_user_s"] = NSNull()
+            finalMetadata["measured_cpu_system_s"] = NSNull()
+        }
+        finalMetadata["measured_cpu_scope"] = "Process user+system CPU across all process threads from measured replay epoch to finish entry, excluding initialization, warmup, idle, GPU retirement, capture and artifact serialization; not GPU or WindowServer CPU"
+        finalMetadata["draw_cpu_total_ms"] = drawCPUTotalMs
+        finalMetadata["draw_cpu_max_ms"] = drawCPUMaxMs
+        finalMetadata["draw_cpu_count"] = measuredFrames
+        finalMetadata["draw_cpu_scope"] = "Aggregate synchronous draw callback wall durations, including drawable acquisition and painter calls; collected in both instrumentation modes; not CPU utilization or photon latency"
+        active = false; finalizing = true; timer?.cancel(); timer = nil; watchdog?.cancel(); watchdog = nil
         status.stringValue = "Finalizing software evidence — Stop remains available"
         finalMetadata["elapsed_s"] = monotonicNow() - epoch
         finalMetadata["measured_frames"] = measuredFrames
@@ -495,10 +537,11 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
             try require(gpuRetired, "GPU retirement was not proven")
             if let replay { pc_replay_destroy(replay); self.replay = nil }; if let skia { pc_skia_destroy(skia); self.skia = nil }
             if let activity { ProcessInfo.processInfo.endActivity(activity); self.activity = nil }
-            finalizing = false; stop.isEnabled = false; status.stringValue = "\(outcome): \(reason) — physical latency pending"
+            finalizing = false; stop.isEnabled = false; results.isEnabled = true; status.stringValue = "\(outcome): \(reason) — physical latency pending"
             // A result directory is immutable; another run requires a fresh invocation.
             run.isEnabled = false
-            if !o.interactive { exit(outcome == "complete" || (o.selfTest && outcome == "cancelled") ? 0 : 1) }
+            if closeAfterFinished { NSApp.terminate(nil) }
+            if !o.interactive && !o.holdResults { exit(outcome == "complete" || (o.selfTest && outcome == "cancelled") ? 0 : 1) }
         } catch { fputs("Finalization failed: \(error)\n", stderr); exit(1) }
     }
 }
