@@ -1001,35 +1001,48 @@ class MainActivity : androidx.activity.ComponentActivity() {
         }
     }
 
+    private fun replayStep(label: String, block: () -> Unit) {
+        // AlertDialog queues button and dismissal callbacks. Let both finish before assertions.
+        canvas.post { canvas.post {
+            safe {
+                try { block() }
+                catch (error: Exception) {
+                    android.util.Log.e("NativeSketchReplay", "FAIL: Android replay ($label)", error)
+                    throw error
+                }
+            }
+        } }
+    }
+
     private fun replay() {
         checked(act(10))
         checked(engine.begin(handle, 7, 1, ink, 4.0))
         checked(engine.sample(handle, 7, 80.0, 90.0, 1.0, .5, true, 1))
         checked(engine.sample(handle, 7, 220.0, 180.0, 2.0, 1.0, true, 2))
         checked(act(1, 7.0))
-        check(engine.state(handle)[0] == 1.0)
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
         checked(act(3, 1.0))
         checked(act(5))
         checked(act(6, 1.4, 80.0, 90.0))
         checked(act(0))
         val before = engine.export(handle)
         checked(act(8))
-        check(engine.state(handle)[0] == 0.0)
+        check(engine.state(handle)[0] == 0.0) { "Replay assertion: engine.state(handle)[0] == 0.0" }
         checked(act(9))
-        check(before.contentEquals(engine.export(handle)))
-        check(engine.importBytes(handle, byteArrayOf(1, 2, 3)) != 0)
-        check(before.contentEquals(engine.export(handle)))
+        check(before.contentEquals(engine.export(handle))) { "Replay assertion: before.contentEquals(engine.export(handle))" }
+        check(engine.importBytes(handle, byteArrayOf(1, 2, 3)) != 0) { "Replay assertion: engine.importBytes(handle, byteArrayOf(1, 2, 3)) != 0" }
+        check(before.contentEquals(engine.export(handle))) { "Replay assertion: before.contentEquals(engine.export(handle))" }
         checked(engine.begin(handle, 9, 2, ink, 4.0))
         checked(engine.sample(handle, 9, 20.0, 20.0, 3.0, 0.0, false, 3))
         checked(act(0))
-        check(engine.state(handle)[0] == 1.0)
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
         val revision = engine.revision(handle)
-        check(engine.state(handle)[4] == 1.0)
+        check(engine.state(handle)[4] == 1.0) { "Replay assertion: engine.state(handle)[4] == 1.0" }
         checked(engine.markSaved(handle, revision))
-        check(engine.state(handle)[4] == 0.0)
+        check(engine.state(handle)[4] == 0.0) { "Replay assertion: engine.state(handle)[4] == 0.0" }
         checked(engine.importBytes(handle, before))
-        check(engine.state(handle)[0] == 1.0)
-        check(engine.render(handle).isNotEmpty())
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
+        check(engine.render(handle).isNotEmpty()) { "Replay assertion: engine.render(handle).isNotEmpty()" }
         val props =
             Array(2) { i ->
                 MotionEvent.PointerProperties().apply {
@@ -1068,51 +1081,53 @@ class MainActivity : androidx.activity.ComponentActivity() {
             e.recycle()
         }
         event(MotionEvent.ACTION_DOWN, 1, 1000)
-        check(engine.state(handle)[5] == 1.0)
+        check(engine.state(handle)[5] == 1.0) { "Replay assertion: engine.state(handle)[5] == 1.0" }
         event(
             MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
             2,
             1010,
         )
-        check(engine.state(handle)[5] == 0.0)
-        check(engine.state(handle)[0] == 1.0)
+        check(engine.state(handle)[5] == 0.0) { "Replay assertion: engine.state(handle)[5] == 0.0" }
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
         event(MotionEvent.ACTION_UP, 1, 1020)
-        check(engine.state(handle)[0] == 1.0)
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
         checked(engine.begin(handle, 12, 0, ink, 4.0))
         checked(engine.sample(handle, 12, 40.0, 40.0, 4.0, 0.0, false, 4))
         checked(act(1, 12.0))
         val closeSnapshot = engine.export(handle)
         onBackPressedDispatcher.onBackPressed()
-        check(replaceDialog?.isShowing == true && !isFinishing)
+        check(replaceDialog?.isShowing == true && !isFinishing) { "Replay assertion: replaceDialog?.isShowing == true && !isFinishing" }
         replaceDialog!!.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick()
-        check(!isFinishing && closeSnapshot.contentEquals(engine.export(handle)))
-        check(engine.state(handle)[4] == 1.0)
+        replayStep("Back Cancel completion and desktop input") {
+        check(replaceDialog == null) { "Back Cancel must dismiss its dialog before continuing" }
+        check(!isFinishing && closeSnapshot.contentEquals(engine.export(handle))) { "Back Cancel must preserve the dirty drawing" }
+        check(engine.state(handle)[4] == 1.0) { "Replay assertion: engine.state(handle)[4] == 1.0" }
         fun key(code: Int, meta: Int = 0, action: Int = KeyEvent.ACTION_DOWN) {
             val event = KeyEvent(1000, 1000, action, code, 0, meta)
             if(action == KeyEvent.ACTION_UP) onKeyUp(code, event)
             else if(meta and KeyEvent.META_CTRL_ON != 0) onKeyShortcut(code, event)
             else onKeyDown(code, event)
         }
-        check(canvas.requestFocus() && canvas.hasFocus())
+        check(canvas.requestFocus() && canvas.hasFocus()) { "Replay assertion: canvas.requestFocus() && canvas.hasFocus()" }
         key(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON)
-        check(engine.state(handle)[0] == 1.0)
+        check(engine.state(handle)[0] == 1.0) { "Replay assertion: engine.state(handle)[0] == 1.0" }
         key(KeyEvent.KEYCODE_Z, KeyEvent.META_CTRL_ON or KeyEvent.META_SHIFT_ON)
-        check(engine.state(handle)[0] == 2.0)
+        check(engine.state(handle)[0] == 2.0) { "Replay assertion: engine.state(handle)[0] == 2.0" }
         key(KeyEvent.KEYCODE_V)
-        check(!pen)
+        check(!pen) { "Replay assertion: !pen" }
         checked(act(3, 1.0))
         val desktopSnapshot = engine.export(handle)
         val historyBefore = engine.state(handle).copyOf()
         canvas.layout(canvas.left, canvas.top, canvas.right+100, canvas.bottom+50)
-        check(desktopSnapshot.contentEquals(engine.export(handle)))
-        check(engine.state(handle)[1] == historyBefore[1] && engine.state(handle)[2] == historyBefore[2])
+        check(desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: desktopSnapshot.contentEquals(engine.export(handle))" }
+        check(engine.state(handle)[1] == historyBefore[1] && engine.state(handle)[2] == historyBefore[2]) { "Replay assertion: engine.state(handle)[1] == historyBefore[1] && engine.state(handle)[2] == historyBefore[2]" }
         key(KeyEvent.KEYCODE_P)
         event(MotionEvent.ACTION_DOWN, 1, 2000)
-        check(engine.state(handle)[5] == 1.0)
+        check(engine.state(handle)[5] == 1.0) { "Replay assertion: engine.state(handle)[5] == 1.0" }
         canvas.layout(canvas.left, canvas.top, canvas.right-100, canvas.bottom-50)
-        check(engine.state(handle)[5] == 0.0)
-        check(desktopSnapshot.contentEquals(engine.export(handle)))
-        check(canvas.requestFocus() && canvas.hasFocus())
+        check(engine.state(handle)[5] == 0.0) { "Replay assertion: engine.state(handle)[5] == 0.0" }
+        check(desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: desktopSnapshot.contentEquals(engine.export(handle))" }
+        check(canvas.requestFocus() && canvas.hasFocus()) { "Replay assertion: canvas.requestFocus() && canvas.hasFocus()" }
         key(KeyEvent.KEYCODE_SPACE)
         val oldOx = canvas.ox
         event(MotionEvent.ACTION_DOWN, 1, 2010)
@@ -1120,37 +1135,39 @@ class MainActivity : androidx.activity.ComponentActivity() {
         event(MotionEvent.ACTION_MOVE, 1, 2020)
         event(MotionEvent.ACTION_UP, 1, 2030)
         key(KeyEvent.KEYCODE_SPACE, action = KeyEvent.ACTION_UP)
-        check(canvas.ox == oldOx + 30 && desktopSnapshot.contentEquals(engine.export(handle)))
+        check(canvas.ox == oldOx + 30 && desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: canvas.ox == oldOx + 30 && desktopSnapshot.contentEquals(engine.export(handle))" }
         val wheel = MotionEvent.obtain(1000, 2040, MotionEvent.ACTION_SCROLL, 1,
             props, Array(1) { MotionEvent.PointerCoords().apply {
                 x=100f; y=100f; setAxisValue(MotionEvent.AXIS_VSCROLL, 1f)
             } }, KeyEvent.META_CTRL_ON, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0)
         val oldZoom = canvas.zoom
         canvas.onGenericMotionEvent(wheel); wheel.recycle()
-        check(canvas.zoom > oldZoom && desktopSnapshot.contentEquals(engine.export(handle)))
+        check(canvas.zoom > oldZoom && desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: canvas.zoom > oldZoom && desktopSnapshot.contentEquals(engine.export(handle))" }
         key(KeyEvent.KEYCODE_F)
-        check(canvas.zoom.isFinite() && canvas.zoom > 0)
+        check(canvas.zoom.isFinite() && canvas.zoom > 0) { "Replay assertion: canvas.zoom.isFinite() && canvas.zoom > 0" }
         val secondary = MotionEvent.obtain(1000, 2050, MotionEvent.ACTION_DOWN, 1,
             props, coords, 0, MotionEvent.BUTTON_SECONDARY, 1f, 1f, 0, 0, InputDevice.SOURCE_MOUSE, 0)
         canvas.onTouchEvent(secondary); secondary.recycle()
-        check(engine.state(handle)[5] == 0.0 && desktopSnapshot.contentEquals(engine.export(handle)))
+        check(engine.state(handle)[5] == 0.0 && desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: engine.state(handle)[5] == 0.0 && desktopSnapshot.contentEquals(engine.export(handle))" }
         canvas.contextMenu?.dismiss()
         val field = EditText(this)
         (canvas.parent as LinearLayout).addView(field)
         field.requestFocus()
         val wasPen = pen
         key(KeyEvent.KEYCODE_V)
-        check(pen == wasPen && desktopSnapshot.contentEquals(engine.export(handle)))
+        check(pen == wasPen && desktopSnapshot.contentEquals(engine.export(handle))) { "Replay assertion: pen == wasPen && desktopSnapshot.contentEquals(engine.export(handle))" }
         (canvas.parent as LinearLayout).removeView(field)
         canvas.requestFocus()
         // The same incoming URI path used by intents and drops must guard dirty work.
         receiveUri(android.net.Uri.parse("content://dev.nativesketch.invalid/replay.nsketch"))
-        check(replaceDialog?.isShowing == true)
+        check(replaceDialog?.isShowing == true) { "Replay assertion: replaceDialog?.isShowing == true" }
         replaceDialog!!.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick()
-        check(pendingUri == null && desktopSnapshot.contentEquals(engine.export(handle)))
-        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/x-native-sketch"))))
-        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/octet-stream"))))
-        check(!acceptsDrop(android.content.ClipDescription("image", arrayOf("image/png"))))
+        replayStep("Incoming file Cancel completion and provenance") {
+        check(replaceDialog == null) { "Incoming-file Cancel must dismiss its dialog" }
+        check(pendingUri == null && desktopSnapshot.contentEquals(engine.export(handle))) { "Incoming-file Cancel must clear the request and retain drawing bytes" }
+        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/x-native-sketch")))) { "Replay assertion: acceptsDrop(android.content.ClipDescription(\"drawing\", arrayOf(\"application/x-native-sketch\")))" }
+        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/octet-stream")))) { "Replay assertion: acceptsDrop(android.content.ClipDescription(\"drawing\", arrayOf(\"application/octet-stream\")))" }
+        check(!acceptsDrop(android.content.ClipDescription("image", arrayOf("image/png")))) { "Replay assertion: !acceptsDrop(android.content.ClipDescription(\"image\", arrayOf(\"image/png\")))" }
         // Export the actual native input result, checking the NSKETCH1 device field.
         for ((tool, source, device) in listOf(
             Triple(MotionEvent.TOOL_TYPE_MOUSE, InputDevice.SOURCE_MOUSE, 0L),
@@ -1164,7 +1181,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
                 canvas.onTouchEvent(input); input.recycle()
             }
             val exported = engine.export(handle)
-            check(java.nio.ByteBuffer.wrap(exported).order(java.nio.ByteOrder.LITTLE_ENDIAN).getLong(24) == device)
+            check(java.nio.ByteBuffer.wrap(exported).order(java.nio.ByteOrder.LITTLE_ENDIAN).getLong(24) == device) { "Replay assertion: java.nio.ByteBuffer.wrap(exported).order(java.nio.ByteOrder.LITTLE_ENDIAN).getLong(24) == device" }
         }
         checked(act(10))
         checked(engine.begin(handle, 22, 0, ink, 4.0))
@@ -1173,9 +1190,9 @@ class MainActivity : androidx.activity.ComponentActivity() {
         checked(act(1, 22.0))
         canvas.fit()
         val fitted = canvas.zoom
-        check(fitted < .001)
+        check(fitted < .001) { "Replay assertion: fitted < .001" }
         canvas.scaleAt(.8, canvas.width/2.0, canvas.height/2.0)
-        check(canvas.zoom <= fitted)
+        check(canvas.zoom <= fitted) { "Replay assertion: canvas.zoom <= fitted" }
         checked(engine.importBytes(handle, desktopSnapshot))
         canvas.fit()
         android.util.Log.i(
@@ -1183,5 +1200,7 @@ class MainActivity : androidx.activity.ComponentActivity() {
             "PASS: JNI stroke, pressure, cancel, resize rollback, history, corrupt import, revision save, roundtrip, Back dispatcher cancel retains dirty drawing, desktop keyboard history/tools/Fit, resize cancellation/history, Space drag, Ctrl wheel, incoming URI dirty cancel, native MIME drops, exported mouse/stylus/touch provenance, large-fit zoom-out monotonicity",
         )
         refresh()
+        }
+        }
     }
 }
