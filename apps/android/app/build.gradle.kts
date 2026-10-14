@@ -13,4 +13,7 @@ android {
     }
 }
 
-dependencies { implementation("com.google.android.material:material:1.13.0") }
+dependencies {
+    implementation("com.google.android.material:material:1.13.0")
+    implementation("androidx.activity:activity:1.13.0")
+}

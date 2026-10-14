@@ -346,6 +346,7 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
     tool.addTarget(self, action: #selector(changeTool), for: .valueChanged)
     tool.accessibilityLabel = "Drawing tool"
     tool.widthAnchor.constraint(equalToConstant: 150).isActive = true
+    tool.heightAnchor.constraint(equalToConstant: 44).isActive = true
     undoButton = UIBarButtonItem(
       image: UIImage(systemName: "arrow.uturn.backward"), style: .plain, target: self,
       action: #selector(undoEdit))
@@ -368,21 +369,21 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
           [weak self] _ in self?.saveDocument()
         },
       ]))
-    toolbarItems = [
-      UIBarButtonItem(customView: tool), .flexibleSpace(),
-      UIBarButtonItem(
-        image: UIImage(systemName: "magnifyingglass"),
-        menu: UIMenu(
+    let options = UIBarButtonItem(
+      image: UIImage(systemName: "ellipsis.circle"),
+      menu: UIMenu(children: [
+        UIAction(title: "Pen Style…") { [weak self] _ in self?.style() },
+        UIAction(title: "Selection…") { [weak self] _ in self?.selection() },
+        UIMenu(
           title: "Zoom",
           children: [
             UIAction(title: "Zoom In") { [weak self] _ in self?.zoomIn() },
             UIAction(title: "Zoom Out") { [weak self] _ in self?.zoomOut() },
             UIAction(title: "Actual Size") { [weak self] _ in self?.actualSize() },
-          ])),
-      UIBarButtonItem(title: "Style", style: .plain, target: self, action: #selector(style)),
-      UIBarButtonItem(
-        title: "Selection", style: .plain, target: self, action: #selector(selection)),
-    ]
+          ]),
+      ]))
+    options.accessibilityLabel = "Drawing options: style, selection, and zoom"
+    toolbarItems = [UIBarButtonItem(customView: tool), .flexibleSpace(), options]
     navigationController?.setToolbarHidden(false, animated: false)
     status.font = .preferredFont(forTextStyle: .caption1)
     status.adjustsFontForContentSizeCategory = true

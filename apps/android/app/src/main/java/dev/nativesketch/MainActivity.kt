@@ -1,6 +1,5 @@
 package dev.nativesketch
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.*
 import android.os.Bundle
@@ -11,7 +10,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlin.math.*
 
-class MainActivity : Activity() {
+class MainActivity : androidx.activity.ComponentActivity() {
     private val engine = Engine()
     private var handle = 0L
     private lateinit var canvas: SketchView
@@ -19,8 +18,9 @@ class MainActivity : Activity() {
     private lateinit var undo: MaterialButton
     private lateinit var redo: MaterialButton
     private lateinit var tools: com.google.android.material.button.MaterialButtonToggleGroup
+    private var replaceDialog: androidx.appcompat.app.AlertDialog? = null
     private var busy = false
-    private var pendingReplace = 0 // 1 new, 2 open
+    private var pendingReplace = 0 // 1 new, 2 open, 3 finish
     private var savedBytes: ByteArray? = null
     private var savedRevision = 0L
     private var pen = true
@@ -69,7 +69,15 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val retained = lastNonConfigurationInstance as? Retained
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    requestClose()
+                }
+            },
+        )
+        val retained = lastCustomNonConfigurationInstance as? Retained
         handle = retained?.handle ?: engine.create()
         if (retained != null) {
             busy = retained.busy
@@ -200,7 +208,7 @@ class MainActivity : Activity() {
         val oy: Double,
     )
 
-    override fun onRetainNonConfigurationInstance(): Any {
+    override fun onRetainCustomNonConfigurationInstance(): Any {
         canvas.cancel()
         return Retained(
             handle,
@@ -221,6 +229,13 @@ class MainActivity : Activity() {
         if (handle != 0L && !isChangingConfigurations) engine.free(handle)
         handle = 0
         super.onDestroy()
+    }
+
+    private fun requestClose() {
+        if (!busy) {
+            canvas.cancel()
+            replace(3)
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {
@@ -261,22 +276,31 @@ class MainActivity : Activity() {
 
     private fun replace(kind: Int) {
         fun perform() {
-            if (kind == 1) safe { checked(act(10)) } else open()
+            when (kind) {
+                1 -> safe { checked(act(10)) }
+                2 -> open()
+                3 -> finish()
+            }
         }
         if (engine.state(handle)[4] == 0.0) {
             perform()
             return
         }
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Unsaved drawing")
-            .setMessage("Save your drawing before replacing it?")
-            .setPositiveButton("Save") { _, _ ->
-                pendingReplace = kind
-                save()
-            }
-            .setNegativeButton("Discard") { _, _ -> perform() }
-            .setNeutralButton("Cancel", null)
-            .show()
+        replaceDialog =
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Unsaved drawing")
+                .setMessage(
+                    if (kind == 3) "Save your drawing before closing it?"
+                    else "Save your drawing before replacing it?"
+                )
+                .setPositiveButton("Save") { _, _ ->
+                    pendingReplace = kind
+                    save()
+                }
+                .setNegativeButton("Discard") { _, _ -> perform() }
+                .setNeutralButton("Cancel", null)
+                .setOnDismissListener { replaceDialog = null }
+                .show()
     }
 
     private fun open() {
@@ -342,7 +366,11 @@ class MainActivity : Activity() {
                         it.flush()
                     } ?: error("Provider did not accept this document")
                     checked(engine.markSaved(handle, savedRevision))
-                    if (pendingReplace == 1) checked(act(10)) else if (pendingReplace == 2) open()
+                    when (pendingReplace) {
+                        1 -> checked(act(10))
+                        2 -> open()
+                        3 -> finish()
+                    }
                 }
             }
         savedBytes = null
@@ -351,6 +379,7 @@ class MainActivity : Activity() {
     }
 
     private fun style() {
+        var pendingInk = ink
         val col =
             LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -373,7 +402,9 @@ class MainActivity : Activity() {
                 Color.rgb(86, 72, 190),
             )
             .forEachIndexed { i, c ->
-                colors.addView(button(listOf("Ink", "Red", "Green", "Violet")[i]) { ink = c })
+                colors.addView(
+                    button(listOf("Ink", "Red", "Green", "Violet")[i]) { pendingInk = c }
+                )
             }
         val scroll = HorizontalScrollView(this)
         scroll.addView(colors)
@@ -391,6 +422,7 @@ class MainActivity : Activity() {
                 if (w == null || !w.isFinite() || w !in 0.1..100.0) field.error = "Enter 0.1–100"
                 else {
                     width = w
+                    ink = pendingInk
                     dialog.dismiss()
                 }
             }
@@ -408,6 +440,7 @@ class MainActivity : Activity() {
             }
         col.addView(
             button("Previous stroke") {
+                    tools.check(tools.getChildAt(1).id)
                     checked(act(3, -1.0))
                     update()
                 }
@@ -415,6 +448,7 @@ class MainActivity : Activity() {
         )
         col.addView(
             button("Next stroke") {
+                    tools.check(tools.getChildAt(1).id)
                     checked(act(3, 1.0))
                     update()
                 }
@@ -833,9 +867,18 @@ class MainActivity : Activity() {
         check(engine.state(handle)[0] == 1.0)
         event(MotionEvent.ACTION_UP, 1, 1020)
         check(engine.state(handle)[0] == 1.0)
+        checked(engine.begin(handle, 12, 0, ink, 4.0))
+        checked(engine.sample(handle, 12, 40.0, 40.0, 4.0, 0.0, false, 4))
+        checked(act(1, 12.0))
+        val closeSnapshot = engine.export(handle)
+        onBackPressedDispatcher.onBackPressed()
+        check(replaceDialog?.isShowing == true && !isFinishing)
+        replaceDialog!!.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick()
+        check(!isFinishing && closeSnapshot.contentEquals(engine.export(handle)))
+        check(engine.state(handle)[4] == 1.0)
         android.util.Log.i(
             "NativeSketchReplay",
-            "PASS: JNI stroke, pressure, cancel, resize rollback, history, corrupt import, revision save, roundtrip",
+            "PASS: JNI stroke, pressure, cancel, resize rollback, history, corrupt import, revision save, roundtrip, Back dispatcher cancel retains dirty drawing",
         )
         refresh()
     }

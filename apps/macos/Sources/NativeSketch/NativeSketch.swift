@@ -323,23 +323,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
   var url: URL?
   var approvedClose = false
   var toolbarControls: NSStackView!
+  let inspector = NSPopover()
+  let toolToolbarID = NSToolbarItem.Identifier("tool")
   let editingToolbarID = NSToolbarItem.Identifier("editing")
   func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-    [editingToolbarID]
+    [toolToolbarID, editingToolbarID]
   }
   func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-    [editingToolbarID, .flexibleSpace]
+    [toolToolbarID, editingToolbarID, .flexibleSpace]
   }
   func toolbar(
     _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
     willBeInsertedIntoToolbar: Bool
   ) -> NSToolbarItem? {
-    guard identifier == editingToolbarID else { return nil }
     let item = NSToolbarItem(itemIdentifier: identifier)
-    item.label = "Drawing tools"
-    item.paletteLabel = "Drawing tools"
-    item.view = toolbarControls
+    item.visibilityPriority = .high
+    if identifier == toolToolbarID {
+      item.label = "Drawing tool"
+      item.view = tool
+    } else if identifier == editingToolbarID {
+      item.label = "Style and Selection"
+      item.toolTip = "Edit stroke color, width, and selection scale"
+      item.image = NSImage(
+        systemSymbolName: "slider.horizontal.3", accessibilityDescription: "Style and Selection")
+      item.target = self
+      item.action = #selector(showInspector(_:))
+      item.isBordered = true
+    } else {
+      return nil
+    }
     return item
+  }
+  @objc func showInspector(_ sender: Any?) {
+    canvas.cancel()
+    if inspector.isShown {
+      inspector.close()
+      return
+    }
+    inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
   }
   func applicationDidFinishLaunching(_ notification: Notification) {
     editor.onFailure = { [weak self] code in
@@ -393,13 +414,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     scale.action = #selector(resize(_:))
     apply.target = self
     apply.action = #selector(resize(_:))
-    let controls = NSStackView(views: [
-      tool, color, NSTextField(labelWithString: "Width"), width, stepper,
-      NSTextField(labelWithString: "Scale %"), scale, apply,
+    let brushRow = NSStackView(views: [
+      color, NSTextField(labelWithString: "Width"), width, stepper,
     ])
-    controls.spacing = 8
-    controls.edgeInsets = NSEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+    brushRow.spacing = 8
+    let scaleRow = NSStackView(views: [NSTextField(labelWithString: "Scale %"), scale, apply])
+    scaleRow.spacing = 8
+    let controls = NSStackView(views: [brushRow, scaleRow])
+    controls.orientation = .vertical
+    controls.alignment = .leading
+    controls.spacing = 12
+    controls.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
     toolbarControls = controls
+    let inspectorController = NSViewController()
+    inspectorController.view = controls
+    inspector.contentViewController = inspectorController
+    inspector.contentSize = controls.fittingSize
+    inspector.behavior = .transient
     let toolbar = NSToolbar(identifier: "NativeSketchEditing")
     toolbar.delegate = self
     toolbar.displayMode = .iconOnly

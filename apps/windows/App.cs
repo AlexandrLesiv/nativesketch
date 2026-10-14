@@ -32,6 +32,7 @@ public sealed class App : Application
 }
 public sealed class SketchWindow : Window
 {
+    readonly Dictionary<string, MenuFlyoutItem> menuItems = new();
     readonly Engine engine = new(); readonly Grid root = new(); readonly Canvas canvas = new() { Background = new SolidColorBrush(Microsoft.UI.Colors.White), IsTabStop = true };
     readonly TextBlock status = new() { Margin = new Thickness(12, 4, 12, 4) };
     readonly NumberBox width = new() { Header = "Width", Value = 4, Minimum = .1, Maximum = 256, Width = 105, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Compact };
@@ -72,8 +73,8 @@ public sealed class SketchWindow : Window
         Menu(edit, "Undo", () => Command("undo"));
         Menu(edit, "Redo", () => Command("redo"));
         Menu(edit, "Delete selection", () => Command("delete"));
-        Menu(edit, "Next stroke", () => Run(() => engine.Cycle(1)));
-        Menu(edit, "Previous stroke", () => Run(() => engine.Cycle(-1)));
+        Menu(edit, "Next stroke", () => Run(() => { Cancel(); select.IsChecked = true; engine.Cycle(1); }));
+        Menu(edit, "Previous stroke", () => Run(() => { Cancel(); select.IsChecked = true; engine.Cycle(-1); }));
         var view = new MenuBarItem() { Title = "View" };
         menu.Items.Add(view);
         Menu(view, "Zoom in", () => Zoom(1.25));
@@ -146,10 +147,11 @@ public sealed class SketchWindow : Window
         if (key != VirtualKey.None)
         {
             var accelerator = new KeyboardAccelerator() { Key = key, Modifiers = VirtualKeyModifiers.Control | (text == "Save As…" ? VirtualKeyModifiers.Shift : VirtualKeyModifiers.None) };
-            accelerator.Invoked += (_, e) => { if ((text == "Undo" || text == "Redo") && FocusManager.GetFocusedElement(root.XamlRoot) is TextBox) return; if (!busy) action(); e.Handled = true; };
+            accelerator.Invoked += (_, e) => { if ((text == "Undo" || text == "Redo") && FocusManager.GetFocusedElement(root.XamlRoot) is TextBox) return; if (!busy && item.IsEnabled) action(); e.Handled = true; };
             item.KeyboardAccelerators.Add(accelerator);
         }
         parent.Items.Add(item);
+        menuItems.Add(text, item);
     }
     void Run(Action action)
     {
@@ -261,7 +263,7 @@ public sealed class SketchWindow : Window
     }
     void Key(object sender, KeyRoutedEventArgs e)
     {
-        if (e.OriginalSource != canvas)
+        if (!ReferenceEquals(e.OriginalSource, canvas))
             return;
         switch (e.Key)
         {
@@ -353,9 +355,11 @@ public sealed class SketchWindow : Window
         }
         status.Text = $"{(s.Dirty != 0 ? "Unsaved · " : "")}{s.StrokeCount} strokes · selected {s.SelectedId} · {zoom:P0}" + (s.StrokeCount == 0 ? " · Draw with Pen; Space-drag to pan" : "");
         AutomationProperties.SetName(canvas, "Drawing canvas. " + status.Text);
-        undo.IsEnabled = s.CanUndo != 0;
-        redo.IsEnabled = s.CanRedo != 0;
-        apply.IsEnabled = s.SelectedId != 0;
+        foreach (var item in menuItems.Values) item.IsEnabled = !busy;
+        undo.IsEnabled = menuItems["Undo"].IsEnabled = !busy && s.CanUndo != 0;
+        redo.IsEnabled = menuItems["Redo"].IsEnabled = !busy && s.CanRedo != 0;
+        apply.IsEnabled = menuItems["Delete selection"].IsEnabled = !busy && s.SelectedId != 0;
+        menuItems["Next stroke"].IsEnabled = menuItems["Previous stroke"].IsEnabled = !busy && s.StrokeCount != 0;
         Title = (file == null ? "Untitled" : System.IO.Path.GetFileName(file)) + (s.Dirty != 0 ? " *" : "") + " — Native Sketch";
     }
     async Task Error(string message)
@@ -392,7 +396,8 @@ public sealed class SketchWindow : Window
             return;
         Cancel();
         busy = true;
-        canvas.IsEnabled = false;
+        canvas.IsHitTestVisible = false;
+        Draw();
         try
         {
             if (operation == "save" || operation == "saveAs")
@@ -419,7 +424,7 @@ public sealed class SketchWindow : Window
             }
         }
         catch (Exception ex) { await Error(ex.Message); }
-        finally { busy = false; canvas.IsEnabled = true; Draw(); }
+        finally { busy = false; canvas.IsHitTestVisible = true; Draw(); }
     }
     async Task CloseSafely()
     {
