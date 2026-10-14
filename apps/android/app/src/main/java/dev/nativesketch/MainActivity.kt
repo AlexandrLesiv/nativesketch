@@ -179,7 +179,11 @@ class MainActivity : androidx.activity.ComponentActivity() {
             addView(button("Zoom in") { canvas.scaleAt(1.25, canvas.width/2.0, canvas.height/2.0) })
             addView(button("Zoom out") { canvas.scaleAt(.8, canvas.width/2.0, canvas.height/2.0) })
         }
-        workspace.addView(sidePanel, LinearLayout.LayoutParams(dp(192), -1))
+        val inspectorScroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(sidePanel, ViewGroup.LayoutParams(-1, -2))
+        }
+        workspace.addView(inspectorScroll, LinearLayout.LayoutParams(dp(192), -1))
         root.addView(workspace, LinearLayout.LayoutParams(-1, 0, 1f))
         status =
             TextView(this).apply {
@@ -195,13 +199,12 @@ class MainActivity : androidx.activity.ComponentActivity() {
         root.addView(bottom)
         root.addOnLayoutChangeListener { _, left, _, right, _, _, _, _, _ ->
             val expanded = right - left >= dp(840)
-            sidePanel.visibility = if (expanded) View.VISIBLE else View.GONE
+            inspectorScroll.visibility = if (expanded) View.VISIBLE else View.GONE
             bottomBar.visibility = if (expanded) View.GONE else View.VISIBLE
         }
         canvas.setOnDragListener { _, event ->
             when (event.action) {
-                DragEvent.ACTION_DRAG_STARTED -> event.clipDescription?.hasMimeType("text/uri-list") == true ||
-                    event.clipDescription?.hasMimeType("application/octet-stream") == true
+                DragEvent.ACTION_DRAG_STARTED -> acceptsDrop(event.clipDescription)
                 DragEvent.ACTION_DROP -> {
                     val uri = event.clipData?.takeIf { it.itemCount == 1 }?.getItemAt(0)?.uri
                     if (uri?.scheme == "content" && !busy) {
@@ -331,6 +334,11 @@ class MainActivity : androidx.activity.ComponentActivity() {
         safe { canvas.cancel(); action() }
         return true
     }
+
+    private fun acceptsDrop(description: android.content.ClipDescription?): Boolean =
+        description?.let { it.hasMimeType("text/uri-list") ||
+            it.hasMimeType("application/octet-stream") ||
+            it.hasMimeType("application/x-native-sketch") } == true
 
     private var dropPermission: android.view.DragAndDropPermissions? = null
 
@@ -684,7 +692,10 @@ class MainActivity : androidx.activity.ComponentActivity() {
         }
 
         fun scaleAt(factor: Double, x: Double, y: Double) {
-            val next = (zoom * factor).coerceIn(.001, 8.0)
+            if (!factor.isFinite() || factor <= 0.0) return
+            // Fit may legitimately show very large drawings below the manual zoom floor.
+            // Zoom out must never jump inward from that fitted viewport.
+            val next = (zoom * factor).coerceIn(minOf(zoom, .001), 8.0)
             ox = x - (x - ox) * next / zoom
             oy = y - (y - oy) * next / zoom
             zoom = next
@@ -835,7 +846,11 @@ class MainActivity : androidx.activity.ComponentActivity() {
                                 engine.begin(
                                     handle,
                                     pointer,
-                                    if (e.getToolType(0) == MotionEvent.TOOL_TYPE_STYLUS) 1 else 2,
+                                    when (e.getToolType(0)) {
+                                        MotionEvent.TOOL_TYPE_STYLUS, MotionEvent.TOOL_TYPE_ERASER -> 1
+                                        MotionEvent.TOOL_TYPE_MOUSE -> 0
+                                        else -> if(e.isFromSource(InputDevice.SOURCE_MOUSE)) 0 else 2
+                                    },
                                     ink,
                                     this@MainActivity.width,
                                 )
@@ -1121,9 +1136,39 @@ class MainActivity : androidx.activity.ComponentActivity() {
         check(replaceDialog?.isShowing == true)
         replaceDialog!!.getButton(android.content.DialogInterface.BUTTON_NEUTRAL).performClick()
         check(pendingUri == null && desktopSnapshot.contentEquals(engine.export(handle)))
+        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/x-native-sketch"))))
+        check(acceptsDrop(android.content.ClipDescription("drawing", arrayOf("application/octet-stream"))))
+        check(!acceptsDrop(android.content.ClipDescription("image", arrayOf("image/png"))))
+        // Export the actual native input result, checking the NSKETCH1 device field.
+        for ((tool, source, device) in listOf(
+            Triple(MotionEvent.TOOL_TYPE_MOUSE, InputDevice.SOURCE_MOUSE, 0L),
+            Triple(MotionEvent.TOOL_TYPE_STYLUS, InputDevice.SOURCE_STYLUS, 1L),
+            Triple(MotionEvent.TOOL_TYPE_FINGER, InputDevice.SOURCE_TOUCHSCREEN, 2L))) {
+            checked(act(10))
+            props[0].toolType = tool
+            for(action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                val input = MotionEvent.obtain(3000, 3010, action, 1, props, coords,
+                    0, 0, 1f, 1f, 0, 0, source, 0)
+                canvas.onTouchEvent(input); input.recycle()
+            }
+            val exported = engine.export(handle)
+            check(java.nio.ByteBuffer.wrap(exported).order(java.nio.ByteOrder.LITTLE_ENDIAN).getLong(24) == device)
+        }
+        checked(act(10))
+        checked(engine.begin(handle, 22, 0, ink, 4.0))
+        checked(engine.sample(handle, 22, -1e7, -1e7, 10.0, 0.0, false, 1))
+        checked(engine.sample(handle, 22, 1e7, 1e7, 11.0, 0.0, false, 2))
+        checked(act(1, 22.0))
+        canvas.fit()
+        val fitted = canvas.zoom
+        check(fitted < .001)
+        canvas.scaleAt(.8, canvas.width/2.0, canvas.height/2.0)
+        check(canvas.zoom <= fitted)
+        checked(engine.importBytes(handle, desktopSnapshot))
+        canvas.fit()
         android.util.Log.i(
             "NativeSketchReplay",
-            "PASS: JNI stroke, pressure, cancel, resize rollback, history, corrupt import, revision save, roundtrip, Back dispatcher cancel retains dirty drawing, desktop keyboard history/tools/Fit, resize cancellation/history, Space drag, Ctrl wheel, incoming URI dirty cancel",
+            "PASS: JNI stroke, pressure, cancel, resize rollback, history, corrupt import, revision save, roundtrip, Back dispatcher cancel retains dirty drawing, desktop keyboard history/tools/Fit, resize cancellation/history, Space drag, Ctrl wheel, incoming URI dirty cancel, native MIME drops, exported mouse/stylus/touch provenance, large-fit zoom-out monotonicity",
         )
         refresh()
     }

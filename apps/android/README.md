@@ -52,3 +52,8 @@ No arbitrary filesystem paths or network URLs are accepted. Existing configurati
 is not process-death recovery. Desktop replay extends the phone replay with actual key,
 wheel, secondary-button, Space-drag, resize and incoming-file cancellation pathways.
 Real ChromeOS/Googlebook hardware, external keyboard/trackpad and stylus remain to be tested.
+
+The expanded control panel scrolls in short windows. Native sketch MIME drops are accepted
+alongside octet-stream and URI-list drops. Rust persistence records mouse, stylus and touch
+provenance distinctly. Fit may go below the manual zoom floor for very large drawings;
+zooming out then holds that fitted scale rather than increasing it.
