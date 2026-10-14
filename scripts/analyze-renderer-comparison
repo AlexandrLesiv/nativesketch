@@ -70,6 +70,20 @@ def analyze(paths):
         run['service_budget_overruns'] = {'count': sum(r['service_ms'] > 1000/refresh for r in phases['measured']), 'denominator': len(phases['measured']), 'budget_ms':1000/refresh} if isinstance(refresh,(int,float)) and refresh > 0 else None
         starts = [r['cpu_frame_start_s'] for r in phases['measured']]
         if any(y < x for x,y in zip(starts,starts[1:])): raise ValueError('nonmonotonic frame starts')
+        run['measured_frames'] = len(starts)
+        run['measured_start_span_s'] = starts[-1]-starts[0]
+        run['trace_cycle_coverage'] = {'cycle_frames':600 if m['fixture']=='panzoom' else (240 if m['fixture']=='live' else None), 'submitted_frames':len(starts)}
+        memory_path = path/'memory.csv'
+        memory = []
+        if memory_path.exists():
+            with memory_path.open(newline='') as memory_file:
+                for sample in csv.DictReader(memory_file):
+                    if sample['rss_bytes']:
+                        rss = int(sample['rss_bytes'])
+                        if rss < 0: raise ValueError('negative RSS sample')
+                        memory.append(rss)
+        run['sampled_rss_bytes'] = distribution(memory)
+        run['sampled_rss_definition'] = 'Out-of-band process resident set across process lifetime; sampled maximum is not OS peak, footprint, or GPU memory'
         run['cpu_frame_interval_ms'] = distribution([(y-x)*1000 for x,y in zip(starts,starts[1:])])
         run['frame_interval_definition'] = 'Consecutive CPU frame starts; includes retirement backpressure only when host records start before retirement wait, see timing provenance'
         runs.append(run)
@@ -89,7 +103,16 @@ def analyze(paths):
                 if x['state_hash'] != y['state_hash']: raise ValueError('paired state hash mismatch')
         deltas = {metric: {p: (b[2]['metrics'][metric][p]-a[2]['metrics'][metric][p]) if a[2]['metrics'][metric][p] is not None and b[2]['metrics'][metric][p] is not None else None for p in ('p50','p95','p99','max')} for metric in METRICS}
         paired.append({'cell':list(key),'vello_minus_skia_ms':deltas})
-    return {'schema_version':1,'quantiles':'nearest rank per process, never pooled','caution':'600-frame p99 has few tail observations; paired variation and longer symmetric trials are needed for uncertain conclusions. GPU spans include scheduling/CPU gaps, not pure execution. Service overruns are not display misses.','runs':runs,'paired':paired}
+    variation = {}
+    for pair in paired:
+        cell = pair['cell']
+        key = json.dumps(cell[:4]+cell[5:])
+        group = variation.setdefault(key, {metric:{p:[] for p in ('p50','p95','p99','max')} for metric in METRICS})
+        for metric,stats in pair['vello_minus_skia_ms'].items():
+            for p,value in stats.items():
+                if value is not None: group[metric][p].append(value)
+    paired_variation = {key:{metric:{p:dict(distribution(values), minimum=min(values) if values else None) for p,values in stats.items()} for metric,stats in metrics.items()} for key,metrics in variation.items()}
+    return {'paired_delta_variation_ms':paired_variation,'schema_version':1,'quantiles':'nearest rank per process, never pooled','caution':'600-frame p99 has few tail observations; paired variation and longer symmetric trials are needed for uncertain conclusions. GPU spans include scheduling/CPU gaps, not pure execution. Service overruns are not display misses.','runs':runs,'paired':paired}
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
