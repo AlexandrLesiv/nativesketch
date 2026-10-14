@@ -85,6 +85,7 @@ def main():
     args=parser.parse_args()
     primary=read(args.data/'primary.json');sustained=read(args.data/'sustained.json')
     sizes=read(args.data/'artifact-sizes.json',False);quality=read(args.data/'quality.json',False)
+    provenance=read(args.data/'provenance.json',False)
     runs=primary['runs'];steady=sustained['runs']
     if len(runs)!=48 or len(steady)!=3:raise ValueError('Report requires all 48 primary and three sustained trials; incomplete evidence must remain explicitly pending')
     groups={}
@@ -96,8 +97,20 @@ def main():
     if {r['repeat_id'] for r in steady}!={'sustained-0','sustained-1','sustained-2'} or any(r['fixture']!='panzoom' or r['width']!=1600 or r['height']!=1000 or r['measured_elapsed_seconds']<180 for r in steady):raise ValueError('Invalid sustained coverage')
     revisions=sorted({r['source_revision'] for r in runs+steady})
     if len(revisions)!=1:raise ValueError('Mixed Core Graphics source revisions')
+    diffs={r['source_diff_hash'] for r in runs+steady}
+    if len(diffs)!=1:raise ValueError('Mixed Core Graphics source diff identities')
+    source_diff=next(iter(diffs))
+    if provenance is not None:
+        if provenance.get('measured_revision')!=revisions[0] or provenance.get('source_diff_hash')!=source_diff:
+            raise ValueError('Provenance disagrees with measured source identity')
     parts=['<header><p class="eyebrow">Native Sketch · Renderer investigation</p><h1>Core Graphics in a native AppKit view</h1><p class="intro">48 primary trials and three sustained trials. These measurements describe CPU work in actual AppKit drawing callbacks. They do not measure completed GPU rendering or displayed pixels.</p><p class="badge">Production renderer decision: OPEN</p></header>']
     parts.append('<section><h2>What was measured</h2><p>Eight deterministic workloads, two physical canvas sizes, three fresh processes per cell. Each primary process records one first-use frame, 120 warm-up frames and 600 measured frames. Sustained pan/zoom uses 120 warm-up frames followed by at least 180 measured seconds in each of three processes.</p><p><strong>Service time</strong> covers fixture preparation, path construction and Core Graphics painting within the draw callback. <strong>Callback interval</strong> measures time between callback starts, including AppKit scheduling. The native context can have an identity transform while recording commands for deferred composition; callback return is not evidence that those commands reached the display.</p><p>GPU execution/completion, presentation timestamps, missed-display deadlines, physical footprint, GPU peak memory and physical pen latency are not measured. No overall speedup ratio between this path and the Metal experiments is implied.</p><p class="mono">Measured source: '+esc(revisions[0])+'</p></section>')
+    if provenance is not None:
+        parts.append('<section><h2>Run provenance and verification</h2><p>'+esc(provenance.get('summary_text','No narrative supplied.'))+'</p>')
+        if provenance.get('build_identity_sha256'):parts.append('<p class="mono">Recorded build identity SHA-256: '+esc(provenance['build_identity_sha256'])+'</p>')
+        parts.append('<p>Source revision and source-diff identities agree across all primary and sustained process summaries. Detailed checks, resumed-source records and retained invalidated-attempt references are available in the <a href="coregraphics-comparison/provenance.json">provenance record</a>.</p></section>')
+    else:
+        parts.append('<section><h2>Run provenance and verification</h2><p class="notice">Detailed provenance export pending. Source revision and source-diff identities agree across the supplied process summaries; build and interruption records require separate review.</p></section>')
     for key,title in [('service_ms','CPU draw-callback service p95'),('callback_interval_ms','CPU callback-start interval p95')]:
         parts.append('<section><h2>'+esc(title)+'</h2>')
         for width in (1600,2560):
