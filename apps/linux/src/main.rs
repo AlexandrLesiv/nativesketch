@@ -1,4 +1,5 @@
 use adw::prelude::*;
+use glib::translate::IntoGlib;
 use gtk::{gdk, gio, glib};
 use sketch_core::{Brush, Editor, Input, Sample};
 use std::{cell::RefCell, rc::Rc};
@@ -12,6 +13,7 @@ struct Model {
     space: bool,
     brush: Brush,
     sample: u64,
+    start_time: u32,
     gesture: Gesture,
 }
 #[derive(Default)]
@@ -36,6 +38,7 @@ impl Model {
                 width: 4.0,
             },
             sample: 0,
+            start_time: 0,
             gesture: Gesture::Idle,
         }
     }
@@ -66,7 +69,14 @@ impl Model {
             self.size = (w, h);
         }
     }
-    fn down(&mut self, x: f64, y: f64, pressure: Option<f64>) -> sketch_core::Result<()> {
+    fn down(
+        &mut self,
+        x: f64,
+        y: f64,
+        pressure: Option<f64>,
+        time: u32,
+        device: u32,
+    ) -> sketch_core::Result<()> {
         self.cancel();
         let p = self.point(x, y);
         if self.space {
@@ -96,15 +106,21 @@ impl Model {
             }
             self.editor.select_at(p.0, p.1, 8.0 / self.zoom)?;
         } else {
-            self.editor
-                .begin(1, if pressure.is_some() { 1 } else { 0 }, self.brush)?;
+            self.editor.begin(1, device, self.brush)?;
             self.sample = 0;
+            self.start_time = time;
             self.gesture = Gesture::Ink;
-            self.motion(x, y, pressure)?;
+            self.motion(x, y, pressure, time)?;
         }
         Ok(())
     }
-    fn motion(&mut self, x: f64, y: f64, pressure: Option<f64>) -> sketch_core::Result<()> {
+    fn motion(
+        &mut self,
+        x: f64,
+        y: f64,
+        pressure: Option<f64>,
+        time: u32,
+    ) -> sketch_core::Result<()> {
         let p = self.point(x, y);
         match self.gesture {
             Gesture::Ink => {
@@ -114,7 +130,7 @@ impl Model {
                     &[Input::Actual(Sample {
                         x: p.0,
                         y: p.1,
-                        timestamp: self.sample as f64 / 1000.0,
+                        timestamp: time.wrapping_sub(self.start_time) as f64 / 1000.0,
                         pressure,
                         id: self.sample,
                     })],
@@ -402,7 +418,11 @@ fn build(app: &adw::Application) {
         (zoom_in, 7),
     ] {
         let u = ui.clone();
+        let select = select.clone();
         b.connect_clicked(move |_| {
+            if op == 2 || op == 3 {
+                select.set_active(true);
+            }
             u.action(|m| {
                 match op {
                     0 => m.editor.undo()?,
@@ -567,8 +587,21 @@ fn build(app: &adw::Application) {
         let u = ui.clone();
         stylus.connect_down(move |g, x, y| {
             u.canvas.grab_focus();
-            let pressure = g.axis(gdk::AxisUse::Pressure);
-            let result = u.model.borrow_mut().down(x, y, pressure);
+            let pressure = g.device_tool().and_then(|_| g.axis(gdk::AxisUse::Pressure));
+            let device = if g.device_tool().is_some() {
+                1
+            } else if g
+                .current_event_device()
+                .is_some_and(|d| d.source() == gdk::InputSource::Touchscreen)
+            {
+                2
+            } else {
+                0
+            };
+            let result = u
+                .model
+                .borrow_mut()
+                .down(x, y, pressure, g.current_event_time(), device);
             if let Err(e) = result {
                 u.error(&format!("Input failed: {e:?}"));
                 u.model.borrow_mut().cancel();
@@ -579,10 +612,35 @@ fn build(app: &adw::Application) {
     {
         let u = ui.clone();
         stylus.connect_motion(move |g, x, y| {
-            let result = u
-                .model
-                .borrow_mut()
-                .motion(x, y, g.axis(gdk::AxisUse::Pressure));
+            let result = (|| {
+                let mut m = u.model.borrow_mut();
+                if matches!(m.gesture, Gesture::Ink) {
+                    // Backlog axes share GDK coordinates; translate to this widget like current x/y.
+                    let offset = (
+                        x - g.axis(gdk::AxisUse::X).unwrap_or(x),
+                        y - g.axis(gdk::AxisUse::Y).unwrap_or(y),
+                    );
+                    for event in g.backlog().unwrap_or_default() {
+                        if event
+                            .flags()
+                            .contains(gdk::AxisFlags::X | gdk::AxisFlags::Y)
+                        {
+                            let axes = event.axes();
+                            let pressure = event
+                                .flags()
+                                .contains(gdk::AxisFlags::PRESSURE)
+                                .then_some(axes[gdk::AxisUse::Pressure.into_glib() as usize]);
+                            m.motion(
+                                axes[gdk::AxisUse::X.into_glib() as usize] + offset.0,
+                                axes[gdk::AxisUse::Y.into_glib() as usize] + offset.1,
+                                pressure,
+                                event.time(),
+                            )?;
+                        }
+                    }
+                }
+                m.motion(x, y, g.axis(gdk::AxisUse::Pressure), g.current_event_time())
+            })();
             if result.is_err() {
                 u.model.borrow_mut().cancel();
             }
@@ -591,8 +649,13 @@ fn build(app: &adw::Application) {
     }
     {
         let u = ui.clone();
-        stylus.connect_up(move |_, _, _| {
-            if u.model.borrow_mut().up().is_err() {
+        stylus.connect_up(move |g, x, y| {
+            let result = {
+                let mut m = u.model.borrow_mut();
+                m.motion(x, y, g.axis(gdk::AxisUse::Pressure), g.current_event_time())
+                    .and_then(|_| m.up())
+            };
+            if result.is_err() {
                 u.model.borrow_mut().cancel();
             }
             u.refresh();
@@ -785,11 +848,12 @@ mod tests {
     fn adapter_cancel_transform_roundtrip() {
         let mut m = Model::new();
         m.layout(500, 400);
-        m.down(40.0, 50.0, None).unwrap();
-        m.motion(80.0, 80.0, None).unwrap();
+        m.down(40.0, 50.0, None, 100, 0).unwrap();
+        m.motion(80.0, 80.0, None, 127).unwrap();
         m.up().unwrap();
         assert_eq!(m.editor.state().count, 1);
-        m.down(90.0, 100.0, None).unwrap();
+        assert_eq!(m.editor.document().strokes[0].samples[1].timestamp, 0.027);
+        m.down(90.0, 100.0, None, 200, 0).unwrap();
         m.cancel();
         assert_eq!(m.editor.state().count, 1);
         m.editor.select_cycle(1).unwrap();

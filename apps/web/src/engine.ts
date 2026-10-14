@@ -24,6 +24,16 @@ export const identity = (id: bigint) => {
 };
 export class Engine {
     private handle: number;
+    private importRequest = 0;
+    isAvailable() {
+        return this.handle !== 0;
+    }
+    beginImportRequest() {
+        return ++this.importRequest;
+    }
+    isCurrentImportRequest(request: number) {
+        return request === this.importRequest;
+    }
     constructor(private api: Api) {
         if (api.sketch_wasm_protocol_version() !== 1)
             throw Error("Unsupported drawing engine");
@@ -33,6 +43,7 @@ export class Engine {
     command(op: number, input = new Uint8Array()): Uint8Array {
         if (!this.handle)
             throw Error("Drawing engine is unavailable; reload the page.");
+        if (op === 16 || op === 18) ++this.importRequest;
         let token = 0;
         try {
             if (input.length) {
@@ -120,4 +131,34 @@ export class Engine {
         if (this.handle) this.api.sketch_wasm_free(this.handle);
         this.handle = 0;
     }
+}
+
+/** Native file reads are asynchronous: never replace intervening edits without a fresh choice. */
+export async function importFile(
+    engine: Engine,
+    file: { size: number; arrayBuffer(): Promise<ArrayBuffer> },
+    confirmReplacement: () => Promise<boolean>,
+): Promise<boolean> {
+    if (file.size > 64 * 1024 * 1024)
+        throw Error("Files must be no larger than 64 MiB.");
+    const request = engine.beginImportRequest();
+    engine.command(5);
+    const revision = engine.snapshot().revision;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!engine.isCurrentImportRequest(request)) return false;
+    const hadDraft = engine.state().interaction !== 0;
+    engine.command(5);
+    if (
+        (hadDraft || engine.snapshot().revision !== revision) &&
+        !(await confirmReplacement())
+    )
+        return false;
+    if (!engine.isCurrentImportRequest(request)) return false;
+    engine.command(18, bytes);
+    return true;
+}
+
+/** A reused native dialog must not retain a previous destructive result on Escape. */
+export function resetReplacementChoice(dialog: { returnValue: string }) {
+    dialog.returnValue = "cancel";
 }

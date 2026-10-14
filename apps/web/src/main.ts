@@ -1,4 +1,11 @@
-import { Engine, Api, floats, identity } from "./engine.js";
+import {
+    Engine,
+    Api,
+    floats,
+    identity,
+    importFile,
+    resetReplacementChoice,
+} from "./engine.js";
 const el = <T extends HTMLElement>(id: string) =>
     document.getElementById(id) as T;
 const canvas = el<HTMLCanvasElement>("canvas"),
@@ -26,24 +33,41 @@ const error = (e: unknown) => {
     el("error-text").textContent = String(e);
     el<HTMLDialogElement>("error").showModal();
 };
+let failed = false,
+    lastDirty = false;
 const safe = (fn: () => void) => {
+    if (!engine || failed) return;
     try {
         fn();
         refresh();
     } catch (e) {
         cancel();
-        error(e);
+        if (!engine.isAvailable()) {
+            failed = true;
+            document
+                .querySelectorAll<
+                    HTMLButtonElement | HTMLInputElement
+                >("header button,.tools button,.tools input")
+                .forEach((control) => (control.disabled = true));
+            canvas.setAttribute("aria-disabled", "true");
+            el("status").textContent =
+                "Drawing engine stopped. Reload to recover; unsaved work may be lost.";
+            error(
+                "The drawing engine stopped unexpectedly. Reload this page to recover. Unsaved changes cannot be recovered from this failed engine.",
+            );
+        } else error(e);
     }
 };
 function cancel() {
-    if (engine) engine.command(5);
+    if (engine?.isAvailable()) engine.command(5);
     owner = undefined;
     mode = "";
     resize = undefined;
 }
 function refresh() {
-    if (!engine) return;
+    if (!engine?.isAvailable()) return;
     const s = engine.state();
+    lastDirty = s.dirty;
     for (const [id, disabled] of Object.entries({
         undo: !s.undo,
         redo: !s.redo,
@@ -273,9 +297,27 @@ function finish(e: PointerEvent, aborted: boolean) {
         if (owner === e.pointerId) {
             if (aborted) cancel();
             else {
-                if (mode === "ink")
+                if (mode === "ink") {
+                    append(e);
                     engine.command(4, identity(BigInt(e.pointerId)));
-                if (mode === "resize") engine.command(13);
+                }
+                if (mode === "resize" && resize) {
+                    const p = position(e),
+                        q = point(p.x, p.y);
+                    engine.command(
+                        12,
+                        floats(
+                            Math.max(
+                                0.01,
+                                Math.hypot(q.x - resize.x, q.y - resize.y) /
+                                    resize.distance,
+                            ),
+                            resize.x,
+                            resize.y,
+                        ),
+                    );
+                    engine.command(13);
+                }
                 owner = undefined;
                 mode = "";
                 resize = undefined;
@@ -361,8 +403,14 @@ for (const [id, op] of [
     ["delete", 10],
 ] as const)
     click(id, () => engine.command(op));
-click("previous", () => engine.cycle(-1));
-click("next", () => engine.cycle(1));
+click("previous", () => {
+    chooseTool("select");
+    engine.cycle(-1);
+});
+click("next", () => {
+    chooseTool("select");
+    engine.cycle(1);
+});
 click("apply", () => {
     const [x, y, w, h] = engine.state().bounds;
     engine.command(11);
@@ -399,10 +447,14 @@ function download() {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     refresh();
 }
+el<HTMLDialogElement>("guard").addEventListener("cancel", () =>
+    resetReplacementChoice(el<HTMLDialogElement>("guard")),
+);
 async function guard() {
     cancel();
     if (!engine.state().dirty) return true;
     const dialog = el<HTMLDialogElement>("guard");
+    resetReplacementChoice(dialog);
     dialog.showModal();
     const result = await new Promise<string>((resolve) =>
         dialog.addEventListener("close", () => resolve(dialog.returnValue), {
@@ -433,19 +485,14 @@ el<HTMLInputElement>("file").addEventListener("change", async (e) => {
     input.value = "";
     if (!f) return;
     try {
-        if (f.size > 64 * 1024 * 1024)
-            throw Error("Files must be no larger than 64 MiB.");
-        const bytes = new Uint8Array(await f.arrayBuffer());
-        safe(() => {
-            cancel();
-            engine.command(18, bytes);
-        });
+        await importFile(engine, f, guard);
+        refresh();
     } catch (e) {
         error(e);
     }
 });
 window.addEventListener("beforeunload", (e) => {
-    if (engine?.state().dirty) {
+    if (failed || lastDirty) {
         e.preventDefault();
         e.returnValue = "";
     }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 // .js emitted outside package scope is ESM via data URL for the Node probe.
 const source = await readFile("artifacts/web/engine.js", "utf8");
-const { Engine, identity, floats } = await import(
+const { Engine, identity, floats, importFile } = await import(
     `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
 );
 const { instance } = await WebAssembly.instantiate(
@@ -57,8 +57,67 @@ assert.equal(e.state().undo, false);
 const render = e.command(6);
 assert.ok(render.length > 0);
 assert.equal(render.length % 96, 0);
+let finishRead;
+const pendingFile = {
+    size: snapshot.bytes.length,
+    arrayBuffer: () => new Promise((resolve) => (finishRead = resolve)),
+};
+let prompts = 0;
+const pendingImport = importFile(e, pendingFile, async () => {
+    prompts++;
+    return false;
+});
+e.begin(5n, 0, [0, 0, 0, 1], 3);
+e.append(5n, [{ x: 120, y: 80, time: 0, id: 1n }]);
+e.command(4, identity(5n));
+const intervening = e.snapshot();
+finishRead(snapshot.bytes.slice().buffer);
+assert.equal(await pendingImport, false);
+assert.equal(prompts, 1);
+assert.deepEqual(
+    e.snapshot(),
+    intervening,
+    "late read cannot overwrite intervening edits after Cancel",
+);
+await assert.rejects(
+    importFile(
+        e,
+        { size: 3, arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer },
+        async () => true,
+    ),
+);
+assert.deepEqual(
+    e.snapshot(),
+    intervening,
+    "failed async import preserves the current document",
+);
+const obsoleteImport = importFile(e, pendingFile, async () => {
+    throw Error("Obsolete import must not prompt");
+});
+e.command(18, snapshot.bytes);
+finishRead(intervening.bytes.slice().buffer);
+assert.equal(await obsoleteImport, false);
+assert.deepEqual(
+    e.snapshot().bytes,
+    snapshot.bytes,
+    "a newer clean import invalidates earlier file reads",
+);
+const obsoleteAfterNew = importFile(e, pendingFile, async () => true);
+e.command(16);
+finishRead(snapshot.bytes.slice().buffer);
+assert.equal(await obsoleteAfterNew, false);
+assert.equal(e.state().count, 0n, "New invalidates previous file reads");
 e.dispose();
 assert.throws(() => e.state());
+const trapped = new Engine({
+    ...instance.exports,
+    sketch_wasm_command() {
+        throw new WebAssembly.RuntimeError("synthetic trap");
+    },
+});
+assert.throws(() => trapped.state(), WebAssembly.RuntimeError);
+assert.equal(trapped.isAvailable(), false);
+assert.throws(() => trapped.state(), /unavailable/);
 console.log(
     "Browser adapter: actual Wasm identity, ink/cancel, resize/history/delete, invalid import, snapshot/dirty checks passed.",
 );
