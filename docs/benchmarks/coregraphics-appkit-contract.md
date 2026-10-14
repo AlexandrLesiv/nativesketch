@@ -49,12 +49,17 @@ Metadata and identity work outside timed service. State hashes use existing defi
 final actual geometry hash must equal expected. Metadata includes spec/input/image hashes,
 initialization/identity-precompute facts and exact curved clip identity. Reuse the exact
 kurbo ellipse path at tolerance0.05 through a common fixture helper; no addEllipse shortcut.
-Phase indices reset to zero, including live sample state; final quality index 599.
+Phase indices reset to zero, including live sample state. Capture the actual final measured
+index: primary 599, pilot 29, sustained measured-count minus one.
 
 ## Native drawing and dimensions
 
 Canvas point dimensions = target physical dimensions / backing scale. Verify
-convertToBacking(bounds), CGContext CTM and pixel alignment; record actual values.
+convertToBacking(bounds) and pixel alignment; record the actual CGContext CTM separately.
+Native layer-backed AppKit drawing can expose an identity CTM for a 2x backing view:
+Core Graphics may record drawing for later execution. Do not infer backing resolution
+from CGContext CTM or require its scale to equal the window backing scale. Validate a
+finite, invertible, axis-aligned context and verify actual capture dimensions and content.
 Require full canvas/window to fit visible screen and fail unsupported size rather than
 silently downscale. Clear white and rasterize fresh each benchmark draw. Cache CGPaths
 for retained geometry; rebuild live paths when geometry_changed. Nonzero fill once per
@@ -85,13 +90,19 @@ callback-start intervals are separate diagnostics, not physical input latency or
 First-use/warm-up/measured phases separate; retain per-process p50/p95/p99/max, use median
 of three process p95s and min-max range, never pool all frames. No confidence intervals.
 
+Record measured_start_s at the first measured callback start and measured_end_s after
+final measured bookkeeping; elapsed must equal their difference. Validate service
+against its timestamp span and verify PNG integrity, not just its signature. Explicit
+validation-only finalization-delay runs cannot enter performance evidence.
+
 GPU time/completion, presentation timestamps, missed-display-deadline rates, GPU peak memory,
 physical footprint and physical pen latency are unsupported, not zero. Native draw return
 can exclude deferred composition; do not sum with old Metal GPU spans or call equivalent.
 
 host-status.json authoritative: status/reason, lifecycle_start/end/events, activity_assertion
 (including active through output), output validation and final dimensions. Complete manifest
-alone cannot admit a late-invalidated trial. Invalid/cancelled CLI exits nonzero.
+alone cannot admit a late-invalidated trial. Finalization yields to the run loop between
+capture, writes and authoritative status; interruption history is latched through output. Invalid/cancelled CLI exits nonzero.
 final.png + readback.json: untimed capture provenance, dimensions, RGBA/content hashes and
 state/fixture identity. Separate visual correctness evidence from the timed AppKit context.
 
