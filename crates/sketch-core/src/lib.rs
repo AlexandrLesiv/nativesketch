@@ -2,6 +2,7 @@
 #![forbid(unsafe_code)]
 
 mod persistence;
+pub mod source_policy;
 #[cfg(test)]
 mod tests;
 
