@@ -16,3 +16,8 @@ The provisional Core Graphics painter does not decide the production renderer.
 
 `scripts/check-apple-viewers` runs the real Rust-backed adapter regressions on macOS;
 that is separate from simulator launch, remote focus/VoiceOver and physical Apple TV tests.
+
+Simulator builds alone enable the replay, which exits with status 0/1. Device builds
+exclude replay entry points. HTTP status, oversize and insecure redirects report
+specific causes. Cancel Load is available only while loading; navigation is disabled
+until a drawing has geometry.

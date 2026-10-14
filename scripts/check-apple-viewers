@@ -11,5 +11,5 @@ cat > artifacts/viewer-check/main.swift <<'SWIFT'
 import Foundation
 @main struct Check { @MainActor static func main() throws { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS (host adapter)") } }
 SWIFT
-xcrun swiftc -D VIEWER_REPLAY -swift-version 6 -parse-as-library -I apps/macos/Sources/CSketchFFI apps/apple-viewer/*.swift artifacts/viewer-check/main.swift target/release/libsketch_ffi.a -framework Security -o artifacts/viewer-check/check
+xcrun swiftc -D DEBUG -swift-version 6 -parse-as-library -I apps/macos/Sources/CSketchFFI apps/apple-viewer/*.swift artifacts/viewer-check/main.swift target/release/libsketch_ffi.a -framework Security -o artifacts/viewer-check/check
 artifacts/viewer-check/check

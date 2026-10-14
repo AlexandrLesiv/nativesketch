@@ -26,7 +26,7 @@ enum ViewerError: Error, LocalizedError {
   }
   init() { precondition(sketch_abi_version() == 2 && sketch_editor_create(&handle) == 0) }
   isolated deinit { sketch_editor_free(handle) }
-  #if VIEWER_REPLAY
+  #if DEBUG
   // Verification only: no caller receives mutable engine access or exported bytes.
   func verifyReadOnlySnapshot() -> Bool {
     var count = 0; var revision: UInt64 = 0

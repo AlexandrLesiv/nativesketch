@@ -1,3 +1,4 @@
+import Darwin
 import SwiftUI
 import WatchConnectivity
 
@@ -10,9 +11,21 @@ import WatchConnectivity
     super.init()
     do { try store.restore(); refresh() } catch { message = "Cached copy could not be opened. Send a copy from iPhone." }
     if WCSession.isSupported() { WCSession.default.delegate = self; WCSession.default.activate() }
+    #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("--integration-test") {
-      do { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS") } catch { print("APPLE VIEWER REPLAY FAIL: \(error)") }
+      do { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS"); exit(0) }
+      catch { print("APPLE VIEWER REPLAY FAIL: \(error)"); exit(1) }
     }
+    if ProcessInfo.processInfo.arguments.contains("--preview-sample") {
+      do {
+        guard let url = Bundle.main.url(forResource: "Sample", withExtension: "nsketch") else { throw ViewerError.invalid }
+        let title = String(repeating: "A long simulator drawing title · ", count: 8)
+        let metadata = try WatchCopyMetadata(["protocolVersion": 1, "sentAt": max(Date().timeIntervalSince1970, (store.metadata?.sentAt ?? 0) + 1), "title": title, "contentType": "dev.nativesketch.document"])
+        try store.receive(boundedRead(url, limit: WatchCopyStore.limit), metadata: metadata)
+        refresh(); message = "Simulator sample · No paired transfer"
+      } catch { message = "Simulator fixture failed: \(error.localizedDescription)" }
+    }
+    #endif
   }
   func refresh() {
     if store.metadata != nil { message = "" }

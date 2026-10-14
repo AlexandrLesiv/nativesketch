@@ -1,3 +1,4 @@
+import Darwin
 import UIKit
 import Foundation
 
@@ -98,9 +99,12 @@ final class DocumentDownload: NSObject, URLSessionDataDelegate, @unchecked Senda
     NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 24), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12), stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12), address.heightAnchor.constraint(equalToConstant: 70), controls.heightAnchor.constraint(equalToConstant: 70), directions.heightAnchor.constraint(equalToConstant: 70)])
     if let data = try? boundedRead(cache, limit: DocumentDownload.limit), (try? document.importCopy(data, limit: DocumentDownload.limit)) != nil { status.text = "Last viewed copy · View Only" }
     refreshAvailability()
+    #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("--integration-test") {
-      do { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS") } catch { print("APPLE VIEWER REPLAY FAIL: \(error)") }
+      do { try ViewerReplay.run(); print("APPLE VIEWER REPLAY PASS"); exit(0) }
+      catch { print("APPLE VIEWER REPLAY FAIL: \(error)"); exit(1) }
     }
+    #endif
   }
   private func button(_ title: String, _ action: @escaping @MainActor () -> Void) -> UIButton {
     let button = UIButton(type: .system); button.setTitle(title, for: .normal)

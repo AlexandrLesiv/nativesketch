@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 @MainActor enum ViewerReplay {
@@ -24,7 +25,7 @@ import Foundation
     var navigation = ViewerNavigation(); navigation.magnify(2); navigation.pan = CGSize(width: 40, height: -20)
     _ = navigation.transform(bounds: document.bounds, size: CGSize(width: 200, height: 200)); navigation.fit()
     precondition(document.source == bytes && navigation.zoom == 1)
-    #if VIEWER_REPLAY
+    #if DEBUG
     precondition(document.verifyReadOnlySnapshot())
     #endif
     do { try document.importCopy(Data("corrupt".utf8), limit: 100); preconditionFailure("Invalid accepted") } catch {}
@@ -54,3 +55,5 @@ import Foundation
     precondition(store.document.source == bytes && store.metadata?.sentAt == 100)
   }
 }
+
+#endif

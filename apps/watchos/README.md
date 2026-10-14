@@ -26,3 +26,10 @@ The Core Graphics/SwiftUI painter is provisional; production renderer remains op
 `scripts/check-apple-viewers` covers real Rust import/geometry, invalid/oversized
 input preservation, stale Watch copies, bounded file reads and atomic cache restore.
 Crown, accessibility, paired delivery, memory and physical-device checks are separate.
+
+Simulator builds alone define `DEBUG`: `--integration-test` exits with status 0/1;
+`--preview-sample` loads a deliberately long-titled synthetic copy through the real
+receiver store for visual inspection. This fixture is explicitly labelled as a
+simulator sample and is not paired transfer evidence. Device builds exclude both
+entry points and the replay implementation. Details opens a scrollable full title,
+receipt date and status; the compact preview keeps these as separate elements.
