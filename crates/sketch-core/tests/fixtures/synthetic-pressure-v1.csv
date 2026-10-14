@@ -1,0 +1,6 @@
+# synthetic trace: kind,id,x,y,timestamp,pressure (none means missing capability)
+actual,1,10,20,0.001,none
+actual,2,15,22,0.002,0.0
+actual,3,20,25,0.003,0.5
+actual,4,25,28,0.004,1.0
+predicted,5,30,30,0.005,0.8

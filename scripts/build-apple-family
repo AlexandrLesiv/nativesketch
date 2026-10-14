@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Build each Apple host and package the iPhone + Watch companion pair locally.
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+platform="${1:-simulator}"
+case "$platform" in
+  simulator|device) ;;
+  *) echo 'Usage: scripts/build-apple-family [simulator|device]' >&2; exit 2 ;;
+esac
+./scripts/build-macos
+./scripts/build-watchos "$platform"
+./scripts/build-ios "$platform"
+phone="$repo_root/artifacts/ios-$platform/NativeSketch.app"
+watch="$repo_root/artifacts/watchos-$platform/NativeSketchWatch.app"
+mkdir -p "$phone/Watch"
+# ditto preserves the native bundle structure and replaces the generated copy.
+/usr/bin/ditto "$watch" "$phone/Watch/NativeSketchWatch.app"
+/usr/bin/codesign --force --sign - "$phone"
+./scripts/build-tvos "$platform"
+./scripts/build-visionos "$platform"
+echo 'Built Apple family. Device installation needs owner signing/provisioning; no release is published.'

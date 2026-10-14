@@ -1,6 +1,8 @@
 # 001: First editable stroke on macOS
 
-Status: ready. This task is not implemented by the bootstrap.
+Status: review. Implemented and verified on `codex/first-stroke`; owner drawing and merge acceptance are pending.
+Evidence: [first-stroke report](../docs/evidence/001-first-stroke.md).
+Production renderer remains OPEN pending task 002; this milestone uses a disposable CoreGraphics painter.
 Roles: ui_ux_designer, rust_engine, macos_ui, reviewer.
 
 ## Outcome

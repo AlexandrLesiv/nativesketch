@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+device="${1:-booted}"
+xcrun simctl install "$device" "$repo_root/artifacts/visionos-simulator/NativeSketch.app"
+shift "$(( $# > 0 ? 1 : 0 ))"
+xcrun simctl launch --console "$device" dev.nativesketch.visionos "$@"

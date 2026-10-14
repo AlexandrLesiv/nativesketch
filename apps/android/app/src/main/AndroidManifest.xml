@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <application android:enableOnBackInvokedCallback="true" android:theme="@style/AppTheme" android:label="Native Sketch" android:allowBackup="false" android:supportsRtl="true">
+        <activity android:name=".MainActivity" android:exported="true" android:resizeableActivity="true" android:launchMode="singleTop">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/x-native-sketch" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

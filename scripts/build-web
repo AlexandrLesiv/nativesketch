@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+./scripts/build-wasm
+npm --prefix apps/web ci --ignore-scripts
+npm --prefix apps/web run build
+cp apps/web/index.html apps/web/style.css apps/web/sw.js artifacts/web/
+python3 - <<'PYVERSION'
+from pathlib import Path
+import hashlib
+root=Path('artifacts/web')
+version=hashlib.sha256(b''.join((root/name).read_bytes() for name in ['index.html','style.css','main.js','engine.js','sketch_wasm.wasm'])).hexdigest()[:16]
+p=root/'sw.js'
+p.write_text(p.read_text().replace('__CACHE_VERSION__',version))
+PYVERSION

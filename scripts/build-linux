@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+export CARGO_TARGET_DIR="$repo_root/target/linux"
+cargo build --locked --manifest-path apps/linux/Cargo.toml
+mkdir -p artifacts/linux
+cp "$CARGO_TARGET_DIR/debug/native-sketch-gtk" artifacts/linux/

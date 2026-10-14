@@ -1,0 +1,63 @@
+name: Browser checks and GitHub Pages
+
+on:
+  push:
+    branches: [main, codex/github-pages]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.12.0'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install pinned Rust and Wasm target
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --component rustfmt,clippy --target wasm32-unknown-unknown
+          rustup override set 1.99.0
+      - name: Check shared engine
+        run: ./scripts/check --core
+      - name: Check native and Wasm byte equivalence
+        run: ./scripts/check-wasm
+      - name: Build and test browser adapter
+        run: ./scripts/check-web
+      - name: Prepare static site
+        run: touch artifacts/web/.nojekyll
+      - name: Upload site assets only
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/github-pages')
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: artifacts/web
+
+  deploy:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/github-pages')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

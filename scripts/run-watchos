@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+device="${1:?Pass the exact simulator UUID}"
+xcrun simctl install "$device" "$repo_root/artifacts/watchos-simulator/NativeSketchWatch.app"
+shift
+if [[ "${1:-}" == --integration-test ]]; then
+    # simctl can return success even when the app exits with a failed replay.
+    log="$(mktemp -t native-sketch-watch-replay)"
+    trap 'rm -f "$log"' EXIT
+    xcrun simctl launch --console "$device" dev.nativesketch.ios.watch "$@" 2>&1 | tee "$log"
+    if ! grep -q 'APPLE SOURCE REPLAY PASS' "$log" || grep -q 'APPLE SOURCE REPLAY FAIL' "$log"; then
+        echo 'FAIL: Watch source replay did not complete successfully' >&2
+        exit 1
+    fi
+else
+    xcrun simctl launch --console "$device" dev.nativesketch.ios.watch "$@"
+fi
