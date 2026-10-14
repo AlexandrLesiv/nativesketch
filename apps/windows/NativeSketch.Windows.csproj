@@ -16,6 +16,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
     <Compile Remove="InteropCheck/**/*.cs" />
-    <Content Include="../../target/release/sketch_ffi.dll" Link="sketch_ffi.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../target/release/sketch_ffi.dll')" />
+    <Content Include="../../target/x86_64-pc-windows-msvc/release/sketch_ffi.dll" Link="sketch_ffi.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../target/x86_64-pc-windows-msvc/release/sketch_ffi.dll')" />
   </ItemGroup>
 </Project>

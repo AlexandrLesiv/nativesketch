@@ -8,6 +8,6 @@
   <ItemGroup>
     <Compile Include="../Engine.cs" Link="Engine.cs" />
     <None Include="../../../target/release/libsketch_ffi.dylib" Link="libsketch_ffi.dylib" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../../target/release/libsketch_ffi.dylib')" />
-    <None Include="../../../target/release/sketch_ffi.dll" Link="sketch_ffi.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../../target/release/sketch_ffi.dll')" />
+    <None Include="../../../target/x86_64-pc-windows-msvc/release/sketch_ffi.dll" Link="sketch_ffi.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../../../target/x86_64-pc-windows-msvc/release/sketch_ffi.dll')" />
   </ItemGroup>
 </Project>
