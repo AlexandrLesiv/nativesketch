@@ -82,6 +82,8 @@ OPEN. The isolated [Skia/Metal versus Vello GPU comparison](evidence/002-rendere
 records pinned variants, identical scenes, quality, scale, input traces and presentation.
 The [decision proposal](decisions/0003-renderer-comparison.md) remains subject to owner acceptance.
 Choose using the app's latency, correctness, memory, and integration evidence.
+For an illustrated explanation of these layers and input-to-display delay, see the
+[rendering layers and pen latency guide](evidence/rendering-layers-and-latency.html).
 Do not introduce a permanent abstraction supporting hypothetical backends before the spike.
 
 
