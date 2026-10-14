@@ -230,7 +230,7 @@ final class Host: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }; timer = t; t.resume()
     }
     func advance() {
-        guard active else { return }
+        guard active && timer != nil else { return }
         do {
             try check()
             let elapsed = monotonicNow() - epoch
