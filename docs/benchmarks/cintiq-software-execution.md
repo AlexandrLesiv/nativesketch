@@ -85,3 +85,9 @@ verify actual mode/backing dimensions and restore the original mirror arrangemen
 Wacom Center reports 6.4.14-1; this is application inventory, not verified pen firmware.
 Record runtime inventory and pacing observations with the artifacts. Physical pen model
 is owner-reported Pro Pen 3, not validated by a generated replay.
+
+## Recorded continuation amendment
+
+See [bounded performance failures](cintiq-software-protocol-amendment.md) for the
+2026-10-15 opt-in collector amendment, diagnostic evidence, trace limitations and
+separate native/collector provenance. Native measurements and watchdogs stay unchanged.
