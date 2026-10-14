@@ -75,6 +75,7 @@ import CSketchFFI
   private(set) var pending: (SourceCopy, String)?
   var changed: () -> Void = {}
   var report: (String) -> Void = { _ in }
+  var failed: (String) -> Void = { _ in }
   init(phone: any DrawingSource, server: any DrawingSource, store: WatchLibraryStore) { self.phone = phone; self.server = server; self.store = store }
   func cancel() { generation += 1; pending = nil }
   func list() async throws -> [SourceDescriptor] {
@@ -102,7 +103,7 @@ import CSketchFFI
       if navigating, store.selected?.copy.descriptor.id == descriptor.id, store.selected?.copy.descriptor.contentSHA256 != copy.descriptor.contentSHA256 {
         try stage(copy, source: source); report("New version available. Use Apply Update in Details."); changed()
       } else { try store.accept(copy, source: source, select: true); pending = nil; report("Updated from " + source); changed() }
-    } catch { if request == generation { report(error.localizedDescription); changed() } }
+    } catch { if request == generation { failed(error.localizedDescription); changed() } }
   }
   private func checkPending(_ copy: SourceCopy) throws {
     if let pending, pending.0.descriptor.id == copy.descriptor.id {

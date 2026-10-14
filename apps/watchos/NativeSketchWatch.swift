@@ -19,7 +19,8 @@ import WatchConnectivity
     let configured = (Bundle.main.object(forInfoDictionaryKey: "NativeSketchServerURL") as? String).flatMap(URL.init(string:))
     coordinator = SourceCoordinator(phone: phone, server: ServerDrawingSource(base: configured), store: store)
     coordinator.changed = { [weak self] in self?.version += 1 }
-    coordinator.report = { [weak self] text in self?.message = text }
+    coordinator.report = { [weak self] text in self?.message = text; self?.hasError = false }
+    coordinator.failed = { [weak self] text in self?.message = text; self?.hasError = true }
     phone.report = { [weak self] text in self?.message = text; self?.hasError = true }
     phone.pushed = { [weak self] copy in
       do { try self?.coordinator.pushed(copy) } catch { self?.message = error.localizedDescription; self?.hasError = true }
@@ -63,14 +64,14 @@ import WatchConnectivity
         let remote = try await coordinator.list()
         let cached = store.archive.entries.map { $0.copy.descriptor }
         catalog = cached + remote.filter { candidate in !cached.contains(where: { $0.id == candidate.id }) }
-        message = "Shared drawings. Cached copies open offline."
-      } catch { catalog = store.archive.entries.map { $0.copy.descriptor }; message = error.localizedDescription }
+        hasError = false; message = "Shared drawings. Cached copies open offline."
+      } catch { catalog = store.archive.entries.map { $0.copy.descriptor }; hasError = true; message = error.localizedDescription }
     }
   }
   func choose(_ descriptor: SourceDescriptor) {
     coordinator.cancel(); navigation.fit()
     if store.archive.entries.contains(where: { $0.copy.descriptor.id == descriptor.id }) {
-      do { try store.select(descriptor.id); version += 1 } catch { message = error.localizedDescription }
+      do { try store.select(descriptor.id); hasError = false; message = "Cached copy available offline"; version += 1 } catch { message = error.localizedDescription }
     } else { refresh(descriptor) }
   }
   func refresh(_ descriptor: SourceDescriptor? = nil) {
@@ -81,9 +82,9 @@ import WatchConnectivity
   }
   func remove(_ item: SourceDescriptor) {
     coordinator.cancel()
-    do { try store.remove(item.id); catalog.removeAll { $0.id == item.id }; version += 1; message = "Cached copy removed. The source is unchanged." } catch { message = error.localizedDescription }
+    do { try store.remove(item.id); catalog.removeAll { $0.id == item.id }; version += 1; hasError = false; message = "Cached copy removed. The source is unchanged." } catch { message = error.localizedDescription }
   }
-  func apply() { do { try coordinator.apply(); navigation.fit(); version += 1 } catch { message = error.localizedDescription } }
+  func apply() { do { try coordinator.apply(); hasError = false; message = "Update applied"; navigation.fit(); version += 1 } catch { message = error.localizedDescription } }
 }
 struct WatchViewer: View {
   @StateObject private var model = WatchModel()
@@ -116,7 +117,7 @@ struct WatchViewer: View {
       .layoutPriority(1)
       .overlay {
         if model.store.selected == nil {
-          Text("Open Library or send a copy from iPhone").font(.caption2).foregroundStyle(.black)
+          Text("Open Details → Library, or send a copy from iPhone").font(.caption2).foregroundStyle(.black)
             .multilineTextAlignment(.center).padding(6).allowsHitTesting(false)
         }
       }
@@ -155,6 +156,7 @@ struct WatchViewer: View {
         Button { model.choose(item); showingDetails = false } label: {
           VStack(alignment: .leading) { Text(item.title); Text(item.phoneOnly ? "iPhone copy" : "Synced drawing").font(.caption2) }
         }
+        .disabled(model.busy)
         .swipeActions { if model.store.archive.entries.contains(where: { $0.copy.descriptor.id == item.id }) { Button("Remove Cache", role: .destructive) { model.remove(item) } } }
       }
       Button(model.busy ? "Refreshing…" : "Refresh Library") { model.loadLibrary() }.disabled(model.busy)
