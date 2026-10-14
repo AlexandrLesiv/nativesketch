@@ -102,6 +102,12 @@ import UniformTypeIdentifiers
   required init?(coder: NSCoder) { fatalError() }
   override var canBecomeFirstResponder: Bool { true }
   var editor: MobileEditor { owner.editor }
+  // Preserve fitted scales below 10%; navigation must never jump up to a
+  // desktop-sized floor after fitting a very large, valid Rust document.
+  func navigationZoom(_ proposed: Double) -> Double {
+    guard proposed.isFinite, proposed > 0 else { return zoom }
+    return min(16, max(min(zoom, 1e-15), proposed))
+  }
   func document(_ p: CGPoint) -> CGPoint {
     CGPoint(x: (p.x - offset.x) / zoom, y: (p.y - offset.y) / zoom)
   }
@@ -342,7 +348,7 @@ import UniformTypeIdentifiers
       if navigating {
         if let current = navigationPair(), let previous = previousNavigation {
           let d = document(previous.0)
-          if previous.1 > 1 { zoom = min(16, max(0.1, zoom * current.1 / previous.1)) }
+          if previous.1 > 1 { zoom = navigationZoom(zoom * current.1 / previous.1) }
           offset = CGPoint(x: current.0.x - d.x * zoom, y: current.0.y - d.y * zoom)
           owner.refresh()
         }
@@ -382,6 +388,7 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
   #else
     let tool = UISegmentedControl(items: ["Pen", "Select"])
     lazy var watchSender = WatchCopySender()
+    var lastWatchStatus = "No Apple Watch copy has been queued in this session."
   #endif
   let status = UILabel()
   var ink = UIColor.black
@@ -439,6 +446,10 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
     #if !os(visionOS)
       if UIDevice.current.userInterfaceIdiom == .phone {
         watchSender.activate()
+        documentActions.append(
+          UIAction(title: "Apple Watch Transfer Status") { [weak self] _ in
+            self?.showWatchStatus()
+          })
         documentActions.append(
           UIAction(title: "Send Copy to Apple Watch", image: UIImage(systemName: "applewatch")) {
             [weak self] _ in
@@ -592,11 +603,9 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
     let b = path.boundingBoxOfPath
     canvas.zoom = min(
       16,
-      max(
-        0.1,
-        min(
-          max(1, canvas.bounds.width - 64) / max(1, b.width),
-          max(1, canvas.bounds.height - 64) / max(1, b.height))))
+      min(
+        max(1, canvas.bounds.width - 64) / max(1, b.width),
+        max(1, canvas.bounds.height - 64) / max(1, b.height)))
     canvas.offset = CGPoint(
       x: canvas.bounds.midX - b.midX * canvas.zoom,
       y: canvas.bounds.midY - b.midY * canvas.zoom)
@@ -606,7 +615,7 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
     canvas.cancelAll()
     let p = CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY)
     let d = canvas.document(p)
-    canvas.zoom = min(16, max(0.1, zoom))
+    canvas.zoom = canvas.navigationZoom(zoom)
     canvas.offset = CGPoint(x: p.x - d.x * canvas.zoom, y: p.y - d.y * canvas.zoom)
     refresh()
   }
@@ -845,12 +854,20 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       canvas.cancelAll()
       guard let (data, _) = editor.snapshot() else { return }
       watchSender.send(data, title: name) { [weak self] message in
-        guard let self else { return }
-        let alert = UIAlertController(
-          title: "Apple Watch Copy", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        if self.presentedViewController == nil { self.present(alert, animated: true) }
+        self?.receiveWatchStatus(message)
       }
+    }
+    func receiveWatchStatus(_ message: String) {
+      lastWatchStatus = message
+      if presentedViewController == nil { showWatchStatus() }
+    }
+    func showWatchStatus() {
+      guard presentedViewController == nil else { return }
+      let alert = UIAlertController(
+        title: "Apple Watch Transfer Status", message: lastWatchStatus,
+        preferredStyle: .alert)
+      alert.addAction(UIAlertAction(title: "OK", style: .default))
+      present(alert, animated: true)
     }
   #endif
   #if DEBUG
@@ -920,8 +937,40 @@ final class DrawingController: UIViewController, UIDocumentPickerDelegate,
       canvas.layoutSubviews()
       let center = canvas.document(CGPoint(x: canvas.bounds.midX, y: canvas.bounds.midY))
       precondition(abs(previous.x - center.x) < 1e-9 && abs(previous.y - center.y) < 1e-9)
+      // Wide geometry exercises actual fit below the former 10% floor.
+      precondition(editor.check(sketch_document_new(editor.handle)))
+      tool.selectedSegmentIndex = 0
+      canvas.zoom = 1
+      canvas.offset = .zero
+      canvas.begin(at: CGPoint(x: 0, y: 0), timestamp: 10, pressure: nil, pencil: false)
+      canvas.move(to: CGPoint(x: 20000, y: 10000), timestamp: 11, pressure: nil)
+      canvas.end()
+      let wideBytes = editor.snapshot()!.0
+      fitDrawing()
+      precondition(canvas.zoom < 0.1)
+      for p in [CGPoint(x: -3, y: -3), CGPoint(x: 20003, y: 10003)] {
+        let projected = canvas.screen(p)
+        precondition(projected.x >= 0 && projected.x <= canvas.bounds.width)
+        precondition(projected.y >= 0 && projected.y <= canvas.bounds.height)
+      }
+      let fittedZoom = canvas.zoom
+      zoomOut()
+      precondition(canvas.zoom < fittedZoom)
+      let gestureZoom = canvas.navigationZoom(canvas.zoom * 0.5)
+      precondition(gestureZoom < canvas.zoom)
+      precondition(editor.snapshot()!.0 == wideBytes)
+      #if os(iOS)
+        let blocker = UIAlertController(title: "Replay modal", message: nil, preferredStyle: .alert)
+        blocker.addAction(UIAlertAction(title: "OK", style: .default))
+        present(blocker, animated: false)
+        precondition(presentedViewController === blocker)
+        receiveWatchStatus("Watch transfer failed: replay fixture")
+        precondition(lastWatchStatus == "Watch transfer failed: replay fixture")
+        precondition(presentedViewController === blocker)
+        dismiss(animated: false)
+      #endif
       let text =
-        "PASS UIKit adapter replay: ink, cancellation, selection, scale/history, invalid import retention, revision save acknowledgement, roundtrip and rotation center mapping. Synthetic scalar input; no physical touch/Pencil."
+        "PASS UIKit adapter replay: ink, cancellation, selection, scale/history, invalid import retention, revision save acknowledgement, roundtrip, rotation center mapping, large-document fit/navigation and retained Watch status. Synthetic scalar input; no physical touch/Pencil."
       print(text)
       try? text.write(
         to: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

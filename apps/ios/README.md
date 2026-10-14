@@ -46,3 +46,7 @@ The Watch app must be embedded in the iPhone package and provisioned for a real
 paired device; `build-ios` alone intentionally remains independent. No automatic
 sync or Watch editing is provided. Actual paired hardware delivery is unverified.
 Simulator-only adapter replay also checks oversized-copy rejection without sending.
+
+Document → Apple Watch Transfer Status retains the latest transfer message for the
+current session, including a failure received while another sheet is open. The
+queue confirmation does not claim that a previously saved document became dirty.

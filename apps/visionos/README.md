@@ -26,3 +26,8 @@ physical latency or pressure. Native recognizer behavior and Files integration
 still require runtime inspection on a visionOS simulator/device.
 
 The Core Graphics path painter is provisional; renderer selection remains open.
+
+Fit Drawing supports valid documents that require scales below 10%; subsequent
+zoom controls preserve those small scales. The adapter replay includes a
+20,000-by-10,000-point drawing fitted into a 320-by-480-point canvas and checks
+that fitting/navigation leave serialized document bytes unchanged.

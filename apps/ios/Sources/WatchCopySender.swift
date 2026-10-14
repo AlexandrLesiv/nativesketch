@@ -61,7 +61,7 @@
             "title": title, "contentType": "dev.nativesketch.document",
           ])
         report(
-          "Copy queued for Apple Watch. Delivery can occur later when the devices connect. Your document remains unsaved until you save it to Files."
+          "Copy queued for Apple Watch. Delivery can occur later when the devices connect. Sending a copy does not change this document’s saved status."
         )
       } catch { report("Could not queue the copy: \(error.localizedDescription)") }
     }
