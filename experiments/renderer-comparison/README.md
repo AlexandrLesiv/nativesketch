@@ -42,6 +42,15 @@ most two in flight with display synchronization. Missing callbacks/timestamps st
 with reasons. The bounded final callback drain is excluded from measured elapsed time;
 final GPU retirement is recorded separately and included in elapsed time.
 
+For instrumentation calibration only, `RENDERER_GPU_TIMING=off` skips the begin-marker
+command buffer and timestamp harvesting. It retains the same renderer work, common final
+blit/presentation, and completion/retirement policy. All GPU timing columns are empty with
+`calibration-disabled` as their reason; the manifest records the setting and provenance.
+The default (or explicit `on`) enables profiling. Any other value is an initialization error.
+Pair on/off trials of the same workload and settings to quantify the marker's CPU/wall pacing
+cost; do not combine calibration-off samples with the primary profiled matrix or describe
+them as GPU execution measurements. The separate external RSS sampler must also be calibrated.
+
 The 240 live-stroke expected geometry/state hashes are computed through the actual core
 input/outline path before GPU initialization, then the logical fixture is reset. Timed live
 frames look up that validated identity while still executing real input/outline/backend work.

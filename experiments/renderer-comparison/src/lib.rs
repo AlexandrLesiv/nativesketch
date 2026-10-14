@@ -207,6 +207,23 @@ impl Session {
                 ms(init)
             ),
         )?;
+        manifest["gpu_timing"] = json!(if gpu.timing_enabled { "on" } else { "off" });
+        manifest["timing_provenance"]["gpu_timing"] = json!(if gpu.timing_enabled {
+            "normal: common Metal marker and timestamp harvesting enabled"
+        } else {
+            "calibration-only: begin marker omitted; common rendering/blit/presentation/retirement unchanged; GPU fields absent with calibration-disabled reason"
+        });
+        if !gpu.timing_enabled {
+            manifest["timing_provenance"]["gpu_span_ms"] = json!("calibration-disabled");
+            manifest["unsupported"]["gpu_span_ms"] = json!("calibration-disabled");
+        }
+        log_event(
+            &config.output,
+            &format!(
+                "GPU_TIMING mode={}",
+                if gpu.timing_enabled { "on" } else { "off" }
+            ),
+        )?;
         manifest["init_ms"] = json!(ms(init));
         manifest["fixture_hash"] = json!(fixture.spec_hash);
         manifest["identity_precompute_ms"] = json!(fixture.identity_precompute_ms);
@@ -242,12 +259,14 @@ impl Session {
         if ticket.end.status() == MTLCommandBufferStatus::Error {
             return Err(format!("Metal command failed: {:?}", ticket.end.error()));
         }
-        let start = ticket.begin.GPUStartTime();
-        let end = ticket.end.GPUEndTime();
-        if start.is_finite() && end.is_finite() && start > 0.0 && end >= start {
-            frame.gpu_start_s = Some(start);
-            frame.gpu_end_s = Some(end);
-            frame.gpu_span_ms = Some((end - start) * 1000.0);
+        if let Some(begin) = &ticket.begin {
+            let start = begin.GPUStartTime();
+            let end = ticket.end.GPUEndTime();
+            if start.is_finite() && end.is_finite() && start > 0.0 && end >= start {
+                frame.gpu_start_s = Some(start);
+                frame.gpu_end_s = Some(end);
+                frame.gpu_span_ms = Some((end - start) * 1000.0);
+            }
         }
         Ok(wait)
     }
@@ -454,7 +473,9 @@ impl Session {
         writeln!(w,"phase,frame_index,state_hash,input_ms,outline_ms,scene_ms,acquire_ms,render_submit_ms,present_enqueue_ms,completion_wait_ms,service_ms,cpu_frame_start_s,cpu_submit_s,gpu_span_ms,gpu_start_s,gpu_end_s,presented_s,gpu_missing_reason,present_missing_reason").map_err(|e|e.to_string())?;
         for f in &self.frames {
             let opt = |v: Option<f64>| v.map(|x| format!("{x:.9}")).unwrap_or_default();
-            let gpu_reason = if f.gpu_span_ms.is_none() {
+            let gpu_reason = if !self.gpu.timing_enabled {
+                "calibration-disabled"
+            } else if f.gpu_span_ms.is_none() {
                 "Metal timestamps unavailable or invalid"
             } else {
                 ""

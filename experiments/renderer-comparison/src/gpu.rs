@@ -35,12 +35,20 @@ pub struct Gpu {
     pub name: String,
     pub width: u32,
     pub height: u32,
+    pub timing_enabled: bool,
     marker: Retained<ProtocolObject<dyn MTLBuffer>>,
 }
 pub struct Ticket {
-    pub begin: Retained<ProtocolObject<dyn MTLCommandBuffer>>,
+    pub begin: Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>>,
     pub end: Retained<ProtocolObject<dyn MTLCommandBuffer>>,
     pub presented: Arc<AtomicU64>,
+}
+fn parse_gpu_timing(value: Option<&str>) -> Result<bool, String> {
+    match value {
+        None | Some("on") => Ok(true),
+        Some("off") => Ok(false),
+        Some(_) => Err("RENDERER_GPU_TIMING must be exactly on or off".into()),
+    }
 }
 impl Gpu {
     /// Layer is an AppKit-owned CAMetalLayer, borrowed only for this call; retain extends lifetime.
@@ -50,6 +58,14 @@ impl Gpu {
         height: u32,
         paced: bool,
     ) -> Result<Self, String> {
+        let timing_setting = match std::env::var("RENDERER_GPU_TIMING") {
+            Ok(value) => Some(value),
+            Err(std::env::VarError::NotPresent) => None,
+            Err(std::env::VarError::NotUnicode(_)) => {
+                return Err("RENDERER_GPU_TIMING must be UTF-8 on or off".into());
+            }
+        };
+        let timing_enabled = parse_gpu_timing(timing_setting.as_deref())?;
         let layer = unsafe { Retained::retain(layer) }.ok_or("Null Metal layer")?;
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::METAL,
@@ -145,6 +161,7 @@ impl Gpu {
             name: info.name,
             width,
             height,
+            timing_enabled,
             marker,
         })
     }
@@ -160,7 +177,12 @@ impl Gpu {
         }
         Ok(d)
     }
-    pub fn begin(&self) -> Result<Retained<ProtocolObject<dyn MTLCommandBuffer>>, String> {
+    pub fn begin(&self) -> Result<Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>>, String> {
+        // Calibration changes only the profiling marker; ordinary rendering, final blit,
+        // presentation and retirement remain identical.
+        if !self.timing_enabled {
+            return Ok(None);
+        }
         let b = self
             .metal_queue
             .commandBuffer()
@@ -169,11 +191,11 @@ impl Gpu {
         enc.fillBuffer_range_value(&self.marker, objc2_foundation::NSRange::new(0, 4), 0);
         enc.endEncoding();
         b.commit();
-        Ok(b)
+        Ok(Some(b))
     }
     pub fn present(
         &self,
-        begin: Retained<ProtocolObject<dyn MTLCommandBuffer>>,
+        begin: Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>>,
         drawable: Retained<ProtocolObject<dyn CAMetalDrawable>>,
     ) -> Result<Ticket, String> {
         let end = self
@@ -574,4 +596,21 @@ fn sk_from_bez(path: &BezPath) -> sk::Path {
         }
     }
     p.detach()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_gpu_timing;
+    #[test]
+    fn profiling_mode_has_strict_opt_out() {
+        assert!(parse_gpu_timing(None).unwrap());
+        assert!(parse_gpu_timing(Some("on")).unwrap());
+        assert!(!parse_gpu_timing(Some("off")).unwrap());
+        for invalid in ["", "ON", "Off", "0", "false", " off", "off "] {
+            assert!(
+                parse_gpu_timing(Some(invalid)).is_err(),
+                "accepted {invalid:?}"
+            );
+        }
+    }
 }
