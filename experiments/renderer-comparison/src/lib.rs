@@ -1,6 +1,7 @@
 //! Standalone renderer experiment; no production ABI or backend commitment.
 mod fixtures;
 mod gpu;
+mod native_fixture;
 use objc2_metal::{MTLCommandBuffer, MTLCommandBufferStatus, MTLDevice};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};

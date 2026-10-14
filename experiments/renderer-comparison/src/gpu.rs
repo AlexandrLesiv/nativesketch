@@ -1,7 +1,7 @@
 //! Experiment-only shared Metal device, queue, offscreen texture and presenter.
 //! All operations are serialized by the host. Imported objects are retained and never destroyed
 //! through HAL handles. Backend work and presentation use the SAME tracked-resource queue.
-use crate::fixtures::{Fixture, Outline, image_transform, transform};
+use crate::fixtures::{Fixture, Outline, clip_curve, image_transform, transform};
 use objc2::{Message, rc::Retained, runtime::ProtocolObject};
 use objc2_metal::*;
 use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer};
@@ -14,7 +14,7 @@ use std::{
     time::Instant,
 };
 use vello_common::{
-    kurbo::{Affine, BezPath, Ellipse, Rect, Shape},
+    kurbo::{Affine, BezPath, Rect},
     paint::{Image, ImageSource},
     peniko::{
         Fill, ImageQuality,
@@ -563,9 +563,6 @@ fn bez_path(p: &Outline) -> BezPath {
         }
     }
     path
-}
-fn clip_curve() -> BezPath {
-    Ellipse::new((800.0, 500.0), (570.0, 310.0), 0.0).to_path(0.05)
 }
 fn sk_path(p: &Outline) -> sk::Path {
     sk_from_bez(&bez_path(p))

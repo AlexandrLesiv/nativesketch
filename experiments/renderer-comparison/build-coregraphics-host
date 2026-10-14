@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+profile="${1:-release}"
+if [[ "$profile" != release && "$profile" != debug ]] || [[ $# -gt 1 ]]; then
+  echo "Usage: $0 [release|debug]" >&2; exit 2
+fi
+package="$root/experiments/renderer-comparison"
+target="${CARGO_TARGET_DIR:-$root/.build-cache/renderer-comparison}"
+app="$root/artifacts/coregraphics-comparison-build/CoreGraphicsComparison.app"
+mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$target/swift-module-cache"
+export RENDERER_SOURCE_REVISION="$(git -C "$root" rev-parse HEAD)"
+export RENDERER_SOURCE_DIFF_HASH="$(git -C "$root" diff HEAD --binary | shasum -a 256 | cut -d ' ' -f 1)"
+export RENDERER_BUILD_JSON
+RENDERER_BUILD_JSON="$(python3 - "$root" "$profile" <<'PY'
+import hashlib,json,pathlib,subprocess,sys
+root=pathlib.Path(sys.argv[1]); package=root/'experiments/renderer-comparison'
+def command(*args): return subprocess.check_output(args,text=True).strip()
+files=sorted(p for p in package.rglob('*') if p.is_file() and '.DS_Store' != p.name and 'target' not in p.parts)
+h=hashlib.sha256()
+for p in files:
+    h.update(str(p.relative_to(root)).encode()); h.update(b'\0'); h.update(p.read_bytes())
+print(json.dumps({'result_root':str(root/'artifacts/renderer-comparison'), 'profile':sys.argv[2], 'source_tree_sha256':h.hexdigest(), 'rustc':command('rustc','-Vv'), 'swift':command('xcrun','swiftc','--version'), 'sdk_path':command('xcrun','--show-sdk-path'), 'sdk_version':command('xcrun','--show-sdk-version'), 'cargo_lock_sha256':hashlib.sha256((package/'Cargo.lock').read_bytes()).hexdigest(), 'swift_flags':'-swift-version 5 -O' if sys.argv[2]=='release' else '-swift-version 5 -Onone -g'},sort_keys=True))
+PY
+)"
+printf '%s\n' "$RENDERER_BUILD_JSON" > "$app/Contents/Resources/build.json"
+cargo_args=(); swift_args=(-Onone -g)
+if [[ "$profile" == release ]]; then cargo_args=(--release); swift_args=(-O); fi
+cargo build --locked --manifest-path "$package/Cargo.toml" --target-dir "$target" "${cargo_args[@]}" >&2
+xcrun swiftc -swift-version 5 -target "$(uname -m)-apple-macosx13.0" "${swift_args[@]}" -module-cache-path "$target/swift-module-cache" \
+  -import-objc-header "$package/include/renderer_comparison.h" "$package/macos/coregraphics_main.swift" \
+  -L "$target/$profile" -lrenderer_comparison \
+  -framework AppKit -framework QuartzCore -framework Metal -framework CoreVideo \
+  -framework CoreGraphics -framework CoreFoundation -framework Foundation -framework Security \
+  -framework IOKit -framework IOSurface -framework CoreText -framework ImageIO -lc++ \
+  -o "$app/Contents/MacOS/CoreGraphicsComparison" >&2
+sed -e s/RendererComparison/CoreGraphicsComparison/g -e s/renderer-comparison/coregraphics-comparison/g -e 's/Renderer Comparison/Core Graphics Comparison/g' "$package/macos/Info.plist" > "$app/Contents/Info.plist"
+codesign --force --sign - "$app" >&2
+printf '%s\n' "$app"

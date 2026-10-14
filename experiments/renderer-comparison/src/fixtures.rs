@@ -372,3 +372,9 @@ mod tests {
         assert!(Fixture::new("missing").is_err());
     }
 }
+
+/// Exact common clip geometry for all experiment adapters.
+pub fn clip_curve() -> vello_common::kurbo::BezPath {
+    use vello_common::kurbo::{Ellipse, Shape};
+    Ellipse::new((800.0, 500.0), (570.0, 310.0), 0.0).to_path(0.05)
+}
