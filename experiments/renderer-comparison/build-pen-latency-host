@@ -5,17 +5,21 @@ package="$root/experiments/renderer-comparison"
 target="${CARGO_TARGET_DIR:-$root/.build-cache/renderer-comparison}"
 app="$root/artifacts/pen-latency-build/PenLatencyComparison.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$target/pen-swift-module-cache"
+export RENDERER_SOURCE_REVISION="$(git -C "$root" rev-parse HEAD)"
+export RENDERER_SOURCE_DIFF_HASH="$(git -C "$root" diff HEAD --binary | shasum -a 256 | cut -d ' ' -f 1)"
 if [[ "${PEN_SKIP_CARGO:-0}" != 1 ]]; then
   cargo build --release --locked --manifest-path "$package/Cargo.toml" --target-dir "$target" --no-default-features --features skia-backend >&2
 fi
 python3 - "$root" > "$app/Contents/Resources/build.json" <<'PY'
-import hashlib,json,pathlib,subprocess,sys
+import hashlib,json,os,pathlib,subprocess,sys
 root=pathlib.Path(sys.argv[1]); pkg=root/'experiments/renderer-comparison'
 def command(*args): return subprocess.check_output(args,text=True).strip()
 h=hashlib.sha256()
-for p in sorted(x for x in pkg.rglob('*') if x.is_file() and 'target' not in x.parts):
+sources = [x for x in pkg.rglob('*') if x.is_file() and 'target' not in x.parts]
+sources += [x for x in (root/'crates/sketch-core').rglob('*') if x.is_file() and 'target' not in x.parts]
+for p in sorted(sources):
  h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
-print(json.dumps({'source_revision':command('git','-C',str(root),'rev-parse','HEAD'),'source_status':command('git','-C',str(root),'status','--porcelain'),'source_tree_sha256':h.hexdigest(),'cargo_lock_sha256':hashlib.sha256((pkg/'Cargo.lock').read_bytes()).hexdigest(),'rustc':command('rustc','-Vv'),'swift':command('xcrun','swiftc','--version'),'sdk_version':command('xcrun','--show-sdk-version'),'rust_flags':'release thinLTO skia-backend','swift_flags':'-O -swift-version 5 -warnings-as-errors','abi':1},sort_keys=True))
+print(json.dumps({'source_revision':command('git','-C',str(root),'rev-parse','HEAD'),'source_status':command('git','-C',str(root),'status','--porcelain'),'source_tree_sha256':h.hexdigest(),'cargo_lock_sha256':hashlib.sha256((pkg/'Cargo.lock').read_bytes()).hexdigest(),'rustc':command('rustc','-Vv'),'swift':command('xcrun','swiftc','--version'),'sdk_version':command('xcrun','--show-sdk-version'),'rust_flags':'release thinLTO skia-backend','rust_build_skipped':os.environ.get('PEN_SKIP_CARGO','0')=='1','build_environment':{k:v for k,v in os.environ.items() if k.startswith(('CARGO_PROFILE_', 'CARGO_TARGET_')) or k in ['RUSTFLAGS','CARGO_ENCODED_RUSTFLAGS','CARGO_BUILD_TARGET','RUSTC_WRAPPER','RUSTC_WORKSPACE_WRAPPER','MACOSX_DEPLOYMENT_TARGET']},'swift_flags':'-O -swift-version 5 -warnings-as-errors','abi':1},sort_keys=True))
 PY
 xcrun swiftc -swift-version 5 -warnings-as-errors -O -target "$(uname -m)-apple-macosx13.0" -module-cache-path "$target/pen-swift-module-cache" \
  -import-objc-header "$package/include/pen_comparison.h" "$package/macos/pen_latency_main.swift" \
