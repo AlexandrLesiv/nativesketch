@@ -51,7 +51,7 @@ class AnalysisTests(unittest.TestCase):
         folder=self.fixture(); (folder/'final.png').write_bytes(b'bad')
         with self.assertRaises(ValueError): A['analyze_run'](folder,self.c,self.identity)
     def collection(self,configs):
-        self.write(self.root/'collection.json',dict(runs=configs,identity=self.identity)); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
+        self.write(self.root/'collection.json',dict(runs=configs,identity=self.identity,recovery_s=2)); (self.root/'collection.sha256').write_text(A['digest'](self.root/'collection.json'))
     def test_partial_matrix(self):
         configs=R['matrix'](1,3); self.collection(configs); self.fixture(configs[0]); r=A['analyze'](self.root)
         self.assertEqual(r['declared_runs'],372); self.assertEqual(len(r['pending']),371); self.assertEqual(r['status'],'partial'); self.assertEqual(r['pairs'],[])
