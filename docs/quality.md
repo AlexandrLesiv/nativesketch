@@ -32,6 +32,11 @@ on Windows. Cross-host C# compilation or interop checks do not replace Windows l
 companion in the iPhone app. Device variants require owner provisioning.
 `scripts/check-apple-viewers` exercises actual Rust read-only imports, byte identity,
 stale/corrupt/oversized transfer retention, atomic caches and HTTPS download policy.
+Watch source checks additionally cover Rust version decisions, staged update ordering,
+legacy migration, phone-first fallback, and actual utility-queue callback delivery to
+MainActor. URLProtocol HTTP fixtures run on macOS; watchOS explicitly skips that fixture
+because its runtime did not intercept the requests. Watch replay launch validates the
+PASS marker as well as process launch status.
 Simulator viewer replays are debug-only and exit with a result; physical WatchConnectivity
 delivery and Vision input require separate device evidence.
 

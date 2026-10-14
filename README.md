@@ -10,7 +10,7 @@ platform. This is the first-stroke milestone, not a production drawing applicati
 | iOS / iPadOS | Swift / UIKit, touch tools and document picker | `scripts/build-ios simulator`, `scripts/build-ios device` |
 | visionOS | Swift / UIKit 2D editor | `scripts/build-visionos simulator` |
 | tvOS | UIKit view-only document viewer | `scripts/build-tvos simulator` |
-| watchOS | SwiftUI view-only iPhone companion | `scripts/build-watchos simulator` |
+| watchOS | Independent SwiftUI viewer, optional iPhone source | `scripts/build-watchos simulator` |
 | Android | Kotlin / Material Components for Views | `scripts/build-android`, `scripts/check-android` |
 | Windows | C# / WinUI 3 | `scripts/check-windows.ps1` on Windows |
 | Linux | Rust / GTK4 + libadwaita | `scripts/check-linux` |
@@ -23,10 +23,12 @@ GTK has been built on this Mac; that does not certify Linux. Windows C# compilat
 and its Rust interop check do not certify a packaged, running Windows application.
 
 Apple TV and Apple Watch are **view only**. TV opens explicit HTTPS document links;
-Watch receives a copy sent from iPhone. Vision Pro supports editing in a native 2D
+Watch opens cached copies, prefers iPhone and supports a configured server fallback.
+Production storage/authentication is not connected. Vision Pro supports editing in a native 2D
 window. Build the complete Apple family, including the embedded Watch companion, with
 `scripts/build-apple-family simulator` (or `device`, requiring owner provisioning).
-See [Apple-family evidence](docs/evidence/006-apple-device-family.md) for support limits.
+See [Apple-family evidence](docs/evidence/006-apple-device-family.md) and
+[Watch source verification](docs/evidence/007-watch-document-sources.md) for support limits.
 
 ## What works in this milestone
 

@@ -34,3 +34,5 @@ late reply, selection/account switch, duplicate/stale/conflict, bounded HTTPS an
 Build iOS/watchOS simulator and device; native small/large text inspection and independent
 launch. Physical paired transfer and real backend authentication remain separate evidence.
 Designer and fresh reviewer assess implementation; no merge into main.
+
+Evidence: [Watch source verification](../docs/evidence/007-watch-document-sources.md).

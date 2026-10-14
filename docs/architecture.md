@@ -92,4 +92,12 @@ TV downloads explicit HTTPS links with a streaming limit and imports a candidate
 replacing the cached copy. Watch receives an explicit iPhone snapshot via WatchConnectivity;
 metadata and bytes share an atomic cache envelope. Receiving validates in a separate Rust
 handle before replacing presentation. Sending a copy never acknowledges a document save.
-The watch is a companion viewer, with stable Rust ARM64 builds; arm64_32 is not configured.
+Watch runs independently with optional phone integration, using stable Rust ARM64 builds;
+arm64_32 is not configured. Native source adapters prefer iPhone on explicit refresh, then
+use a configured server for the same published identity. Phone-only copies cannot fall
+back to unpublished cloud data. Rust source policy compares namespace/document identity,
+immutable revision/parent, server generation and content hash; timestamps do not order
+copies. Swift validates hashes, correlates requests, bounds transport and atomically
+publishes Rust-validated cache entries. Newer metadata advances even for identical bytes.
+The production network/authentication service is not configured; current network adapter
+supports controlled public/developer sources. See `apps/watchos/SOURCES.md`.
