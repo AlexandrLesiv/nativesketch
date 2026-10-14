@@ -379,7 +379,9 @@ impl Replay {
             image_transform: fixtures::image_transform(0),
             has_clip: u32::from(self.config.scene == "clip"),
             has_image: u32::from(self.config.scene == "image"),
-            trace_complete: u32::from(self.index == self.events.len()),
+            trace_complete: u32::from(
+                self.index == self.events.len() && self.elapsed >= self.config.duration_s,
+            ),
             cache_allowed: u32::from(!moving),
             geometry_hash: [0; 65],
             document_hash: [0; 65],
@@ -612,6 +614,35 @@ mod tests {
                     .sum::<usize>() as u64,
                 a.total_samples
             );
+        }
+    }
+    #[test]
+    fn completion_waits_for_duration_and_preserves_terminal_commit() {
+        for trace in ["short", "long", "panzoom"] {
+            let mut r = replay(trace);
+            let before_end = r.advance(2.8).unwrap();
+            assert_eq!(before_end.trace_complete, 0, "{trace}");
+            if trace == "short" {
+                // Last short stroke ended at 2.75 s, but the declared 3 s trial
+                // still includes its idle tail. Advancing time must not add input.
+                assert_eq!(before_end.total_samples, before_end.expected_samples);
+                assert_eq!(before_end.live_outline_count, 0);
+                assert_eq!(before_end.base_outline_count, 3);
+            }
+            let final_frame = r.advance(3.0).unwrap();
+            assert_eq!(final_frame.trace_complete, 1, "{trace}");
+            assert_eq!(final_frame.total_samples, final_frame.expected_samples);
+            assert_eq!(final_frame.live_outline_count, 0);
+            if trace == "short" {
+                assert_eq!(final_frame.delivered_now, 0);
+                assert_eq!(final_frame.document_hash, before_end.document_hash);
+                assert_eq!(final_frame.geometry_hash, before_end.geometry_hash);
+            } else {
+                // Both continuous traces retain the sample scheduled exactly at
+                // the duration boundary before committing its stroke.
+                assert_eq!(final_frame.last_sample_time_s, 3.0);
+                assert_eq!(final_frame.base_outline_count, 1);
+            }
         }
     }
     #[test]
