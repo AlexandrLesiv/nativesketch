@@ -17,3 +17,6 @@ native-test-controls = ["sketch-services/native-test-controls"]
 [dependencies]
 sketch-core = { path = "../sketch-core" }
 sketch-services = { path = "../sketch-services" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+sketch-renderer = { path = "../sketch-renderer" }

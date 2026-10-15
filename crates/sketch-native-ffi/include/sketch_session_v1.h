@@ -42,4 +42,5 @@ uint32_t sketch_session_v1_detach(SketchRuntimeV1 *, SketchSessionV1 **);
 #ifdef __cplusplus
 }
 #endif
+#include "sketch_renderer_v1.h"
 #endif

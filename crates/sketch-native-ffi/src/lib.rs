@@ -22,3 +22,11 @@ mod test_api;
 mod boundary_tests;
 #[cfg(test)]
 mod recovery_tests;
+#[cfg(target_os = "macos")]
+mod renderer_api;
+#[cfg(target_os = "macos")]
+mod renderer_owner;
+#[cfg(all(test, target_os = "macos"))]
+mod renderer_tests;
+#[cfg(not(target_os = "macos"))]
+mod renderer_unsupported;

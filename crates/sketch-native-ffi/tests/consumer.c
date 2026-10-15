@@ -6,7 +6,16 @@
 _Static_assert(sizeof(SketchSampleV1) == 48, "sample layout");
 _Static_assert(sizeof(SketchCommandV1) == 48, "command layout");
 _Static_assert(offsetof(SketchOutcomeV1, effect) == sizeof(SketchProjectionV1), "projection layout");
+_Static_assert(sizeof(SketchRenderRequestV1) == 152, "render request layout");
+_Static_assert(offsetof(SketchRenderRequestV1, selection_rgba) == 88, "render color layout");
+_Static_assert(sizeof(SketchRenderStatsV1) == 72, "render stats layout");
+_Static_assert(offsetof(SketchRenderStatsV1, background_hit) == 64, "render stats flag layout");
 int main(void) {
+  SketchRendererV1 *renderer = NULL;
+  uint32_t renderer_status = sketch_renderer_v1_create(NULL, NULL, &renderer);
+  assert(renderer_status == SK_V1_INVALID_ARGUMENT || renderer_status == SK_V1_UNSUPPORTED);
+  assert(renderer == NULL);
+  assert(sketch_renderer_v1_free(&renderer) == SK_V1_OK);
   SketchRuntimeConfigV1 config = {0};
   config.struct_size = sizeof(config);
   SketchRuntimeV1 *runtime = NULL;

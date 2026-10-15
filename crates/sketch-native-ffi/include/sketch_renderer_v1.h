@@ -1,6 +1,6 @@
 #ifndef SKETCH_RENDERER_V1_H
 #define SKETCH_RENDERER_V1_H
-#include "sketch_session_v1.h"
+#include "sketch_values_v1.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
