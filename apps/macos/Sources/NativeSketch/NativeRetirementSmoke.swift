@@ -56,5 +56,10 @@ import CSketchSession
     state.needs_poll = 0
     state.stopped = 1
     precondition(NativePumpDecision(state: state, retiring: false).delay == nil)
+    state.ready_events = 1
+    precondition(NativePumpDecision(state: state, retiring: false).delay != nil)
+    state.ready_events = 0
+    state.retained_events = 1
+    precondition(NativePumpDecision(state: state, retiring: false).delay != nil)
   }
 }
