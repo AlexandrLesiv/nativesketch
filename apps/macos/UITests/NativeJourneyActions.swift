@@ -25,7 +25,9 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
     let tree = XCTAttachment(string: app.debugDescription)
     tree.lifetime = .keepAlways
     activity.add(tree)
-    let screenshot = XCTAttachment(screenshot: mainWindow.screenshot())
+    // The native popup can extend beyond the document window. Retain this broader
+    // capture privately: it can include desktop background outside the test app.
+    let screenshot = XCTAttachment(screenshot: app.screenshot())
     screenshot.lifetime = .keepAlways
     activity.add(screenshot)
   }
