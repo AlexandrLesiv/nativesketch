@@ -1,12 +1,13 @@
 # Skia, scene construction and caching
 
-Skia is selected; integration remains task 020 and platform acceptance tasks. Scene data
+Skia is selected; macOS implementation is in task 020, with native acceptance pending. Scene data
 stays independent of Skia, but implement only the chosen production backend. Preserve
 historical Vello/Core Graphics experiments and their qualified results.
 
 The macOS migration follows the [scene and surface contract](skia-macos-contract.md).
-Selection of Skia does not mean every host already uses it: until this slice is verified,
-the existing macOS application uses Core Graphics. Other hosts retain their current
+The current macOS source uses Skia Ganesh/Metal through a CAMetalLayer. The old Core
+Graphics painter remains an unused reference, with no production fallback. A successful
+build is not native runtime acceptance. Other hosts retain their current
 prototype renderers; UIKit/Apple viewers, Android/ChromeOS, Windows, Linux and web need
 separate native-surface or CanvasKit integration and host acceptance. This task neither
 certifies those hosts nor changes their controls or shared command migration status.

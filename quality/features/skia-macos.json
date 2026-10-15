@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "skia-macos",
   "description": "Task 020 acceptance separates portable scene geometry, host Skia pixels and actual native presentation. Automation mappings are not execution results.",
-  "sourceRevision": "10b05487e438cc918f878fe72dafe1d2f6900f3c",
+  "sourceRevision": "86ac9f8",
   "cases": [
     {
       "id": "SKIA-VISUAL-001",
@@ -25,14 +25,28 @@
           "platform": "macos",
           "level": "native-e2e",
           "coverage": {
-            "automation": "planned",
-            "testIds": [],
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal"
+            ],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::cached_reference_and_analytic_alpha_preserve_order",
+              "cargo:sketch-renderer:macos:lib:tests::pixels::transform_preview_stays_below_later_strokes_and_omits_culled_original"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -40,7 +54,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -70,10 +84,22 @@
             "testIds": [],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::one_fill_for_overlapping_actual_prediction_contours_and_atomic_commit",
+              "cargo:sketch-renderer:macos:lib:tests::pixels::cached_reference_and_analytic_alpha_preserve_order"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -81,7 +107,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -108,14 +134,28 @@
           "platform": "macos",
           "level": "native-e2e",
           "coverage": {
-            "automation": "planned",
-            "testIds": [],
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
+            ],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::one_fill_for_overlapping_actual_prediction_contours_and_atomic_commit"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -123,7 +163,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -150,14 +190,30 @@
           "platform": "macos",
           "level": "native-e2e",
           "coverage": {
-            "automation": "planned",
-            "testIds": [],
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
+            ],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::reset_and_budget_bypass_preserve_pixels_without_retaining_oversized_resources",
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::new_session_with_reused_id_and_viewport_density_replaces_cached_content"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -165,7 +221,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -196,10 +252,23 @@
             "testIds": [],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::negative_coordinate_alpha_matches_at_zoom_and_backing_density_matrix",
+              "cargo:sketch-renderer:macos:lib:tests::precision::actual_editor_long_stroke_preserves_far_endpoint_in_positive_and_negative_viewports",
+              "cargo:sketch-renderer:macos:lib:tests::precision::enclosing_giant_curved_contour_keeps_fill_and_single_alpha"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -207,7 +276,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -222,14 +291,29 @@
           "platform": "macos",
           "level": "native-e2e",
           "coverage": {
-            "automation": "planned",
-            "testIds": [],
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
+            ],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::invalid_and_stale_requests_do_not_change_cache_state"
+            ],
+            "gaps": []
           }
         }
       ],
@@ -237,7 +321,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -252,11 +336,18 @@
           "platform": "macos",
           "level": "native-e2e",
           "coverage": {
-            "automation": "planned",
-            "testIds": [],
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState",
+              "xctest:NativeSketchUITests:NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState",
+              "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testSmallDarkWindowFitsInspectorAndAcceptsDrawing",
+              "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands"
+            ],
             "gaps": [
               {
-                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -267,7 +358,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]

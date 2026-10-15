@@ -15,13 +15,13 @@ import Metal
   private var injectedFailure = false
   private var lastFailure: UInt32?
   private(set) var presented: UInt64 = 0
-  private var lastPresentation: (session: UInt64, scene: UInt64, surface: UInt64)?
+  private var requestGeneration: UInt64 = 0
+  private var lastPresentation: RenderPresentationKey?
+  private var presentationKey: RenderPresentationKey {
+    RenderPresentationKey(canvas: canvas, surface: surface.generation, request: requestGeneration)
+  }
   var currentScenePresented: Bool {
-    guard let lastPresentation else { return false }
-    let value = canvas.editor.projection
-    return lastPresentation.session == value.session
-      && lastPresentation.scene == value.scene_generation
-      && lastPresentation.surface == surface.generation
+    !state.closed && lastPresentation == presentationKey
   }
   init(canvas: CanvasView, surface: MetalSurface) throws {
     self.canvas = canvas
@@ -34,6 +34,7 @@ import Metal
   }
   func invalidate() {
     guard !state.closed else { return }
+    requestGeneration += 1
     if !state.pending { requestedAt = ProcessInfo.processInfo.systemUptime }
     state.request()
     schedule()
@@ -95,6 +96,7 @@ import Metal
       let session = canvas.editor.projection.session
       let scene = canvas.editor.projection.scene_generation
       let surfaceGeneration = surface.generation
+      let key = presentationKey
       let frame = canvas.renderDiagnostics.record(
         stats, session: session, scene: scene, surface: surfaceGeneration,
         requestedAt: requestedAt, renderStartedAt: acquired, acquisition: acquisition,
@@ -105,12 +107,9 @@ import Metal
         Task { @MainActor [weak self] in
           guard let self else { return }
           self.canvas.renderDiagnostics.presented(frame, time: time)
-          if !self.state.closed && self.surface.generation == surfaceGeneration
-            && self.canvas.editor.projection.session == session
-            && self.canvas.editor.projection.scene_generation == scene
-          {
+          if !self.state.closed && self.presentationKey == key {
             self.presented += 1
-            self.lastPresentation = (session, scene, surfaceGeneration)
+            self.lastPresentation = key
           }
         }
       }

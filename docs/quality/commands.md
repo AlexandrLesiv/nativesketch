@@ -9,7 +9,7 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | Command | Scope |
 | --- | --- |
 | `node scripts/board.ts [--check]` | Original board validation/listing, including done-dependency requirement |
-| `node scripts/check.ts [--core]` | Board, JS formatting/type/lint, tooling negative tests, source/dependency gates, Rust; macOS link/smoke unless core |
+| `node scripts/check.ts [--core]` | Board, JS formatting/type/lint, tooling negative tests, source/dependency gates, Rust; macOS link/smoke and GPU-free Swift scheduling policy tests unless core |
 | `node scripts/check.ts --platform wasm` | Real Wasm/native document equivalence and protocol-v1 fixtures |
 | `node scripts/check.ts --platform web` | Wasm, TypeScript, Vite, actual Wasm adapter and precache/subpath checks |
 | `node scripts/check.ts --platform apple-viewers` | Swift/Rust host viewer/source replays |
