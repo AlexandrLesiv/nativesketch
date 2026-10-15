@@ -1,0 +1,63 @@
+# Task 017 macOS native E2E foundation
+
+Implementation starts at `4c8355f44fe7a59197d79b131cf13b9448e4bb59` in the isolated
+`codex/macos-e2e-foundation` worktree. This is a compiled driver with native execution
+**blocked**, not completed native acceptance. No physical pen or latency measurement ran.
+
+The standalone XCTest UI target and three small Swift test files compile with Xcode 27.0
+(27A266a), macOS SDK 27.0, on Mac14,10 arm64 running macOS 27.0.1 (26A434). The Node
+preparation command builds the actual Swift/Rust application and packages an ad-hoc-signed
+copy with a source/worktree-specific bundle identifier. This prevents XCTest launch/quit from disturbing an
+ordinary Native Sketch process or its unsaved documents. Disposable files live within the
+new per-run evidence directory. Native controls keep their spoken labels and gain stable
+canvas/width/color identifiers through a 10-line accessibility helper; the existing large
+Swift file does not grow. Its extraction remains task 019.
+
+The intended executable case is
+`xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen`. It uses actual XCUI
+keyboard/pointer actions through AppKit, native width and color controls, a saved-document
+read-only oracle (RGBA, width, mouse provenance, absent pressure, sample ordering and straight
+trajectory), interior red-pixel assertions, normal Quit/new PID/relaunch/Open, and Save As
+followed by exact byte comparison. These assertions target BRUSH-001 and FILE-001. Their
+selectors and behavior remain unproven until the real journey executes. No planned mapping
+should be presented as a passing or discovered native test.
+
+## Execution evidence and blocker
+
+An actual initial XCTest invocation failed before test execution with
+`com.apple.LocalAuthentication Code=-1004`, “Can't authenticate off console”. The execution
+user differs from the active console owner. The subsequent enumeration-only invocation
+returned exit zero but contained the same setup errors and only a suite name, so no native
+executable test was discovered. The driver now checks console ownership before invoking
+XCTest and rejects enumeration errors regardless of process exit status. User switching
+and authorization remain human actions; no account, trust or privacy settings were changed.
+The lead requested the active user session; dependent UI attempts remain pending.
+
+Ignored artifacts under `artifacts/evidence/macos-prepared-2/` record the successful app and
+test builds, source/diff identity and binary SHA-256 values. `artifacts/first.xcresult` and
+initial local logs preserve the off-console failure. The preparation run deliberately
+returns nonzero, leaves discovery/results empty and writes `blocked.json`. It neither runs
+UI nor turns a successful compile into an E2E result. Evidence must be rerun at the final
+integrated source revision before closing task 017.
+
+## Verification and limits
+
+- Expanded XCTest target: build-for-testing passed; app build/package passed.
+- New Swift files: strict swift-format passed; all new source files are below 200 lines.
+- Node runner: TypeScript checking and type-aware Oxlint passed; Oxfmt passed.
+- Five executable Node tests passed: enumeration errors despite exit zero, unique actual
+  case discovery, system setup failure exclusion, assertion/skip preservation, and failed
+  runner finalization invalidating a nominal Passed case.
+- Runtime source identity is checked after building and before results publication; changed
+  tracked or untracked source rejects stale evidence. App and test executable hashes differ
+  explicitly. Failed/skipped/blocked outcomes survive imported result envelopes. Explicit
+  attempt numbers and new output directories preserve retries.
+- Native full journey, focused-field shortcuts, actual color/file panel selector behavior,
+  accessibility speech, pen pressure/palm rejection, display changes and recovery: not run.
+
+See [runner instructions](../../apps/macos/UITests/README.md). Other platform E2E drivers are
+not claimed by this macOS foundation. No renderer, persistence or editing semantics changed.
+
+Same-source retries in this checkout retain the isolated bundle identifier so ad-hoc signing
+produces the same executable identity. Two separately copied/signed app bundles produced
+the identical SHA-256 in a non-UI reproduction. Source changes create a new isolated identity.

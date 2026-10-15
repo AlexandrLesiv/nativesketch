@@ -1,0 +1,61 @@
+import XCTest
+
+@MainActor
+func chooseBrush(in app: XCUIApplication, width value: String, hex: String) throws {
+  app.buttons["Style and Selection"].click()
+  let width = app.textFields["sketch.brush.width"]
+  XCTAssertTrue(width.waitForExistence(timeout: 5))
+  width.click()
+  width.typeKey("a", modifierFlags: .command)
+  width.typeText(value)
+  width.typeKey(.return, modifierFlags: [])
+  app.colorWells["sketch.brush.color"].click()
+  let colors = app.windows["Colors"]
+  XCTAssertTrue(colors.waitForExistence(timeout: 5))
+  colors.buttons["Color Sliders"].click()
+  colors.popUpButtons.firstMatch.click()
+  app.menuItems["RGB Sliders"].click()
+  let hexadecimal = colors.textFields["Hex Color #"]
+  XCTAssertTrue(hexadecimal.waitForExistence(timeout: 5))
+  hexadecimal.click()
+  hexadecimal.typeKey("a", modifierFlags: .command)
+  hexadecimal.typeText(hex)
+  hexadecimal.typeKey(.return, modifierFlags: [])
+  colors.buttons[XCUIIdentifierCloseWindow].click()
+  app.typeKey(.escape, modifierFlags: [])
+}
+
+@MainActor
+func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
+  app.typeKey("s", modifierFlags: saveAs ? [.command, .shift] : .command)
+  let panel = app.dialogs.firstMatch
+  XCTAssertTrue(panel.waitForExistence(timeout: 5))
+  try navigateFilePanel(app, to: url)
+  panel.buttons["Save"].click()
+  let saved = XCTNSPredicateExpectation(
+    predicate: NSPredicate { _, _ in
+      FileManager.default.fileExists(atPath: url.path)
+    }, object: nil)
+  XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 10), .completed)
+  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+}
+
+@MainActor
+func openDocument(in app: XCUIApplication, at url: URL) throws {
+  app.typeKey("o", modifierFlags: .command)
+  let panel = app.dialogs.firstMatch
+  XCTAssertTrue(panel.waitForExistence(timeout: 5))
+  try navigateFilePanel(app, to: url)
+  panel.buttons["Open"].click()
+  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+}
+
+@MainActor
+private func navigateFilePanel(_ app: XCUIApplication, to url: URL) throws {
+  app.typeKey("g", modifierFlags: [.command, .shift])
+  let field = app.comboBoxes.firstMatch
+  XCTAssertTrue(field.waitForExistence(timeout: 5))
+  field.typeText(url.path)
+  field.typeKey(.return, modifierFlags: [])
+  XCTAssertTrue(field.waitForNonExistence(timeout: 5))
+}

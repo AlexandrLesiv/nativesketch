@@ -68,7 +68,7 @@ import CSketchFFI
     super.init(frame: .zero)
     setAccessibilityElement(true)
     setAccessibilityRole(.group)
-    setAccessibilityLabel("Drawing canvas")
+    NativeAccessibility.label(self, id: "sketch.canvas", text: "Drawing canvas")
     setAccessibilityHelp(
       "P for Pen, V for Select. Space drag to pan. Select strokes using the Edit menu, then use Scale percent to resize."
     )
@@ -390,9 +390,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     tool.action = #selector(changeTool(_:))
     tool.setAccessibilityLabel("Drawing tool")
     color.color = .black
-    color.setAccessibilityLabel("Stroke color")
+    NativeAccessibility.label(color, id: "sketch.brush.color", text: "Stroke color")
     color.widthAnchor.constraint(equalToConstant: 44).isActive = true
-    width.setAccessibilityLabel("Stroke width in document points")
+    NativeAccessibility.label(width, id: "sketch.brush.width", text: "Stroke width in document points")
     width.target = self
     width.action = #selector(widthChanged(_:))
     width.widthAnchor.constraint(equalToConstant: 48).isActive = true
