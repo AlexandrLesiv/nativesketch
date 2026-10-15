@@ -1,6 +1,6 @@
 # Task 019A: portable application routing evidence
 
-Tested source: `a9360b3a9c36c70656b92f5807e48bd500a105ec`, isolated branch
+Final tested source: `1344d3daaa906fedb019544e9bc049c95b1b852d`, isolated branch
 `codex/application-command-router`, starting at `2db951c`. This is the portable semantic
 router stage. It does not introduce C symbols, native runtime workers or migrated Swift callers.
 
@@ -10,10 +10,10 @@ were retained in the isolated checkout.
 
 ## Exact-revision results
 
-`node scripts/check.ts --core`: passed 54 Node tests and 128 Rust tests, including all 23
+`node scripts/check.ts --core`: passed 54 Node tests and 129 Rust tests, including all 24
 new routing tests. Rust format/Clippy, Oxfmt/Oxlint, strict TypeScript, source-size and dependency
 checks passed. Five pre-existing host source-size debts remain; all added source/tests are
-at most 171 physical lines. One inherited storage child-writer fixture is ignored in ordinary
+at most 172 physical lines. One inherited storage child-writer fixture is ignored in ordinary
 enumeration and explicitly executed by its process-kill parents. The core runner explicitly
 skips macOS build/ABI smoke; native UI and physical input are not included in these results.
 
@@ -21,15 +21,15 @@ skips macOS build/ABI smoke; native UI and physical input are not included in th
 conformance and all 20 frozen protocol-v1 request/response pairs passed. ABI2 and document
 fixtures also passed in the Rust workspace suite. No existing protocol declaration changed.
 
-`cargo test -p sketch-core application::routing -- --list` discovered the 23 actual executable
+`cargo test -p sketch-core application::routing -- --list` discovered the 24 actual executable
 IDs. Raw logs/discovery are retained under ignored `artifacts/verification/019a/` in the
 implementation worktree. Lead-owned acceptance mappings remain separate from this report.
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `core-check.log` | `64b7c0485641468fbebc7972ec219e8bb21d7815dea0473d302c4e60c887954b` |
-| `wasm-check.log` | `1185e606b69ea8630651703941f28a8dc08c90c64953b66f338cea5607ff7d3d` |
-| `discovered-tests.log` | `206db86cf62e971d1d32dcf01d7012fbe05bd123e68f6f73121be420b611770f` |
+| `core-check-final.log` | `11e65472c902586035b4f01f28a54806d5e8a5d59c0ccde4fa27022ec9e9b42e` |
+| `wasm-check-final.log` | `cb6a58ade7d5342e15faf939a695b115aeac9343942d8f8ac91a3ed5b35225cc` |
+| `discovered-tests-final.log` | `ed135d712f552354deb35cd0b57c9dcec0ff271ec49fd7bedcc66b6889c55497` |
 | `target/wasm32-unknown-unknown/release/sketch_wasm.wasm` | `326405c070f25b25d4b70f8231d74f5000da1ee972a2b7e032f4f5e20d67268f` |
 
 ## Behavior exercised
@@ -41,6 +41,7 @@ core tests retain brush/sample/transaction semantics. They are not native E2E ev
 | Test module | Cases | Behavior |
 | --- | ---: | --- |
 | `effects` | 4 | Invalid/replayed effects preserve draft/pending state; wrapped direct replacement denied; capability/busy preflight; accepted file cancellation; readonly export; whole-batch rejection and one-operation undo |
+| `failure_ownership` | 1 | Rejected read failure retains unique ownership after stale/cross-session delivery; correct owner consumes once; replay rejected |
 | `lifecycle` | 5 | Rejected completion retains unique ownership; failed save preserves edits and reports details; source-panel late edits rejected; lost completion remains visible; cross-session effect rejection |
 | `limits` | 1 | 1024 undelivered obligations cannot grow without bound or silently unblock work |
 | `navigation` | 4 | Taken-but-undelivered completion cannot bypass navigation; save/close dirty rechecks; stale discard decisions; cancelled navigation does not cancel writes |
@@ -52,7 +53,11 @@ Draft review identified the unbound Save/pending Save As preflight gap; the guar
 regression were included before the frozen commit. A preliminary Clippy failure in explicit
 non-Drop fixture destruction was repaired without suppressing the lint. Final checks above
 ran on the frozen implementation. Independent assessment is reported separately by the fresh
-reviewer against this source identity.
+reviewer against this source identity. Initial `a9360b3` gates passed 54 Node/128 Rust cases;
+their raw logs remain retained without the `-final` suffix. Review then identified that a
+rejected by-value replacement failure could lose its only terminal event. Commit `1344d3d`
+retains it until validated consumption, adds the ownership regression, and reruns all final
+gates reported above. This supersedes the initial implementation assessment.
 
 ## Ownership and remaining work
 
