@@ -142,3 +142,18 @@ mouse/keyboard route remain as recorded above. The largest changed test is 173 p
 App SHA-256: `d6a081008833f1f7d6a27bc2237b8331b58314a02e7526e229f33c4a0cb3747d`.
 Test SHA-256: `7f9a4933dc79af9edbd021792eca2471afa3643a5f0444987016f757ef670447`.
 Prior proof remains retained; this does not broaden the physical-input, speech or locale scope.
+
+Independent review at `8973b71` found no actionable issues, built the app in isolation,
+ran the headless integration, checked strict formatting and the source cap, and audited
+the actual five-case run plus the width-12 document checksum. A scoped follow-up review at
+`eb5e670` found no issues in feedback ownership or the stronger bound-Save oracle; it
+independently checked the resulting 24-byte empty document and successful XCTest finalization.
+The designer independently exercised native refusal/Escape behavior at `8973b71`, then
+closed the lingering-message finding through source/artifact review at `eb5e670`.
+Neither review grants broader accessibility or physical-input acceptance.
+
+The lead integrated these commits through `a973137`. Local copies of the exact worker
+proof are under `artifacts/evidence/019-native/{native-field-validation,native-followups}`;
+review records are under `artifacts/verification/{019-field-independent,019-followup-independent}`.
+The native registry maps the narrow field-validation case and keeps broader FOCUS-001
+partial. Historical worker proof is not relabeled as an integrated-revision native run.

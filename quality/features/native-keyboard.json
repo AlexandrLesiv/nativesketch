@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-keyboard",
-  "description": "Scoped macOS keyboard regression journeys verified at 458f923 after the owner disabled a conflicting system shortcut. Native event delivery is exercised; physical pen, general accessibility, all field contexts and pixel equivalence are separate coverage.",
-  "sourceRevision": "458f9234e708fe053939eca55f9d702f9ad9d3dd",
+  "description": "Scoped macOS keyboard regression journeys verified at eb5e670 after the owner disabled a conflicting system shortcut. Native event delivery is exercised; physical pen, general accessibility, all field contexts and pixel equivalence are separate coverage.",
+  "sourceRevision": "eb5e670e73399ea4e62020c85e7ea30e063fc0f6",
   "cases": [
     {
       "id": "NATIVE-SAVEAS-001",
@@ -71,6 +71,33 @@
             "automation": "implemented",
             "testIds": [
               "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Acceptance requires the mapped native macOS journey at the tested revision.",
+          "ownerTask": "019"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-FIELD-VALIDATION-001",
+      "expected": "Empty width retains native edit focus and refuses ink; Escape restores the prior value and clears guidance; a valid commit clears guidance and draws one undoable stroke at that width",
+      "invariants": ["FOCUS-001", "UNDO-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeFieldValidationTests/testIncompleteWidthRefusesInkAndEscapeRestoresValue"
             ],
             "gaps": []
           }

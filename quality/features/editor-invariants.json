@@ -243,11 +243,12 @@
           "coverage": {
             "automation": "partial",
             "testIds": [
-              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState"
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState",
+              "xctest:NativeSketchUITests:NativeFieldValidationTests/testIncompleteWidthRefusesInkAndEscapeRestoresValue"
             ],
             "gaps": [
               {
-                "reason": "Width-field shortcuts and document retention are tested; invalid field focus transfer, other native field/panel contexts and keyboard traversal remain pending.",
+                "reason": "Width-field shortcuts and empty-field focus refusal are tested; other invalid ranges, native field/panel contexts, locale/IME behavior and keyboard traversal remain pending.",
                 "ownerTask": "019"
               }
             ]

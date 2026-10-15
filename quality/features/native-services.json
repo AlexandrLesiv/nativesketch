@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "native-services",
   "description": "021B native local service contracts on the explicitly executed desktop host. No UI, power-loss, ACL/provider, mobile or browser acceptance is inferred. The ignored child fixture is invoked by mapped process-kill parents, never treated as a passing standalone test.",
-  "sourceRevision": "89e894e504ecb1ed2270cd823a5d94793094011e",
+  "sourceRevision": "929535759f7ea30ef93b9bad9686f33a548b511d",
   "cases": [
     {
       "id": "SERVICE-WRITE-001",
