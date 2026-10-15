@@ -1,13 +1,18 @@
 # macOS typed-session integration contract
 
-Proposed implementation boundary after reviewed task 021 services. This document does
+Agreed implementation boundary after reviewed task 021 services. This document does
 not claim new symbols or migrated native callers. The existing ABI 2 and Wasm 1 stay intact.
 The initial native extraction remains a compatibility step; it must not create another
 Swift authority for brush, tool, document, history or saved revision.
 
 ## Ownership and interface direction
 
-- An additive, independently versioned C session interface wraps `EditorSession`; legacy
+- `ApplicationSession` composes `EditorSession` and semantic file/navigation effect state.
+  All adapters enter its typed command dispatcher. `NativeRuntime` composes the process-wide
+  save coordinator, ordered bounded read/write service, destination/event registries,
+  recovery scheduling and diagnostics. The FFI validates C values and ownership; it does
+  not implement another set of editing or file rules.
+- An additive, independently versioned C session interface wraps `ApplicationSession`; legacy
   `SketchEditor` symbols and numeric statuses retain their existing semantics.
 - One Swift `@MainActor` bridge owns each session handle and frees it once. All session
   calls, including destruction, occur on that owner. Worker code never receives the handle.
@@ -77,6 +82,10 @@ after a window closes. Existing-file aliases and nonexistent-file identity use o
 native resolver: resolve the existing parent identity plus the proposed leaf for new files;
 reconcile identity after replacement. A globally serial worker remains the final ordering
 guarantee even when two grants were assigned different identities for one destination.
+The native adapter retains the grant and supplies a bounded copied descriptor. Filesystem
+validation/canonicalization and `DestinationAccess` construction run on the worker, not the
+UI owner. An issued terminal event releases the retained grant. Reads share accepted ordering
+with writes: Open must not overtake an accepted Save and observe obsolete bytes.
 Snapshot admission runs on the session owner, outside pen callbacks, with capacity reserved
 before copying. It captures the exact requested revision. The service worker owns encoding
 and staged writes; Swift never serializes a document or marks it clean independently.
@@ -103,17 +112,21 @@ The window title continues to identify the old destination until confirmed adopt
 A bounded reader produces a fully validated owned candidate off the UI thread. Its request
 captures the previous session plus a native navigation generation. On the owner, reject
 obsolete candidates before replacement; do not bind a delayed read to the current document.
-Use one bridge operation for `ReplaceDocument` plus `bind_loaded_destination` after the
-candidate and destination are valid, with no native input between those steps. Keep the
-previous document on validation/read failure. Test the binding preconditions and ensure
-there is no fallible post-replacement step that can leave a partially applied load.
+Prepare a complete replacement with its binding before installation; validate the issued
+read against session, navigation generation and the content revision authorized for replacement.
+Installation is atomic with no fallible post-replacement bind. Keep the previous document on
+validation/read failure or newer edits, and preserve current valid tool/brush settings.
+Reserve bounded retirement capacity before swapping a large document; its destruction must
+not occur in a pen callback.
 
 Recovery uses the separate recovered-copy constructor: editable, dirty, no destination,
 new session identity. Never call normal load binding for a recovered copy. Explicit discard
 and candidate retention remain service operations; opening a recovered copy does not imply
 that its only recovery generation may be deleted immediately.
 
-Close/new/open/quit use a native navigation state machine and asynchronous sheets. Pending
+Close/new/open/quit use a Rust semantic navigation state machine and native asynchronous sheets.
+Swift owns presentation and platform lifecycle responses, never a duplicate dirty/save decision.
+Pending
 writes settle without UI waits; cancellation can cancel navigation while retaining the open
 document. Recheck dirty state after completion because newer edits can exist. Deferred app
 termination must finish or deliberately cancel this workflow rather than blocking the main
@@ -132,5 +145,31 @@ Track one navigation intent at a time. Every `.terminateLater` response receives
 - Actual save failures, delayed completion during edits/navigation, recovered dirty/unbound
   copies, and bounded queue/log behavior. Keep physical pen latency pending a camera.
 
-Contract refinement must be agreed by Rust and macOS owners before parallel implementation.
+## Agreed implementation stages
+
+Rust and macOS owners agreed this direction before implementation. Keep staged delivery explicit:
+
+| Stage | Owner and outcome | Gate before adoption |
+| --- | --- | --- |
+| 019A | Rust portable `ApplicationSession`, typed commands/effects, navigation and prepared replacement | Rejection/ownership/identity/revision tests and fresh review |
+| 019B | Rust additive `sketch_session_v1_*`, projection/input/owned scene C interface | Layout, capacity, panic/ownership tests and a real Swift consumer; ABI 2/Wasm 1 unchanged |
+| 019C | Rust `sketch_runtime_v1_*`, bounded ordered read/write events and destination continuation | Failure, stale read, ordering, receipt/grant lifecycle and shutdown tests |
+| 019D | Swift bridge, presenters and unified native command adapter | Controls/canvas use Rust projection; native validation precedes dispatch |
+| 019E | Native async sheets, recovery and deferred close/quit | Actual native journeys, designer assessment and fresh review |
+
+Command families are edit, input batch, file intent, issued effect reply and issued service
+result. Separate borrowed-input C functions construct the same command route. Effects include
+destination/source choice, unsaved-change confirmation, awaiting writes, queued operations,
+navigation readiness and failure presentation. Cancellation is a valid typed reply, not a
+storage failure. Unknown or reused effect identities cannot authorize a state change.
+
+Opaque runtime/session/scene handles use explicit release; C values use fixed-width tags,
+lengths and reserved fields. Versioned function families cover creation, dispatch, input,
+projection/action availability, owned scene copy, bounded polling, issued-event apply/discard,
+session detach and asynchronous shutdown. A scene snapshot carries session/revision/generation
+and avoids rebuilding between count and copy. Constructors initialize output handles to null;
+other failure paths leave outputs unchanged except documented count/initialization outputs.
+
+One writer owns shared interface changes. Freeze the actual C declarations before Swift
+implementation; speculative native symbols or no-op commands do not count as adopted behavior.
 This phase does not change the temporary Core Graphics painter; production Skia follows task 020.

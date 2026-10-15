@@ -3,7 +3,9 @@
 Status: waiting.
 Local preparation: independently reviewed mechanical extraction is integrated and tested
 at `91efb03`; [evidence](../docs/evidence/019-composition-extraction.md). Typed session/storage
-adoption and native acceptance remain pending; Save As shortcut diagnosis is active.
+adoption and broader native acceptance remain pending. Save As keyboard delivery passes after
+the owner disabled a conflicting system shortcut; the original app binding was preserved.
+The [agreed staged bridge contract](../docs/architecture/019-session-bridge.md) defines 019A–E.
 Owner role: macos_ui (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: apps/macos/; macOS E2E fixtures; only agreed shared contract changes.
@@ -29,7 +31,9 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
 - Command-Shift-S failed to expose a Save As panel in native attempt 6, despite a defined
   shortcut/enabled menu. The native File → Save As menu passes. Diagnose responder/menu
   routing and test the shortcut independently with canvas focus; do not infer keyboard
-  equivalence from the menu journey.
+  equivalence from the menu journey. Resolved diagnosis: external system shortcut conflict;
+  actual keyboard tests pass at `458f923`. Stronger ordinary-Save change assertions follow
+  separately; do not interpret this as a change to the application's shortcut binding.
 - Final AX snapshots report application/window/canvas Disabled with canvas keyboard focus.
   Investigate actual enabled attributes and VoiceOver behavior; the successful mouse journey
   does not certify accessibility or establish the cause of that reporting.
