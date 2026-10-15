@@ -15,8 +15,14 @@ import CSketchSession
     return state.outstanding_saves > 0 ? "Saving…" : nil
   }
 
-  @discardableResult func request(_ command: SessionCommand) -> Bool {
-    owner.focusRestoration.capture()
+  @discardableResult func request(
+    _ command: SessionCommand, preservingFocus generation: UInt64? = nil
+  ) -> Bool {
+    if let generation {
+      guard owner.focusRestoration.isCurrent(generation) else { return false }
+    } else {
+      owner.focusRestoration.capture()
+    }
     guard owner.inspectorController.fieldEditing.finishEditing() else {
       owner.focusRestoration.discard()
       return false

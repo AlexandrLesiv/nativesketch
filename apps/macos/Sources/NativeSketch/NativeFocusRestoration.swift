@@ -17,7 +17,7 @@ import AppKit
       object: owner.window)
   }
   deinit { NotificationCenter.default.removeObserver(self) }
-  func capture() {
+  @discardableResult func capture() -> UInt64 {
     generation &+= 1
     pending = false
     session = owner.editor.projection.session
@@ -32,6 +32,10 @@ import AppKit
         break
       }
     }
+    return generation
+  }
+  func isCurrent(_ expected: UInt64) -> Bool {
+    expected == generation && session == owner.editor.projection.session
   }
   func discard() {
     generation &+= 1

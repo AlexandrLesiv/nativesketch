@@ -19,7 +19,7 @@ import CSketchSession
 
   func show() {
     guard owner.window.attachedSheet == nil else { return }
-    owner.focusRestoration.capture()
+    let focusGeneration = owner.focusRestoration.capture()
     let session = owner.editor.projection.session
     guard owner.inspectorController.fieldEditing.finishEditing() else {
       owner.focusRestoration.discard()
@@ -37,7 +37,7 @@ import CSketchSession
       inventory.onChange = nil
       inventory.onFailure = nil
       if let requestedItem {
-        _ = owner.documents.request(.recover(requestedItem))
+        _ = owner.documents.request(.recover(requestedItem), preservingFocus: focusGeneration)
       } else {
         owner.focusRestoration.cancelled(session: session)
       }
