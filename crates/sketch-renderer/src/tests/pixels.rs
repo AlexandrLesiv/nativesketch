@@ -73,3 +73,25 @@ fn one_fill_for_overlapping_actual_prediction_contours_and_atomic_commit() {
     let (committed, _) = render(&mut compositor, &scene, &request, true);
     equivalent(&live, &committed, "atomic-commit");
 }
+#[test]
+fn negative_coordinate_alpha_matches_at_zoom_and_backing_density_matrix() {
+    let (scene, base) = scene(vec![
+        rectangle(1, 0, -16.0, [1.0, 0.0, 0.0, 0.5]),
+        rectangle(2, 1, -12.0, [0.0, 0.0, 1.0, 0.5]),
+    ]);
+    for density in [1, 2, 3] {
+        for zoom in [0.1, 0.75, 1.0, 16.0] {
+            let mut request = base;
+            request.pixel_width = 64 * density;
+            request.pixel_height = 64 * density;
+            request.zoom = zoom;
+            request.offset_x = 32.0 + 10.0 * zoom;
+            request.offset_y = 32.0 - 10.0 * zoom;
+            let (cached, _) = render(&mut Compositor::default(), &scene, &request, true);
+            let (reference, _) = render(&mut Compositor::default(), &scene, &request, false);
+            equivalent(&cached, &reference, "negative-zoom-density");
+            let center = ((32 * density * request.pixel_width + 32 * density) * 4) as usize;
+            assert_eq!(&cached[center..center + 4], &[127, 63, 191, 255]);
+        }
+    }
+}
