@@ -9,6 +9,7 @@ import Metal
   private var state = RenderScheduleState()
   private var requestedAt = 0.0
   private var scheduled = false
+  private var drawableRetryScheduled = false
   private(set) var recoveries: UInt64 = 0
   private(set) var failures: UInt64 = 0
   private var injectedFailure = false
@@ -60,11 +61,12 @@ import Metal
     state.begin()
     surface.resize(canvas.bounds.size, scale: window.backingScaleFactor)
     let acquired = ProcessInfo.processInfo.systemUptime
-    // Missing drawables wait for a later invalidation; never busy-retry.
+    // A transient shortage gets two delayed attempts; persistent failure waits for an event.
     guard let drawable = surface.layer.nextDrawable(),
       let command = surface.queue.makeCommandBuffer()
     else {
       state.deferDrawable()
+      retryDrawable()
       return
     }
     let acquisition = ProcessInfo.processInfo.systemUptime - acquired
@@ -100,22 +102,41 @@ import Metal
       command.present(drawable)
       command.addCompletedHandler { [weak self] buffer in
         let failed = buffer.status == .error
+        let domain = (buffer.error as NSError?)?.domain ?? "Metal"
+        let code = (buffer.error as NSError?)?.code ?? 0
         Task { @MainActor [weak self] in
           guard let self else { return }
           self.state.completed()
           self.canvas.renderDiagnostics.completed(frame, failed: failed)
           if self.surface.generation == surfaceGeneration && !self.state.closed {
-            if failed { self.failure(9) } else { self.state.succeeded() }
+            if failed {
+              if self.lastFailure != 9 {
+                NativeDiagnostics.gpuFailure(
+                  domain: domain, code: code, frame: frame, surface: surfaceGeneration)
+              }
+              self.failure(9)
+            } else {
+              self.state.succeeded()
+              self.lastFailure = nil
+            }
           }
           self.schedule()
         }
       }
       command.commit()
-      lastFailure = nil
     } catch let error as NativeBridgeError {
       failure(error.status)
     } catch {
       failure(9)
+    }
+  }
+  private func retryDrawable() {
+    guard !drawableRetryScheduled, state.reserveDrawableRetry() else { return }
+    drawableRetryScheduled = true
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) { [weak self] in
+      guard let self else { return }
+      self.drawableRetryScheduled = false
+      self.schedule()
     }
   }
   private func failure(_ status: UInt32) {

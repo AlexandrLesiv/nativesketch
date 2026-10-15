@@ -25,11 +25,18 @@ import XCTest
     fixture.strokes(1)
     try assertInk(fixture.canvas, present: true, name: "skia-redo")
     fixture.app.typeKey("h", modifierFlags: .command)
+    XCTAssertTrue(fixture.app.wait(for: .runningBackground, timeout: 5))
+    let hiddenCount = presented(fixture.canvas)
     fixture.app.activate()
-    fixture.wait { (fixture.canvas.value as? String ?? "").contains("key=true") }
+    fixture.wait {
+      fixture.app.state == .runningForeground
+        && (fixture.canvas.value as? String ?? "").contains("key=true")
+        && self.presented(fixture.canvas) > hiddenCount
+    }
     try assertInk(fixture.canvas, present: true, name: "skia-reveal")
   }
 
+  // This injected failure precedes the first empty frame, not a real driver/device loss.
   func testInjectedBackendFailureRecoversWithoutEditing() throws {
     continueAfterFailure = false
     let fixture = try NativeSessionFixture()

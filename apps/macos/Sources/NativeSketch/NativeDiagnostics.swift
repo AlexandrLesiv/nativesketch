@@ -8,6 +8,11 @@ enum NativeDiagnostics {
   static func failure(_ operation: String, status: UInt32, session: UInt64 = 0) {
     logger.error("operation=\(operation, privacy: .public) status=\(status) session=\(session)")
   }
+  static func gpuFailure(domain: String, code: Int, frame: UInt64, surface: UInt64) {
+    logger.error(
+      "operation=metal-completion domain=\(domain, privacy: .public) code=\(code) frame=\(frame) surface=\(surface)"
+    )
+  }
 }
 
 struct NativeBridgeError: Error {

@@ -3,7 +3,7 @@ import { command, main } from './lib/context.ts';
 import { options } from './lib/options.ts';
 import { readBoard } from './lib/board.ts';
 import { root } from './lib/context.ts';
-import { buildMacos } from './platforms/macos.ts';
+import { buildMacos, checkMacosRenderPolicy } from './platforms/macos.ts';
 import { checkNativeFfi } from './platforms/native-ffi.ts';
 import { checkLegacyFfi } from './platforms/legacy-ffi.ts';
 import { checkWeb, checkWasm } from './platforms/web.ts';
@@ -45,6 +45,7 @@ await main(async () => {
     await checkNativeFfi();
     const app = await buildMacos();
     await command(`${app}/Contents/MacOS/NativeSketch`, ['--smoke-test']);
+    await checkMacosRenderPolicy();
   } else console.log('SKIP: macOS build and ABI smoke check');
   console.log(
     'PASS: applicable integration checks; native interaction and physical pen checks are separate',

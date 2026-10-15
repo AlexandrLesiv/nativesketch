@@ -1,8 +1,38 @@
+import Foundation
 import Testing
 
 @testable import NativeSketch
 
 struct RenderScheduleStateTests {
+  @Test func fractionalLogicalResizeAdvancesGenerationEvenWithSamePixelSize() {
+    var surface = RenderSurfaceState()
+    let initial = surface.update(CGSize(width: 100.1, height: 100), scale: 2)
+    #expect(initial)
+    let pixels = surface.pixels
+    let generation = surface.generation
+    let changed = surface.update(CGSize(width: 100.2, height: 100), scale: 2)
+    #expect(changed)
+    #expect(surface.pixels == pixels)
+    #expect(surface.generation == generation + 1)
+    let unchanged = surface.update(CGSize(width: 100.2, height: 100), scale: 2)
+    #expect(!unchanged)
+  }
+
+  @Test func drawableRetriesAreBoundedAndCloseCancelsThem() {
+    var state = RenderScheduleState()
+    state.request()
+    state.deferDrawable()
+    let attempts = (0..<3).map { _ in state.reserveDrawableRetry() }
+    #expect(attempts == [true, true, false])
+    #expect(state.pending)
+    state.request()
+    let later = state.reserveDrawableRetry()
+    #expect(later)
+    state.close()
+    let closed = state.reserveDrawableRetry()
+    #expect(!closed)
+  }
+
   @Test func coalescingAndTwoFrameBound() {
     var state = RenderScheduleState()
     state.request()
