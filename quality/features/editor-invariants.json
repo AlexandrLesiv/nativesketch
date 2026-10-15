@@ -239,7 +239,19 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState"
+            ],
+            "gaps": [
+              {
+                "reason": "Width-field shortcuts and document retention are tested; invalid field focus transfer, other native field/panel contexts and keyboard traversal remain pending.",
+                "ownerTask": "019"
+              }
+            ]
+          }
         },
         {
           "platform": "ios",

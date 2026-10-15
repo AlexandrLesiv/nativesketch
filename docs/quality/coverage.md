@@ -9,6 +9,13 @@ platforms and broader journeys retain gaps. A successful imported execution alon
 automation state or certify every platform. The report is not complete passing coverage.
 See [runner commands and limitations](evidence-runner.md).
 
+Cargo packages with native effects declare `[package.metadata.native-sketch]`
+`test-platform = "host"`. Discovery and execution then record the actual OS; they cannot
+claim another host. Unspecified packages retain portable contract-test scope. In particular,
+`sketch-services` filesystem and worker results on macOS do not certify Windows or Linux.
+The service and keyboard manifests map narrower tested cases; they do not promote the
+broader persistence, focus or recovery invariants to complete native acceptance.
+
 ## Three sources of truth
 
 1. Small JSON feature manifests define acceptance IDs, expected behavior, applicable

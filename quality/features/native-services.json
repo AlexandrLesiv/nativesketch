@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "id": "native-services",
+  "description": "021B native local service contracts on the explicitly executed desktop host. No UI, power-loss, ACL/provider, mobile or browser acceptance is inferred. The ignored child fixture is invoked by mapped process-kill parents, never treated as a passing standalone test.",
+  "sourceRevision": "89e894e504ecb1ed2270cd823a5d94793094011e",
+  "cases": [
+    {
+      "id": "SERVICE-WRITE-001",
+      "expected": "Local staged writes retain old data before replacement and report post-replacement durability warnings",
+      "invariants": ["SAVE-003"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:staged_store:injected_pre_replace_failures_preserve_destination_and_report_cleanup_failure",
+              "cargo:sketch-services:staged_store:directory_sync_or_post_replace_failure_reports_written_with_warning",
+              "cargo:sketch-services:staged_store:disappeared_destination_parent_is_access_failure_without_replacement",
+              "cargo:sketch-services:staged_store:destination_and_parent_symlinks_are_rejected_without_touching_target"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-WORKER-001",
+      "expected": "Bounded native worker owns snapshots, preserves receipts through panic and drains accepted jobs during shutdown",
+      "invariants": ["SAVE-001", "ASYNC-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:worker:native_worker_writes_owned_snapshot_and_returns_correlated_receipt",
+              "cargo:sketch-services:worker:worker_panic_after_replace_delivers_uncertain_terminal_receipt",
+              "cargo:sketch-services:worker:checkpoint_worker_uses_envelope_store_and_cannot_write_plain_user_document",
+              "cargo:sketch-services:worker_lifecycle:worker_backpressure_returns_unique_job_and_shutdown_does_not_join_active_write"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-RECOVERY-001",
+      "expected": "Validated recovery rejects corrupt, oversized or unsafe candidates and restores a new dirty unbound editable session",
+      "invariants": ["LOAD-001", "VIEW-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:recovery:corrupt_latest_falls_back_without_deleting_older_valid_generation",
+              "cargo:sketch-services:recovery:identity_checksum_lengths_and_oversized_candidates_are_rejected",
+              "cargo:sketch-services:recovery:quotas_preserve_unresolved_data_and_exclusive_id_allocation",
+              "cargo:sketch-services:recovery:recovered_document_is_new_dirty_unbound_and_readonly_cannot_restore",
+              "cargo:sketch-services:recovery:recovery_symlink_entries_are_rejected_without_reading_or_deleting_target"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-RETENTION-001",
+      "expected": "Validated resolution and aggregate budgets preserve unresolved recovery while bounded management isolates damaged sessions",
+      "invariants": ["LOAD-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:recovery_retention:resolved_candidate_is_hidden_and_newer_generation_remains_unresolved",
+              "cargo:sketch-services:recovery_retention:corrupt_or_foreign_resolution_marker_cannot_authorize_deletion",
+              "cargo:sketch-services:recovery_retention:overfull_session_does_not_block_other_recovery_or_bounded_management",
+              "cargo:sketch-services:recovery_retention:corrupt_newest_does_not_hide_valid_unresolved_fallback_after_older_resolution",
+              "cargo:sketch-services:recovery_budget:resolution_reserves_aggregate_marker_staging_without_exceeding_budget"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-SCHEDULE-001",
+      "expected": "Deterministic checkpoint scheduling defers active input, prioritizes explicit saves and rejects stale completion",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:checkpoint_schedule:debounce_max_schedule_input_deferral_and_explicit_save_priority_are_deterministic",
+              "cargo:sketch-services:checkpoint_schedule:only_latest_pending_survives_failure_requires_retry_and_stale_completion_is_rejected"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-DIAGNOSTICS-001",
+      "expected": "Versioned redacted diagnostic codes, bounded sinks and failure counters remain observable under sink failure",
+      "invariants": [],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:diagnostics:full_rate_limited_and_failing_sinks_remain_bounded_and_observable",
+              "cargo:sketch-services:diagnostics:rotating_sink_caps_file_count_and_bytes",
+              "cargo:sketch-services:diagnostics:oversized_existing_diagnostic_files_are_rejected_without_rotation",
+              "cargo:sketch-services:diagnostics:worker_emits_correlated_redacted_stage_failure_and_durability_codes",
+              "cargo:sketch-services:diagnostic_schema:diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-CRASH-001",
+      "expected": "Actual child-process termination preserves an old or new valid local document and a discoverable recovery generation",
+      "invariants": ["SAVE-003", "LOAD-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:process_kill:process_death_preserves_old_or_new_valid_document_at_publication_boundaries",
+              "cargo:sketch-services:process_kill:killed_checkpoint_keeps_last_valid_generation_discoverable"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "windows",
+          "level": "integration"
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SERVICE-PERMISSIONS-001",
+      "expected": "Unix staging is private and replacement preserves existing standard permission bits",
+      "invariants": [],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-services:store_permissions:stage_is_private_and_replacement_preserves_existing_unix_mode"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "linux",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Native filesystem/thread behavior requires execution on this host; macOS evidence does not certify other operating systems or native providers.",
+          "ownerTask": "021"
+        }
+      ]
+    }
+  ]
+}

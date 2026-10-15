@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "native-keyboard",
+  "description": "Scoped macOS keyboard regression journeys verified at 458f923 after the owner disabled a conflicting system shortcut. Native event delivery is exercised; physical pen, general accessibility, all field contexts and pixel equivalence are separate coverage.",
+  "sourceRevision": "458f9234e708fe053939eca55f9d702f9ad9d3dd",
+  "cases": [
+    {
+      "id": "NATIVE-SAVEAS-001",
+      "expected": "Fresh and bound Command-Shift-S opens Save As; cancellation preserves destination, bytes and title, and ordinary Save remains bound",
+      "invariants": ["SAVE-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-FIELD-KEYS-001",
+      "expected": "Native width-field Undo/Redo changes text; Delete, tool letters and Space preserve selected drawing bytes and tool selection",
+      "invariants": ["FOCUS-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-HISTORY-KEYS-001",
+      "expected": "Keyboard Undo removes one committed stroke in a fresh serialized snapshot and Redo restores its exact bytes",
+      "invariants": ["UNDO-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": ["xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

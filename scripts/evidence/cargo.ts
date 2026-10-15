@@ -2,6 +2,12 @@ import type { DiscoveredTest, Result } from './types.ts';
 import { performance } from 'node:perf_hooks';
 import { run } from '../lib/process.ts';
 import { fileHash } from './identity.ts';
+import { cargoTestPlatform } from './cargo-platform.ts';
+type CargoPackage = {
+  id: string;
+  name: string;
+  metadata?: { 'native-sketch'?: { 'test-platform'?: unknown } };
+};
 /** Compile and interrogate real libtest binaries; no source matching. */
 export async function discoverCargo(root: string) {
   const metadata = JSON.parse(
@@ -10,8 +16,17 @@ export async function discoverCargo(root: string) {
       capture: true,
     }),
   );
-  const packages = new Map<string, string>(
-    metadata.packages.map((item: { id: string; name: string }) => [item.id, item.name]),
+  const packages = new Map<string, { name: string; platform: string }>(
+    metadata.packages.map((item: CargoPackage) => [
+      item.id,
+      {
+        name: item.name,
+        platform: cargoTestPlatform(
+          item.metadata?.['native-sketch']?.['test-platform'],
+          process.platform,
+        ),
+      },
+    ]),
   );
   const output = await run(
     'cargo',
@@ -29,8 +44,8 @@ export async function discoverCargo(root: string) {
     const record = JSON.parse(line);
     if (record.reason !== 'compiler-artifact' || !record.profile?.test || !record.executable)
       continue;
-    const packageName = packages.get(record.package_id);
-    if (!packageName) throw new Error(`Unknown Cargo package ${record.package_id}`);
+    const pkg = packages.get(record.package_id);
+    if (!pkg) throw new Error(`Unknown Cargo package ${record.package_id}`);
     const target = record.target.kind.some((kind: string) => kind.endsWith('lib'))
       ? 'lib'
       : record.target.name;
@@ -40,10 +55,10 @@ export async function discoverCargo(root: string) {
       if (!entry.endsWith(': test')) continue;
       const test = entry.slice(0, -6);
       tests.push({
-        id: `cargo:${packageName}:${target}:${test}`,
+        id: `cargo:${pkg.name}:${target}:${test}`,
         runner: 'cargo',
         level: target === 'lib' ? 'unit' : 'integration',
-        platform: 'portable',
+        platform: pkg.platform,
         pointerWidth: process.arch.includes('64') ? 64 : 32,
         binarySha256,
         executable: record.executable,
@@ -80,7 +95,7 @@ export async function executeCargo(
       durationMs: performance.now() - start,
       timestamp: new Date().toISOString(),
       binarySha256: test.binarySha256,
-      platform: 'portable',
+      platform: test.platform,
       toolchain: discovery.toolchain,
       device: `${process.platform}/${process.arch}`,
       environment: { valid: true, reasons: [] },
