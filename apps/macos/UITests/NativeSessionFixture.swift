@@ -11,8 +11,11 @@ import XCTest
     let environment = ProcessInfo.processInfo.environment
     app = XCUIApplication(
       url: URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_APP"])))
-    root = URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_DOCUMENT"]))
-      .deletingLastPathComponent().appendingPathComponent("session-\(UUID().uuidString)")
+    // Xcode's UI runner is sandboxed even when the test bundle target is not.
+    // Use its own writable temporary directory; the unsandboxed subject receives
+    // only this explicit disposable root, never the user's document/recovery store.
+    root = FileManager.default.temporaryDirectory
+      .appendingPathComponent("native-sketch-session-\(UUID().uuidString)")
     runtimeRoot = root.appendingPathComponent("runtime")
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   }
@@ -74,6 +77,10 @@ import XCTest
     }
   }
   func record(in test: XCTestCase) {
+    let fixture = XCTAttachment(string: root.path)
+    fixture.name = "native-session-fixture-path"
+    fixture.lifetime = .keepAlways
+    test.add(fixture)
     let tree = XCTAttachment(string: app.debugDescription)
     tree.name = "native-session-final-accessibility"
     tree.lifetime = .keepAlways

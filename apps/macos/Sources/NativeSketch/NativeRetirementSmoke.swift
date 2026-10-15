@@ -1,3 +1,4 @@
+import AppKit
 import CSketchSession
 
 /// Pristine real-runtime retirement plus a Swift ordering oracle. Actual poisoned-session
@@ -21,6 +22,23 @@ import CSketchSession
     precondition(replies == 1)
     ordering()
     pumpDecisions()
+    try modalRetirement()
+  }
+  /// Exercise the real timer and C runtime in AppKit's modal mode, without a window.
+  private static func modalRetirement() throws {
+    let runtime = try NativeRuntime(services: false)
+    let session = try RustApplicationSession(runtime: runtime)
+    runtime.retire(session)
+    var replies = 0
+    precondition(runtime.shutdown { replies += 1 })
+    let deadline = Date(timeIntervalSinceNow: 3)
+    while replies == 0 && Date() < deadline {
+      _ = RunLoop.main.run(mode: .modalPanel, before: Date(timeIntervalSinceNow: 0.01))
+    }
+    guard replies == 1, runtime.handle == nil else {
+      fputs("Headless modal retirement failed: completion timer did not drain.\n", stderr)
+      throw NativeBridgeError(operation: "modal-retirement", status: SK_V1_INVALID_STATE.rawValue)
+    }
   }
   private static func ordering() {
     let coordinator = NativeShutdownCoordinator()

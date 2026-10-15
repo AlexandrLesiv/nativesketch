@@ -11,10 +11,15 @@ import CSketchSession
   func schedule(after interval: TimeInterval = 0) {
     guard runtime.handle != nil else { return }
     timer?.invalidate()
-    timer = Timer.scheduledTimer(withTimeInterval: max(0.001, interval), repeats: false) {
+    let scheduled = Timer(timeInterval: max(0.001, interval), repeats: false) {
       [weak self] _ in
       MainActor.assumeIsolated { self?.drain() }
     }
+    timer = scheduled
+    // Save/quit completion must progress while AppKit runs native sheets or waits
+    // for terminateLater. The same one-shot timer remains bounded in every mode.
+    RunLoop.main.add(scheduled, forMode: .common)
+    RunLoop.main.add(scheduled, forMode: .modalPanel)
   }
 
   func drain() {
