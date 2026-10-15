@@ -26,6 +26,10 @@ import CSketchFFI
     return accepted
   }
   var editor: LegacyEditorBridge { owner.editor }
+  override func accessibilityValue() -> Any? {
+    let value = super.accessibilityValue()
+    return owner.uiObservation?.value(appendingTo: value) ?? value
+  }
   func document(_ p: CGPoint) -> CGPoint {
     CGPoint(x: (p.x - offset.x) / zoom, y: (p.y - offset.y) / zoom)
   }

@@ -5,6 +5,7 @@ import CSketchFFI
   let editor = LegacyEditorBridge()
   var window: NSWindow!
   var canvas: CanvasView!
+  var uiObservation: NativeUIObservation?
   let status = NSTextField(labelWithString: "")
   lazy var actions = EditorActions(owner: self)
   lazy var inspectorController = BrushInspectorController(owner: self)
@@ -35,6 +36,7 @@ import CSketchFFI
     window.isReleasedWhenClosed = false
     window.delegate = self
     canvas = CanvasView(owner: self)
+    uiObservation = NativeUIObservation(canvas: canvas)
     inspectorController.configure()
     let toolbar = NSToolbar(identifier: "NativeSketchEditing")
     toolbar.delegate = toolbarController

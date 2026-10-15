@@ -12,6 +12,11 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
   app.colorWells["sketch.brush.color"].click()
   let colors = app.windows["Colors"]
   XCTAssertTrue(colors.waitForExistence(timeout: 5))
+  let mainWindow = app.windows["Untitled — Native Sketch"]
+  // Keep the palette and expanded profile menu over the test-owned canvas for evidence.
+  colors.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.025)).click(
+    forDuration: 0.1,
+    thenDragTo: mainWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.2)))
   colors.buttons["Color Sliders"].click()
   colors.popUpButtons.firstMatch.click()
   app.menuItems["RGB Sliders"].click()
@@ -20,7 +25,7 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
     let tree = XCTAttachment(string: app.debugDescription)
     tree.lifetime = .keepAlways
     activity.add(tree)
-    let screenshot = XCTAttachment(screenshot: colors.screenshot())
+    let screenshot = XCTAttachment(screenshot: mainWindow.screenshot())
     screenshot.lifetime = .keepAlways
     activity.add(screenshot)
   }
@@ -36,6 +41,18 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
   hexadecimal.typeKey(.return, modifierFlags: [])
   colors.buttons[XCUIIdentifierCloseWindow].click()
   XCTAssertTrue(colors.waitForNonExistence(timeout: 5))
+  if !app.popovers.firstMatch.exists { app.buttons["Style and Selection"].click() }
+  XCTAssertTrue(app.popovers.firstMatch.waitForExistence(timeout: 5))
+  XCTContext.runActivity(named: "Committed native brush inspector") { activity in
+    for (name, element) in [
+      ("full-editor-window", mainWindow), ("full-inspector", app.popovers.firstMatch),
+    ] {
+      let screenshot = XCTAttachment(screenshot: element.screenshot())
+      screenshot.name = name
+      screenshot.lifetime = .keepAlways
+      activity.add(screenshot)
+    }
+  }
   if app.popovers.firstMatch.exists {
     app.buttons["Style and Selection"].click()
   }
