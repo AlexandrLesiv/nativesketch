@@ -37,9 +37,9 @@ cargo clippy --locked --workspace --all-targets -- -D warnings
 node crates/sketch-wasm/tests/protocol-compatibility.mjs artifacts/web/sketch_wasm.wasm
 ```
 
-Task 016/017 must wire the new Wasm fixed-fixture runner into normal Node integration and
-coverage discovery; until then the explicit last command is required for compatibility
-changes. The Cargo integration tests are already discovered by workspace test commands.
+The existing `check-wasm` entry point also runs the new Node fixed-fixture replay, so the
+current CI path exercises it. Task 016/017 migrates this entry point to Node orchestration
+and coverage discovery. Cargo integration tests are discovered by workspace test commands.
 
 ## Current boundary and known gaps
 

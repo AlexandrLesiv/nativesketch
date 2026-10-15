@@ -8,3 +8,4 @@ fixture="$(mktemp "${TMPDIR:-/tmp}/native-sketch-wasm.XXXXXX")"
 trap 'rm -f "$fixture"' EXIT
 cargo run --locked --quiet -p sketch-ffi --example portable-fixture -- "$fixture"
 node crates/sketch-wasm/tests/conformance.mjs artifacts/web/sketch_wasm.wasm "$fixture"
+node crates/sketch-wasm/tests/protocol-compatibility.mjs artifacts/web/sketch_wasm.wasm
