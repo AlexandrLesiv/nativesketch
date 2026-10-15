@@ -43,3 +43,27 @@ latency and final source-cap acceptance have not been completed by this mileston
 Task 018 may prepare compatibility-preserving extraction under the authorized sequence,
 but cannot treat blocked UI acceptance or incomplete task 016 host parity as passed.
 No main merge, release, global permission change or publication was performed.
+
+## Integrated oracle and report verification
+
+Designer review required independent evidence in every sampled pixel patch and absolute
+document endpoints. The repaired journey also requires identity stroke transform, closing
+a reviewer finding that raw points alone could hide translated/scaled saved geometry.
+Pure Swift regression checks run automatically before XCTest preparation. Fresh reviewer
+rechecked `c11ed4eb6c5fd21baa64730df27e3b3d9bcb213d` and found no remaining actionable
+code findings; this was not runtime UI approval.
+
+At that clean integrated revision, `node scripts/test-e2e.mjs --platform macos
+--prepare-only` built the app and XCTest target and passed all ten pure oracle checks.
+It intentionally exited 1 after preparation with empty native discovery/results and
+an explicit deferred-execution record. Evidence is under ignored
+`artifacts/evidence/macos-1792066288510/` on the integration checkout:
+
+- Isolated app SHA-256: `488fdcb70ce3c5d3cb21384a87d36d730dfbcec191336b14220a1c72fe0054d6`.
+- XCTest binary SHA-256: `156b948cd0d257e5603491e14bf34d2dc1ed5710e95bac9a75065731a3a3284d`.
+
+Actual Cargo/Node evidence plus those empty native envelopes generated 147 requirements:
+five passed compatibility cases, twelve explicitly incomplete cases and 130 missing rows,
+with no mapping errors. Scoped COMPAT-001 through COMPAT-005 gating passed. Overall
+coverage remains incomplete. `artifacts/evidence/coverage.html` links execution evidence;
+history retains this exact source identity when later runs replace the current report.
