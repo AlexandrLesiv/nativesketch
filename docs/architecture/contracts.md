@@ -1,6 +1,7 @@
 # Components and contracts
 
-Target design; task 015 freezes signatures and compatibility fixtures before implementation.
+Target design. Task 015 freezes the [concrete Rust API/type/file map](concrete-contracts.md)
+and [current compatibility baseline](compatibility.md) before implementation.
 Prefer modules in existing crates; add crates only for dependency/build boundaries.
 
 ## Patterns in existing features
@@ -35,7 +36,7 @@ in adapters; common viewport/transform math moves to Rust with explicit behavior
 
 ## Semantic controls and actions
 
-Conceptual types, not an approved ABI declaration:
+Summary of the frozen Rust-only target types; no new ABI declaration:
 
 ```text
 ToolId, ActionId, BrushSettings, ToolState
