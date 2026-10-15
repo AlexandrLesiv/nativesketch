@@ -61,3 +61,30 @@ not claimed by this macOS foundation. No renderer, persistence or editing semant
 Same-source retries in this checkout retain the isolated bundle identifier so ad-hoc signing
 produces the same executable identity. Two separately copied/signed app bundles produced
 the identical SHA-256 in a non-UI reproduction. Source changes create a new isolated identity.
+
+## Designer oracle follow-up
+
+The follow-up rejects partial/translated ink that the original test could miss. Each of
+three interior patches independently requires more than 20 red pixels; their counts are
+no longer summed. The journey invokes native File > New after layout to establish the
+existing native viewport reset (zoom 1, offset (80,80)), captures AX canvas logical size,
+and rejects unexpected frame changes. Saved endpoints must match normalized pointer
+positions `(0.3,0.4)` and `(0.7,0.6)` converted through that documented viewport, within two
+logical points for OS pointer rounding. This follows `Canvas.isFlipped`, `document(_:)`
+and `newDocument(_:)` in the actual adapter; screenshots do not establish the transform.
+The reopened canvas must retain the same logical size before its three-patch check.
+
+A standalone pure Swift regression harness exercises the same predicate implementation:
+one-patch-only and below-threshold counts fail; complete counts pass; translated, scaled,
+empty and nonfinite endpoints fail; intended endpoints and one-point rounding pass.
+Compile/run without UI:
+
+```text
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swiftc -module-cache-path artifacts/oracle-module-cache apps/macos/UITests/StrokeExpectation.swift apps/macos/UITests/Regression/OracleRegression.swift -o artifacts/oracle-regression
+artifacts/oracle-regression
+```
+
+The harness passed all ten preconditions; strict Swift formatting and the expanded
+XCTest target build passed. The first bare CLT compile encountered cache permission/SDK
+resolution errors; explicit Xcode plus a workspace module cache resolved it. These are
+oracle regression/build results only. Native execution remains blocked and unclaimed.

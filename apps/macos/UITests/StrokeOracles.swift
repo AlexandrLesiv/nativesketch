@@ -2,7 +2,7 @@ import AppKit
 import XCTest
 
 // Independent read-only observations; never feed document bytes or commands into the app.
-func verifyMouseStroke(_ data: Data) throws {
+func verifyMouseStroke(_ data: Data, canvasSize: CGSize) throws {
   func integer(_ offset: Int) throws -> UInt64 {
     guard offset >= 0, data.count >= offset + 8 else {
       XCTFail("Truncated document at byte \(offset)")
@@ -41,6 +41,9 @@ func verifyMouseStroke(_ data: Data) throws {
     lastID = id
     lastTime = time
   }
+  XCTAssertTrue(
+    StrokeExpectation.endpointsMatch(points, canvasSize: canvasSize),
+    "Saved endpoints must match the intended logical canvas trajectory")
   let first = try XCTUnwrap(points.first)
   let last = try XCTUnwrap(points.last)
   XCTAssertGreaterThan(last.x - first.x, 100)
@@ -52,11 +55,12 @@ func verifyMouseStroke(_ data: Data) throws {
   }
 }
 
-func redInkPixels(_ screenshot: XCUIScreenshot) throws -> Int {
+func redInkPixels(_ screenshot: XCUIScreenshot) throws -> [Int] {
   let bitmap = try XCTUnwrap(NSBitmapImageRep(data: screenshot.pngRepresentation))
-  var matches = 0
+  var counts: [Int] = []
   // Three interior patches exclude cursor endpoints, window controls and empty hints.
   for position in [0.35, 0.5, 0.65] {
+    var matches = 0
     let x = Int(Double(bitmap.pixelsWide) * position)
     let y = Int(Double(bitmap.pixelsHigh) * (0.4 + (position - 0.3) * 0.5))
     for column in (x - 4)...(x + 4) {
@@ -67,6 +71,7 @@ func redInkPixels(_ screenshot: XCUIScreenshot) throws -> Int {
         }
       }
     }
+    counts.append(matches)
   }
-  return matches
+  return counts
 }
