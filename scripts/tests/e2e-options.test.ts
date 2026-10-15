@@ -19,6 +19,7 @@ await test('CLI validates retry identity and retains explicit output', () => {
     execute: false,
     attempt: 2,
     output: 'artifacts/retry',
+    only: [],
   });
   assert.throws(() => e2eOptions([...platform, '--attempt', '0']), /Usage/);
   assert.throws(() => e2eOptions([...platform, '--attempt', '1.5']), /Usage/);

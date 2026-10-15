@@ -4,8 +4,14 @@ Status: waiting.
 Local preparation: [storage/recovery contracts](../docs/architecture/021-storage-contracts.md)
 agreed at `62d54e8`; reviewed Rust admission/snapshot/acknowledgement contracts are integrated
 and tested at `5a38bc0` ([021A evidence](../docs/evidence/021a-save-contracts.md)).
-Background services, diagnostics and recovery implementation is in progress.
-Native adoption, diagnostics/recovery execution and upstream acceptance are not yet complete.
+Background services, diagnostics and recovery are integrated at `9295357`; see
+[021B service evidence](../docs/evidence/021b-native-services.md). Task 019 subsequently
+integrated the command router, native bridge, asynchronous reads, recovery UI and diagnostic
+sink wiring, with scoped native save/recovery/close checks recorded in
+[desktop validation](../docs/evidence/019-native-desktop-validation.md).
+Remaining limits include other-host service execution, native provider/ACL/xattr and Windows
+replacement semantics, and measured snapshot capture costs (task 020). Upstream owner
+acceptance remains pending; existing integration is not a claim of all-platform acceptance.
 Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: shared diagnostic/storage contracts; host services; recovery fixtures; coverage mappings.

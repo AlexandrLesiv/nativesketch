@@ -10,6 +10,7 @@ export function e2eOptions(args: string[]) {
       attempt: { type: 'string', default: '1' },
       interactive: { type: 'boolean' },
       'prepare-only': { type: 'boolean' },
+      only: { type: 'string', multiple: true },
     },
   });
   const attempt = Number(values.attempt);
@@ -19,5 +20,10 @@ export function e2eOptions(args: string[]) {
     );
   if (values.interactive && values['prepare-only'])
     throw new Error('--interactive and --prepare-only are mutually exclusive');
-  return { output: values.output, attempt, execute: values.interactive === true };
+  return {
+    output: values.output,
+    attempt,
+    execute: values.interactive === true,
+    only: values.only ?? [],
+  };
 }

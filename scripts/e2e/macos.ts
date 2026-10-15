@@ -7,8 +7,14 @@ import { command, root, requireHost } from '../lib/context.ts';
 import { fileHash, sourceIdentity } from '../evidence/identity.ts';
 import { logged, prepareTests, readJSON, testArguments } from './xcode.ts';
 import { enumeratedTests, executionOutcome, testOutcomes } from './xcode-results.ts';
+import { selectedTests, selectionArguments, nativeInputRoute } from './selection.ts';
 
-export async function macosJourney(output: string, execute: boolean = false, attempt: number = 1) {
+export async function macosJourney(
+  output: string,
+  execute: boolean = false,
+  attempt: number = 1,
+  requested: string[] = [],
+) {
   requireHost('darwin');
   await mkdir(output, { recursive: false });
   const source = await sourceIdentity(root);
@@ -64,7 +70,8 @@ export async function macosJourney(output: string, execute: boolean = false, att
           toolchain,
           os,
           device,
-          inputRoute: 'XCUIAutomation mouse/keyboard',
+          inputRoute:
+            'XCUIAutomation; gesture cases additionally use native CGEvent/AX; no physical pen',
           buildFeatures: [
             'native-test-controls (DEBUG-only; individual test arms disposable worker boundary)',
           ],
@@ -102,6 +109,8 @@ export async function macosJourney(output: string, execute: boolean = false, att
       testBinarySha256,
     }));
     await save();
+    const selected = selectedTests(ids, requested);
+    await writeFile(join(output, 'selected-tests.json'), JSON.stringify(selected, null, 2));
     let executionError;
     try {
       // Native journeys include real panels, relaunches and worker gates.
@@ -110,7 +119,12 @@ export async function macosJourney(output: string, execute: boolean = false, att
         output,
         'execution.log',
         'xcodebuild',
-        [...args, '-resultBundlePath', join(output, 'journey.xcresult')],
+        [
+          ...args,
+          ...selectionArguments(selected),
+          '-resultBundlePath',
+          join(output, 'journey.xcresult'),
+        ],
         20 * 60_000,
       );
     } catch (error) {
@@ -128,7 +142,11 @@ export async function macosJourney(output: string, execute: boolean = false, att
     ]);
     await assertSource();
     const outcomes = testOutcomes(JSON.parse(raw), ids);
-    for (const id of ids) {
+    if (outcomes.some((outcome) => !selected.includes(outcome.testId)))
+      throw new Error(
+        'XCTest executed a case outside the requested selection; inspect raw results',
+      );
+    for (const id of selected) {
       const outcome = outcomes.find((item) => item.testId === id);
       results.results.push({
         testId: id,
@@ -142,7 +160,7 @@ export async function macosJourney(output: string, execute: boolean = false, att
         toolchain,
         device,
         os,
-        inputRoute: 'XCUIAutomation mouse/keyboard, no physical pen',
+        inputRoute: nativeInputRoute(id),
         artifacts: ['execution.log', 'xcresult-tests.json', 'journey.xcresult', 'identity.json'],
       });
     }

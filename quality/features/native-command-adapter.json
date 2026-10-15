@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Thirty-six cases were actually discovered at79f3028; subsequently added cases require fresh discovery before acceptance. Historical results never become current-source passes.",
-  "sourceRevision": "6c0140e89d80e043e4ec21ff7577668229bc3e64",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Forty-three cases were discovered at03cad1c; subsequently added gesture cases require fresh discovery and execution. Historical results never become current-source passes.",
+  "sourceRevision": "68e990f7551391efcf09f0024227a9cfa00cbf23",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -237,12 +237,14 @@
         "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveCancellationRestoresOriginalWidthSelection",
         "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands",
         "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveAsSuccessorCancellationRestoresOriginalWidthSelection",
-        "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection"
+        "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection",
+        "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
+        "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
       ],
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "XCTest does not automate native resize/deactivation during an active gesture. The separate disposable CGEvent/AX probe requires its own actual execution evidence; compilation and replay are not native passes.",
+          "reason": "Maintained XCTest cases now prepare their own document through native Save and use CGEvent/AX for held-gesture resize/deactivation. Actual executable discovery, runner permission preflight and native execution remain pending an explicitly approved desktop session; compilation is not a pass.",
           "ownerTask": "019"
         }
       ]

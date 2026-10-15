@@ -3,7 +3,8 @@
 Status: waiting.
 Local preparation: phase A responsibility extraction integrated and independently compared
 against the original editor; typed session/capability phase B is integrated and independently
-reviewed. Native task 017 acceptance and upstream owner acceptance remain pending. See
+reviewed. Native task 017/019 execution now has scoped passing desktop evidence; upstream
+owner acceptance remains pending and is not implied by those runs. See
 [extraction boundaries](../docs/architecture/018-extraction.md).
 Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.

@@ -21,6 +21,14 @@ input from core tests.
   import native envelopes from the current source. Native artifact references are relative
   to their producer JSON directory, must exist, and must stay inside `artifacts/evidence`.
 
+For a scoped native run, `scripts/test-e2e.ts` accepts repeated
+`--only xctest:NativeSketchUITests:ClassName/testMethod` options. Selection never enables
+foreground execution: `--interactive` still requires an explicitly reserved desktop.
+The runner enumerates the complete test target first, rejects unknown/duplicate IDs,
+retains `selected-tests.json`, and reports outcomes only for selected tests. Unselected
+cases remain unexecuted, not passed or blocked by an invented outcome. Gesture cases
+identify their additional native CGEvent/AX route separately from XCTest-only journeys.
+
 All malformed mappings fail independently of scope. `--require` selects acceptance IDs,
 not platforms: it deliberately cannot hide missing platforms within one acceptance case.
 Partial/planned automation and explicit gaps cannot pass even when mapped tests pass.

@@ -10,5 +10,5 @@ await main(async () => {
     ? resolve(options.output)
     : join(root, 'artifacts/evidence', `macos-${Date.now()}`);
   await mkdir(resolve(output, '..'), { recursive: true });
-  await macosJourney(output, options.execute, options.attempt);
+  await macosJourney(output, options.execute, options.attempt, options.only);
 });

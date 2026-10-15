@@ -30,6 +30,7 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | `node scripts/test-evidence.ts --gate` | Require all registered acceptance rows; currently fails on documented coverage gaps |
 | `node scripts/test-e2e.ts --platform macos` | Background-only app/test preparation; no executable discovery or native UI |
 | `node scripts/test-e2e.ts --platform macos --interactive` | Run native XCTest journey in an explicitly reserved active unlocked desktop session |
+| `node scripts/test-e2e.ts --platform macos --interactive --only xctest:NativeSketchUITests:ClassName/testMethod` | Execute one exact discovered case; repeat `--only` for a scoped batch, preserving full discovery |
 
 See [evidence runner](evidence-runner.md) for scoped acceptance gates, Node discovery,
 native imports and retained retry attempts. Native E2E defaults to background preparation;

@@ -67,6 +67,11 @@ assessment is reported separately by the reviewer after inspecting the frozen co
 
 ## Remaining integration and limits
 
+The integration list below describes the 021B checkpoint. Task 019 subsequently adopted
+these services in macOS; see [current desktop evidence](019-native-desktop-validation.md)
+for the actual scoped save/recovery/close runs. The filesystem and performance limitations
+below still apply unless separately verified by the relevant platform or renderer task.
+
 See `docs/architecture/021-native-services.md` for public APIs and ownership. The typed
 native bridge, native grant lifetime/destination mapping, asynchronous read job, shared
 command router, recovery UI and diagnostic sink wiring remain task019 work. The host must
