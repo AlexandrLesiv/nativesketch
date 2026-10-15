@@ -43,3 +43,9 @@ These remain coverage gaps; this one journey does not certify their invariants.
 Same-source retries in this checkout retain the isolated bundle identifier so ad-hoc signing
 produces the same executable identity. Two separately copied/signed app bundles produced
 the identical SHA-256 in a non-UI reproduction. Source changes create a new isolated identity.
+
+## Oracle regressions
+
+Both normal and `--prepare-only` runs compile and execute the pure Swift pixel/endpoint
+regression harness before building XCTest. A failed oracle check stops preparation and is
+recorded as blocked setup, never as native execution. Logs live in the run directory.

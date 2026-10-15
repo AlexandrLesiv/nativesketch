@@ -21,6 +21,9 @@ func verifyMouseStroke(_ data: Data, canvasSize: CGSize) throws {
   XCTAssertEqual(try number(56), 0, accuracy: 0.01)
   XCTAssertEqual(try number(64), 1, accuracy: 0.01)
   XCTAssertEqual(try number(72), 12)
+  XCTAssertEqual(try number(80), 1, "New strokes must have identity scale")
+  XCTAssertEqual(try number(88), 0, "New strokes must not translate horizontally")
+  XCTAssertEqual(try number(96), 0, "New strokes must not translate vertically")
   let count = try integer(104)
   XCTAssertGreaterThanOrEqual(count, 2)
   guard count <= UInt64(max(0, data.count - 120) / 48) else {

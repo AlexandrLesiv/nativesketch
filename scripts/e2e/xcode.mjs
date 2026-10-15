@@ -19,6 +19,17 @@ export async function logged(output, name, executable, args) {
 }
 /** @param {string} output @param {string} app */
 export async function prepareTests(output, app) {
+  const oracle = join(output, 'oracle-regression');
+  await logged(output, 'oracle-build.log', 'xcrun', [
+    'swiftc',
+    '-module-cache-path',
+    join(root, 'artifacts/oracle-module-cache'),
+    'apps/macos/UITests/StrokeExpectation.swift',
+    'apps/macos/UITests/Regression/OracleRegression.swift',
+    '-o',
+    oracle,
+  ]);
+  await logged(output, 'oracle-regression.log', oracle, []);
   const derived = join(root, 'artifacts/e2e-build');
   await logged(output, 'test-build.log', 'xcodebuild', [
     'build-for-testing',
