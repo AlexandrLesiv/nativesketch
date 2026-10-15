@@ -41,6 +41,13 @@ import CSketchSession
     if idleStatus != SK_V1_OK.rawValue && idleStatus != SK_V1_BUSY.rawValue {
       NativeDiagnostics.failure("idle", status: idleStatus)
     }
+    // Retirement can queue work/admit shutdown after the poll snapshot. A poisoned idle
+    // call leaves its output untouched; state() remains the supported lifecycle query.
+    let stateStatus = sketch_runtime_v1_state(runtime.handle, &state)
+    guard stateStatus == SK_V1_OK.rawValue else {
+      NativeDiagnostics.failure("runtime-state", status: stateStatus)
+      return
+    }
     runtime.finishShutdownIfReady(state)
     if state.needs_poll != 0 || state.ready_events != 0 || runtime.awaitingRetirement {
       schedule(after: 0.016)
