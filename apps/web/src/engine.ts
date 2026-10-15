@@ -34,7 +34,9 @@ export class Engine {
     isCurrentImportRequest(request: number) {
         return request === this.importRequest;
     }
-    constructor(private api: Api) {
+    private api: Api;
+    constructor(api: Api) {
+        this.api = api;
         if (api.sketch_wasm_protocol_version() !== 1)
             throw Error("Unsupported drawing engine");
         this.handle = api.sketch_wasm_create();

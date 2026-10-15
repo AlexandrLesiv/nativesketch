@@ -21,7 +21,7 @@ One cross-platform Node orchestration path and pinned, executable language quali
 Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and the
 [refactoring sequence](../docs/refactoring-plan.md). One owner changes shared contracts.
 
-- Replace owned shell/PowerShell and routine Python orchestration with <=200-line .mjs modules and explicit process arguments.
+- Replace owned shell/PowerShell and routine Python orchestration with <=200-line .ts modules and explicit process arguments.
 - Preserve build/check/run semantics, errors, timeouts, cleanup and paths with spaces/non-ASCII; prove on relevant native hosts before removal.
 - Pin compatible tools; configure Oxlint/Oxfmt/Vite, language checks, source-size and dependency gates with negative fixtures.
 - Update CI/docs/agents together; retain specialized analysis only with explicit reason and equivalence plan, never import comparison-results tooling.

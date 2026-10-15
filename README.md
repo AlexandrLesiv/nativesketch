@@ -49,14 +49,14 @@ pen latency claim is made.
 
 ## Build and run
 
-Start on macOS with pinned Node 24.12.0, Rust 1.99.0, Swift 6+ and a macOS SDK:
+Start on macOS with pinned Node 24.22.0, Rust 1.99.0, Swift 6+ and a macOS SDK:
 
 ```sh
 npm ci --ignore-scripts
-node scripts/check.mjs
-node scripts/run.mjs --platform macos
-node scripts/check.mjs --core
-node scripts/board.mjs
+node scripts/check.ts
+node scripts/run.ts --platform macos
+node scripts/check.ts --core
+node scripts/board.ts
 ```
 
 See prerequisites and behavior in [iOS](apps/ios/README.md),

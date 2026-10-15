@@ -25,15 +25,20 @@ Vite/tool installation size is not shipped app size.
 
 ## Node automation
 
-Use `.mjs` with JSDoc/type checking, one pinned Node LTS, explicit dependencies, Oxlint/Oxfmt.
+Use `.ts` with genuine TypeScript annotations/interfaces and native Node type stripping.
+Node 24.22.0 LTS and stable TypeScript 7.0.2 are pinned; Oxlint/Oxfmt remain pinned.
+Use explicit `.ts` imports, `import type`, strict NodeNext/noEmit, erasableSyntaxOnly and
+verbatimModuleSyntax. No build/transpiler is needed to execute automation. Runtime enums,
+parameter properties and decorators are prohibited. Type stripping does not type-check: the
+compiler gate remains mandatory. Avoid `any` casts or suppression comments.
 One small entry point dispatches to modules for build/check/run/E2E/result aggregation.
 Current integration/build entry points are implemented by task 016. E2E entry points remain
 task 017 work:
 
 ```text
-node scripts/check.mjs
-node scripts/build.mjs --platform macos
-# Planned, not implemented: node scripts/test-e2e.mjs --platform windows
+node scripts/check.ts
+node scripts/build.ts --platform macos
+# Planned, not implemented: node scripts/test-e2e.ts --platform windows
 ```
 
 Use filesystem/path/process APIs, executable + argument arrays, explicit working directories,

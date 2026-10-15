@@ -90,8 +90,8 @@ replacement, fixed ABI capacity/layout, source ordering and caught-panic cases.
 ## Verification and outstanding scope
 
 Required checks: `cargo fmt --all -- --check`, strict workspace Clippy, all 35 Cargo tests,
-`node scripts/check.mjs`, `node scripts/check.mjs --platform web`,
-`node scripts/check.mjs --platform wasm` (real native/Wasm conformance and 20 frozen
+`node scripts/check.ts`, `node scripts/check.ts --platform web`,
+`node scripts/check.ts --platform wasm` (real native/Wasm conformance and 20 frozen
 protocol pairs), and scoped evidence gate for COMPAT-001 through
 COMPAT-005 plus INK-003. Evidence output records exact source/diff and binary identities;
 the lead records the frozen commit and independent review outcome before integration.

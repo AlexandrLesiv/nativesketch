@@ -7,12 +7,12 @@ input from core tests.
 
 ## Commands
 
-- `node scripts/test-evidence.mjs`: compile/list Cargo tests, validate mappings, generate
+- `node scripts/test-evidence.ts`: compile/list Cargo tests, validate mappings, generate
   `artifacts/evidence/coverage.html` and JSON. Success means a valid report, **not** passing
   coverage. Unexecuted required cases remain `missing`.
-- `node scripts/test-evidence.mjs --run`: also execute each discovered Cargo test exactly,
+- `node scripts/test-evidence.ts --run`: also execute each discovered Cargo test exactly,
   retaining test output and all result identities in `results.json`.
-- `--node scripts/tests/evidence-report.test.mjs`: additionally execute/discover this Node
+- `--node scripts/tests/evidence-report.test.ts`: additionally execute/discover this Node
   file through a structured reporter. Repeat for more files. No source scanning.
 - `--require COMPAT-001,COMPAT-002`: fail unless every platform requirement for these exact
   acceptance IDs passes. Unknown IDs fail. `--gate` requires **all** registered rows and

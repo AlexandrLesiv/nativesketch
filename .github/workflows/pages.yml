@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '24.12.0'
+          node-version: '24.22.0'
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install pinned Rust and Wasm target
@@ -31,11 +31,11 @@ jobs:
       - name: Install pinned Node tools
         run: npm ci --ignore-scripts
       - name: Check shared engine
-        run: node scripts/check.mjs --core
+        run: node scripts/check.ts --core
       - name: Check native and Wasm byte equivalence
-        run: node scripts/check.mjs --platform wasm
+        run: node scripts/check.ts --platform wasm
       - name: Build and test browser adapter
-        run: node scripts/check.mjs --platform web
+        run: node scripts/check.ts --platform web
       - name: Upload site assets only
         if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/codex/github-pages')
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

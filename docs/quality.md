@@ -45,7 +45,7 @@ unless new changes or evidence justify it.
 
 ## Local baseline
 
-`node scripts/check.mjs` also validates/types/lints/formats new Node tooling, runs its
+`node scripts/check.ts` also validates/types/lints/formats new Node tooling, runs its
 negative tests, and enforces source-size and dependency boundaries. It validates the task board,
 checks Rust formatting and clippy, runs the
 Rust tests, builds the macOS shell, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
@@ -54,7 +54,7 @@ check covers geometry/style round-trips and editing through the actual C boundar
 Running-app interaction, native event replay, Windows, physical tablets, and GPU or
 pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
-`node scripts/check.mjs --core` skips macOS and is suitable for a non-Mac Rust runner.
+`node scripts/check.ts --core` skips macOS and is suitable for a non-Mac Rust runner.
 Install root dependencies with `npm ci --ignore-scripts` first. The old `./scripts/check`
 remains available as a parity reference, but does not include the new Node quality gates.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.

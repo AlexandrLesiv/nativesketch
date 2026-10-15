@@ -13,7 +13,9 @@ ones. Do not change global tools/settings, publish credentials, create scheduled
 or enable automatic merging. Report reproduced failures, fixes, and remaining gaps.
 Read docs/quality.md and the relevant quality/ documents. Own Node orchestration migration,
 pinned language gates, <=200 physical source-line checks and dependency checks; preserve
-current scripts until replacement parity on applicable hosts. No new owned shell/PowerShell.
+current scripts until replacement parity on applicable hosts. Own native `.ts` Node automation
+with strict erasable types, explicit `.ts` imports and import type; no transpiler, runtime
+enums, any casts or type-check suppressions. No new owned shell/PowerShell.
 Own feature registry/schema, executable test discovery, normalized native results and HTML
 coverage evidence. Missing/skipped/stale/unsupported required tests never become pass; retain
 flaky attempts. Platform implementers own behavior tests; coordinate runner availability.

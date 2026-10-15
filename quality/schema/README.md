@@ -1,6 +1,6 @@
 # Evidence interchange v1
 
-Executable contract: `scripts/evidence/types.mjs` and `validate.mjs`; JSON Schemas describe
+Executable contract: `scripts/evidence/types.ts` and `validate.ts`; JSON Schemas describe
 serialized records for producers/editors. Cross-record validation additionally requires
 unique feature/case/test IDs and attempts, discovered mappings, applicable platform/level,
 and matching source and binary identities. A schema-valid result is not a passing result.

@@ -17,7 +17,7 @@ requires an explained version/migration decision and independent review.
 | `document_compatibility::correction_requires_an_existing_id_and_identical_timestamp` | INPUT-002; correction identity and timestamp preservation | Device clock conversion |
 | `abi_compatibility::abi2_native_layout_is_unchanged` | ABI 2 struct sizes/important offsets on supported 64-bit targets | C compiler layout on an unexecuted target or every header symbol |
 | `abi_compatibility::abi2_frozen_document_capacity_and_save_revision_contract` | FFI-001 output ownership/capacity, SAVE-001/002 stale revisions, undo revision identity, fixed bytes | Thread safety misuse, panic injection, physical disk durability |
-| `protocol-compatibility.mjs` + `fixtures/protocol-v1.json` | Actual Wasm1 fixed request/status/response bytes: state, begin, append, commit, render, snapshot, undo/redo, malformed requests, corrupt import, new, stale acknowledgement | Independent correctness of captured geometry, browser/native E2E |
+| `protocol-compatibility.ts` + `fixtures/protocol-v1.json` | Actual Wasm1 fixed request/status/response bytes: state, begin, append, commit, render, snapshot, undo/redo, malformed requests, corrupt import, new, stale acknowledgement | Independent correctness of captured geometry, browser/native E2E |
 
 Rust integration test names are prefixed above with their integration binary names; Cargo
 lists each function within that binary. JSON stores literal input/output hex and capture
@@ -34,7 +34,7 @@ cargo test --locked --workspace
 cargo fmt --all -- --check
 cargo clippy --locked --workspace --all-targets -- -D warnings
 ./scripts/check-wasm
-node crates/sketch-wasm/tests/protocol-compatibility.mjs artifacts/web/sketch_wasm.wasm
+node crates/sketch-wasm/tests/protocol-compatibility.ts artifacts/web/sketch_wasm.wasm
 ```
 
 The existing `check-wasm` entry point also runs the new Node fixed-fixture replay, so the
@@ -102,7 +102,7 @@ still requires actual UI tests on each host.
 
 ## Capture/check evidence
 
-On macOS 27.0.1 (26A434), Rust/Cargo 1.99.0, Node 24.12.0, the task 015 fixture change passed
+On macOS 27.0.1 (26A434), Rust/Cargo 1.99.0, Node 24.22.0, the task 015 fixture change passed
 all 32 Cargo tests (26 existing + 6 new), strict workspace Clippy, rustfmt, the existing
 native/Wasm conformance runner, and all 20 frozen Wasm request/response pairs. No runtime
 source changed. New formatted test/script sizes are 128/83/50 physical lines. Native UI,

@@ -36,7 +36,9 @@ change for human merge approval. Native Sketch is a working name.
   and stale-result rejection before asynchronous work. No disk/GPU waits on the ink path.
 - Define future agent commands/queries now; do not implement agent transport or permissions
   incidentally. Real samples are ordered; predictions remain temporary; commit once per undo.
-- New repository automation uses Node.js ES modules, Oxlint/Oxfmt and typed contracts.
+- New repository automation uses native Node.js TypeScript `.ts` ES modules, Oxlint/Oxfmt
+  and strict erasable types. Use explicit `.ts` imports and `import type`; no transpiler,
+  runtime enums, parameter properties, decorators, `any` casts or type-check suppressions.
   Migrate owned shell/PowerShell and routine Python orchestration in task 016. Until then,
   run existing scripts; do not delete working checks early. Preserve Python benchmark
   analysis until replacement equivalence is demonstrated. Native build tools remain required.
@@ -92,7 +94,7 @@ publishing or distributing releases. Keep implementation and checks complete bef
 requesting that approval. This is a workflow rule, not a configured branch-protection
 service; no remote or server-enforced merge policy exists yet.
 
-Run node scripts/check.mjs for scaffold/integration changes after npm ci --ignore-scripts;
+Run node scripts/check.ts for scaffold/integration changes after npm ci --ignore-scripts;
 use narrower relevant checks from docs/quality/commands.md for low-impact edits. Retained
 legacy scripts remain available until each host's parity is verified. State what passed,
 failed, and was not run. Evidence must identify

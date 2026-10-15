@@ -24,7 +24,7 @@ Preserve scripts until task 016 proves Node parity; new owned automation is Java
 
 Ready task -> interaction/contract design -> isolated implementation -> integration ->
 appropriate checks -> fresh review -> repairs and affected checks -> human merge approval.
-The task board in `tasks/board.json` is the durable status source. Use `node scripts/board.mjs`
+The task board in `tasks/board.json` is the durable status source. Use `node scripts/board.ts`
 to inspect it. Update it only when the corresponding state is true. Status `done` means
 the owner accepted the result; `review` means implementation/evidence await that decision.
 
@@ -33,7 +33,7 @@ relevant documents, required evidence, and a stopping condition. One owner chang
 shared interface. Workers can propose contract changes; lead reconciles consumers first.
 
 Use Codex-managed worktrees when available. For a manual local checkout, the lead can
-use `node scripts/new-worktree.mjs task-001-rust` from a clean primary checkout.
+use `node scripts/new-worktree.ts task-001-rust` from a clean primary checkout.
 It creates an ignored local worktree and `codex/task-001-rust` branch from HEAD.
 Worktrees do not isolate ports, simulators, data directories, GPU loads, or credentials.
 Pass workers their actual checkout path and serialize operations that share those resources.
