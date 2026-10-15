@@ -24,7 +24,10 @@ import XCTest
     fixture.app.typeKey("z", modifierFlags: [.command, .shift])
     fixture.strokes(1)
     try assertInk(fixture.canvas, present: true, name: "skia-redo")
-    fixture.app.typeKey("h", modifierFlags: .command)
+    // This app does not define a Hide menu shortcut. Exercise real native visibility.
+    let subject = try runningSubject()
+    XCTAssertTrue(subject.hide())
+    fixture.wait { subject.isHidden }
     XCTAssertTrue(fixture.app.wait(for: .runningBackground, timeout: 5))
     let hiddenCount = presented(fixture.canvas)
     fixture.app.activate()
@@ -58,6 +61,17 @@ import XCTest
     let value = canvas.value as? String ?? ""
     guard let range = value.range(of: "Renderer=Skia,presented=") else { return 0 }
     return UInt64(value[range.upperBound...].prefix(while: { $0.isNumber })) ?? 0
+  }
+
+  private func runningSubject() throws -> NSRunningApplication {
+    let path = try XCTUnwrap(ProcessInfo.processInfo.environment["NATIVE_SKETCH_APP"])
+    let expected = URL(fileURLWithPath: path).resolvingSymlinksInPath()
+    let identifier = try XCTUnwrap(Bundle(url: expected)?.bundleIdentifier)
+    XCTAssertTrue(identifier.hasPrefix("dev.nativesketch.e2e."))
+    let candidates = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
+      .filter { $0.bundleURL?.resolvingSymlinksInPath() == expected }
+    XCTAssertEqual(candidates.count, 1)
+    return try XCTUnwrap(candidates.first)
   }
 
   func testInjectedFailureAfterCommitPreservesInkAndHistory() throws {
