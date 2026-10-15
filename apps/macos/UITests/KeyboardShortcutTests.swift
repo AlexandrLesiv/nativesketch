@@ -60,6 +60,15 @@ import XCTest
     waitForStrokeCount(0)
     app.typeKey("s", modifierFlags: .command)
     XCTAssertFalse(app.dialogs.firstMatch.waitForExistence(timeout: 2))
+    XCTAssertFalse(app.sheets.firstMatch.exists)
+    let written = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in
+        guard let bytes = try? Data(contentsOf: self.document), bytes.count >= 16 else {
+          return false
+        }
+        return Array(bytes[8..<16]) == Array(repeating: UInt8(0), count: 8)
+      }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [written], timeout: 10), .completed)
     let updated = try Data(contentsOf: document)
     XCTAssertNotEqual(updated, saved)
     XCTAssertEqual(String(data: updated.prefix(8), encoding: .utf8), "NSKETCH1")
@@ -139,8 +148,7 @@ import XCTest
 
   private func openAndCancelSaveAs(expectedName: String) throws {
     app.typeKey("s", modifierFlags: [.command, .shift])
-    let panel = app.dialogs.firstMatch
-    XCTAssertTrue(panel.waitForExistence(timeout: 5), "Command-Shift-S must open native Save As")
+    let panel = nativeFilePanel(in: app)
     let name = panel.textFields["saveAsNameTextField"]
     XCTAssertEqual(try XCTUnwrap(name.value as? String), expectedName)
     let screenshot = XCTAttachment(screenshot: panel.screenshot())

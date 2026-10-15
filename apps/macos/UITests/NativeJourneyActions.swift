@@ -60,15 +60,24 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
 }
 
 @MainActor
-func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
+func saveDocument(
+  in app: XCUIApplication, to url: URL, saveAs: Bool,
+  waitForWrite: Bool = true
+) throws {
   if saveAs {
     app.menuBars.menuBarItems["File"].click()
     app.menuItems["Save As…"].click()
   } else {
     app.typeKey("s", modifierFlags: .command)
   }
-  let panel = app.dialogs.firstMatch
-  XCTAssertTrue(panel.waitForExistence(timeout: 5))
+  try completeNativeSave(in: app, to: url, waitForWrite: waitForWrite)
+}
+
+@MainActor func completeNativeSave(
+  in app: XCUIApplication, to url: URL,
+  waitForWrite: Bool = true
+) throws {
+  let panel = nativeFilePanel(in: app)
   let name = panel.textFields["saveAsNameTextField"]
   XCTAssertTrue(name.waitForExistence(timeout: 5))
   name.click()
@@ -77,6 +86,8 @@ func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
   try navigateFilePanel(app, to: url.deletingLastPathComponent())
   XCTAssertTrue(panel.buttons["Save"].isEnabled)
   panel.buttons["Save"].click()
+  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+  guard waitForWrite else { return }
   let saved = XCTNSPredicateExpectation(
     predicate: NSPredicate { _, _ in
       FileManager.default.fileExists(atPath: url.path)
@@ -88,11 +99,23 @@ func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
 @MainActor
 func openDocument(in app: XCUIApplication, at url: URL) throws {
   app.typeKey("o", modifierFlags: .command)
-  let panel = app.dialogs.firstMatch
-  XCTAssertTrue(panel.waitForExistence(timeout: 5))
+  try completeNativeOpen(in: app, at: url)
+}
+
+@MainActor func completeNativeOpen(in app: XCUIApplication, at url: URL) throws {
+  let panel = nativeFilePanel(in: app)
   try navigateFilePanel(app, to: url)
   panel.buttons["Open"].click()
   XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+}
+
+@MainActor func nativeFilePanel(in app: XCUIApplication) -> XCUIElement {
+  let dialog = app.dialogs.firstMatch
+  let sheet = app.sheets.firstMatch
+  let appeared = XCTNSPredicateExpectation(
+    predicate: NSPredicate { _, _ in dialog.exists || sheet.exists }, object: nil)
+  XCTAssertEqual(XCTWaiter.wait(for: [appeared], timeout: 5), .completed)
+  return dialog.exists ? dialog : sheet
 }
 
 @MainActor

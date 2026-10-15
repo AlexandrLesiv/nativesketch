@@ -40,9 +40,33 @@ retry hides failures. `durationMs` is runner execution wall time including start
 collection, not input/render/physical latency. Setup failure before discovery leaves both
 envelopes empty and writes `blocked.json`; it does not fabricate an executable test.
 
-Remaining scenarios: native text-field undo/redo focus, history, selection/cancel,
-resize/display scale, accessibility speech, failure recovery and physical device input.
-These remain coverage gaps; this one journey does not certify their invariants.
+The original five journeys cover drawing/save/reopen, real Save As keyboard delivery,
+one-stroke Undo/Redo, field shortcut priority and incomplete-width refusal/restoration.
+Their historical passes do not certify the new versioned runtime. New source-authored
+journeys below require fresh executable discovery and execution before coverage is recorded.
+
+| Test group | Intended acceptance and decisive observation |
+| --- | --- |
+| AsyncSaveTests | NATIVE-ASYNC-SAVE-001 / NATIVE-FIELD-REFRESH-001: admitted A versus newer B bytes; unfinished text/focus/undo and corrected saved width |
+| AsyncSaveAsTests | NATIVE-ASYNC-SAVEAS-001 / NATIVE-SAVE-FAILURE-001: binding before acknowledgement, fresh retry chooser, directory-sync warning versus actual bytes |
+| NativeNavigationTests | NATIVE-NAVIGATION-001 / NATIVE-CLOSE-QUIT-001: cancellation/discard, pending save drain, invalid field blocking Quit |
+| NativeOpenTests | NATIVE-OPEN-ORDER-001 / NATIVE-STALE-EFFECT-001 / NATIVE-ASYNC-FOCUS-001: ordered Open, corrupt input retention, cancelled resolution preserving later drawing/focus |
+| NativeRecoveryTests | NATIVE-RECOVER-COPY-001 / NATIVE-RECOVER-MANAGE-001: real checkpoints, Later, dirty unbound copy, corrupt-newest fallback and selected discard |
+| NativeRoutingTests | NATIVE-ROUTING-001 / NATIVE-SAVE-FAILURE-001: menu/shortcut/control equivalence and a real filesystem failure deferred behind another sheet |
+
+The runner explicitly builds DEBUG with `native-test-controls`; ordinary/release builds
+do not include this API. Selected tests arm one real-worker stage using a disposable empty
+directory. The worker's `reached` marker proves the stage; the test's `release` marker only
+allows work to proceed. No document mutation or successful receipt is injected. Stage IDs
+come from `sketch_test_v1.h`: resolution=1, before-create=2, before-replace=5, directory-sync=7.
+Other cases use native input and actual file/recovery I/O without arming a gate. Read-only
+DEBUG AX observations expose actual focus and runtime quiescence, never force them.
+
+Remaining gaps include recovery capacity UI, oversized/stale reads, mid-gesture native
+resize/deactivation, all navigation choice combinations, poisoned-engine native UI,
+accessibility speech, keyboard-only traversal, display scale and physical device input.
+The pristine runtime/Swift shutdown-ordering smoke and actual Rust poisoned-detach tests
+are complementary lower-level evidence, not poisoned-engine native E2E.
 
 Same-source retries in this checkout retain the isolated bundle identifier so ad-hoc signing
 produces the same executable identity. Two separately copied/signed app bundles produced

@@ -21,6 +21,7 @@ import CSketchSession
     guard owner.inspectorController.fieldEditing.finishEditing(), owner.window.attachedSheet == nil
     else { return }
     configure()
+    status.stringValue = "Loading recovery copies…"
     inventory.onChange = { [weak self] in self?.reload() }
     inventory.onFailure = { [weak self] failure in
       self?.status.stringValue =
@@ -40,6 +41,7 @@ import CSketchSession
   private func configure() {
     guard panel.contentView?.subviews.isEmpty != false else { return }
     panel.title = "Recover Drawings"
+    status.setAccessibilityIdentifier("sketch.recovery.status")
     let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("drawing"))
     column.title = "Recovery copy"
     column.width = 520

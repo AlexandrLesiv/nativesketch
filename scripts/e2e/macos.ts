@@ -24,7 +24,9 @@ export async function macosJourney(output: string, execute: boolean = false, att
   };
   await save();
   try {
-    await logged(output, 'app-build.log', process.execPath, [
+    await logged(output, 'app-build.log', '/usr/bin/env', [
+      'SKETCH_NATIVE_TEST_CONTROLS=1',
+      process.execPath,
       'scripts/build.ts',
       '--platform',
       'macos',
@@ -63,6 +65,9 @@ export async function macosJourney(output: string, execute: boolean = false, att
           os,
           device,
           inputRoute: 'XCUIAutomation mouse/keyboard',
+          buildFeatures: [
+            'native-test-controls (DEBUG-only; individual test arms disposable worker boundary)',
+          ],
         },
         null,
         2,
