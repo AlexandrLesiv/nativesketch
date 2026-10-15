@@ -130,3 +130,11 @@ for explicit uncovered subcases, independently reviewed alongside the executable
 
 The production painter remains provisional Core Graphics until task 020. No renderer
 performance claim, other-platform acceptance, main merge or release is implied.
+
+Final-candidate direct inspection was also blocked: the designer's CUA app-selection call
+started around 20:08 UTC and remained pending at the 20:10 cutoff, returning no UI state.
+It was interrupted; no keys, clicks or screenshot were obtained. Final panel appearance
+and actual Return/Escape/click behavior therefore remain unverified. The worker released
+the disposable save gate at 20:09:30. After inspection ended, the lead identified and
+terminated only the isolated attempt18 Subject process (PID 19399); this cleanup is not
+evidence of normal application Quit. The ordinary app remains built, not launched for handoff.
