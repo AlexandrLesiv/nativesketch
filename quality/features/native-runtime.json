@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "native-runtime",
   "description": "Scoped task019 native runtime regressions discovered from macOS Cargo executables. No native UI, physical input, arbitrary memory-corruption recovery, other host or complete FFI acceptance is inferred. Feature-only fault tests and the C consumer retain separate raw evidence until their runner lanes are modeled.",
-  "sourceRevision": "4c42862",
+  "sourceRevision": "21327bd",
   "cases": [
     {
       "id": "RUNTIME-RESOLUTION-001",
@@ -111,7 +111,7 @@
     },
     {
       "id": "RUNTIME-REGISTRATION-001",
-      "expected": "A failed exclusive recovery identity registration cannot be authorized by window or global Retry; an approved identity can retry checkpoint allocation after capacity becomes available",
+      "expected": "A failed exclusive recovery identity registration cannot be authorized by window or global Retry; an approved identity can retry checkpoint allocation after capacity becomes available; old registration/retry completion cannot update a replacement session",
       "invariants": ["ASYNC-001"],
       "ownerTask": "019",
       "requirements": [
@@ -122,7 +122,8 @@
       ],
       "testIds": [
         "cargo:sketch-services:macos:native_registration_retry:rejected_identity_cannot_be_authorized_by_window_or_global_retry",
-        "cargo:sketch-services:macos:native_registration_retry:first_checkpoint_allocation_failure_retries_after_capacity_is_released"
+        "cargo:sketch-services:macos:native_registration_retry:first_checkpoint_allocation_failure_retries_after_capacity_is_released",
+        "cargo:sketch-services:macos:native_registration_provenance:stale_registration_success_or_failure_cannot_change_new_or_open_replacement"
       ],
       "automation": "implemented",
       "gaps": []

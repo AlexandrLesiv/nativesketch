@@ -1,17 +1,13 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Agreed task019B-E native adapter acceptance. These planned journeys require real macOS UI execution and complementary bridge/service tests; historical keyboard passes do not certify the new runtime.",
-  "sourceRevision": "7b9a689",
+  "description": "Task019B-E native adapter acceptance. Twenty source-authored XCTest cases compile, but executable discovery and foreground execution remain pending. These rows require real macOS UI evidence; historical keyboard or current headless passes do not certify the migrated runtime.",
+  "sourceRevision": "32095bc",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
       "expected": "Equivalent shortcuts, menus and controls use the shared dispatcher and produce equivalent tool, brush, history and file outcomes",
-      "invariants": [
-        "INPUT-001",
-        "FOCUS-001",
-        "FFI-001"
-      ],
+      "invariants": ["INPUT-001", "FOCUS-001", "FFI-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -23,7 +19,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -31,10 +27,7 @@
     {
       "id": "NATIVE-FIELD-REFRESH-001",
       "expected": "Delayed save completion preserves unfinished native field text, caret, focus and text undo; corrected width affects freshly saved ink",
-      "invariants": [
-        "FOCUS-001",
-        "SAVE-002"
-      ],
+      "invariants": ["FOCUS-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -46,7 +39,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -54,10 +47,7 @@
     {
       "id": "NATIVE-ASYNC-SAVE-001",
       "expected": "A delayed admitted save writes revision A while newer native drawing B stays dirty; next Save writes B",
-      "invariants": [
-        "SAVE-001",
-        "SAVE-002"
-      ],
+      "invariants": ["SAVE-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -69,7 +59,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -77,10 +67,7 @@
     {
       "id": "NATIVE-ASYNC-SAVEAS-001",
       "expected": "Save As preserves the old binding until acknowledgement, disables duplicate Save As and preserves the old destination on cancellation or failure",
-      "invariants": [
-        "SAVE-001",
-        "SAVE-002"
-      ],
+      "invariants": ["SAVE-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -92,7 +79,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -100,10 +87,7 @@
     {
       "id": "NATIVE-SAVE-FAILURE-001",
       "expected": "Real write failures retain edits and last-good bytes where applicable; durability warnings accurately report written data; retry is a fresh command",
-      "invariants": [
-        "SAVE-001",
-        "SAVE-002"
-      ],
+      "invariants": ["SAVE-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -115,7 +99,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -123,11 +107,7 @@
     {
       "id": "NATIVE-OPEN-ORDER-001",
       "expected": "Open observes previously accepted Save; corrupt or stale delayed reads cannot replace newer edits or change binding",
-      "invariants": [
-        "LOAD-001",
-        "SAVE-003",
-        "ASYNC-001"
-      ],
+      "invariants": ["LOAD-001", "SAVE-003", "ASYNC-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -139,7 +119,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -147,10 +127,7 @@
     {
       "id": "NATIVE-NAVIGATION-001",
       "expected": "New and Open honor Save, Cancel and Don't Save, outstanding writes and newer edits without premature replacement",
-      "invariants": [
-        "LOAD-001",
-        "SAVE-002"
-      ],
+      "invariants": ["LOAD-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -162,7 +139,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -170,10 +147,7 @@
     {
       "id": "NATIVE-CLOSE-QUIT-001",
       "expected": "Close and Quit defer accepted writes, preserve the app after cancellation or failure, and finish native termination exactly once",
-      "invariants": [
-        "SAVE-002",
-        "ASYNC-001"
-      ],
+      "invariants": ["SAVE-002", "ASYNC-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -185,7 +159,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -193,10 +167,7 @@
     {
       "id": "NATIVE-STALE-EFFECT-001",
       "expected": "Late results from cancelled operations cannot present obsolete sheets, replace content, change title or steal focus",
-      "invariants": [
-        "ASYNC-001",
-        "FOCUS-001"
-      ],
+      "invariants": ["ASYNC-001", "FOCUS-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -208,7 +179,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -216,10 +187,7 @@
     {
       "id": "NATIVE-RECOVER-COPY-001",
       "expected": "Later preserves recovery; opening a recovered copy uses unsaved navigation and creates visible dirty, unbound content",
-      "invariants": [
-        "LOAD-001",
-        "SAVE-002"
-      ],
+      "invariants": ["LOAD-001", "SAVE-002"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -231,7 +199,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -239,9 +207,7 @@
     {
       "id": "NATIVE-RECOVER-MANAGE-001",
       "expected": "Recovery fallback, capacity feedback and exact-candidate discard preserve newer or unselected recovery data",
-      "invariants": [
-        "ASYNC-001"
-      ],
+      "invariants": ["ASYNC-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -253,7 +219,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
@@ -261,11 +227,7 @@
     {
       "id": "NATIVE-ASYNC-FOCUS-001",
       "expected": "Background work preserves focus; cancelled sheets restore only a valid responder; resize or deactivation cancels drafts before remapping",
-      "invariants": [
-        "FOCUS-001",
-        "INK-001",
-        "CANCEL-001"
-      ],
+      "invariants": ["FOCUS-001", "INK-001", "CANCEL-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -277,7 +239,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "Native runtime migration and executable UI journey are pending. Controlled worker scheduling or failure injection must remain explicitly identified.",
+          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
           "ownerTask": "019"
         }
       ]
