@@ -34,6 +34,7 @@ impl NativeRuntime {
             return Err(RuntimeError::Busy);
         }
         self.stopping = true;
+        self.io.cancel_controls();
         self.shutdown_progress()
     }
     pub(super) fn shutdown_progress(&mut self) -> Result<(), RuntimeError> {

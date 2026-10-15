@@ -31,3 +31,8 @@ mod recovery_results;
 mod release;
 
 mod retirement;
+
+#[cfg(feature = "native-test-controls")]
+mod test_control;
+#[cfg(feature = "native-test-controls")]
+pub use test_control::TestControl;

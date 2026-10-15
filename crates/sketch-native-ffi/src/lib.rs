@@ -15,3 +15,5 @@ mod recovery_api;
 mod runtime_api;
 mod scene_api;
 mod session_api;
+#[cfg(feature = "native-test-controls")]
+mod test_api;

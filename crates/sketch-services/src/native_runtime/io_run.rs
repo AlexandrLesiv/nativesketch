@@ -13,8 +13,13 @@ pub(super) fn run(
     input: Receiver<Box<WorkerRequest>>,
     output: SyncSender<WorkerResult>,
     stop: &AtomicBool,
+    controls_stop: &AtomicBool,
 ) {
     let mut state = IoState::new(config);
+    #[cfg(feature = "native-test-controls")]
+    let controls = super::test_control::TestControls::default();
+    #[cfg(not(feature = "native-test-controls"))]
+    let _ = controls_stop;
     let started = WorkerValue::Started {
         recovery: state.recovery.as_ref().map(|_| ()).map_err(|error| *error),
         diagnostics: state
@@ -34,7 +39,21 @@ pub(super) fn run(
             Err(RecvTimeoutError::Timeout) => continue,
         };
         let WorkerRequest { operation, work } = *request;
-        let value = catch_unwind(AssertUnwindSafe(|| state.perform(work, &NoFaults)))
+        let value = catch_unwind(AssertUnwindSafe(|| {
+            #[cfg(feature = "native-test-controls")]
+            {
+                if let Work::ArmTest(control) = work {
+                    return controls.arm(control).map(|_| WorkerValue::Complete).unwrap_or_else(WorkerValue::Failure);
+                }
+                if matches!(work, Work::Resolve(_)) && controls.resolve(controls_stop).is_err() {
+                    return WorkerValue::Failure(NativeFailure::Access);
+                }
+                if matches!(&work, Work::Write { job, .. } if matches!(job.token().purpose(), sketch_core::application::storage::SavePurpose::Save | sketch_core::application::storage::SavePurpose::SaveAs)) {
+                    return state.perform(work, &controls.hooks(controls_stop));
+                }
+            }
+            state.perform(work, &NoFaults)
+        }))
             .unwrap_or(WorkerValue::Failure(NativeFailure::Panic));
         if output.send(state.result(operation, value)).is_err() {
             break;

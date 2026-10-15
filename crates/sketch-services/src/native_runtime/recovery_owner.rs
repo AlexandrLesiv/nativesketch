@@ -186,3 +186,10 @@ impl NativeRuntime {
         Ok(id)
     }
 }
+
+#[cfg(feature = "native-test-controls")]
+impl NativeRuntime {
+    pub fn arm_test(&mut self, control: super::TestControl) -> Result<(), RuntimeError> {
+        self.maintenance(0, 0, Work::ArmTest(control)).map(|_| ())
+    }
+}

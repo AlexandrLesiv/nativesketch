@@ -19,6 +19,7 @@ typedef struct {
 /* One-shot next matching boundary. Root must be disposable and empty at registration.
  * Worker creates reached marker; external test writes release marker for HOLD.
  * HOLD aborts at60s or shutdown, reporting stage-appropriate failure/uncertainty.
+ * Storage stages match explicit Save/SaveAs only; RESOLVE matches user source/destination.
  * No production environment variable can enable these symbols or behavior. */
 uint32_t sketch_runtime_v1_test_arm(SketchRuntimeV1 *, const SketchTestControlV1 *);
 #ifdef __cplusplus

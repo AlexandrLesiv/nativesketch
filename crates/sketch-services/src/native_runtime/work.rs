@@ -24,6 +24,8 @@ pub enum Retired {
     Candidate(PreparedReplacement),
 }
 pub enum Work {
+    #[cfg(feature = "native-test-controls")]
+    ArmTest(super::test_control::TestControl),
     Resolve(PathBuf),
     Prepare {
         ticket: ReplacementTicket,

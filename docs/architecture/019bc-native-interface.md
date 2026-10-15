@@ -186,6 +186,8 @@ read release permits the next Open and shutdown; grants release exactly once aft
 completion; held SaveA/editB and actual on-disk A; shutdown drain and wrong-thread/panic cases.
 Native E2E additionally exercises the twelve cases in docs/design/019-native-command-adapter.md.
 The test-only control root uses fixed `reached`/`release` marker names and one matching boundary;
-external test releases the worker after observing reached. HOLD expires after60s or shutdown
+Storage stages match explicit Save/SaveAs only, excluding checkpoints and diagnostics.
+RESOLVE matches user source/destination work, excluding root/registration initialization.
+External test releases the worker after observing reached. HOLD expires after60s or shutdown
 request, returning a stage-appropriate injected failure/uncertainty instead of hanging.
 Diagnostics remain redacted.
