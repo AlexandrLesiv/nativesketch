@@ -168,8 +168,8 @@ Outcome retry_action is Rust-selected, zero when not offered. Failed SaveAs retu
 and opens a fresh chooser; Save returns SAVE; ExportCopy returns EXPORT_COPY. Failed
 navigation read abandons that continuation and offers OPEN (fresh chooser); recovery retry
 requires selecting from a fresh inventory, so retry_action=0. A failed save during navigation
-offers its original Save/SaveAs action while the original navigation remains in projection;
-it rechecks dirty state after acknowledgement. No stale/cancelled failure shows a sheet.
+offers its original Save/SaveAs action as a fresh save only. Shared core clears the original
+Close/New/Open navigation; the user must request it again. Cancellation never resurrects it. No stale/cancelled failure shows a sheet.
 Preflight rejections return status only and are not retry offers. Post-replace uncertainty is
 identified by save_result, separate from pre-replace failure and durability warning.
 

@@ -40,3 +40,4 @@ impl From<io::Error> for RecoveryError {
 }
 pub(crate) const MAX_ENVELOPE: u64 = 64 * 1024 * 1024 + 1024;
 pub(crate) const RETENTION_SECONDS: u64 = 7 * 24 * 60 * 60;
+mod empty;

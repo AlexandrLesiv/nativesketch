@@ -2,6 +2,7 @@ mod run;
 use crate::diagnostics::Event;
 use crate::recovery::{CheckpointMetadata, RecoveryStore};
 use crate::storage::{DestinationAccess, NoFaults, StoreHooks, StoreReport};
+pub(crate) use run::perform;
 use sketch_core::application::storage::{WriteJob, WriteReceipt};
 use std::io;
 use std::sync::{

@@ -11,6 +11,9 @@ impl RecoveryId {
             Ok(Self(bytes))
         }
     }
+    pub fn bytes(self) -> [u8; 16] {
+        self.0
+    }
     pub fn name(self) -> String {
         self.0.iter().map(|byte| format!("{byte:02x}")).collect()
     }

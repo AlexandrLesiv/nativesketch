@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/sketch-core", "crates/sketch-ffi", "crates/sketch-wasm", "crates/sketch-services"]
+members = ["crates/sketch-core", "crates/sketch-ffi", "crates/sketch-wasm", "crates/sketch-services", "crates/sketch-native-ffi"]
 resolver = "2"
 
 [workspace.package]

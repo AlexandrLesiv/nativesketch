@@ -30,7 +30,11 @@ pub(super) fn worker(
         }
     }
 }
-fn perform(submission: Submission, build: u64, hooks: &dyn StoreHooks) -> ServiceReceipt {
+pub(crate) fn perform(
+    submission: Submission,
+    build: u64,
+    hooks: &dyn StoreHooks,
+) -> ServiceReceipt {
     let started = Instant::now();
     let token = submission.job.token();
     // Keep the unique job outside the unwind boundary so panic still yields its receipt.

@@ -14,6 +14,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sketch-native-ffi"
+version = "0.1.0"
+dependencies = [
+ "sketch-core",
+ "sketch-services",
+]
+
+[[package]]
 name = "sketch-services"
 version = "0.1.0"
 dependencies = [

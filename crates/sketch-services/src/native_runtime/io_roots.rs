@@ -1,0 +1,89 @@
+use super::{RuntimeConfig, work::NativeFailure};
+use crate::diagnostics::RotatingSink;
+use crate::recovery::{RecoveryLimits, RecoveryStore};
+use crate::storage::validate_directory;
+use std::{
+    fs::{self, File, OpenOptions},
+    path::Path,
+};
+pub(super) struct DiagnosticAccess {
+    pub sink: RotatingSink,
+    _lock: File,
+}
+pub(super) struct RecoveryAccess {
+    pub store: RecoveryStore,
+    _lock: File,
+}
+fn private_root(path: &Path) -> Result<(), NativeFailure> {
+    if !path.exists() {
+        let parent = path.parent().ok_or(NativeFailure::Access)?;
+        validate_directory(parent).map_err(|_| NativeFailure::Access)?;
+        let mut builder = fs::DirBuilder::new();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::DirBuilderExt;
+            builder.mode(0o700);
+        }
+        builder.create(path).map_err(|_| NativeFailure::Access)?;
+    }
+    validate_directory(path).map_err(|_| NativeFailure::Access)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if fs::metadata(path)
+            .map_err(|_| NativeFailure::Access)?
+            .permissions()
+            .mode()
+            & 0o077
+            != 0
+        {
+            return Err(NativeFailure::Access);
+        }
+    }
+    Ok(())
+}
+pub(super) fn recovery(config: &RuntimeConfig) -> Result<RecoveryAccess, NativeFailure> {
+    let root = config
+        .recovery_root
+        .as_ref()
+        .ok_or(NativeFailure::Unsupported)?;
+    private_root(root)?;
+    let lock = lock_root(root)?;
+    let store = RecoveryStore::open(root.join("sessions"), RecoveryLimits::default())
+        .map_err(NativeFailure::Recovery)?;
+    store.prune_empty().map_err(NativeFailure::Recovery)?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|_| NativeFailure::Access)?
+        .as_secs();
+    store
+        .expire_resolved(now)
+        .map_err(NativeFailure::Recovery)?;
+    Ok(RecoveryAccess { store, _lock: lock })
+}
+pub(super) fn diagnostics(config: &RuntimeConfig) -> Result<DiagnosticAccess, NativeFailure> {
+    let root = config
+        .diagnostics_root
+        .as_ref()
+        .ok_or(NativeFailure::Unsupported)?;
+    private_root(root)?;
+    let lock = lock_root(root)?;
+    let sink = RotatingSink::new(root.clone(), 256 * 1024, 4).map_err(|_| NativeFailure::Sink)?;
+    Ok(DiagnosticAccess { sink, _lock: lock })
+}
+
+fn lock_root(root: &Path) -> Result<File, NativeFailure> {
+    let path = root.join("owner.lock");
+    crate::storage::DestinationAccess::new(path.clone()).map_err(|_| NativeFailure::Access)?;
+    let mut options = OpenOptions::new();
+    options.create(true).read(true).write(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let lock = options.open(path).map_err(|_| NativeFailure::Access)?;
+    lock.try_lock()
+        .map_err(|_| NativeFailure::Recovery(crate::recovery::RecoveryError::Conflict))?;
+    Ok(lock)
+}
