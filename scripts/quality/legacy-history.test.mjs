@@ -33,6 +33,17 @@ test('real history catches regrowth hidden behind a later documentation commit',
     const failures = checkLegacyGrowth(changes, 200);
     assert.equal(failures.length, 1);
     assert.match(failures[0], /201 -> 205/);
+    writeFileSync(join(directory, 'old.rs'), source(201));
+    commit('repair');
+    assert.deepEqual(checkLegacyGrowth(legacyChanges(git, baseline, ['old.rs'],
+      [{ path: 'old.rs', text: source(201) }]), 200), []);
+    git('checkout', '--quiet', '--orphan', 'synthetic-main');
+    git('rm', '--quiet', '-rf', '.');
+    writeFileSync(join(directory, 'README.md'), 'unrelated main\n');
+    commit('unrelated main');
+    git('merge', '--quiet', '--allow-unrelated-histories', '--no-edit', baseline);
+    assert.deepEqual(checkLegacyGrowth(legacyChanges(git, baseline, ['old.rs'],
+      [{ path: 'old.rs', text: source(210) }]), 200), []);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

@@ -19,3 +19,12 @@ test('completed extraction permits ordinary growth only within the final limit',
   ];
   assert.equal(checkLegacyGrowth(changes, 200).length, 1);
 });
+
+test('repairing a historical growth violation clears the failure without rewriting history', () => {
+  const changes = [
+    { path: 'legacy.rs', before: 210, after: 201, revision: 'shrink' },
+    { path: 'legacy.rs', before: 201, after: 205, revision: 'regrow' },
+    { path: 'legacy.rs', before: 205, after: 201, revision: 'repair' },
+  ];
+  assert.deepEqual(checkLegacyGrowth(changes, 200), []);
+});

@@ -3,13 +3,23 @@ import { physicalLines } from './source-size.mjs';
 /** @typedef {{path: string, before: number, after: number, revision: string}} Change */
 /** @param {Change[]} changes @param {number} maximum */
 export function checkLegacyGrowth(changes, maximum) {
-  return changes.filter((change) => change.after > maximum && change.after > change.before)
-    .map((change) => `${change.path}: oversized source grew ${change.before} -> ${change.after} at ${change.revision}`);
+  /** @type {Map<string, number>} */
+  const ceilings = new Map();
+  /** @type {Map<string, Change>} */
+  const latest = new Map();
+  for (const change of changes) {
+    ceilings.set(change.path, Math.max(maximum,
+      Math.min(ceilings.get(change.path) ?? Infinity, change.before, change.after)));
+    latest.set(change.path, change);
+  }
+  return [...latest.values()].filter((change) => change.after > (ceilings.get(change.path) ?? maximum))
+    .map((change) => `${change.path}: oversized source grew ${ceilings.get(change.path)} -> ${change.after} at ${change.revision}`);
 }
 
 /**
- * Check each first-parent commit since the approved baseline and the working tree.
- * A shrinking legacy file cannot later regrow under its original baseline ceiling.
+ * Derive a minimum size ceiling from descendants of the approved baseline.
+ * Check the current tree against it: repaired regressions can pass again. Exclude
+ * unrelated merge parents, including the synthetic main parent of a PR merge.
  * @param {(...args: string[]) => string} git
  * @param {string} baselineRevision
  * @param {string[]} paths
@@ -33,10 +43,11 @@ export function legacyChanges(git, baselineRevision, paths, workingFiles) {
       changes.push({ path, before: before.get(path) ?? 0, after: after.get(path) ?? 0, revision });
     }
   };
-  const commits = git('log', '--first-parent', '--format=%H', `${baselineRevision}..HEAD`, '--', ...paths)
+  const initial = counts(baselineRevision);
+  const commits = git('log', '--full-history', '--ancestry-path', '--format=%H', `${baselineRevision}..HEAD`, '--', ...paths)
     .trim().split('\n').filter(Boolean);
-  for (const commit of commits) compare(counts(`${commit}^`), counts(commit), commit);
+  for (const commit of commits) compare(initial, counts(commit), commit);
   const working = new Map(workingFiles.map((file) => [file.path, physicalLines(file.text)]));
-  compare(counts('HEAD'), working, 'working-tree');
+  compare(initial, working, 'working-tree');
   return changes;
 }
