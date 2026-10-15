@@ -1,4 +1,4 @@
-use crate::RenderStats;
+use crate::{RenderError, RenderStats, viewport_path};
 use sketch_core::{SceneStroke, StrokeGeometry};
 use skia_safe::{Canvas, Color4f, Paint, Path, PathBuilder};
 use std::{
@@ -77,11 +77,17 @@ impl Paths {
         request: &crate::RenderRequest,
         retain: bool,
         stats: &mut RenderStats,
-    ) {
+    ) -> Result<(), RenderError> {
         let Some(command) = stroke.geometry.commands.first() else {
-            return;
+            return Ok(());
         };
-        let path = self.path(stroke, retain, stats);
+        let viewport_path = viewport_path::needed(stroke, request);
+        let path = if viewport_path {
+            stats.path_misses += 1;
+            viewport_path::build(stroke, request)?
+        } else {
+            self.path(stroke, retain, stats)
+        };
         let viewport = request.viewport();
         let origin = stroke.geometry.origin;
         let t = stroke.transform;
@@ -99,10 +105,13 @@ impl Paths {
         );
         paint.set_anti_alias(true);
         canvas.save();
-        canvas.scale(request.scale());
-        canvas.translate((x as f32, y as f32));
-        canvas.scale((scale, scale));
+        if !viewport_path {
+            canvas.scale(request.scale());
+            canvas.translate((x as f32, y as f32));
+            canvas.scale((scale, scale));
+        }
         canvas.draw_path(&path, &paint);
         canvas.restore();
+        Ok(())
     }
 }

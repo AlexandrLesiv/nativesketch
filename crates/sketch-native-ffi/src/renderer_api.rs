@@ -27,6 +27,7 @@ pub unsafe extern "C" fn sketch_renderer_v1_create(
             owner: thread::current().id(),
             poisoned: false,
             scene: SceneCache::default(),
+            selection: Default::default(),
             backend,
         };
         unsafe {
@@ -76,18 +77,16 @@ pub unsafe extern "C" fn sketch_renderer_v1_draw(
                         SceneError::InvalidViewport => 1u32,
                         SceneError::ResourceLimit => 3,
                     })?;
-                let selected = if state.document.selected != 0 {
+                let selected = renderer.selection.bounds(state, || {
                     match slot
                         .app
                         .query(EditorQuery::SelectedBounds)
                         .map_err(|_| 2u32)?
                     {
-                        QueryResult::SelectedBounds(bounds) => Some(bounds),
-                        _ => return Err(2),
+                        QueryResult::SelectedBounds(bounds) => Ok(bounds),
+                        _ => Err(2),
                     }
-                } else {
-                    None
-                };
+                })?;
                 let scene_ns = started.elapsed().as_nanos().min(u64::MAX as u128) as u64;
                 let render_start = Instant::now();
                 let mut stats = renderer
@@ -113,6 +112,7 @@ pub unsafe extern "C" fn sketch_renderer_v1_reset(renderer: *mut Renderer) -> u3
         renderer_owner::run(renderer, |renderer| {
             renderer.backend.reset().map_err(renderer_owner::status)?;
             renderer.scene.clear();
+            renderer.selection.clear();
             Ok(())
         })
     }

@@ -111,11 +111,11 @@ impl Compositor {
         if scene.transform_preview.is_none() && cached {
             self.background(surface, scene, request, key, &mut stats)?;
         } else {
-            self.draw_ordered(surface, scene, request, cached, &mut stats);
+            self.draw_ordered(surface, scene, request, cached, &mut stats)?;
         }
         if let Some(live) = &scene.live {
             self.paths
-                .draw(surface.canvas(), live, request, false, &mut stats);
+                .draw(surface.canvas(), live, request, false, &mut stats)?;
         }
         adornments::draw(surface.canvas(), request, selected);
         stats.path_bytes = self.paths.bytes as u64;
@@ -137,13 +137,13 @@ impl Compositor {
             self.background = None;
             let bytes = request.pixel_width as usize * request.pixel_height as usize * 4;
             if bytes > self.background_limit {
-                self.draw_ordered(surface, scene, request, true, stats);
+                self.draw_ordered(surface, scene, request, true, stats)?;
                 return Ok(());
             }
             let mut base = surface
                 .new_surface(&surface.image_info())
                 .ok_or(RenderError::Backend)?;
-            self.draw_ordered(&mut base, scene, request, true, stats);
+            self.draw_ordered(&mut base, scene, request, true, stats)?;
             self.background = Some(Background {
                 key,
                 image: base.image_snapshot(),
@@ -163,7 +163,7 @@ impl Compositor {
         request: &RenderRequest,
         cached: bool,
         stats: &mut RenderStats,
-    ) {
+    ) -> Result<(), RenderError> {
         let canvas = surface.canvas();
         canvas.clear(Color::WHITE);
         let preview = scene.transform_preview.as_ref();
@@ -172,16 +172,17 @@ impl Compositor {
             if let Some(value) = replacement
                 && value.order <= stroke.order
             {
-                self.paths.draw(canvas, value, request, cached, stats);
+                self.paths.draw(canvas, value, request, cached, stats)?;
                 replacement = None;
             }
             if preview.is_some_and(|p| p.stroke_id == stroke.stroke_id) {
                 continue;
             }
-            self.paths.draw(canvas, stroke, request, cached, stats);
+            self.paths.draw(canvas, stroke, request, cached, stats)?;
         }
         if let Some(value) = replacement {
-            self.paths.draw(canvas, value, request, cached, stats);
+            self.paths.draw(canvas, value, request, cached, stats)?;
         }
+        Ok(())
     }
 }

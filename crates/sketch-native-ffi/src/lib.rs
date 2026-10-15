@@ -30,3 +30,6 @@ mod renderer_owner;
 mod renderer_tests;
 #[cfg(not(target_os = "macos"))]
 mod renderer_unsupported;
+
+#[cfg(target_os = "macos")]
+mod renderer_selection;

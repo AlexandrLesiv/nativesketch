@@ -8,6 +8,7 @@ pub struct Renderer {
     pub owner: ThreadId,
     pub poisoned: bool,
     pub scene: SceneCache,
+    pub selection: crate::renderer_selection::SelectionCache,
     pub backend: MetalRenderer,
 }
 pub fn status(error: RenderError) -> u32 {

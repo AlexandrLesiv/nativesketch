@@ -24,14 +24,14 @@ pub(crate) fn draw(canvas: &Canvas, request: &RenderRequest, selected: Option<Bo
         let v = request.viewport();
         let x = ((b.x - v.x) * request.zoom) as f32;
         let y = ((b.y - v.y) * request.zoom) as f32;
-        let w = (b.width * request.zoom) as f32;
-        let h = (b.height * request.zoom) as f32;
+        let right = ((b.x + b.width - v.x) * request.zoom) as f32;
+        let bottom = ((b.y + b.height - v.y) * request.zoom) as f32;
         let outline = paint(request.selection_rgba, 1.5);
-        canvas.draw_rect(Rect::from_xywh(x, y, w, h), &outline);
+        canvas.draw_rect(Rect::new(x, y, right, bottom), &outline);
         let mut fill = Paint::default();
         fill.set_color(skia_safe::Color::WHITE).set_anti_alias(true);
         let handle = paint(request.selection_rgba, 1.0);
-        for (px, py) in [(x, y), (x + w, y), (x + w, y + h), (x, y + h)] {
+        for (px, py) in [(x, y), (right, y), (right, bottom), (x, bottom)] {
             let rect = Rect::from_xywh(px - 4.0, py - 4.0, 8.0, 8.0);
             canvas.draw_rect(rect, &fill);
             canvas.draw_rect(rect, &handle);

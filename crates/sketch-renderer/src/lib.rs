@@ -1,9 +1,11 @@
 //! Disposable rendering only: editor semantics remain in sketch-core.
 mod adornments;
+mod clip;
 mod compositor;
 mod paths;
 mod request;
 mod stats;
+mod viewport_path;
 pub use compositor::Compositor;
 pub use request::{RenderError, RenderRequest};
 pub use stats::RenderStats;
