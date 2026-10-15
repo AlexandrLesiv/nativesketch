@@ -23,6 +23,35 @@ Swift authority for brush, tool, document, history or saved revision.
 
 ## Commands and projections
 
+The owner reaffirmed the source-independent command boundary during implementation:
+
+```mermaid
+flowchart LR
+  Shortcut[System shortcut] --> Routing[Native focus and input adapter]
+  Control[Native control] --> Routing
+  Routing --> Command[Typed command]
+  Agent[Future agent signal adapter] -.-> Command
+  Command --> Dispatch[Shared command dispatcher]
+  Dispatch --> State[Rust state transition]
+  Dispatch --> Effect[Correlated effect]
+  Effect --> Host[Native dialog or service adapter]
+  Host --> Completion[Typed effect completion]
+  Completion --> Dispatch
+  State --> Projection[UI projection and scene invalidation]
+```
+
+Shortcuts and controls must not contain separate editing implementations. An adapter
+translates the signal into a semantic command; the dispatcher validates capabilities,
+session/interaction identity and state before executing it. Future agent requests enter
+that same command boundary, without keyboard simulation or direct state mutation.
+Native text editing consumes its own shortcuts before application-command routing.
+
+Save As is one semantic intent regardless of source. Its native chooser is an effect
+used when a destination is needed; a future adapter may supply a valid destination grant.
+Both routes converge on the same typed save admission and completion handling. Menu
+selectors, toolbar actions and future agent adapters must not each implement persistence.
+No future agent transport, authentication or automatic file grant is introduced now.
+
 Use typed wrapper methods over named C functions or a validated tagged command record;
 never deserialize arbitrary Swift objects into domain commands. Raw enum tags and numeric
 values are validated before mutation. Context contains session, request and interaction

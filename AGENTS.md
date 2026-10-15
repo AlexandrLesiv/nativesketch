@@ -36,6 +36,9 @@ change for human merge approval. Native Sketch is a working name.
   and stale-result rejection before asynchronous work. No disk/GPU waits on the ink path.
 - Define future agent commands/queries now; do not implement agent transport or permissions
   incidentally. Real samples are ordered; predictions remain temporary; commit once per undo.
+- Route system shortcuts, native controls and future agent signals into the same typed
+  command dispatcher. Adapters translate intent; they must not duplicate editing or saving
+  behavior. Native field editing keeps first-responder priority; dialogs are native effects.
 - New repository automation uses native Node.js TypeScript `.ts` ES modules, Oxlint/Oxfmt
   and strict erasable types. Use explicit `.ts` imports and `import type`; no transpiler,
   runtime enums, parameter properties, decorators, `any` casts or type-check suppressions.
