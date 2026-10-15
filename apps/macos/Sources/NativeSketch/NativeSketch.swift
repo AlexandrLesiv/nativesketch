@@ -18,6 +18,15 @@ import CSketchSession
         try NativeTiming.run()
         return
       }
+      if CommandLine.arguments.contains("--render-benchmark") {
+        guard let path = NativeLaunchConfiguration.argument("--render-benchmark"),
+          !path.hasPrefix("--")
+        else {
+          throw RenderBenchmarkError(reason: "missing-benchmark-output-path")
+        }
+        try RenderBenchmarkRunner.run(output: URL(fileURLWithPath: path))
+        return
+      }
       let runtime = try NativeRuntime(root: NativeLaunchConfiguration.runtimeRoot)
       try NativeLaunchConfiguration.configureTestControls(runtime)
       let app = NSApplication.shared
