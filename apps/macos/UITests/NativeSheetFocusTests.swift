@@ -16,6 +16,40 @@ import XCTest
   }
 
   func testFailedSaveCancellationRestoresOriginalWidthSelection() throws {
+    try verifyFailureCancellation(useSuccessor: false)
+  }
+
+  func testFailedSaveAsSuccessorCancellationRestoresOriginalWidthSelection() throws {
+    try verifyFailureCancellation(useSuccessor: true)
+  }
+
+  func testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection() throws {
+    continueAfterFailure = false
+    let f = try NativeSessionFixture()
+    defer { f.record(in: self) }
+    try f.launch()
+    f.draw(count: 1)
+    let recovery = f.runtimeRoot.appendingPathComponent("Recovery")
+    f.wait {
+      let entries = FileManager.default.enumerator(at: recovery, includingPropertiesForKeys: nil)
+      return (entries?.allObjects as? [URL] ?? []).contains { $0.pathExtension == "nskr" }
+    }
+    let width = selectFinalWidthDigit(in: f.app)
+    f.app.menuBars.menuBarItems["File"].click()
+    f.app.menuItems["Recover Drawings…"].click()
+    let table = f.app.tables["sketch.recovery.list"]
+    XCTAssertTrue(table.waitForExistence(timeout: 5))
+    f.wait { table.tableRows.count == 1 }
+    table.tableRows.firstMatch.click()
+    f.app.buttons["sketch.recovery.open"].click()
+    let prompt = nativeFilePanel(in: f.app)
+    XCTAssertTrue(prompt.buttons["Don’t Save"].exists)
+    prompt.buttons["Cancel"].click()
+    assertRestoredSelection(width, in: f)
+    f.strokes(1)
+  }
+
+  private func verifyFailureCancellation(useSuccessor: Bool) throws {
     continueAfterFailure = false
     let f = try NativeSessionFixture()
     defer { f.record(in: self) }
@@ -35,7 +69,14 @@ import XCTest
     try f.reached()
     let cancel = f.app.buttons["sketch.failure.cancel"]
     XCTAssertTrue(cancel.waitForExistence(timeout: 5))
-    cancel.click()
+    if useSuccessor {
+      f.app.buttons["sketch.failure.save-as"].click()
+      let chooser = nativeFilePanel(in: f.app)
+      XCTAssertTrue(chooser.textFields["saveAsNameTextField"].exists)
+      chooser.buttons["Cancel"].click()
+    } else {
+      cancel.click()
+    }
     assertRestoredSelection(width, in: f)
     XCTAssertEqual(try Data(contentsOf: destination), bytes)
   }
