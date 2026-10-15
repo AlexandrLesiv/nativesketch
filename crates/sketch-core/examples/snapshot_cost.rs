@@ -56,8 +56,11 @@ fn main() {
                     DestinationId(1),
                 )
                 .unwrap();
+            std::hint::black_box(&queue);
             let micros = started.elapsed().as_secs_f64() * 1_000_000.0;
             charged = queue.reserved_snapshot_bytes();
+            // Consume and verify the actual snapshot outside the timed copy interval.
+            assert_eq!(queue.start_next().unwrap().encode().unwrap(), bytes);
             if iteration > 0 {
                 timings.push(micros);
             }
