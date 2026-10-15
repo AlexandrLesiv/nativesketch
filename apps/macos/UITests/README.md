@@ -60,6 +60,7 @@ journeys below require fresh executable discovery and execution before coverage 
 | NativeFieldCompletionTests / NativeFocusRestorationTests / NativeSheetFocusTests | Nonzero selection across save completion, cancelled Save As, Recovery Later and failed-save cancellation |
 | NativeInspectorDismissalTests | Inspector Escape returns working native canvas P/V shortcuts and drawing |
 | NativePoisonClosureTests | Explicit caught Rust panic, cancelled native Close/Quit, confirmed exit and unchanged last-good file reopen |
+| NativeGestureCancellationTests | Actual held mouse gesture before resize/deactivation; observed cancellation before mouse-up, exact saved bytes, fresh stroke and single undo |
 
 The runner explicitly builds DEBUG with `native-test-controls`; ordinary/release builds
 do not include this API. Selected tests arm one real-worker stage using a disposable empty
@@ -75,10 +76,18 @@ Other cases use native input and actual file/recovery I/O without arming a gate.
 DEBUG AX observations expose actual focus and runtime quiescence, never force them.
 
 Executable discovery and results must be imported independently: adding or compiling these
-tests does not close their runtime acceptance. Remaining specialist checks include active-gesture
-resize/deactivation through real OS events, accessibility speech, full keyboard traversal,
-display scale and physical device input. A disposable CGEvent/AX helper is a different input
-route from XCUIAutomation and must have separate source/binary/fixture evidence.
+tests does not close their runtime acceptance. The two maintained gesture cancellation cases
+combine XCUIAutomation Save/Undo with CGEvent held mouse input, AX native resize and a
+test-runner-owned window for deactivation. They require a strictly positive observed interaction
+before cancellation, actual size/inactivity readback, and idle before releasing the pointer.
+They prepare their UUID document through the existing native Save helper; the retired ad-hoc
+probe failed before drawing while locating the Go To path field. That failure was file-dialog
+setup evidence, not evidence of a canvas cancellation defect. Its retained traces remain failures.
+These tests fail with an environment diagnostic if the test runner lacks existing AX/event-posting
+permissions; they never request permission or change system settings. Preparation/build is not
+execution. Runtime results must identify this hybrid synthetic input route, never physical pen.
+Remaining specialist checks include accessibility speech, full keyboard traversal, display scale
+and physical device input. Gesture acceptance remains pending until these cases actually pass.
 The pristine runtime/Swift shutdown-ordering smoke and actual Rust poisoned-detach tests
 are complementary lower-level evidence, not poisoned-engine native E2E.
 
