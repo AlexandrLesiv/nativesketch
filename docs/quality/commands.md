@@ -58,9 +58,14 @@ relative URLs and standard service-worker cache behavior. No renderer runtime ch
 The old apps/web compiler package/lockfile remain for legacy-path parity until removal.
 
 JS formatting/type-aware lint checks cover all new orchestration and quality modules;
-legacy app sources are not silently reformatted. After task 018 phase A, the source-size gate reports six linked
+legacy app sources are not silently reformatted. After the reviewed macOS composition, the source-size gate reports five linked
 legacy debts and rejects new violations, growth after partial extraction, and all debt
 in final mode. Cargo dependency checks enforce boundaries; **not** license/advisory scans.
+The macOS native boundary gate rejects legacy bridge imports/linkage, manual C symbol
+declarations, and legacy/test-only headers reachable from the production session module.
+Its negative fixtures also exercise the actual quality CLI. This is a source regression
+guard for the supported module layout, not a Swift/C parser or proof of semantic routing;
+actual compiler consumers, bridge behavior tests and native journeys remain required.
 
 Swift 6.4 toolchain `swift-format --version` reports `main` on this host. Strict lint
 currently fails existing style debt (including semicolon/line-length violations), so it

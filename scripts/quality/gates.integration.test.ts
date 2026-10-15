@@ -69,3 +69,20 @@ await test('actual CLI rejects an untracked oversized source file', () => {
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+await test('actual CLI rejects a legacy import in a new production Swift source', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const directory = mkdtempSync(join(root, 'apps/macos/Sources/NativeSketch/negative-gate-'));
+  try {
+    writeFileSync(join(directory, 'LegacyImport.swift'), 'import CSketchFFI\n');
+    const result = spawnSync(process.execPath, ['scripts/quality/check.ts'], {
+      cwd: root,
+      encoding: 'utf8',
+      timeout: 30_000,
+    });
+    assert.equal(result.status, 1, result.error?.message);
+    assert.match(result.stderr, /LegacyImport\.swift: production Swift must not import CSketchFFI/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

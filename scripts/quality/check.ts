@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { checkSourceSize, isSource } from './source-size.ts';
 import { checkDependencies } from './dependencies.ts';
+import { checkNativeBoundary, isNativeBoundaryPath } from './native-boundary.ts';
 import { checkLegacyGrowth, legacyChanges } from './legacy-growth.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -50,6 +51,13 @@ const metadata = JSON.parse(
 const legacy = baseline.oversized.map((entry: { path: string }) => entry.path);
 const growth = legacyChanges((...argv) => run('git', argv), baseline.revision, legacy, files);
 const failures = [
+  ...checkNativeBoundary(
+    new Map(
+      paths
+        .filter((path) => !deleted.has(path) && isNativeBoundaryPath(path))
+        .map((path) => [path, readFileSync(resolve(root, path), 'utf8')]),
+    ),
+  ),
   ...size.failures,
   ...checkLegacyGrowth(growth, policy.maximumPhysicalLines),
   ...checkDependencies(metadata, json('quality/dependency-policy.json')),
