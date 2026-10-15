@@ -9,7 +9,8 @@ struct RenderBenchmarkReport: Encodable {
   func write(to output: URL) throws {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-    try encoder.encode(self).write(to: output, options: .atomic)
+    // Preserve earlier attempts, including failures, even when a caller reuses a path.
+    try encoder.encode(self).write(to: output, options: .withoutOverwriting)
   }
 }
 

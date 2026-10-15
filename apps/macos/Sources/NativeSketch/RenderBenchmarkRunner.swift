@@ -23,6 +23,9 @@ import AppKit
   private var visibilityMaxSeconds = 0.0
 
   static func run(output: URL) throws {
+    guard !FileManager.default.fileExists(atPath: output.path) else {
+      throw RenderBenchmarkError(reason: "benchmark-output-already-exists")
+    }
     let app = NSApplication.shared
     app.setActivationPolicy(.regular)
     let runner: RenderBenchmarkRunner

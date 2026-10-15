@@ -1,6 +1,9 @@
 # 020: Integrate Skia scenes and bounded caches
 
 Status: waiting.
+Local migration implementation and background results:
+[macOS Skia evidence](../docs/evidence/020-skia-macos.md). Native acceptance and release
+GPU measurements remain pending a reserved desktop session; the status is not a pass.
 Prerequisite handoff: [018/021 readiness](../docs/evidence/018-021-pre-skia-readiness.md)
 identifies the completed macOS/core preparation and retained platform/acceptance limits.
 The owner's request authorizes the next local migration work after technical verification;
