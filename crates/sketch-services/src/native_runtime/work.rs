@@ -47,7 +47,14 @@ pub enum Work {
     Retire(Box<Retired>),
     ReleaseDestination(DestinationId),
 }
+#[derive(Clone, Copy, Default)]
+pub struct Correlation {
+    pub session: u64,
+    pub request: u64,
+    pub revision: u64,
+}
 pub struct WorkerRequest {
+    pub correlation: Correlation,
     pub operation: u64,
     pub work: Work,
 }

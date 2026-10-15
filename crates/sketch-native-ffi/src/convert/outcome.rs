@@ -103,7 +103,11 @@ pub fn outcome(value: ActionResult, current: dto::Projection) -> dto::Outcome {
         };
     }
     result.failure.session = result.projection.session;
-    result.failure.request = result.effect.request;
+    result.failure.request = if value.request != 0 {
+        value.request
+    } else {
+        result.effect.request
+    };
     result.failure.operation_id = result.operation_id;
     result
 }

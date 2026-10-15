@@ -15,6 +15,9 @@ pub enum EventCode {
     CheckpointPublished,
     RecoveryCapacity,
     SinkFailed,
+    NativeStarted = 9,
+    NativeCompleted = 10,
+    NativeFailed = 11,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
@@ -26,6 +29,7 @@ pub enum Subsystem {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Event {
     pub build: u64,
+    pub operation_id: u64,
     pub session: u64,
     pub request: u64,
     pub revision: u64,
@@ -41,8 +45,9 @@ pub struct Event {
 impl Event {
     pub fn encode(self) -> String {
         format!(
-            "{{\"v\":1,\"build\":{},\"session\":{},\"request\":{},\"revision\":{},\"subsystem\":{},\"code\":{},\"duration_us\":{},\"count\":{},\"failure\":{},\"stage\":{},\"durability\":{},\"cleanup_unconfirmed\":{}}}\n",
+            "{{\"v\":1,\"build\":{},\"operation_id\":{},\"session\":{},\"request\":{},\"revision\":{},\"subsystem\":{},\"code\":{},\"duration_us\":{},\"count\":{},\"failure\":{},\"stage\":{},\"durability\":{},\"cleanup_unconfirmed\":{}}}\n",
             self.build,
+            self.operation_id,
             self.session,
             self.request,
             self.revision,

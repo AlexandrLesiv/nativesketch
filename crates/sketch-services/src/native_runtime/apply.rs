@@ -54,11 +54,13 @@ impl NativeRuntime {
                 ApplicationCommand::CompleteSave(completion)
             }
             (WorkerValue::Failure(_), _) => {
-                let token = self.sessions[slot]
-                    .app
-                    .projection()
-                    .continuation
-                    .ok_or(RuntimeError::Stale)?;
+                let token = match op.kind {
+                    OperationKind::Resolve { token, .. } | OperationKind::Prepare(token) => token,
+                    _ => return Err(RuntimeError::Invalid),
+                };
+                if self.sessions[slot].app.projection().continuation != Some(token) {
+                    return Err(RuntimeError::Stale);
+                }
                 ApplicationCommand::ResolveEffect(EffectReply {
                     token,
                     decision: EffectDecision::Cancel,
@@ -100,7 +102,25 @@ impl NativeRuntime {
             self.checkpoint_complete(window, op.checkpoint.as_ref(), save)?;
             self.saved_recovery(window, save)?;
         }
-        let result = self.action(window, outcome, op.grant, op.retry)?;
+        if let Some(save) = &outcome.save
+            && matches!(
+                save.token.purpose(),
+                storage::SavePurpose::Save
+                    | storage::SavePurpose::SaveAs
+                    | storage::SavePurpose::ExportCopy
+            )
+            && let storage::SaveResult::Failed(failure) | storage::SaveResult::Uncertain(failure) =
+                save.result
+        {
+            outcome.effect = Some(ApplicationEffect::Failure(ApplicationFailure::Write(
+                failure,
+            )));
+        }
+        let mut result = self.action(window, outcome, op.grant, op.retry)?;
+        if result.operation == 0 {
+            result.operation = op.id;
+        }
+        result.request = op.request;
         self.release_grant(op.grant)?;
         self.pump()?;
         Ok(result)

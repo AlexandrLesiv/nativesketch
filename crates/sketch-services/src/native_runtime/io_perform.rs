@@ -4,7 +4,7 @@ use crate::{
     storage::{DestinationAccess, StoreHooks, StoreReport},
     worker::{ServiceReceipt, Submission, WriteTarget},
 };
-use sketch_core::application::storage::{StorageFailure, WriteOutcome};
+use sketch_core::application::storage::WriteOutcome;
 impl IoState {
     pub fn perform(&mut self, work: Work, hooks: &dyn StoreHooks) -> WorkerValue {
         match work {
@@ -45,8 +45,9 @@ impl IoState {
                     Ok(target) => {
                         crate::worker::perform(Submission { job, target }, self.config.build, hooks)
                     }
-                    Err(_) => {
-                        let outcome = WriteOutcome::Failed(StorageFailure::Access);
+                    Err(error) => {
+                        let outcome =
+                            WriteOutcome::Failed(super::io_events::storage_failure(error));
                         ServiceReceipt {
                             write: job.complete(outcome),
                             events: Vec::new(),
@@ -59,10 +60,6 @@ impl IoState {
                         }
                     }
                 };
-                for event in &receipt.events {
-                    self.ring
-                        .record(*event, self.started.elapsed().as_millis() as u64);
-                }
                 WorkerValue::Write(receipt)
             }
             Work::Retire(state) => {
@@ -99,10 +96,7 @@ impl IoState {
                 .allocate(identity)
                 .and_then(|_| store.release_empty(identity))
                 .map(|_| WorkerValue::Complete),
-            Work::List => store
-                .prune_empty()
-                .and_then(|_| store.candidates())
-                .map(WorkerValue::Inventory),
+            Work::List => store.candidates().map(WorkerValue::Inventory),
             Work::Discard(metadata) => {
                 let result = store.load(metadata.identity).and_then(|candidate| {
                     if candidate.envelope.metadata().generation != metadata.generation {

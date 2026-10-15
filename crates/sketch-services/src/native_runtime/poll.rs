@@ -153,7 +153,17 @@ impl NativeRuntime {
             }
             _ => unreachable!(),
         };
+        let op = &self.operations[index];
         let request = WorkerRequest {
+            correlation: Correlation {
+                session: op.session,
+                request: op.request,
+                revision: match &work {
+                    Work::Write { job, .. } => job.token().revision().0,
+                    Work::Prepare { ticket, .. } => ticket.revision().0,
+                    _ => 0,
+                },
+            },
             operation: self.operations[index].id,
             work,
         };

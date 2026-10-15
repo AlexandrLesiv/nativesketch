@@ -17,3 +17,6 @@ mod scene_api;
 mod session_api;
 #[cfg(feature = "native-test-controls")]
 mod test_api;
+
+#[cfg(test)]
+mod boundary_tests;

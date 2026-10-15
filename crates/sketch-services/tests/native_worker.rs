@@ -69,6 +69,7 @@ fn exclusive_recovery_root_degrades_second_runtime_without_blocking_local_io() {
     assert!(
         second
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 1,
                 work: Work::Resolve(root.join("drawing.nsketch"))
             })
@@ -82,6 +83,7 @@ fn exclusive_recovery_root_degrades_second_runtime_without_blocking_local_io() {
     assert!(
         second
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 2,
                 work: Work::Retry
             })
@@ -112,6 +114,7 @@ fn disabled_recovery_is_observable_and_ordered_registration_can_be_listed() {
     assert!(
         worker
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 1,
                 work: Work::Register(RecoveryId::from_bytes([7; 16]).unwrap())
             })
@@ -121,6 +124,7 @@ fn disabled_recovery_is_observable_and_ordered_registration_can_be_listed() {
     assert!(
         worker
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 2,
                 work: Work::List
             })
@@ -143,6 +147,7 @@ fn local_resolution_accepts_macos_var_alias_but_rejects_symlink_final_entry() {
     assert!(
         worker
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 1,
                 work: Work::Resolve(alias.join("drawing.nsketch"))
             })
@@ -156,6 +161,7 @@ fn local_resolution_accepts_macos_var_alias_but_rejects_symlink_final_entry() {
     assert!(
         worker
             .submit(WorkerRequest {
+                correlation: Default::default(),
                 operation: 2,
                 work: Work::Resolve(alias.join("linked.nsketch"))
             })

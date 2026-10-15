@@ -47,6 +47,7 @@ pub enum IntentEffect {
     Failure(ApplicationFailure),
 }
 pub struct ActionResult {
+    pub request: u64,
     pub outcome: ApplicationOutcome,
     pub effect: IntentEffect,
     pub operation: u64,

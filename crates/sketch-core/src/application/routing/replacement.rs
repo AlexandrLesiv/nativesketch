@@ -31,6 +31,11 @@ pub struct ReplacementFailure {
     pub(super) token: EffectToken,
     pub(super) failure: ApplicationFailure,
 }
+impl ReplacementFailure {
+    pub fn failure(&self) -> ApplicationFailure {
+        self.failure
+    }
+}
 impl ReplacementTicket {
     pub fn token(&self) -> EffectToken {
         self.token

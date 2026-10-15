@@ -13,10 +13,13 @@ fn diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen() {
             EventCode::RecoveryReadFailed,
             EventCode::CheckpointPublished,
             EventCode::RecoveryCapacity,
-            EventCode::SinkFailed
+            EventCode::SinkFailed,
+            EventCode::NativeStarted,
+            EventCode::NativeCompleted,
+            EventCode::NativeFailed
         ]
         .map(|code| code as u8),
-        [0, 1, 2, 3, 4, 5, 6, 7, 8]
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     );
     assert_eq!(
         [
@@ -63,6 +66,7 @@ fn diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen() {
         [1, 2, 3]
     );
     let event = Event {
+        operation_id: 0,
         build: 1,
         session: 2,
         request: 3,
@@ -79,7 +83,7 @@ fn diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen() {
     assert_eq!(
         event.encode(),
         concat!(
-            "{\"v\":1,\"build\":1,\"session\":2,\"request\":3,\"revision\":4,",
+            "{\"v\":1,\"build\":1,\"operation_id\":0,\"session\":2,\"request\":3,\"revision\":4,",
             "\"subsystem\":1,\"code\":6,\"duration_us\":5,\"count\":6,",
             "\"failure\":0,\"stage\":0,\"durability\":0,\"cleanup_unconfirmed\":false}\n"
         )

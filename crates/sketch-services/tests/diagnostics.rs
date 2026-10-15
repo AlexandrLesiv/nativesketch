@@ -7,6 +7,7 @@ use sketch_services::worker::{SerialStorageWorker, Submission, WriteTarget};
 use std::{fs, io, sync::Arc};
 fn event() -> Event {
     Event {
+        operation_id: 0,
         build: 1,
         session: 2,
         request: 3,

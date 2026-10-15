@@ -20,6 +20,7 @@ pub(super) fn run(
     let controls = super::test_control::TestControls::default();
     #[cfg(not(feature = "native-test-controls"))]
     let _ = controls_stop;
+    state.root_events();
     let started = WorkerValue::Started {
         recovery: state.recovery.as_ref().map(|_| ()).map_err(|error| *error),
         diagnostics: state
@@ -38,7 +39,14 @@ pub(super) fn run(
             Err(RecvTimeoutError::Timeout) if stop.load(Ordering::Acquire) => break,
             Err(RecvTimeoutError::Timeout) => continue,
         };
-        let WorkerRequest { operation, work } = *request;
+        let WorkerRequest {
+            operation,
+            correlation,
+            work,
+        } = *request;
+        let (subsystem, kind) = super::io_events::classify(&work);
+        let started = std::time::Instant::now();
+        state.operation_event(operation, correlation, subsystem, kind, None, 0);
         let value = catch_unwind(AssertUnwindSafe(|| {
             #[cfg(feature = "native-test-controls")]
             {
@@ -55,6 +63,14 @@ pub(super) fn run(
             state.perform(work, &NoFaults)
         }))
             .unwrap_or(WorkerValue::Failure(NativeFailure::Panic));
+        state.operation_event(
+            operation,
+            correlation,
+            subsystem,
+            kind,
+            Some(&value),
+            started.elapsed().as_micros().min(u64::MAX as u128) as u64,
+        );
         if output.send(state.result(operation, value)).is_err() {
             break;
         }

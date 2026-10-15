@@ -12,7 +12,7 @@ pub struct DiagnosticRing {
     capacity: usize,
     per_second: u32,
     window_ms: u64,
-    repetitions: [u32; 9],
+    repetitions: [u32; 12],
     stats: DiagnosticStats,
 }
 impl DiagnosticRing {
@@ -25,7 +25,7 @@ impl DiagnosticRing {
             capacity,
             per_second,
             window_ms: 0,
-            repetitions: [0; 9],
+            repetitions: [0; 12],
             stats: DiagnosticStats::default(),
         })
     }
@@ -33,7 +33,7 @@ impl DiagnosticRing {
     pub fn record(&mut self, event: Event, now_ms: u64) {
         if now_ms.saturating_sub(self.window_ms) >= 1000 {
             self.window_ms = now_ms;
-            self.repetitions = [0; 9];
+            self.repetitions = [0; 12];
         }
         let count = &mut self.repetitions[event.code as usize];
         if *count >= self.per_second {

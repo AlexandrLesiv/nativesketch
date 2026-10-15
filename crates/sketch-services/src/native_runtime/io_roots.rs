@@ -12,6 +12,7 @@ pub(super) struct DiagnosticAccess {
 }
 pub(super) struct RecoveryAccess {
     pub store: RecoveryStore,
+    pub maintenance_failures: [Option<NativeFailure>; 2],
     _lock: File,
 }
 fn private_root(path: &Path) -> Result<(), NativeFailure> {
@@ -51,15 +52,20 @@ pub(super) fn recovery(config: &RuntimeConfig) -> Result<RecoveryAccess, NativeF
     let lock = lock_root(root)?;
     let store = RecoveryStore::open(root.join("sessions"), RecoveryLimits::default())
         .map_err(NativeFailure::Recovery)?;
-    store.prune_empty().map_err(NativeFailure::Recovery)?;
+    let prune_failure = store.prune_empty().err().map(NativeFailure::Recovery);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_err(|_| NativeFailure::Access)?
         .as_secs();
-    store
+    let expiry_failure = store
         .expire_resolved(now)
-        .map_err(NativeFailure::Recovery)?;
-    Ok(RecoveryAccess { store, _lock: lock })
+        .err()
+        .map(NativeFailure::Recovery);
+    Ok(RecoveryAccess {
+        store,
+        maintenance_failures: [prune_failure, expiry_failure],
+        _lock: lock,
+    })
 }
 pub(super) fn diagnostics(config: &RuntimeConfig) -> Result<DiagnosticAccess, NativeFailure> {
     let root = config

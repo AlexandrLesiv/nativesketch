@@ -80,6 +80,7 @@ pub(crate) fn perform(
         WriteOutcome::Uncertain(_) => EventCode::SaveUncertain,
     };
     let event = Event {
+        operation_id: 0,
         build,
         session: token.session().get(),
         request: token.request().0,

@@ -126,6 +126,7 @@ impl NativeRuntime {
             self.retire(super::work::Retired::Editor(retired))?;
         }
         Ok(ActionResult {
+            request: 0,
             outcome,
             effect,
             operation,

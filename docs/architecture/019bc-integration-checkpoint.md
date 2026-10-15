@@ -33,3 +33,17 @@ Remaining before a final freeze: deterministic feature-gated controls; broader c
 failure/cancellation/recovery/second-process tests; actual Wasm compatibility; independent
 review and repairs; linked Swift/native E2E. The current feature name is reserved but does
 not yet export the test hook. These gaps are not passes or promises of UI/performance behavior.
+
+Review repair tranche: recovery source metadata is attached to its exact prepared replacement,
+not inherited from a cancelled chooser. Session replacement clears prior checkpoint knowledge;
+allocation retries are independent of attempted generation numbers. Native failures now carry
+applied operation/request correlation through the existing C failure DTO. Failed explicit saves
+emit the original Rust-selected Save/SaveAs retry intent; the former navigation stays cleared.
+
+Diagnostics v1 adds `operation_id` without renumbering existing codes. Codes9/10/11 describe
+native operation start/completion/failure; `count` is the fixed native operation kind for these
+codes: resolve1, prepare2, write3, register4, list5, discard6, resolve-recovery7, retry8,
+diagnostics-export9, retirement/release10, test-control11, root-acquisition12, maintenance13.
+Session/request/revision remain separate, root startup uses zero identity. No paths, display
+names, document content or arbitrary error strings enter the records. Existing stage/durability
+records remain; private root maintenance failures are recorded without hiding unrelated recovery.

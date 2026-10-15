@@ -36,3 +36,5 @@ mod retirement;
 mod test_control;
 #[cfg(feature = "native-test-controls")]
 pub use test_control::TestControl;
+
+mod io_events;
