@@ -19,6 +19,7 @@ impl NativeRuntime {
             self.retain_grant(grant)?;
         }
         self.operations.push_back(PendingOperation {
+            boundary: kind.boundary(&state),
             id,
             window,
             session,

@@ -26,6 +26,7 @@ pub struct SessionSlot {
     pub schedule: CheckpointSchedule,
 }
 pub struct RecoveryRegistration {
+    pub approved: bool,
     pub identity: RecoveryId,
     pub name: String,
     pub state: u32,
@@ -47,6 +48,7 @@ pub enum IntentEffect {
     Failure(ApplicationFailure),
 }
 pub struct ActionResult {
+    pub operation_kind: u32,
     pub request: u64,
     pub outcome: ApplicationOutcome,
     pub effect: IntentEffect,
@@ -64,6 +66,7 @@ pub enum EventKind {
 }
 #[derive(Clone, Copy)]
 pub struct NativeEvent {
+    pub operation_kind: u32,
     pub id: u64,
     pub operation: u64,
     pub window: u64,
@@ -90,6 +93,7 @@ pub(super) enum OperationState {
     Ready(Box<WorkerValue>),
 }
 pub(super) struct PendingOperation {
+    pub boundary: u32,
     pub id: u64,
     pub window: u64,
     pub session: u64,

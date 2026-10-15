@@ -38,3 +38,7 @@ mod test_control;
 pub use test_control::TestControl;
 
 mod io_events;
+
+mod operation;
+
+mod recovery_retry;

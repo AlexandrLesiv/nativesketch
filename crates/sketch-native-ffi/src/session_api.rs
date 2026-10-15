@@ -45,9 +45,7 @@ pub unsafe extern "C" fn sketch_session_v1_projection(
         runtime(pointer, false, |value| {
             require_output(output)?;
             let session = session(handle, pointer)?;
-            output.write(convert::projection::projection(status(
-                value.core.session(session.window),
-            )?));
+            output.write(convert::projection::current(&value.core, session.window)?);
             Ok(())
         })
     }

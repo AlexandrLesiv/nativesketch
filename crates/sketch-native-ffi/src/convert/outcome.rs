@@ -102,6 +102,7 @@ pub fn outcome(value: ActionResult, current: dto::Projection) -> dto::Outcome {
             Acknowledgement::Failed => 9,
         };
     }
+    result.failure.operation = value.operation_kind;
     result.failure.session = result.projection.session;
     result.failure.request = if value.request != 0 {
         value.request

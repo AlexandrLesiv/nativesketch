@@ -121,6 +121,7 @@ impl NativeRuntime {
             result.operation = op.id;
         }
         result.request = op.request;
+        result.operation_kind = op.boundary;
         self.release_grant(op.grant)?;
         self.pump()?;
         Ok(result)

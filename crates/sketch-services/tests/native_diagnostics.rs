@@ -48,6 +48,7 @@ fn failed_read_and_recovery_export_redacted_correlated_records() {
     let outcome = runtime.apply_event(window, event.id).unwrap();
     assert!(matches!(outcome.effect, IntentEffect::Failure(_)));
     assert_eq!(outcome.request, 10);
+    assert_eq!(outcome.operation_kind, 204);
     assert_eq!(outcome.operation, event.operation);
     runtime.list_recoveries(444).unwrap();
     loop {

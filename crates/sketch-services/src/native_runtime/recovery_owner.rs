@@ -27,6 +27,7 @@ impl NativeRuntime {
             return Err(RuntimeError::Invalid);
         }
         self.sessions[index].recovery = Some(RecoveryRegistration {
+            approved: false,
             identity,
             name,
             state: 1,
@@ -114,25 +115,6 @@ impl NativeRuntime {
         let metadata = self.item(item)?;
         self.maintenance(request, 0, Work::Discard(metadata))
     }
-    pub fn retry_recovery(&mut self, request: u64, window: u64) -> Result<u64, RuntimeError> {
-        if window != 0 {
-            self.session(window)?;
-        }
-        let id = self.maintenance(request, window, Work::Retry)?;
-        self.operations
-            .iter_mut()
-            .find(|op| op.id == id)
-            .expect("issued operation")
-            .kind = OperationKind::RetryRecovery;
-        for slot in &mut self.sessions {
-            if (window == 0 || slot.window == window)
-                && let Some(recovery) = &mut slot.recovery
-            {
-                recovery.state = 1;
-            }
-        }
-        Ok(id)
-    }
     pub fn export_diagnostics(
         &mut self,
         request: u64,
@@ -184,12 +166,5 @@ impl NativeRuntime {
         )?;
         self.pump()?;
         Ok(id)
-    }
-}
-
-#[cfg(feature = "native-test-controls")]
-impl NativeRuntime {
-    pub fn arm_test(&mut self, control: super::TestControl) -> Result<(), RuntimeError> {
-        self.maintenance(0, 0, Work::ArmTest(control)).map(|_| ())
     }
 }

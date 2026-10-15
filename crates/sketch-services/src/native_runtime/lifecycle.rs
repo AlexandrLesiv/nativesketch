@@ -45,11 +45,27 @@ impl NativeRuntime {
         {
             self.io.stop();
         }
+        if self.stopping && self.io.stopped() && !self.shutdown_notified {
+            let id = self.id()?;
+            self.events.push_back(NativeEvent {
+                id,
+                operation: 0,
+                operation_kind: 211,
+                window: 0,
+                session: 0,
+                request: 0,
+                grant: 0,
+                kind: EventKind::Shutdown,
+                failure: None,
+            });
+            self.shutdown_notified = true;
+        }
         Ok(())
     }
     pub fn free_ready(&self) -> Result<bool, RuntimeError> {
         self.check_owner()?;
         Ok(self.stopping
+            && self.shutdown_notified
             && self.io.stopped()
             && self.sessions.is_empty()
             && self.operations.is_empty()

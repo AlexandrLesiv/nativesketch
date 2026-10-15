@@ -191,3 +191,9 @@ RESOLVE matches user source/destination work, excluding root/registration initia
 External test releases the worker after observing reached. HOLD expires after60s or shutdown
 request, returning a stage-appropriate injected failure/uncertainty instead of hanging.
 Diagnostics remain redacted.
+
+Recovery retry approval: successful root acquisition alone never approves a session identity.
+A window-scoped Retry reruns exclusive registration for a never-approved identity; collisions
+remain rejected. Global Retry retries roots and resumes previously approved registrations only.
+A conflicted window needs its own Retry (or a fresh host-generated identity in a new session).
+Checkpoint admission requires independent registration approval as well as active scheduling.

@@ -19,6 +19,7 @@ pub struct NativeRuntime {
     pub(super) next_id: u64,
     pub(super) started: Instant,
     pub(super) stopping: bool,
+    pub(super) shutdown_notified: bool,
     pub(super) worker_active: bool,
     pub(super) recovery_available: bool,
     pub(super) drops: u64,
@@ -49,6 +50,7 @@ impl NativeRuntime {
             next_id: 1,
             started: Instant::now(),
             stopping: false,
+            shutdown_notified: false,
             worker_active: false,
             recovery_available: false,
             drops: 0,
@@ -97,6 +99,20 @@ impl NativeRuntime {
             schedule: Default::default(),
         });
         Ok(window)
+    }
+    pub fn preparing_operations(&self, window: u64) -> Result<u32, RuntimeError> {
+        self.session(window)?;
+        Ok(self
+            .operations
+            .iter()
+            .filter(|op| {
+                op.window == window
+                    && matches!(
+                        op.kind,
+                        OperationKind::Resolve { .. } | OperationKind::Prepare(_)
+                    )
+            })
+            .count() as u32)
     }
     pub fn session(&self, window: u64) -> Result<&SessionSlot, RuntimeError> {
         self.check_owner()?;

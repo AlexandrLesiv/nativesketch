@@ -41,7 +41,7 @@ pub unsafe extern "C" fn sketch_session_v1_reply(
             let result = status(value.core.reply(session.window, context, token, decision))?;
             output.write(convert::outcome::outcome(
                 result,
-                convert::projection::projection(status(value.core.session(session.window))?),
+                convert::projection::current(&value.core, session.window)?,
             ));
             Ok(())
         })

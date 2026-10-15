@@ -25,6 +25,18 @@ impl CheckpointSchedule {
         self.pending = Some(request);
         self.changed_ms = now_ms;
     }
+    /// No wakeup is needed once clean, suspended, or already waiting for its worker.
+    pub fn wake_after_ms(&self, now_ms: u64) -> Option<u64> {
+        if self.pending.is_none() || self.suspended || self.active.is_some() {
+            return None;
+        }
+        Some(
+            self.changed_ms
+                .saturating_add(2000)
+                .min(self.first_ms.saturating_add(30_000))
+                .saturating_sub(now_ms),
+        )
+    }
     /// Explicit saves get priority; active interactions defer copying beyond the 30s target.
     pub fn due(
         &mut self,

@@ -19,8 +19,15 @@ impl NativeRuntime {
             {
                 recovery.state = match value {
                     WorkerValue::Complete => {
-                        slot.schedule.resume();
-                        2
+                        if matches!(op.kind, OperationKind::Register) {
+                            recovery.approved = true;
+                        }
+                        if recovery.approved {
+                            slot.schedule.resume();
+                            2
+                        } else {
+                            5
+                        }
                     }
                     WorkerValue::Failure(NativeFailure::Recovery(
                         crate::recovery::RecoveryError::Capacity,

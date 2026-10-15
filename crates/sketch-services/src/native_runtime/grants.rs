@@ -52,6 +52,7 @@ impl NativeRuntime {
             }
             let id = self.id()?;
             self.events.push_back(NativeEvent {
+                operation_kind: 0,
                 id,
                 operation: 0,
                 window: 0,

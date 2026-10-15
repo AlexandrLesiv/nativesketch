@@ -116,6 +116,13 @@ impl NativeRuntime {
             self.sessions[index].recovery = None;
             self.sessions[index].last_checkpoint = None;
             self.sessions[index].schedule.replace_session();
+            if state.document.dirty {
+                self.sessions[index].schedule.changed(
+                    state.session.get(),
+                    state.revision.0,
+                    self.started.elapsed().as_millis() as u64,
+                );
+            }
         }
         let (effect, operation) =
             self.capture_effect(window, outcome.effect.take(), grant, retry)?;
@@ -126,6 +133,7 @@ impl NativeRuntime {
             self.retire(super::work::Retired::Editor(retired))?;
         }
         Ok(ActionResult {
+            operation_kind: retry,
             request: 0,
             outcome,
             effect,

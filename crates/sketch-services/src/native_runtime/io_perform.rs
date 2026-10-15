@@ -83,7 +83,12 @@ impl IoState {
                     .unwrap_or_else(|error| WorkerValue::Failure(*error))
             }
             Work::Diagnostics(path) => self.export_diagnostics(path, hooks),
-            work => self.recovery_work(work),
+            work => {
+                if matches!(work, Work::Register(_)) && self.recovery.is_err() {
+                    self.recovery = io_roots::recovery(&self.config);
+                }
+                self.recovery_work(work)
+            }
         }
     }
     fn recovery_work(&self, work: Work) -> WorkerValue {

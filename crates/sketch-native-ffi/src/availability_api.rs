@@ -22,16 +22,18 @@ pub unsafe extern "C" fn sketch_session_v1_availability(
                     Err(_) => 8,
                 }
             } else if action == 26 {
-                if status(value.core.session(session.window))?
-                    .app
-                    .projection()
-                    .editor
-                    .capabilities
-                    .edit_document
-                {
-                    0
-                } else {
-                    1
+                use sketch_core::application::routing::{
+                    FileIntent, NavigationIntent, RecoverySourceId,
+                };
+                match value.core.file_available(
+                    session.window,
+                    FileIntent::Navigate(NavigationIntent::Recover(RecoverySourceId(0))),
+                ) {
+                    Ok(()) => 0,
+                    Err(sketch_services::native_runtime::RuntimeError::Application(
+                        sketch_core::application::routing::ApplicationFailure::CapabilityDenied,
+                    )) => 1,
+                    Err(_) => 8,
                 }
             } else {
                 let action = convert::commands::availability(action).ok_or(1u32)?;

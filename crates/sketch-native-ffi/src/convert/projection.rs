@@ -9,7 +9,16 @@ pub fn token(window: u64, value: EffectToken) -> dto::EffectToken {
         request: value.request().0,
     }
 }
-pub fn projection(slot: &SessionSlot) -> dto::Projection {
+pub fn current(
+    runtime: &sketch_services::native_runtime::NativeRuntime,
+    window: u64,
+) -> Result<dto::Projection, u32> {
+    let slot = crate::boundary::status(runtime.session(window))?;
+    let mut value = projection(slot);
+    value.preparing_operations = crate::boundary::status(runtime.preparing_operations(window))?;
+    Ok(value)
+}
+fn projection(slot: &SessionSlot) -> dto::Projection {
     let value = slot.app.projection();
     let state = value.editor;
     let brush = state.brush.brush();

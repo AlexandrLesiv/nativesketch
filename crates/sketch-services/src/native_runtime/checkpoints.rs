@@ -14,7 +14,7 @@ impl NativeRuntime {
                 || !slot
                     .recovery
                     .as_ref()
-                    .is_some_and(|recovery| recovery.state == 2)
+                    .is_some_and(|recovery| recovery.state == 2 && recovery.approved)
             {
                 continue;
             }

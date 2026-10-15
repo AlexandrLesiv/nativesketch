@@ -37,8 +37,7 @@ pub unsafe extern "C" fn sketch_session_v1_dispatch(
                     convert::commands::command(command)?,
                 ))?
             };
-            let projection =
-                convert::projection::projection(status(value.core.session(session.window))?);
+            let projection = convert::projection::current(&value.core, session.window)?;
             output.write(convert::outcome::outcome(result, projection));
             Ok(())
         })
@@ -75,8 +74,7 @@ pub unsafe extern "C" fn sketch_session_v1_input(
                     samples: &samples,
                 }),
             ))?;
-            let projection =
-                convert::projection::projection(status(value.core.session(session.window))?);
+            let projection = convert::projection::current(&value.core, session.window)?;
             output.write(convert::outcome::outcome(result, projection));
             Ok(())
         })
@@ -96,8 +94,7 @@ pub unsafe extern "C" fn sketch_session_v1_apply_event(
             require_output(output)?;
             let session = session(handle, pointer)?;
             let result = status(value.core.apply_event(session.window, event))?;
-            let projection =
-                convert::projection::projection(status(value.core.session(session.window))?);
+            let projection = convert::projection::current(&value.core, session.window)?;
             output.write(convert::outcome::outcome(result, projection));
             Ok(())
         })

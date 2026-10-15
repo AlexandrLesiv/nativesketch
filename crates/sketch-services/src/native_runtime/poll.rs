@@ -2,19 +2,22 @@ use super::{NativeRuntime, owner_types::*, work::*};
 impl NativeRuntime {
     pub fn state(&self) -> Result<RuntimeState, RuntimeError> {
         self.check_owner()?;
-        let recovery_pending = self
+        let now = self.started.elapsed().as_millis() as u64;
+        let wake = self
             .sessions
             .iter()
-            .any(|slot| slot.recovery.as_ref().is_some_and(|r| r.state == 2));
+            .filter(|slot| !slot.detached && slot.recovery.as_ref().is_some_and(|r| r.state == 2))
+            .filter_map(|slot| slot.schedule.wake_after_ms(now))
+            .min();
         Ok(RuntimeState {
             pending: self.operations.len(),
             ready: self.events.len(),
             retained: self.delivered.len(),
             attached: self.sessions.iter().filter(|s| !s.detached).count(),
-            needs_idle: recovery_pending,
+            needs_idle: wake.is_some(),
             stopping: self.stopping,
-            stopped: self.stopping && self.io.stopped(),
-            wake_after_ms: if recovery_pending { 250 } else { u64::MAX },
+            stopped: self.stopping && self.io.stopped() && self.shutdown_notified,
+            wake_after_ms: wake.map_or(u64::MAX, |ms| ms.max(16)),
             diagnostic_drops: self.drops,
             diagnostic_sink_failures: self.sink_failures,
         })
@@ -104,6 +107,7 @@ impl NativeRuntime {
             _ => EventKind::OwnerReady,
         };
         let event = NativeEvent {
+            operation_kind: op.boundary,
             id: event_id,
             operation: op.id,
             window: op.window,

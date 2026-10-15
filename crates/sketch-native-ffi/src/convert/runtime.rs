@@ -22,6 +22,7 @@ pub fn event(value: NativeEvent) -> dto::Event {
         .failure
         .map(super::failures::native)
         .unwrap_or_default();
+    failure.operation = value.operation_kind;
     failure.session = value.session;
     failure.request = value.request;
     failure.operation_id = value.operation;
