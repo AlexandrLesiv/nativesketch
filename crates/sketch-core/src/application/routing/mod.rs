@@ -3,6 +3,7 @@ mod files;
 mod navigation;
 mod replacement;
 mod replies;
+mod scene;
 mod types;
 use super::{storage::*, *};
 pub use replacement::{

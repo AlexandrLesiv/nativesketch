@@ -12,3 +12,8 @@ pub use render_types::{
     RenderScene, RenderViewport, SceneCacheStats, SceneError, SceneLimits, SceneStroke,
     StrokeGeometry, TransformPreview,
 };
+mod cache;
+mod geometry;
+mod visibility;
+pub use cache::SceneCache;
+mod prepare;
