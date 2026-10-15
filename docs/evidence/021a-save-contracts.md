@@ -62,3 +62,29 @@ worker, perform I/O, coalesce checkpoints, rotate diagnostics, or implement reco
 Task021B must supervise every worker job and establish staged-store, logging, recovery,
 corruption and process-kill evidence; task019 must adopt native asynchronous file actions
 and test their actual focus, Save As keyboard shortcut and lifecycle behavior.
+
+## Integrated verification and acceptance mappings
+
+Lead integrated the three worker commits as `26615a0`, `31ad104`, `16a391f` and mapped
+acceptance at clean revision `5a38bc0`. Full background `scripts/check.ts` passed:
+50 Node tests, 76 Rust tests, formatting/lint/type/dependency/source-size checks, native
+Swift build and headless Swift/Rust smoke. It did not launch native UI automation.
+
+Actual discovery/execution through `scripts/test-evidence.ts --run` passed all six
+`STORAGE-*-001` cases plus COMPAT-001 through COMPAT-005. The complete report has
+158 acceptance/platform rows, 17 passing rows and zero mapping issues; the overall
+all-platform result remains incomplete. A partial invariant is not promoted to full
+coverage merely because these core tests pass. Raw integrated logs are retained under
+`artifacts/verification/021a-{integrated,mapped-evidence}.log`.
+
+Fresh reviewer independently passed 76 Rust tests and 11 extra public-API probes,
+including Save As acknowledgement permutations, destination reservations, cancellation
+and cross-coordinator receipts. Two ordering defects found before the frozen worker
+commit were fixed and independently retested. Review evidence is copied to
+`artifacts/verification/021a-independent/`; worker evidence to `021a-worker/`.
+
+The reviewer also checked all 25 new executable IDs against the feature mappings.
+STORAGE-CANCEL-001 wording was narrowed after review: uncertainty is asserted by the
+separate binding-order test, while cancellation cases assert queued release, known
+failure retention and writes completed after cancellation. These mappings describe pure
+Rust contracts, not disk durability, recovery workers or native asynchronous saving.

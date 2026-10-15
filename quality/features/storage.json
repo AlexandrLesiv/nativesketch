@@ -89,7 +89,7 @@
     },
     {
       "id": "STORAGE-CANCEL-001",
-      "expected": "Queued cancellation releases capture; completed or uncertain writes do not falsely preserve clean state",
+      "expected": "Queued cancellation releases capture; writes completed after cancellation invalidate clean knowledge when necessary, and known failures retain edits",
       "invariants": ["SAVE-001"],
       "ownerTask": "021",
       "requirements": [

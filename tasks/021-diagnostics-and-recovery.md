@@ -2,7 +2,9 @@
 
 Status: waiting.
 Local preparation: [storage/recovery contracts](../docs/architecture/021-storage-contracts.md)
-agreed at `62d54e8`; Rust admission/snapshot/acknowledgement implementation is in progress.
+agreed at `62d54e8`; reviewed Rust admission/snapshot/acknowledgement contracts are integrated
+and tested at `5a38bc0` ([021A evidence](../docs/evidence/021a-save-contracts.md)).
+Background services, diagnostics and recovery implementation is in progress.
 Native adoption, diagnostics/recovery execution and upstream acceptance are not yet complete.
 Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
