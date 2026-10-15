@@ -36,22 +36,41 @@ const entries = files.map((path) => {
   const lines = text.length === 0 ? 0 : text.split('\n').length - Number(text.endsWith('\n'));
   const category = classify(path, text);
   return {
-    path, category, bytes: bytes.length, physicalLines: lines,
+    path,
+    category,
+    bytes: bytes.length,
+    physicalLines: lines,
     sha256: createHash('sha256').update(bytes).digest('hex'),
-    ...(category === 'handwritten-source' && lines > 200 ? { extractionTask: extraction(path) } : {}),
+    ...(category === 'handwritten-source' && lines > 200
+      ? { extractionTask: extraction(path) }
+      : {}),
   };
 });
 const categories = Object.fromEntries(
-  ['handwritten-source', 'generated', 'vendor', 'lockfile', 'fixture-data', 'documentation', 'configuration']
-    .map((category) => {
-      const matching = entries.filter((entry) => entry.category === category);
-      return [category, { files: matching.length, physicalLines: matching.reduce((n, e) => n + e.physicalLines, 0) }];
-    }),
+  [
+    'handwritten-source',
+    'generated',
+    'vendor',
+    'lockfile',
+    'fixture-data',
+    'documentation',
+    'configuration',
+  ].map((category) => {
+    const matching = entries.filter((entry) => entry.category === category);
+    return [
+      category,
+      { files: matching.length, physicalLines: matching.reduce((n, e) => n + e.physicalLines, 0) },
+    ];
+  }),
 );
 const report = {
-  schemaVersion: 1, revision: resolved,
-  policy: 'All tracked files classified; physical lines include comments and blanks. No generated or vendor source in this revision.',
-  categories, oversized: entries.filter((entry) => entry.extractionTask), entries,
+  schemaVersion: 1,
+  revision: resolved,
+  policy:
+    'All tracked files classified; physical lines include comments and blanks. No generated or vendor source in this revision.',
+  categories,
+  oversized: entries.filter((entry) => entry.extractionTask),
+  entries,
 };
 const json = JSON.stringify(report, null, 2) + '\n';
 if (output) writeFileSync(output, json);

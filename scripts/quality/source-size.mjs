@@ -10,8 +10,10 @@ export function physicalLines(text) {
 
 /** @param {string} path @param {string} text @param {SourcePolicy} policy */
 export function isSource(path, text, policy) {
-  return policy.sourceExtensions.includes(extname(path)) ||
-    (path.startsWith('scripts/') && text.startsWith('#!'));
+  return (
+    policy.sourceExtensions.includes(extname(path)) ||
+    (path.startsWith('scripts/') && text.startsWith('#!'))
+  );
 }
 
 /**
@@ -37,8 +39,13 @@ export function checkSourceSize(files, baseline, policy, taskIds, final = false)
     if (lines <= policy.maximumPhysicalLines) continue;
     const old = previous.get(file.path);
     const task = old?.extractionTask;
-    if (!final && old?.category === 'handwritten-source' &&
-        task && taskIds.has(task) && lines <= old.physicalLines) {
+    if (
+      !final &&
+      old?.category === 'handwritten-source' &&
+      task &&
+      taskIds.has(task) &&
+      lines <= old.physicalLines
+    ) {
       debt.push({ path: file.path, lines, task });
     } else {
       failures.push(`${file.path}: ${lines} lines exceeds ${policy.maximumPhysicalLines}`);

@@ -8,12 +8,21 @@ export function checkLegacyGrowth(changes, maximum) {
   /** @type {Map<string, Change>} */
   const latest = new Map();
   for (const change of changes) {
-    ceilings.set(change.path, Math.max(maximum,
-      Math.min(ceilings.get(change.path) ?? Infinity, change.before, change.after)));
+    ceilings.set(
+      change.path,
+      Math.max(
+        maximum,
+        Math.min(ceilings.get(change.path) ?? Infinity, change.before, change.after),
+      ),
+    );
     latest.set(change.path, change);
   }
-  return [...latest.values()].filter((change) => change.after > (ceilings.get(change.path) ?? maximum))
-    .map((change) => `${change.path}: oversized source grew ${ceilings.get(change.path)} -> ${change.after} at ${change.revision}`);
+  return [...latest.values()]
+    .filter((change) => change.after > (ceilings.get(change.path) ?? maximum))
+    .map(
+      (change) =>
+        `${change.path}: oversized source grew ${ceilings.get(change.path)} -> ${change.after} at ${change.revision}`,
+    );
 }
 
 /**
@@ -32,8 +41,11 @@ export function legacyChanges(git, baselineRevision, paths, workingFiles) {
   /** @param {string} revision */
   const counts = (revision) => {
     const existing = git('ls-tree', '-rz', '--name-only', revision, '--', ...paths)
-      .split('\0').filter(Boolean);
-    return new Map(existing.map((path) => [path, physicalLines(git('show', `${revision}:${path}`))]));
+      .split('\0')
+      .filter(Boolean);
+    return new Map(
+      existing.map((path) => [path, physicalLines(git('show', `${revision}:${path}`))]),
+    );
   };
   /** @type {Change[]} */
   const changes = [];
@@ -44,8 +56,18 @@ export function legacyChanges(git, baselineRevision, paths, workingFiles) {
     }
   };
   const initial = counts(baselineRevision);
-  const commits = git('log', '--full-history', '--ancestry-path', '--format=%H', `${baselineRevision}..HEAD`, '--', ...paths)
-    .trim().split('\n').filter(Boolean);
+  const commits = git(
+    'log',
+    '--full-history',
+    '--ancestry-path',
+    '--format=%H',
+    `${baselineRevision}..HEAD`,
+    '--',
+    ...paths,
+  )
+    .trim()
+    .split('\n')
+    .filter(Boolean);
   for (const commit of commits) compare(initial, counts(commit), commit);
   const working = new Map(workingFiles.map((file) => [file.path, physicalLines(file.text)]));
   compare(initial, working, 'working-tree');

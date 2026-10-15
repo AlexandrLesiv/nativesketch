@@ -19,10 +19,14 @@ export function checkDependencies(metadata, policy) {
     }
     for (const dependency of pkg.dependencies) {
       if (dependency.kind === 'dev') continue;
-      const permitted = dependency.kind === 'build'
-        ? allowed.allowedBuildDependencies : allowed.allowedNormalDependencies;
+      const permitted =
+        dependency.kind === 'build'
+          ? allowed.allowedBuildDependencies
+          : allowed.allowedNormalDependencies;
       if (!permitted.includes(dependency.name)) {
-        failures.push(`${name} -> ${dependency.name}: unapproved ${dependency.kind ?? 'normal'} dependency`);
+        failures.push(
+          `${name} -> ${dependency.name}: unapproved ${dependency.kind ?? 'normal'} dependency`,
+        );
       }
     }
   }
