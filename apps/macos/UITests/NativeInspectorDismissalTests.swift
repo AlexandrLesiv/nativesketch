@@ -4,7 +4,7 @@ import XCTest
   func testSmallDarkWindowFitsInspectorAndAcceptsDrawing() throws {
     continueAfterFailure = false
     let fixture = try NativeSessionFixture()
-    defer { fixture.record(in: self) }
+    fixture.registerTeardown(in: self)
     try fixture.launch(extraArguments: ["--small-window", "--appearance", "dark"])
     let app = fixture.app
     let window = app.windows["Untitled — Native Sketch"]
@@ -28,7 +28,7 @@ import XCTest
 
   func testInspectorEscapeRestoresCanvasKeyboardCommands() throws {
     let fixture = try NativeSessionFixture()
-    defer { fixture.record(in: self) }
+    fixture.registerTeardown(in: self)
     try fixture.launch()
     fixture.draw(count: 1)
     let app = fixture.app

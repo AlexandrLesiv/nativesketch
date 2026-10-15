@@ -4,7 +4,7 @@ import XCTest
   func testRecoveryLaterRestoresOriginalWidthSelection() throws {
     continueAfterFailure = false
     let f = try NativeSessionFixture()
-    defer { f.record(in: self) }
+    f.registerTeardown(in: self)
     try f.launch()
     let width = selectFinalWidthDigit(in: f.app)
     f.app.menuBars.menuBarItems["File"].click()
@@ -26,7 +26,7 @@ import XCTest
   func testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection() throws {
     continueAfterFailure = false
     let f = try NativeSessionFixture()
-    defer { f.record(in: self) }
+    f.registerTeardown(in: self)
     try f.launch()
     f.draw(count: 1)
     let recovery = f.runtimeRoot.appendingPathComponent("Recovery")
@@ -52,7 +52,7 @@ import XCTest
   private func verifyFailureCancellation(useSuccessor: Bool) throws {
     continueAfterFailure = false
     let f = try NativeSessionFixture()
-    defer { f.record(in: self) }
+    f.registerTeardown(in: self)
     try f.launch()
     f.draw(count: 1)
     let destination = f.document("focus-last-good")

@@ -3,7 +3,7 @@ import XCTest
 @MainActor final class NativeFocusRestorationTests: XCTestCase {
   func testCancelledSaveAsRestoresNativeWidthSelection() throws {
     let fixture = try NativeSessionFixture()
-    defer { fixture.record(in: self) }
+    fixture.registerTeardown(in: self)
     try fixture.launch()
     fixture.draw(count: 1)
     let app = fixture.app

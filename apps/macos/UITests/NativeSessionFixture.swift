@@ -20,6 +20,7 @@ import XCTest
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   }
   func launch(stage: Int? = nil, failure: Bool = false, extraArguments: [String] = []) throws {
+    try NativeTestProvenance.verify(for: NativeSessionFixture.self)
     app.launchArguments = [
       "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
       "--native-ui-observation", "--runtime-root", runtimeRoot.path,
@@ -78,15 +79,29 @@ import XCTest
     }
   }
   func record(in test: XCTestCase) {
-    let fixture = XCTAttachment(string: root.path)
-    fixture.name = "native-session-fixture-path"
-    fixture.lifetime = .keepAlways
-    test.add(fixture)
-    let tree = XCTAttachment(string: app.debugDescription)
-    tree.name = "native-session-final-accessibility"
-    tree.lifetime = .keepAlways
-    test.add(tree)
-    if let gate { try? Data().write(to: gate.appendingPathComponent("release")) }
+    let evidence = NativeTestTeardown(test: test)
+    var failure: Error?
+    do { try captureAndRelease(in: evidence) } catch { failure = error }
     app.terminate()
+    if let failure { XCTFail("Native fixture cleanup failed: \(failure)") }
+  }
+
+  /// Register before launch. Termination is a separate last block so evidence/worker-gate
+  /// failures cannot prevent it; gesture cleanup registered later runs first.
+  func registerTeardown(in test: XCTestCase) {
+    let evidence = NativeTestTeardown(test: test)
+    evidence.add { self.app.terminate() }
+    evidence.add { try self.captureAndRelease(in: evidence) }
+  }
+
+  private func captureAndRelease(in evidence: NativeTestTeardown) throws {
+    evidence.attach(root.path, name: "native-session-fixture-path")
+    if let gate {
+      do { try Data().write(to: gate.appendingPathComponent("release")) } catch {
+        evidence.attach(String(describing: error), name: "native-session-gate-cleanup-error")
+        throw error
+      }
+    }
+    evidence.attach(app.debugDescription, name: "native-session-final-accessibility")
   }
 }

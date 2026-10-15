@@ -19,6 +19,7 @@ import XCTest
     app.launchArguments += [
       "--runtime-root", root.appendingPathComponent("runtime-\(UUID().uuidString)").path,
     ]
+    try NativeTestProvenance.verify(for: Self.self)
     app.launch()
     XCTAssertTrue(canvas.waitForExistence(timeout: 15))
     assertCanvasKeyboardFocus()

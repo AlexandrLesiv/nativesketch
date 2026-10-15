@@ -32,6 +32,7 @@ final class EditorJourneyTests: XCTestCase {
   }
 
   func testDrawSaveReopen() throws {
+    try NativeTestProvenance.verify(for: Self.self)
     app.launch()
     let canvas = app.groups["sketch.canvas"]
     XCTAssertTrue(canvas.waitForExistence(timeout: 15))
@@ -55,6 +56,7 @@ final class EditorJourneyTests: XCTestCase {
     try verifyMouseStroke(bytes, canvasSize: canvasFrame.size)
     app.typeKey("q", modifierFlags: .command)
     XCTAssertTrue(app.wait(for: .notRunning, timeout: 10), "Quit must finish normally")
+    try NativeTestProvenance.verify(for: Self.self)
     app.launch()
     XCTAssertNotEqual(try processIdentifier(), firstPID)
     XCTAssertTrue(canvas.waitForExistence(timeout: 15))

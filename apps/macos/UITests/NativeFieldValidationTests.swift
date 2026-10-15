@@ -4,27 +4,16 @@ import XCTest
 @MainActor final class NativeFieldValidationTests: XCTestCase {
   func testIncompleteWidthRefusesInkAndEscapeRestoresValue() throws {
     let environment = ProcessInfo.processInfo.environment
-    let app = XCUIApplication(
-      url: URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_APP"])))
-    app.launchArguments = [
-      "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--native-ui-observation",
-    ]
-    app.launchArguments += [
-      "--runtime-root",
-      FileManager.default.temporaryDirectory.appendingPathComponent(
-        "native-ui-runtime-\(UUID().uuidString)"
-      ).path,
-    ]
-    app.launch()
-    defer {
-      let tree = XCTAttachment(string: app.debugDescription)
-      tree.lifetime = .keepAlways
-      add(tree)
-      let screenshot = XCTAttachment(screenshot: app.screenshot())
-      screenshot.lifetime = .keepAlways
-      add(screenshot)
-      app.terminate()
+    let fixture = try NativeSessionFixture()
+    fixture.registerTeardown(in: self)
+    let app = fixture.app
+    let evidence = NativeTestTeardown(test: self)
+    evidence.add {
+      if app.state != .notRunning {
+        evidence.attach(app.screenshot(), name: "final-native-width-validation")
+      }
     }
+    try fixture.launch()
     let canvas = app.groups["sketch.canvas"]
     XCTAssertTrue(canvas.waitForExistence(timeout: 15))
     app.buttons["Style and Selection"].click()

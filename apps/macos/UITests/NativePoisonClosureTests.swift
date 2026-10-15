@@ -4,7 +4,7 @@ import XCTest
   func testCaughtEnginePanicAllowsCancelledCloseAndQuitThenSafeExit() throws {
     continueAfterFailure = false
     let f = try NativeSessionFixture()
-    defer { f.record(in: self) }
+    f.registerTeardown(in: self)
     try f.launch(extraArguments: ["--test-poison-on-close"])
     f.draw(count: 1)
     let original = f.document("last-good-before-panic")

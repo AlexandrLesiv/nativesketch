@@ -103,3 +103,19 @@ the identical SHA-256 in a non-UI reproduction. Source changes create a new isol
 Both background preparation and explicit `--interactive` runs compile and execute the pure Swift pixel/endpoint
 regression harness before building XCTest. A failed oracle check stops preparation and is
 recorded as blocked setup, never as native execution. Logs live in the run directory.
+
+The shared fixture registers framework teardown before launching the subject. Termination
+is a separate final block, so an assertion abort or worker-gate cleanup error cannot skip it.
+Gesture cleanup is registered later and therefore runs first. Classes already owning an
+XCTest `tearDown` keep that owner; no second fixture teardown is registered for them.
+The headless Apple XCTest regression deliberately fails one assertion and throws from one
+cleanup block. Its runner must observe the expected nonzero result and exact LIFO JSONL
+trace before treating the harness check as passed. It never initializes an application or
+performs native UI automation; those intentional failures are not native acceptance results.
+
+Every subject launch verifies the actually loaded XCTest bundle against the prepared
+external bundle, using required `NATIVE_SKETCH_TEST_BUNDLE_PATH` (absolute `.xctest`) and
+`NATIVE_SKETCH_TEST_BINARY_SHA256` (64 lowercase hexadecimal characters). The observed
+canonical bundle path, executable path and SHA-256 are attached before comparison. Missing,
+malformed or mismatched provenance fails before subject launch, including older raw-app
+journeys. Preparation does not prove that the external bundle was actually loaded at runtime.
