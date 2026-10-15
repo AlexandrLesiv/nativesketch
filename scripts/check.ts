@@ -5,6 +5,7 @@ import { readBoard } from './lib/board.ts';
 import { root } from './lib/context.ts';
 import { buildMacos } from './platforms/macos.ts';
 import { checkNativeFfi } from './platforms/native-ffi.ts';
+import { checkLegacyFfi } from './platforms/legacy-ffi.ts';
 import { checkWeb, checkWasm } from './platforms/web.ts';
 import { checkLinux, checkWindows } from './platforms/desktop.ts';
 import { checkAndroid } from './platforms/android.ts';
@@ -40,6 +41,7 @@ await main(async () => {
   ]);
   await command('cargo', ['test', '--workspace', '--locked']);
   if (!args.core && process.platform === 'darwin') {
+    await checkLegacyFfi();
     await checkNativeFfi();
     const app = await buildMacos();
     await command(`${app}/Contents/MacOS/NativeSketch`, ['--smoke-test']);
