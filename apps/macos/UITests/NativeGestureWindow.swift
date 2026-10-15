@@ -64,7 +64,34 @@ import XCTest
     let origin = try Self.point(canvas)
     try pointer.begin(
       in: CGRect(origin: origin, size: Self.size(canvas)),
-      windowBounds: CGRect(origin: Self.point(window), size: Self.size(window)))
+      validateHit: validateHit)
+  }
+
+  private func validateHit(_ point: CGPoint) throws {
+    guard subject.isActive,
+      NSWorkspace.shared.frontmostApplication?.processIdentifier == subject.processIdentifier,
+      CGRect(origin: try Self.point(window), size: try Self.size(window)).contains(point)
+    else { throw NSError(domain: "NativeGestureForeground", code: 1) }
+    var hit: AXUIElement?
+    guard
+      AXUIElementCopyElementAtPosition(
+        AXUIElementCreateSystemWide(), Float(point.x), Float(point.y), &hit) == .success,
+      let hit
+    else { throw NSError(domain: "NativeGestureHitTest", code: 1) }
+    var owner: pid_t = 0
+    guard AXUIElementGetPid(hit, &owner) == .success, owner == subject.processIdentifier else {
+      throw NSError(domain: "NativeGestureHitOwner", code: 1)
+    }
+    var current: AXUIElement? = hit
+    for _ in 0..<12 {
+      guard let element = current else { break }
+      if CFEqual(element, canvas) { return }
+      guard let parent = Self.attribute(element, kAXParentAttribute),
+        CFGetTypeID(parent) == AXUIElementGetTypeID()
+      else { break }
+      current = (parent as! AXUIElement)
+    }
+    throw NSError(domain: "NativeGestureHitCanvas", code: 1)
   }
 
   func resize() throws -> CGSize {

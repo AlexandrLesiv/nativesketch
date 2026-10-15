@@ -1,12 +1,11 @@
 import ApplicationServices
 import XCTest
 
-/// Only native synthetic mouse input. It never calls an editor command or replay hook.
+/// Native synthetic mouse input through Window Server, never editor commands.
 @MainActor final class NativeHeldPointer {
   private let pid: pid_t
   private var point = CGPoint.zero
   private var held = false
-  private var windowNumber: Int64 = 0
 
   init(pid: pid_t) throws {
     guard CGPreflightPostEventAccess() else {
@@ -14,28 +13,33 @@ import XCTest
         domain: "NativeGestureEnvironment", code: 1,
         userInfo: [
           NSLocalizedDescriptionKey:
-            "The XCTest runner lacks native event-posting permission. No permission was requested; this journey remains unverified."
+            "The XCTest runner lacks event-posting permission; no permission requested."
         ])
     }
     self.pid = pid
   }
 
-  func begin(in bounds: CGRect, windowBounds: CGRect) throws {
+  func begin(in bounds: CGRect, validateHit: (CGPoint) throws -> Void) throws {
     XCTAssertFalse(held)
     XCTAssertGreaterThan(bounds.width, 300)
     XCTAssertGreaterThan(bounds.height, 200)
-    windowNumber = try ownedWindowNumber(bounds: windowBounds)
-    XCTContext.runActivity(named: "PID-bound native mouse routing") { activity in
+    let start = CGPoint(x: bounds.minX + bounds.width * 0.4, y: bounds.minY + bounds.height * 0.6)
+    let end = CGPoint(x: start.x + 55, y: start.y + 30)
+    guard bounds.contains(start), bounds.contains(end) else {
+      throw NSError(domain: "NativeGestureBounds", code: 1)
+    }
+    try validateHit(start)
+    try validateHit(end)
+    XCTContext.runActivity(named: "Guarded session event-tap native mouse routing") { activity in
       let evidence = XCTAttachment(
         string:
-          "pid=\(pid), windowNumber=\(windowNumber), windowBounds=\(windowBounds), canvasBounds=\(bounds)"
+          "frontmost owned pid=\(pid), both points AX-hit verified against owned canvas, bounds=\(bounds)"
       )
       evidence.lifetime = .keepAlways
       activity.add(evidence)
     }
-    let start = CGPoint(x: bounds.minX + bounds.width * 0.4, y: bounds.minY + bounds.height * 0.6)
     try post(.leftMouseDown, at: start)
-    try post(.leftMouseDragged, at: CGPoint(x: start.x + 55, y: start.y + 30))
+    try post(.leftMouseDragged, at: end)
   }
 
   func release() throws {
@@ -46,43 +50,13 @@ import XCTest
     guard
       let event = CGEvent(
         mouseEventSource: nil, mouseType: type, mouseCursorPosition: location, mouseButton: .left)
-    else {
-      throw NSError(domain: "NativeGestureEvent", code: 1)
-    }
+    else { throw NSError(domain: "NativeGestureEvent", code: 1) }
+    event.flags = []
     event.setIntegerValueField(.mouseEventClickState, value: 1)
-    // PostToPid bypasses Window Server hit-testing/annotation. Supply the documented
-    // window fields instead of relying on an unannotated factory event being routed.
-    event.setIntegerValueField(.mouseEventWindowUnderMousePointer, value: windowNumber)
-    event.setIntegerValueField(
-      .mouseEventWindowUnderMousePointerThatCanHandleThisEvent, value: windowNumber)
-    event.setIntegerValueField(.eventTargetUnixProcessID, value: Int64(pid))
-    event.postToPid(pid)
+    // Window Server annotates/dispatches this route. Always balance held input even
+    // after intentional deactivation; cleanup must not require the app to be active.
+    event.post(tap: .cgSessionEventTap)
     point = location
     held = type != .leftMouseUp
-  }
-
-  private func ownedWindowNumber(bounds: CGRect) throws -> Int64 {
-    let windows =
-      CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID)
-      as? [[String: Any]] ?? []
-    let matches = windows.filter { entry in
-      guard (entry[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == pid,
-        (entry[kCGWindowLayer as String] as? NSNumber)?.intValue == 0,
-        let encoded = entry[kCGWindowBounds as String] as? NSDictionary,
-        let actual = CGRect(dictionaryRepresentation: encoded)
-      else { return false }
-      return actual == bounds
-    }
-    guard matches.count == 1,
-      let number = matches[0][kCGWindowNumber as String] as? NSNumber
-    else {
-      throw NSError(
-        domain: "NativeGestureWindowIdentity", code: 1,
-        userInfo: [
-          NSLocalizedDescriptionKey:
-            "Require one on-screen window matching the owned PID and exact AX bounds"
-        ])
-    }
-    return number.int64Value
   }
 }
