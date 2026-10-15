@@ -37,3 +37,21 @@ The configured Pages workflow uses the same Node pin and `.ts` commands; it has 
 executed remotely as evidence of this change. Other OS native linking/UI checks remain
 host-specific gaps. Local checks cover TypeScript/Oxc, source/dependency gates, core tests,
 macOS headless linking/smoke, Wasm protocol/native-byte parity and the built web adapter.
+
+## Verified revisions
+
+The writer froze `24ba010`; `082bd14` restores a historical documentation version without
+changing runtime code. A fresh reviewer independently passed 44 Node tests, 51 Rust tests,
+strict TypeScript/Oxc, size/dependency checks, Wasm/native-byte equivalence, all 20 frozen
+protocol pairs and the built web/precache checks. At clean `082bd14`, executable evidence
+discovery produced 152 acceptance/platform rows, 11 passing, no mapping issues and overall
+incomplete coverage. The reviewer found one stale native-test README command, assigned to
+the native-test integration. No other actionable migration findings remained.
+
+At clean integrated `f64a288`, the lead repeated the complete background check (44 Node,
+51 Rust, all tooling gates and native Swift linking/headless smoke) and executable evidence
+generation with the new TypeScript runtime and E2E-option tests. All scoped compatibility
+requirements passed; the report retained 152 rows, 11 passing and the remaining gaps.
+Raw logs, reviewer evidence and the official checksum list are preserved in ignored
+`artifacts/verification/typescript-automation/`. Native interaction, other-host acceptance
+and remote CI are separate; no main merge or deployment was performed.
