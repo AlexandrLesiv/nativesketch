@@ -1,6 +1,9 @@
 # 021: Structured diagnostics and revision-safe recovery
 
 Status: waiting.
+Local preparation: [storage/recovery contracts](../docs/architecture/021-storage-contracts.md)
+agreed at `62d54e8`; Rust admission/snapshot/acknowledgement implementation is in progress.
+Native adoption, diagnostics/recovery execution and upstream acceptance are not yet complete.
 Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: shared diagnostic/storage contracts; host services; recovery fixtures; coverage mappings.

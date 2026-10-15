@@ -18,6 +18,7 @@ PR #1 architecture audit: `de46c2f`.
 | --- | --- |
 | [Contracts](architecture/contracts.md) | Types, patterns, transactions, FFI, module map |
 | [Runtime](architecture/runtime.md) | Ownership, threads, platform scheduling |
+| [Storage contracts](architecture/021-storage-contracts.md) | Exact save snapshots, bounded workers, diagnostics and local recovery policy |
 | [Rendering](architecture/rendering.md) | Skia, caches, infinite canvas, latency |
 | [Invariants](architecture/invariants.md) | Rules, enforcement and acceptance cases |
 | [Quality](quality.md) | Required gates and current versus planned checks |
