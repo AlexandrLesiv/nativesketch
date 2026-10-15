@@ -1,15 +1,13 @@
 {
   "schemaVersion": 1,
   "id": "editor-invariants",
-  "description": "Invariant inventory with task 018 executable mappings and typed-facade coverage; native adoption and remaining target gaps stay explicit.",
+  "description": "Invariant inventory with typed editor and021A storage mappings; native adoption and service/surface gaps stay explicit.",
   "sourceRevision": "2c9e2d405db481ef473b3f6e31d6c7c110d802e9",
   "cases": [
     {
       "id": "INK-001",
       "expected": "Cancel leaves committed content/history unchanged",
-      "invariants": [
-        "INK-001"
-      ],
+      "invariants": ["INK-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -28,9 +26,7 @@
     {
       "id": "INPUT-001",
       "expected": "Invalid batch cannot partially mutate",
-      "invariants": [
-        "INPUT-001"
-      ],
+      "invariants": ["INPUT-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -49,9 +45,7 @@
     {
       "id": "INPUT-002",
       "expected": "Actual samples ordered; missing pressure stays missing",
-      "invariants": [
-        "INPUT-002"
-      ],
+      "invariants": ["INPUT-002"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -74,9 +68,7 @@
     {
       "id": "INK-002",
       "expected": "Predictions never enter saved/committed data",
-      "invariants": [
-        "INK-002"
-      ],
+      "invariants": ["INK-002"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -88,7 +80,8 @@
         "cargo:sketch-core:lib:tests::input::replay_preserves_actual_pressure_and_discards_prediction",
         "cargo:sketch-core:lib:tests::input::replay_named_synthetic_trace_and_save_only_actual_samples",
         "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo",
-        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured"
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured",
+        "cargo:sketch-core:lib:application::storage::tests::admission::capture_rejects_active_input_then_excludes_cancelled_predictions"
       ],
       "automation": "partial",
       "gaps": []
@@ -96,9 +89,7 @@
     {
       "id": "INK-003",
       "expected": "Brush snapshot fixed for active stroke",
-      "invariants": [
-        "INK-003"
-      ],
+      "invariants": ["INK-003"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -116,9 +107,7 @@
     {
       "id": "UNDO-001",
       "expected": "One committed stroke/transform creates one undo entry",
-      "invariants": [
-        "UNDO-001"
-      ],
+      "invariants": ["UNDO-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -137,9 +126,7 @@
     {
       "id": "UNDO-002",
       "expected": "Cancel/no-op creates no history; active undo keeps defined rejection",
-      "invariants": [
-        "UNDO-002"
-      ],
+      "invariants": ["UNDO-002"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -158,9 +145,7 @@
     {
       "id": "SAVE-001",
       "expected": "Successful older save cannot mark newer edits clean",
-      "invariants": [
-        "SAVE-001"
-      ],
+      "invariants": ["SAVE-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -169,41 +154,46 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure"
-      ],
-      "automation": "partial",
-      "gaps": []
-    },
-    {
-      "id": "SAVE-002",
-      "expected": "New/import invalidates old save completions",
-      "invariants": [
-        "SAVE-002"
-      ],
-      "ownerTask": "018",
-      "requirements": [
-        {
-          "platform": "portable",
-          "level": "unit"
-        }
-      ],
-      "testIds": [
-        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure"
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::older_save_keeps_new_edits_dirty_and_undo_finds_actual_saved_revision",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::save_b_finishing_after_undo_to_saved_a_makes_a_dirty_and_redo_b_clean",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::reordered_acknowledgements_cannot_revert_saved_revision"
       ],
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Clear/import are tested within one Editor; explicit new session token collision test is pending.",
-          "ownerTask": "018"
+          "reason": "Core acknowledgement is covered; native asynchronous save adoption and actual disk completion need host/service evidence.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-002",
+      "expected": "New/import invalidates old save completions",
+      "invariants": ["SAVE-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::replacement_rejects_completion_and_resets_binding"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Typed session replacement rejects old completions; native replacement during an actual pending write remains pending.",
+          "ownerTask": "021"
         }
       ]
     },
     {
       "id": "SAVE-003",
       "expected": "Older write cannot overwrite newer content at same destination",
-      "invariants": [
-        "SAVE-003"
-      ],
+      "invariants": ["SAVE-003"],
       "ownerTask": "021",
       "requirements": [
         {
@@ -211,11 +201,14 @@
           "level": "unit"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::ordering::fifo_jobs_hold_exact_request_revision_and_worker_cannot_overtake",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::one_process_queue_orders_different_windows_even_when_destination_ids_alias"
+      ],
+      "automation": "partial",
       "gaps": [
         {
-          "reason": "No discovered executable test proves this target invariant.",
+          "reason": "Pure coordinator serialization is covered; worker receipt supervision, actual disk writes and native process-wide coordinator adoption remain pending.",
           "ownerTask": "021"
         }
       ]
@@ -223,9 +216,7 @@
     {
       "id": "LOAD-001",
       "expected": "Invalid candidate preserves current document",
-      "invariants": [
-        "LOAD-001"
-      ],
+      "invariants": ["LOAD-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -243,9 +234,7 @@
     {
       "id": "FOCUS-001",
       "expected": "Native text editing wins over canvas shortcuts",
-      "invariants": [
-        "FOCUS-001"
-      ],
+      "invariants": ["FOCUS-001"],
       "ownerTask": "019",
       "requirements": [
         {
@@ -297,9 +286,7 @@
     {
       "id": "CANCEL-001",
       "expected": "Cancel before coordinate remap or gesture ownership change",
-      "invariants": [
-        "CANCEL-001"
-      ],
+      "invariants": ["CANCEL-001"],
       "ownerTask": "022",
       "requirements": [
         {
@@ -351,9 +338,7 @@
     {
       "id": "VIEW-001",
       "expected": "Read-only sessions reject mutation through the API",
-      "invariants": [
-        "VIEW-001"
-      ],
+      "invariants": ["VIEW-001"],
       "ownerTask": "022",
       "requirements": [
         {
@@ -363,7 +348,8 @@
       ],
       "testIds": [
         "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_denies_every_edit_command_and_batch_without_partial_state",
-        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_allows_selection_queries_and_idle_cancel_but_not_pen_constructor"
+        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_allows_selection_queries_and_idle_cancel_but_not_pen_constructor",
+        "cargo:sketch-core:lib:application::storage::tests::admission::admission_enforces_edit_and_export_capabilities_before_copying"
       ],
       "automation": "partial",
       "gaps": [
@@ -376,9 +362,7 @@
     {
       "id": "RENDER-001",
       "expected": "Renderer cannot mutate document",
-      "invariants": [
-        "RENDER-001"
-      ],
+      "invariants": ["RENDER-001"],
       "ownerTask": "020",
       "requirements": [
         {
@@ -398,9 +382,7 @@
     {
       "id": "CACHE-001",
       "expected": "Cache eviction does not change final content",
-      "invariants": [
-        "CACHE-001"
-      ],
+      "invariants": ["CACHE-001"],
       "ownerTask": "020",
       "requirements": [
         {
@@ -420,9 +402,7 @@
     {
       "id": "ASYNC-001",
       "expected": "Stale callbacks cannot affect replacement session/surface",
-      "invariants": [
-        "ASYNC-001"
-      ],
+      "invariants": ["ASYNC-001"],
       "ownerTask": "021",
       "requirements": [
         {
@@ -430,11 +410,14 @@
           "level": "unit"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::replacement_rejects_completion_and_resets_binding",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::unknown_duplicate_and_unfinished_completion_are_rejected"
+      ],
+      "automation": "partial",
       "gaps": [
         {
-          "reason": "No discovered executable test proves this target invariant.",
+          "reason": "Typed storage completions are covered; native callbacks, worker failure and surface lifetime remain pending.",
           "ownerTask": "021"
         }
       ]
@@ -442,9 +425,7 @@
     {
       "id": "SOURCE-001",
       "expected": "Source fallback preserves document identity and revision policy",
-      "invariants": [
-        "SOURCE-001"
-      ],
+      "invariants": ["SOURCE-001"],
       "ownerTask": "013",
       "requirements": [
         {
@@ -468,9 +449,7 @@
     {
       "id": "FFI-001",
       "expected": "Unique handle ownership, serial mutation, no cross-FFI unwind",
-      "invariants": [
-        "FFI-001"
-      ],
+      "invariants": ["FFI-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -494,10 +473,7 @@
     {
       "id": "FACADE-001",
       "expected": "Typed editable commands preserve legacy document/history/scene semantics",
-      "invariants": [
-        "UNDO-001",
-        "INK-002"
-      ],
+      "invariants": ["UNDO-001", "INK-002"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -514,9 +490,7 @@
     {
       "id": "FACADE-002",
       "expected": "Session and transaction identity reject stale input before mutation",
-      "invariants": [
-        "INPUT-001"
-      ],
+      "invariants": ["INPUT-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -538,9 +512,7 @@
     {
       "id": "FACADE-003",
       "expected": "Native presenters can distinguish settings, selection and capability-aware action availability",
-      "invariants": [
-        "VIEW-001"
-      ],
+      "invariants": ["VIEW-001"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -558,9 +530,7 @@
     {
       "id": "FACADE-004",
       "expected": "Explicit snapshots own committed content and preserve preview freshness identity",
-      "invariants": [
-        "INK-002"
-      ],
+      "invariants": ["INK-002"],
       "ownerTask": "018",
       "requirements": [
         {
@@ -577,9 +547,7 @@
     {
       "id": "FACADE-005",
       "expected": "Validated settings and request correlation do not grant permission or imply deduplication",
-      "invariants": [
-        "VIEW-001"
-      ],
+      "invariants": ["VIEW-001"],
       "ownerTask": "018",
       "requirements": [
         {
