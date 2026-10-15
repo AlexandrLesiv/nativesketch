@@ -36,10 +36,18 @@ validated commits send `SetBrush`. The canvas input adapter reads the shared pro
 never inspector widgets. Native text undo, selection, deletion and shortcuts retain first
 responder precedence. Explicit native actions may cancel an active transaction before
 requesting a state change; the bridge must not silently cancel on every command.
+Unrelated projection refreshes must not overwrite an active field editor's incomplete text.
+Before a gesture moves focus to canvas, native end-editing validation must succeed; rejected
+text retains field focus and must not start ink with a silently different brush setting.
 
 ## Save and completion ownership
 
 The native file panel resolves a private access grant and canonical destination identity.
+The application service retains that grant until its terminal receipt is drained, including
+after a window closes. Existing-file aliases and nonexistent-file identity use one documented
+native resolver: resolve the existing parent identity plus the proposed leaf for new files;
+reconcile identity after replacement. A globally serial worker remains the final ordering
+guarantee even when two grants were assigned different identities for one destination.
 Snapshot admission runs on the session owner, outside pen callbacks, with capacity reserved
 before copying. It captures the exact requested revision. The service worker owns encoding
 and staged writes; Swift never serializes a document or marks it clean independently.
@@ -50,12 +58,16 @@ Native polling is nonblocking and bounded. Route results by session identity, ac
 on the mutation owner, then refresh the projection. A stale or closed window does not show
 an obsolete failure panel. A completion can still represent an actual disk write after
 cancellation; retain that outcome rather than assuming cancellation undid it.
+Use one app-owned callback source while jobs are outstanding, with a fixed maximum receipt
+count and time budget per turn; reschedule remaining receipts on a subsequent main-loop turn.
+Do not poll per input sample or leave a continuous polling timer when storage is idle.
 
 Save As adopts the new destination only after confirmed success and Rust acknowledgement.
 Ordinary Save continues to use the old binding while Save As is pending. Do not dispatch
 another Save As for that session until its completion is consumed. No native URL change
 may run ahead of this domain result. Error sheets offer a deliberate retry/new destination
 without dropping edits or reusing an already-consumed completion.
+The window title continues to identify the old destination until confirmed adoption.
 
 ## Open, recovery and navigation
 
@@ -77,6 +89,8 @@ writes settle without UI waits; cancellation can cancel navigation while retaini
 document. Recheck dirty state after completion because newer edits can exist. Deferred app
 termination must finish or deliberately cancel this workflow rather than blocking the main
 thread or freeing a live session behind callbacks.
+Track one navigation intent at a time. Every `.terminateLater` response receives exactly one
+`reply(toApplicationShouldTerminate:)`, including cancellation and service failure paths.
 
 ## Acceptance before replacing legacy consumers
 

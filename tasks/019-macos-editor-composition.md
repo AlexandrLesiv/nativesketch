@@ -1,6 +1,9 @@
 # 019: Compose native macOS editor and complete brush E2E
 
 Status: waiting.
+Local preparation: independently reviewed mechanical extraction is integrated and tested
+at `91efb03`; [evidence](../docs/evidence/019-composition-extraction.md). Typed session/storage
+adoption and native acceptance remain pending; Save As shortcut diagnosis is active.
 Owner role: macos_ui (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: apps/macos/; macOS E2E fixtures; only agreed shared contract changes.
