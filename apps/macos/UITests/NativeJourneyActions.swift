@@ -24,9 +24,9 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
     screenshot.lifetime = .keepAlways
     activity.add(screenshot)
   }
-  let profiles = app.menuItems.matching(NSPredicate(format: "label CONTAINS[c] %@", "sRGB"))
+  let profiles = app.menuItems.matching(NSPredicate(format: "title == %@", "sRGB IEC61966-2.1"))
   XCTAssertEqual(profiles.count, 1, "Require an unambiguous native sRGB profile")
-  print("Selected native color profile: \(profiles.element.label)")
+  print("Selected native color profile: \(profiles.element.title)")
   profiles.element.click()
   let hexadecimal = colors.textFields["hex"]
   XCTAssertTrue(hexadecimal.waitForExistence(timeout: 5))

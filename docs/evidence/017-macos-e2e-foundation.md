@@ -179,3 +179,9 @@ proven XCTest native control path. No global display or color settings are chang
 README entry points use `.ts` for the coordinated automation migration. This isolated
 acceptance checkout still invokes its existing `.mjs` runner until that migration is
 integrated; this documentation change does not claim a local TypeScript runtime run.
+
+Attempt 5 on `18c73d7` captured the native profile menu and stopped before selection:
+its item is exposed as **title** `sRGB IEC61966-2.1`, not label. The corrected query now
+matches that exact observed title and records `.title`. The assertion still requires one
+match. Menu AX/screenshot evidence remains in `artifacts/evidence/native-attempt-5/`;
+this diagnostic failure is not converted to a pass or removed from history.
