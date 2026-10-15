@@ -9,17 +9,19 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
   private let report: (String) -> Void
   private let resolve: (String) -> Void
   private let commit: (Double) -> Bool
+  private let dismissed: () -> Void
   private var originalText: String?
   private var reportedMessage: String?
 
   init(
     field: NSTextField, report: @escaping (String) -> Void, resolve: @escaping (String) -> Void,
-    commit: @escaping (Double) -> Bool
+    dismissed: @escaping () -> Void, commit: @escaping (Double) -> Bool
   ) {
     self.field = field
     self.report = report
     self.resolve = resolve
     self.commit = commit
+    self.dismissed = dismissed
   }
 
   func controlTextDidBeginEditing(_ notification: Notification) {
@@ -68,6 +70,7 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
   }
 
   func popoverShouldClose(_ popover: NSPopover) -> Bool { finishEditing() }
+  func popoverDidClose(_ notification: Notification) { dismissed() }
 
   private func reject() {
     let message = "Enter a stroke width from 0.1 to 256 points, or press Escape to restore it."

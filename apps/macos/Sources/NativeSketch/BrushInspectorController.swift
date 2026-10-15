@@ -19,7 +19,8 @@ import CSketchSession
     resolve: { [weak self] message in
       guard let self, owner.status.stringValue == message else { return }
       owner.refresh()
-    }, commit: { [weak self] value in self?.commitWidth(value) ?? false })
+    }, dismissed: { [weak self] in self?.restoreCanvasAfterDismissal() },
+    commit: { [weak self] value in self?.commitWidth(value) ?? false })
   func configure() {
     tool.selectedSegment = 0
     tool.target = owner.actions
@@ -84,6 +85,18 @@ import CSketchSession
   func ensureShown() {
     guard !inspector.isShown else { return }
     inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
+  }
+  private func restoreCanvasAfterDismissal() {
+    let session = owner.editor.projection.session
+    Task { @MainActor [weak self] in
+      guard let self, session == owner.editor.projection.session,
+        !inspector.isShown, NSApp.isActive, owner.window.isKeyWindow,
+        owner.window.attachedSheet == nil, !owner.focusRestoration.isRestorationPending
+      else { return }
+      let responder = owner.window.firstResponder
+      guard responder == nil || responder === owner.window else { return }
+      owner.window.makeFirstResponder(owner.canvas)
+    }
   }
   private func commitWidth(_ value: Double) -> Bool {
     var brush = owner.editor.projection.brush

@@ -122,7 +122,18 @@ import XCTest
     XCTAssertTrue(selected.exists)
     selected.click()
     f.app.buttons["sketch.recovery.discard"].click()
+    let confirmation = f.app.buttons["sketch.recovery.confirm-cancel"]
+    XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
+    let screenshot = XCTAttachment(screenshot: f.app.screenshot())
+    screenshot.name = "native-recovery-discard-confirmation"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
     f.app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(confirmation.waitForNonExistence(timeout: 5))
+    f.app.buttons["sketch.recovery.discard"].click()
+    XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
+    f.app.typeKey(.escape, modifierFlags: [])
+    XCTAssertTrue(confirmation.waitForNonExistence(timeout: 5))
     XCTAssertEqual(
       table.tableRows.count, 2, "Return must choose the non-destructive Cancel default")
     f.app.buttons["sketch.recovery.discard"].click()

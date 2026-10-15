@@ -8,6 +8,7 @@ import AppKit
   private var session: UInt64 = 0
   private var inspectorWasShown = false
   private var pending = false
+  var isRestorationPending: Bool { pending }
   private var generation: UInt64 = 0
   init(owner: EditorWindowController) {
     self.owner = owner

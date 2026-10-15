@@ -27,6 +27,9 @@ import CSketchSession
       navigation: SK_V1_NAV_CLOSE.rawValue, terminating: true)
     precondition(waiting.cancelButton.keyEquivalent == "\r")
     precondition(waiting.defaultButtonCell === waiting.cancelButton.cell)
+    let discard = NativeRecoveryDiscardPanel()
+    precondition(discard.cancelButton.keyEquivalent == "\r")
+    precondition(discard.defaultButtonCell === discard.cancelButton.cell)
   }
   /// Exercise the real timer and C runtime in AppKit's modal mode, without a window.
   private static func modalRetirement() throws {

@@ -100,7 +100,7 @@ import CSketchSession
       ? "Recovery capacity is full. Existing copies are retained."
       : inventory.rows.isEmpty
         ? "No recovery copies are available."
-        : "\(inventory.rows.count) recovery copies. Opening a copy does not delete it."
+        : "\(inventory.rows.count) recovery \(inventory.rows.count == 1 ? "copy" : "copies"). Opening a copy does not delete it."
     updateSelection()
   }
   func numberOfRows(in tableView: NSTableView) -> Int { inventory.rows.count }
@@ -129,15 +129,9 @@ import CSketchSession
   @objc private func discardSelected() {
     guard inventory.rows.indices.contains(table.selectedRow) else { return }
     let id = inventory.rows[table.selectedRow].value.item_id
-    let alert = NSAlert()
-    alert.messageText = "Discard this recovery copy?"
-    alert.informativeText = "This removes only the selected recovery generation."
-    alert.addButton(withTitle: "Cancel").setAccessibilityIdentifier(
-      "sketch.recovery.confirm-cancel")
-    alert.addButton(withTitle: "Discard").setAccessibilityIdentifier(
-      "sketch.recovery.confirm-discard")
-    alert.beginSheetModal(for: panel) { [weak self] response in
-      if response == .alertSecondButtonReturn { self?.inventory.discard(id) }
+    let confirmation = NativeRecoveryDiscardPanel()
+    panel.beginSheet(confirmation) { [weak self] response in
+      if response == .OK { self?.inventory.discard(id) }
     }
   }
 }
