@@ -114,7 +114,8 @@
       "ownerTask": "015",
       "requirements": [
         {
-          "platform": "native-64-bit",
+          "platform": "portable",
+          "pointerWidth": 64,
           "level": "integration"
         }
       ],

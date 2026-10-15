@@ -56,7 +56,8 @@
       "target": "abi_compatibility",
       "test": "abi2_native_layout_is_unchanged",
       "level": "integration",
-      "platform": "portable"
+      "platform": "portable",
+      "pointerWidth": 64
     }
   ]
 }
