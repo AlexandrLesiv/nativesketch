@@ -155,3 +155,25 @@ measurements. Native integration checks and preflight evidence remain tied to th
 original revisions. Final portable tool tests and independent review are recorded below.
 Physical measurements, real Wacom input characterization, and the previously stopped
 15 bundle-size rendering checks remain pending.
+
+### Final verification
+
+Report/tool revision `152ed43` passed 49 analyzer/report tests, 12 first-mark/report
+tests, task-board validation (14 tasks), and whitespace checks. The earlier full
+integration check, release build, 20 experiment tests and strict Clippy remain tied
+to unchanged native revision `8a26d1d`; unrelated native/platform suites were not
+rerun for the report-only integration.
+
+The independent reviewer reproduced the final analysis exactly, checked every carried
+artifact and recovery checksum in sessions5–8, checked all80 first-mark rows against
+raw records, and independently ran the61 portable tests. No blocking finding remains.
+The designer reviewed final HTML/source and the supplied first-mark screenshot; wording
+and header-wrapping findings were repaired. The lead inspected the browser at desktop
+and390px widths, checked22 SVG charts and bounded horizontal scrolling, and reset the
+viewport override. Review screenshots and checksums are retained under
+`artifacts/cintiq-final-review-152ed43/verification.json`.
+
+No new native/physical automation was performed during final report review. Earlier
+native inspection remains scoped to the recorded controls and screenshots; dark
+appearance, full keyboard traversal, physical pen feel and temporal cache-handoff
+appearance remain unverified. No merge into main or permanent backend selection occurred.
