@@ -56,6 +56,7 @@ import AppKit
       owner.window.title = "Native Sketch — Renderer software comparison"
       owner.canvas.renderDiagnostics.reset()
       visibility = try RenderBenchmarkVisibility(owner: owner)
+      try visibility?.validate(owner)
       report.metadata = visibility!.metadata(owner: owner)
       report.metadata["sourceRevision"] =
         NativeLaunchConfiguration.argument("--benchmark-revision") ?? "unrecorded"
@@ -63,7 +64,7 @@ import AppKit
       report.metadata["lowPowerMode"] = String(ProcessInfo.processInfo.isLowPowerModeEnabled)
       report.metadata["cadence"] =
         "60 requested steps/second, 0.5 second phase drains, 1 second idle"
-      // Activation/initial layout completes before the first validation turn.
+      // Initial validation precedes the queued first frame; subsequent turns stay sampled.
       timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60, repeats: true) { [weak self] _ in
         MainActor.assumeIsolated { self?.tick() }
       }
