@@ -80,3 +80,35 @@ corruption, not malicious alteration. No universal power-loss or memory/latency 
 claimed. Snapshot capture remains synchronous O(document) outside pen callbacks; worker
 encoding/validation adds bounded temporary document buffers. No renderer changes or main
 merge occurred.
+
+## Integrated service and evidence verification
+
+Clean integrated revision `929535759f7ea30ef93b9bad9686f33a548b511d` passed the complete
+background integration command: 54 Node tests, 105 Rust tests, formatting/lint/type checks,
+source/dependency gates, macOS build and headless Swift/Rust integration. One ignored child
+writer remains explicitly exercised by its process-kill parent tests. A sandboxed attempt
+at earlier `3d44f76` completed portable checks but Swift could not initialize its sandbox;
+the authorized normal-host retry passed. Both logs remain local.
+
+Independent evidence review caught and fixed three reporting gaps: native Cargo results
+must identify the actual host, native keyboard mappings must tolerate absent host discovery,
+and a worker shutdown claim needed an actual drain/acknowledgement regression. The new test
+blocks an active write, queues another, requests nonblocking shutdown, rejects new admission,
+then acknowledges both receipts in FIFO order and checks both saved files and final stop.
+Early Drop remains explicitly different from draining accepted work.
+
+Actual executable discovery/execution at `9295357` found 106 tests: 105 passed and the child
+fixture was skipped as a standalone test. The coverage report has 184 acceptance/platform
+rows, 25 passed and zero mapping issues. Eight narrow macOS service cases pass. Windows/Linux
+service rows remain missing; native keyboard rows remain missing-discovery at this integrated
+revision rather than importing historical native results as current passes. Overall coverage
+is incomplete. Host-scoped Cargo IDs include the OS; portable IDs retain compatibility.
+
+Fresh independent review found no remaining issues in these changes. It ran a real minimal
+Cargo fixture for native/portable attribution, invalid declaration and skip behavior, ten
+targeted Node tests, both worker lifecycle tests and simulated foreign-host mapping checks.
+This is not Windows/Linux execution or native UI review.
+
+Local raw records: `artifacts/verification/021b-integrated/` and
+`artifacts/verification/021b-runner-independent/review-evidence.json`. The integrated run
+does not replace the earlier native service API review or certify task019 adoption.
