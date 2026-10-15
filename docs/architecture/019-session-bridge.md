@@ -55,6 +55,14 @@ session/interaction identity and state before executing it. Future agent request
 that same command boundary, without keyboard simulation or direct state mutation.
 Native text editing consumes its own shortcuts before application-command routing.
 
+The current native adapter can compose explicit commands: Cancel then SetTool/Undo,
+SetSelect then SelectCycle, or Begin/Update/CommitTransform. Every step still passes
+through Rust validation; none permits direct state mutation. This composition is not a
+promise that a future agent sending only Undo during active ink has identical preconditions.
+Task 022 must define shared semantic action presets, or explicitly require the same typed
+command sequence, before claiming cross-adapter action equivalence. Native focus/field
+validation remains host-owned in either design. No agent transport is implemented here.
+
 Save As is one semantic intent regardless of source. Its native chooser is an effect
 used when a destination is needed; a future adapter may supply a valid destination grant.
 Both routes converge on the same typed save admission and completion handling. Menu

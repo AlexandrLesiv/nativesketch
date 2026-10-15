@@ -24,6 +24,10 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
   coordinated files and browser storage need explicit adapters and failure/ownership tests.
   Wasm cannot import the native filesystem worker; share semantic commands and conformance,
   then supply an appropriate browser service adapter with confirmed-result semantics.
+- Define cross-adapter action semantics for native compound commands (Cancel then Undo or
+  SetTool, selection cycling, and transform transactions). Either move those semantic
+  presets into Rust or require explicit equivalent command sequences. Test active-gesture
+  preconditions; routing every step through Rust alone does not prove equivalent intents.
 - Split remaining host responsibilities <=200 lines; serialize by host or use isolated worktrees with explicit owners.
 - Preserve Apple editor versus viewer capabilities, standalone Watch source policy, Android desktop reuse and semantic HTML.
 - Port tasks 004/009-013 own platform E2E/packaging; record blocked drivers/hardware honestly. No invented Android/Linux/web agent config.

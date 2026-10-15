@@ -66,6 +66,13 @@ The runtime reviewer retained its independent reproduction crate under
 
 ## Remaining acceptance
 
+A read-only macOS owner audit at `7ecfd01` found no production editing/persistence bypass:
+tools, brush, selection/transform/history, drawing and file intents enter the typed session
+dispatcher; recovery management enters the Rust runtime service boundary. This is an owner
+audit, not independent review or native event-delivery evidence. Native-only field editing,
+viewport mapping and presentation remain intentional. Compound native command sequences and
+future agent equivalence are explicitly documented in the session bridge contract.
+
 Deterministic worker controls, automated C-consumer execution, caught-boundary-panic cleanup
 and Wasm compatibility now have lower-level evidence. Broader FFI ownership/capacity cases
 and runtime review closure remain in progress. The 20 compiled native cases preserve the
