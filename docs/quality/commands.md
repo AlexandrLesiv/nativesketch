@@ -26,6 +26,13 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | `node scripts/lint.mjs --platform swift` | Strict installed-toolchain swift-format; existing debt fails visibly |
 | `node scripts/lint.mjs --platform android` | Existing pinned Android Gradle Plugin Lint task |
 | `node scripts/lint.mjs --platform windows` | Native Windows dotnet format verification |
+| `node scripts/test-evidence.mjs --run` | Execute discovered Cargo tests and generate revision-bound HTML/JSON coverage; report success is not full coverage |
+| `node scripts/test-evidence.mjs --gate` | Require all registered acceptance rows; currently fails on documented coverage gaps |
+| `node scripts/test-e2e.mjs --platform macos` | Build isolated app/test bundles and run native XCTest journey; requires this execution user's active unlocked desktop |
+
+See [evidence runner](evidence-runner.md) for scoped acceptance gates, Node discovery,
+native imports and retained retry attempts. `test-e2e --prepare-only` builds without UI,
+writes blocked evidence and exits nonzero deliberately; it never certifies a native journey.
 
 Build flags: `--profile debug|release` for macOS; `--variant simulator|device` for Apple
 family. Device builds still require owner signing/provisioning for installation. Run

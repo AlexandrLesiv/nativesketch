@@ -1,7 +1,9 @@
 # Feature coverage and E2E evidence
 
-Target implemented by tasks 015/017 and platform tasks. This specification is not a
-populated test dashboard and must not be presented as existing passing coverage.
+Tasks 015/017 provide the registry and executable Cargo/Node evidence report. Native
+macOS tests compile but remain blocked before discovery/execution; other platform drivers
+are pending. The report is populated with explicit gaps, not complete passing coverage.
+See [runner commands and limitations](evidence-runner.md).
 
 ## Three sources of truth
 
@@ -10,9 +12,10 @@ populated test dashboard and must not be presented as existing passing coverage.
 2. Discovered executable tests map stable IDs to those acceptance cases and invariants.
 3. Native test artifacts are normalized to results carrying source/build/environment identity.
 
-Use proposed `quality/features/*.json` and `quality/schema/` for manifests/schema; use
-ignored artifact directories for raw results and generated HTML/JSON reports. Implement
-actual schema validation/discovery adapters in task 017; do not invent green placeholders.
+Use `quality/features/*.json` and `quality/schema/` for manifests/schema; use ignored
+artifact directories for raw results and generated HTML/JSON reports. Cargo/Node discovery
+uses executable runners. Native XCTest discovery rejects setup errors and empty enumeration;
+compiling its test target does not create discovered tests or passing results.
 
 ## Record contract
 

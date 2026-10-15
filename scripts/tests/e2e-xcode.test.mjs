@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { enumeratedTests, executionOutcome, testOutcomes } from '../e2e/xcode-results.mjs';
 
 const id = 'xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen';
-test('Xcode exit zero with enumeration errors cannot invent executable coverage', () => {
+await test('Xcode exit zero with enumeration errors cannot invent executable coverage', () => {
   assert.throws(
     () =>
       enumeratedTests({
@@ -17,12 +17,12 @@ test('Xcode exit zero with enumeration errors cannot invent executable coverage'
     /No unique/,
   );
 });
-test('executable discovery normalizes target class method and rejects duplicates', () => {
+await test('executable discovery normalizes target class method and rejects duplicates', () => {
   const entry = { identifier: 'NativeSketchUITests/EditorJourneyTests/testDrawSaveReopen()' };
   assert.deepEqual(enumeratedTests({ values: [{ enabledTests: [entry] }] }), [id]);
   assert.throws(() => enumeratedTests({ values: [{ enabledTests: [entry, entry] }] }), /No unique/);
 });
-test('system initialization failures do not masquerade as test execution', () => {
+await test('system initialization failures do not masquerade as test execution', () => {
   assert.deepEqual(
     testOutcomes(
       {
@@ -39,7 +39,7 @@ test('system initialization failures do not masquerade as test execution', () =>
     [],
   );
 });
-test('XCTest assertions preserve failed and skipped outcomes', () => {
+await test('XCTest assertions preserve failed and skipped outcomes', () => {
   const node = {
     nodeType: 'Test Case',
     nodeIdentifier: 'EditorJourneyTests/testDrawSaveReopen()',
@@ -55,7 +55,7 @@ test('XCTest assertions preserve failed and skipped outcomes', () => {
   );
 });
 
-test('runner failure invalidates a Passed case even when only result JSON is imported', () => {
+await test('runner failure invalidates a Passed case even when only result JSON is imported', () => {
   const result = executionOutcome({ status: 'passed' }, new Error('finalization failed'));
   assert.equal(result.status, 'blocked');
   assert.equal(result.environment.valid, false);

@@ -1,6 +1,11 @@
 # 017: Feature registry and native E2E evidence foundation
 
 Status: waiting.
+Local preparation: registry/schema, Cargo/Node discovery and HTML/JSON reporting implemented;
+macOS XCTest driver builds, but native execution is blocked before discovery by console
+ownership. Task completion and upstream owner acceptance remain pending. See
+[runner](../docs/quality/evidence-runner.md) and
+[native evidence](../docs/evidence/017-macos-e2e-foundation.md).
 Owner role: build_reliability (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: quality/schema/; quality/features/; scripts test/result modules; scoped platform test targets.
