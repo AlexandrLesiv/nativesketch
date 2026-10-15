@@ -1,5 +1,11 @@
 import CSketchSession
 
+struct RenderAcquisitionFailure {
+  let startedAt: Double
+  let endedAt: Double
+  let reason: String
+}
+
 struct RenderFrameRecord {
   let id: UInt64
   let session: UInt64

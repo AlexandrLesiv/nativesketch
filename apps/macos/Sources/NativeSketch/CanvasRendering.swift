@@ -10,6 +10,7 @@ import AppKit
   var recoveries: UInt64 { scheduler?.recoveries ?? 0 }
   var failures: UInt64 { scheduler?.failures ?? 0 }
   var presented: UInt64 { scheduler?.presented ?? 0 }
+  var currentScenePresented: Bool { scheduler?.currentScenePresented ?? false }
   init(canvas: CanvasView) { self.canvas = canvas }
 
   func attach() {

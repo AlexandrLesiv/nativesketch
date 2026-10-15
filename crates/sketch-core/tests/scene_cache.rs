@@ -5,5 +5,7 @@ mod budgets;
 mod lifecycle;
 #[path = "scene_cache/support.rs"]
 mod support;
+#[path = "scene_cache/transient_limits.rs"]
+mod transient_limits;
 #[path = "scene_cache/visibility.rs"]
 mod visibility;

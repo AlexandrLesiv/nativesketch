@@ -15,6 +15,14 @@ import Metal
   private var injectedFailure = false
   private var lastFailure: UInt32?
   private(set) var presented: UInt64 = 0
+  private var lastPresentation: (session: UInt64, scene: UInt64, surface: UInt64)?
+  var currentScenePresented: Bool {
+    guard let lastPresentation else { return false }
+    let value = canvas.editor.projection
+    return lastPresentation.session == value.session
+      && lastPresentation.scene == value.scene_generation
+      && lastPresentation.surface == surface.generation
+  }
   init(canvas: CanvasView, surface: MetalSurface) throws {
     self.canvas = canvas
     self.surface = surface
@@ -62,17 +70,23 @@ import Metal
     surface.resize(canvas.bounds.size, scale: window.backingScaleFactor)
     let acquired = ProcessInfo.processInfo.systemUptime
     // A transient shortage gets two delayed attempts; persistent failure waits for an event.
-    guard let drawable = surface.layer.nextDrawable(),
-      let command = surface.queue.makeCommandBuffer()
-    else {
-      state.deferDrawable()
-      retryDrawable()
+    guard let drawable = surface.layer.nextDrawable() else {
+      unavailable(startedAt: acquired, reason: "drawable-unavailable")
+      return
+    }
+    guard let command = surface.queue.makeCommandBuffer() else {
+      unavailable(startedAt: acquired, reason: "command-buffer-unavailable")
       return
     }
     let acquisition = ProcessInfo.processInfo.systemUptime - acquired
     do {
       #if DEBUG && NATIVE_TEST_CONTROLS
-        if !injectedFailure && CommandLine.arguments.contains("--test-renderer-failure-once") {
+        let afterCommit =
+          CommandLine.arguments.contains("--test-renderer-failure-after-stroke")
+          && canvas.editor.projection.stroke_count > 0
+        if !injectedFailure
+          && (CommandLine.arguments.contains("--test-renderer-failure-once") || afterCommit)
+        {
           injectedFailure = true
           throw NativeBridgeError(operation: "test-renderer-failure", status: 9)
         }
@@ -96,6 +110,7 @@ import Metal
             && self.canvas.editor.projection.scene_generation == scene
           {
             self.presented += 1
+            self.lastPresentation = (session, scene, surfaceGeneration)
           }
         }
       }
@@ -129,6 +144,11 @@ import Metal
     } catch {
       failure(9)
     }
+  }
+  private func unavailable(startedAt: Double, reason: String) {
+    canvas.renderDiagnostics.acquisitionFailed(startedAt: startedAt, reason: reason)
+    state.deferDrawable()
+    retryDrawable()
   }
   private func retryDrawable() {
     guard !drawableRetryScheduled, state.reserveDrawableRetry() else { return }

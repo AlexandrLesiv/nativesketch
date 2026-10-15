@@ -60,6 +60,31 @@ import XCTest
     return UInt64(value[range.upperBound...].prefix(while: { $0.isNumber })) ?? 0
   }
 
+  func testInjectedFailureAfterCommitPreservesInkAndHistory() throws {
+    continueAfterFailure = false
+    let fixture = try NativeSessionFixture()
+    fixture.registerTeardown(in: self)
+    try fixture.launch(extraArguments: ["--test-renderer-failure-after-stroke"])
+    fixture.wait { self.presented(fixture.canvas) > 0 }
+    try chooseBrush(in: fixture.app, width: "12", hex: "FF0000")
+    fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.4)).click(
+      forDuration: 0.1,
+      thenDragTo: fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.6)))
+    fixture.strokes(1)
+    fixture.wait {
+      let value = fixture.canvas.value as? String ?? ""
+      return value.contains("rendererRecoveries=1,rendererFailures=1")
+        && value.contains("rendererCurrent=true")
+    }
+    try assertInk(fixture.canvas, present: true, name: "skia-recovered-committed-ink")
+    fixture.app.typeKey("z", modifierFlags: .command)
+    fixture.strokes(0)
+    try assertInk(fixture.canvas, present: false, name: "skia-recovered-undo")
+    fixture.app.typeKey("z", modifierFlags: [.command, .shift])
+    fixture.strokes(1)
+    try assertInk(fixture.canvas, present: true, name: "skia-recovered-redo")
+  }
+
   private func assertInk(_ canvas: XCUIElement, present: Bool, name: String) throws {
     let predicate = XCTNSPredicateExpectation(
       predicate: NSPredicate { _, _ in

@@ -4,13 +4,25 @@ import Foundation
 /// Bounded release observations for explicit benchmark export; no per-frame logging.
 @MainActor final class RenderDiagnostics {
   private var records: [RenderFrameRecord] = []
+  private var acquisitionFailures: [RenderAcquisitionFailure] = []
+  private(set) var acquisitionFailureCount: UInt64 = 0
   private var nextID: UInt64 = 0
   private var lastInputUptime: Double?
   // NSEvent.timestamp and systemUptime are seconds since system startup.
   func input(timestamp: Double) { lastInputUptime = timestamp }
   func snapshot() -> [RenderFrameRecord] { records }
+  func failedAcquisitions() -> [RenderAcquisitionFailure] { acquisitionFailures }
+  func acquisitionFailed(startedAt: Double, reason: String) {
+    acquisitionFailureCount += 1
+    if acquisitionFailures.count == 256 { acquisitionFailures.removeFirst() }
+    acquisitionFailures.append(
+      RenderAcquisitionFailure(
+        startedAt: startedAt, endedAt: ProcessInfo.processInfo.systemUptime, reason: reason))
+  }
   func reset(clearInput: Bool = true) {
     records.removeAll(keepingCapacity: true)
+    acquisitionFailures.removeAll(keepingCapacity: true)
+    acquisitionFailureCount = 0
     if clearInput { lastInputUptime = nil }
   }
 
