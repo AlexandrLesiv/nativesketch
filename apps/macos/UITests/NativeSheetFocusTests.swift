@@ -43,7 +43,7 @@ import XCTest
     table.tableRows.firstMatch.click()
     f.app.buttons["sketch.recovery.open"].click()
     let prompt = nativeFilePanel(in: f.app)
-    XCTAssertTrue(prompt.buttons["Don’t Save"].exists)
+    XCTAssertTrue(prompt.buttons["Don’t Save"].waitForExistence(timeout: 5))
     prompt.buttons["Cancel"].click()
     assertRestoredSelection(width, in: f)
     f.strokes(1)
@@ -72,7 +72,7 @@ import XCTest
     if useSuccessor {
       f.app.buttons["sketch.failure.save-as"].click()
       let chooser = nativeFilePanel(in: f.app)
-      XCTAssertTrue(chooser.textFields["saveAsNameTextField"].exists)
+      XCTAssertTrue(chooser.textFields["saveAsNameTextField"].waitForExistence(timeout: 5))
       chooser.buttons["Cancel"].click()
     } else {
       cancel.click()
