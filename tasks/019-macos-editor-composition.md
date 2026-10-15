@@ -5,15 +5,20 @@ Local preparation: reviewed native composition and focused keyboard/field journe
 integrated; [native evidence](../docs/evidence/019-native-composition.md). The portable
 ApplicationSession command router is integrated and independently reviewed at `f4524fb`;
 [router evidence](../docs/evidence/019a-application-routing.md). New C/runtime and native
-adoption (019B–E) are integrated locally, with native acceptance still pending, against the agreed
+adoption (019B–E) are integrated locally and have scoped native verification against the agreed
 [native interface v1](../docs/architecture/019bc-native-interface.md), frozen at `106abfe`
 and integrated as `c0b63da`. Twelve new native acceptance rows map to discovered executables
 in `quality/features/native-command-adapter.json`, with uncovered subcases retained. Twenty
 cases passed in attempt 19 at `1672c49` after diagnosing the automation timeout as late
 system authentication. The expanded 36-case target at `79f3028` is actually enumerated;
 attempt 20 executes and passes the focused Save As field-selection restoration case only.
-Additional native checks and designer-found inspector/discard repairs remain in verification;
-discovery alone is not a pass. The current scoped repair candidate is `9b7e147`.
+Attempt 21 passes the other 15 selected additions at `79f3028`. Final candidate `03cad1c`
+enumerates 43 cases and passes 13 selected regressions, including the designer-found
+inspector/discard repairs, four sheet-focus branches, small/dark layout and genuine
+caught-panic Close/Quit. Full background checks pass. These are separate scoped runs;
+no all-43-at-final-revision claim is made. Final gesture evidence and visual review are
+recorded in the desktop validation report. The board remains waiting on unaccepted
+dependencies 018/021; this does not erase the completed native checks.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)

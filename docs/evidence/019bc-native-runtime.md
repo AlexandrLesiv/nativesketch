@@ -1,7 +1,10 @@
 # Native runtime and macOS adapter migration — in progress
 
-Task 019B–E is not acceptance-ready. This records actual integration checkpoints, failures
-and review work; it does not certify native event delivery or the remaining refactoring plan.
+The earlier integration checkpoints below retain their original limitations. Subsequent
+native batches passed 20/20 at `1672c49`, 1/1 and 15/15 separately at `79f3028`, and 13/13
+selected regressions at `03cad1c`. See the current desktop validation report for exact
+identities, designer review and remaining limitations; these are not one all-case final run.
+This document does not certify the remaining refactoring plan or other platforms.
 The branch remains a descendant of `codex/github-pages`; no main merge or release occurred.
 Subsequent reserved-desktop execution, newly found native failures and repairs are recorded
 in [desktop validation](019-native-desktop-validation.md); the earlier checkpoints below

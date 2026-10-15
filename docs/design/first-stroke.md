@@ -2,6 +2,11 @@
 
 Task 001; designed by ui_ux_designer before implementation on 2026-10-14.
 This document describes intended behavior; runtime findings belong in the evidence report.
+This was an agent-authored interaction design, not independent evidence of owner approval
+for every added feature. The color control was introduced in the October 14 AppKit prototype
+as an inferred way to exercise style preservation. The owner subsequently explicitly kept
+existing color controls, and required explicit approval for future feature additions or
+rollout to further platforms. Apply that rule before treating this design as new scope.
 
 ## Native surface
 

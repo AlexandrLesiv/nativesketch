@@ -103,9 +103,8 @@ export async function macosJourney(output: string, execute: boolean = false, att
     }));
     await save();
     let executionError;
-    const started = performance.now();
     try {
-      // Twenty native journeys include real panels, relaunches and worker gates.
+      // Native journeys include real panels, relaunches and worker gates.
       // Bound the whole suite independently of unchanged per-case readiness limits.
       await logged(
         output,
@@ -135,7 +134,7 @@ export async function macosJourney(output: string, execute: boolean = false, att
         testId: id,
         attempt,
         ...executionOutcome(outcome, executionError),
-        durationMs: performance.now() - started,
+        durationMs: outcome?.durationMs ?? 0,
         timestamp: new Date().toISOString(),
         binarySha256,
         testBinarySha256,

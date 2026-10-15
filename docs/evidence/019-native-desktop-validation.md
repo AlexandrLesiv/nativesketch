@@ -1,4 +1,4 @@
-# Native desktop validation — in progress
+# Native desktop validation
 
 Host: Mac14,10 arm64, macOS 27.0.1 (26A434), Xcode 27.0 (27A266a),
 Swift 6.4, Rust 1.99.0, Node 24.22.0. These are native mouse/keyboard
@@ -61,8 +61,70 @@ Fresh code and design reviews found no actionable issue; runtime verification is
 
 Artifacts are under `artifacts/evidence/019-native-runtime-attempt-{19,20}` and
 `artifacts/verification/019-integrated-runtime/`. Attempts retain exact identities, discovery,
-selected execution, logs, xcresult attachments and disposable fixtures. Ongoing expanded
-native execution and any subsequent repairs must be recorded separately below.
+selected execution, logs, xcresult attachments and disposable fixtures.
+
+Attempt 21 at the same source `79f3028` passed all **15/15** newly added selected cases,
+with xcodebuild exit 0 in 1,092 seconds. Subject SHA-256:
+`a2087ca9ffbcab28ccf20fcfc0720be4da87e36c7b2ff9b8ee6c857cf2618827`;
+test SHA-256: `3ca616f74338b5833448c53ebc05bbb30a1e9acb68e307a73e93c73d625c7b18`.
+The app build identity differs from attempt 20; these remain two separately identified runs.
+All 15 disposable fixture roots and xcresult attachments are retained in the attempt 21 folder.
+
+Final candidate `03cad1c2d5261dbdd8b441e5c29cb9a91cc1b0f0` additionally includes the
+designer repairs, caught-panic native test boundary, direct and successor-sheet focus cases,
+small/dark layout evidence capture and uncropped private color-profile capture. Both the
+current Node integration entry point and the legacy `./scripts/check` pass. The Node check
+includes 59 tooling tests, 151 workspace Rust tests, five separately executed feature tests,
+default release test-symbol exclusion, actual C consumer and linked Swift headless checks.
+Exact logs: `check-03cad1c.log` and `legacy-check-03cad1c.log` in the verification directory.
+
+Attempt 22 enumerated **43** cases and passed all **13/13** selected affected native
+regressions, xcodebuild exit 0, in 584 seconds. Source remained clean and frozen throughout.
+Subject SHA-256: `3252a1d4f15bd7613d4e3ceb029fc7773393c427dfdd3c8e3a0f7da3e862f52e`;
+test SHA-256: `6628a43c7afbba1c15b38256b5885cd828c90ec8f7be597c516b746593d4338a`.
+The selected cases cover the designer's inspector/discard repairs, small/dark layout,
+genuine caught-panic Close/Quit, four sheet-focus branches and existing field/editing
+regressions. This is not a claim that all 43 executed at this revision. The exact-source
+coverage report imports only attempt 22 and records 45 passing rows out of 213, exit 0;
+unexecuted and other-platform requirements remain visible. Log:
+`artifacts/verification/019-integrated-runtime/evidence-attempt22-03cad1c.log`.
+
+Fresh independent review cross-checked all 13 raw xcresult outcomes, the selection list,
+execution log, normalized results and actual executable hashes. All 40 mapped native IDs
+exist in the 43-case discovery. No product blocker was found. A P3 reporting defect used
+whole-suite elapsed time for each normalized test's duration; the runner now uses the
+already parsed per-case duration (zero when no case outcome exists). Historical artifacts
+are preserved unchanged: the 584 seconds above is the run duration, not each case's time.
+The five focused Xcode-parser tests and tooling type/lint/format gates verify this repair;
+it does not change app or test binaries and requires no additional foreground run.
+
+The designer reviewed actual final screenshots offline: the complete native color-profile
+popup boundary and scroll indicator are visible (`79E9256D-6079-4FFF-985E-D5C20DCB772E.png`),
+the small dark inspector fits (`69C5BA78-511C-4ADD-A1D4-8C366C11BE2D.png`), and discard
+confirmation clearly shows the safe blue Cancel default (`82BE7956-FA56-498B-BA1F-16BF0D8E9404.png`).
+The inspector is fully visible (`F7DCE89A-7C58-4576-BDDA-F17941DFEBE7.png`). No blocking
+layout issue was found. Hidden menu rows and a poison-panel image were not inspected.
+These are screenshot findings, separate from test interaction evidence. Full-screen
+images include unrelated desktop/chat content and must remain private local artifacts.
+
+### Separate gesture probe and remaining limits
+
+A reviewed native CGEvent/AX helper attempted to verify cancellation during a held stroke
+on resize and application deactivation, followed by exact saved-byte and undo checks.
+It did not reach drawing input: the first run timed out completing native Open; a second
+stopped at the foreground precondition; after explicit activation, a third timed out
+finding the native Go To field. The helper's long-path transport was repaired and compiled,
+but two actual setup cycles still failed. Further retries stopped. This is an automation
+setup gap, not a demonstrated product cancellation failure. All three JSON traces and
+private AX diagnostics remain under `artifacts/verification/019-gesture-check/`.
+No resize/deactivation gesture pass, physical pen measurement or XCTest equivalence is claimed.
+
+VoiceOver speech, physical pen behavior, Shift-Tab traversal and those held-gesture paths
+remain unverified. The complete 43-case suite has not run on the final candidate; the scoped
+native batches above and full background checks are the evidence available for review.
+Other-platform native acceptance, production Skia migration (task 020), and remaining
+refactoring tasks are separate. Task 019's board status stays waiting on owner acceptance
+of dependencies 018/021; this report does not silently mark those tasks or task 019 done.
 
 ## Preserved runs
 
@@ -74,6 +136,10 @@ native execution and any subsequent repairs must be recorded separately below.
 | 16 | integrated `dd3efaf` | All 20 enumerated and executed in 1,007 seconds: 17 raw passes, 3 failures |
 | 17 | integrated `1a5b648` | Preparation blocked by nested SwiftPM sandbox; no UI cases executed |
 | 18 | integrated `1a5b648` | Host build completed; XCTest timed out enabling automation mode before executable discovery; no cases executed |
+| 19 | integrated `1672c49` | All 20 discovered and executed cases passed; xcodebuild exit 0 |
+| 20 | integrated `79f3028` | All 36 discovered; only the selected Save As focus case executed and passed |
+| 21 | integrated `79f3028` | All 15 selected additional cases passed; separate app identity from attempt 20 |
+| 22 | integrated `03cad1c` | All 43 discovered; all 13 selected regressions passed |
 
 The reporter conservatively invalidates batch acceptance when xcodebuild fails. Thus
 attempt 15 contains 9 failed and 11 blocked normalized results; **the suite did not pass**.
@@ -147,11 +213,15 @@ Attempt 16 reduced the failures to three concrete cases:
   recovery sheet remains open, then requires the queued failure after dismissal. Global idle
   semantics are unchanged.
 
-These fixes are integrated and independently reviewed. Their focused XCTest execution remains
-pending after attempt 18's host automation initialization failure. A full final-revision suite
-also remains pending; do not combine passes from different revisions into a 20/20 claim.
+At the attempt 18 checkpoint, these fixes were integrated and independently reviewed, but
+their focused XCTest execution remained pending after initialization failed. Attempt 19
+subsequently passed all 20 at `1672c49`; later candidates have scoped runs listed above.
+Do not combine passes from different revisions into an all-case final-revision claim.
 
-## Background verification and review
+## Historical background verification and review through attempt 18
+
+The pending/unverified statements in this section describe that earlier cutoff only.
+Current outcomes and limitations are recorded in the October 15 continuation above.
 
 `1fc0174` core checks passed 59 tooling and 144 workspace Rust tests. The integrated
 `9ce075a` full background check passes, including fresh-root regressions, real C consumer,
@@ -190,10 +260,11 @@ for explicit uncovered subcases, independently reviewed alongside the executable
 The production painter remains provisional Core Graphics until task 020. No renderer
 performance claim, other-platform acceptance, main merge or release is implied.
 
-Final-candidate direct inspection was also blocked: the designer's CUA app-selection call
+At the earlier 20:10 cutoff, direct inspection was also blocked: the designer's CUA app-selection call
 started around 20:08 UTC and remained pending at the 20:10 cutoff, returning no UI state.
 It was interrupted; no keys, clicks or screenshot were obtained. Final panel appearance
-and actual Return/Escape/click behavior therefore remain unverified. The worker released
+and actual Return/Escape/click behavior were then unverified. The worker released
 the disposable save gate at 20:09:30. After inspection ended, the lead identified and
 terminated only the isolated attempt18 Subject process (PID 19399); this cleanup is not
-evidence of normal application Quit. The ordinary app remains built, not launched for handoff.
+evidence of normal application Quit. At that checkpoint the ordinary app was built, not launched.
+Later native runs and designer review are recorded above; handoff is recorded separately.
