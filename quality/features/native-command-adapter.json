@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "native-command-adapter",
   "description": "Task019 native acceptance. Automation existence is separate from revision-bound discovery/execution. Forty-five cases were discovered at7e3608d; attempt30 passed resize cancellation and attempt31 failed the actual-deactivation prerequisite. Historical results never become current-source passes.",
-  "sourceRevision": "7e3608d8e25df11fab0aeaf006d7ebf0c9f4b943",
+  "sourceRevision": "3f1f63c76932a401b50842a327682db3e318e5c8",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -244,7 +244,7 @@
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Attempt30 at7e3608d verifies actual held-stroke resize cancellation, saved bytes and Undo/Redo. Attempt31 observes held input but the helper fails to deactivate the Subject, so deactivation cancellation remains unverified. Repair the native activation driver and execute in a newly approved desktop session; earlier failures remain retained.",
+          "reason": "Attempt30 at7e3608d verifies actual held-stroke resize cancellation, saved bytes and Undo/Redo. Attempt31 observes held input but the helper fails to deactivate the Subject. A paired disposable focus-app repair is prepared/reviewed at3f1f63c; actual activation and deactivation cancellation still require a newly approved desktop run. Earlier failures remain retained.",
           "ownerTask": "019"
         }
       ]

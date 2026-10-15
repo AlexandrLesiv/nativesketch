@@ -33,6 +33,9 @@ including saved-byte preservation, fresh drawing and Undo/Redo. Attempt 31 reach
 input but its helper window failed to deactivate the Subject; this automation step remains
 open. Stable runner permission survives the changed external test bundle after the owner
 replaced a stale permission entry. The session has ended; no new desktop use is authorized.
+A paired disposable focus-helper repair is integrated and prepared at `3f1f63c`, with full
+background checks and fresh review passing. Actual focus transfer still requires a new
+approved native run; previous resize success does not certify this changed test bundle.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)

@@ -47,8 +47,35 @@ future toolchain or OS upgrades remain separate. All modified Swift helpers buil
 meet the 200-line limit; fresh independent review found no source blocker. Three focused
 Node selection/evidence-route tests pass. Earlier full background checks are listed below.
 
-Remaining work is a background repair of the deactivation driver, followed by a newly
-approved desktop run. Physical pen behavior and broader accessibility gaps remain separate.
+### Prepared deactivation-driver repair
+
+Clean `3f1f63c76932a401b50842a327682db3e318e5c8` replaces runner-window activation
+with an isolated `FocusSubject.app` copied from the same test build. XCTest launches the
+paired app using its own disposable runtime root. The helper verifies its exact sibling
+path, paired bundle ID, executable SHA and actual foreground process; it refuses to launch
+over any pre-existing same-ID process. Cleanup only terminates a helper this test attempted
+to launch, releases held input first, and remains registered before helper launch. Actual
+Subject inactivity, cancellation, saved-byte and history assertions are unchanged.
+
+Full background integration passes at this revision: 70 tooling tests, the Rust workspace
+and feature checks, current format/type/lint/source/dependency gates, C consumer, symbol
+separation, Swift build and headless integration. Log: `check-3f1f63c.log` in the integrated
+verification directory. Fresh independent review of worker commits `93e2f83` and `c139a5d`
+closed a pre-existing-helper ownership finding and reported no remaining actionable issue;
+it independently rebuilt the Swift test target and checked helper identity/copy regression.
+
+Primary preparation passed app/helper/test builds, real XCTest cleanup and oracle regressions,
+then deliberately exited 1 at the foreground guard. No enumeration or UI ran. Evidence is
+`artifacts/evidence/019-focus-helper-preparation-3f1f63c/`:
+
+- Subject SHA-256: `a1997f44d4f426d5bc48e348b1143062017a95a01687391e811e39113fb36cb4`.
+- External test SHA-256: `e797a2501171ff6a39194b7f329e222b8619dd28bcc46b8834d53d966d53165c`.
+- Focus helper SHA-256: `8c2c087cf712384274f98e45b569c72918c09c29750ad08f5360e3a6a8d5918b`.
+
+The frozen host identity is unchanged. The ordinary app was rebuilt afterward without
+launching it; preparation is not a native pass. Actual focus transfer with this helper
+requires a newly approved desktop run. Physical pen behavior and broader accessibility
+gaps remain separate. Task 019 is not marked complete.
 
 ## Earlier preparation and failures
 
