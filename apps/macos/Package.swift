@@ -24,6 +24,13 @@ let package = Package(
       swiftSettings: testControls
         ? [.define("NATIVE_TEST_CONTROLS", .when(configuration: .debug))] : [],
       linkerSettings: [
+        .linkedLibrary("c++"),
+        .linkedFramework("Metal"),
+        .linkedFramework("MetalKit"),
+        .linkedFramework("ApplicationServices"),
+        .linkedFramework("QuartzCore"),
+        .linkedFramework("CoreGraphics"),
+        .linkedFramework("CoreText"),
         .unsafeFlags([
           repoRoot.appendingPathComponent("target/\(rustProfile)/libsketch_native_ffi.a").path
         ])

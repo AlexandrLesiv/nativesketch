@@ -1,7 +1,7 @@
 import AppKit
 import CSketchSession
 
-// Provisional painter retained unchanged until task 020.
+// Historical reference for explicit test/benchmark comparison only; never a production fallback.
 @MainActor final class CoreGraphicsPainter {
   unowned let canvas: CanvasView
   init(canvas: CanvasView) { self.canvas = canvas }

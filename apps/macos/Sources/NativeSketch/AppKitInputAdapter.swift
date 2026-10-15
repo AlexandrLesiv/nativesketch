@@ -14,6 +14,7 @@ import CSketchSession
   var anchor = CGPoint.zero
   var initialVector = CGPoint.zero
   func append(_ event: NSEvent) {
+    canvas.renderDiagnostics.input(timestamp: event.timestamp)
     sampleID += 1
     let point = canvas.document(canvas.point(event))
     let pen = event.subtype == .tabletPoint || event.type == .tabletPoint

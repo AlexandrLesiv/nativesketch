@@ -1,0 +1,51 @@
+import AppKit
+import XCTest
+
+/// SKIA-VISUAL-001 / SKIA-COMMIT-001 / SKIA-INVALIDATE-001 / SKIA-SURFACE-001.
+/// Native mouse input and screenshot pixels, not direct editor mutation.
+@MainActor final class NativeRendererTests: XCTestCase {
+  func testVisibleInkUndoRedoAndHideReveal() throws {
+    continueAfterFailure = false
+    let fixture = try NativeSessionFixture()
+    fixture.registerTeardown(in: self)
+    try fixture.launch()
+    fixture.wait { self.presented(fixture.canvas) > 0 }
+    try chooseBrush(in: fixture.app, width: "12", hex: "FF0000")
+    let start = fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.4))
+    let end = fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.6))
+    let before = presented(fixture.canvas)
+    start.click(forDuration: 0.1, thenDragTo: end)
+    fixture.strokes(1)
+    fixture.wait { self.presented(fixture.canvas) > before }
+    try assertInk(fixture.canvas, present: true, name: "skia-committed")
+    fixture.app.typeKey("z", modifierFlags: .command)
+    fixture.strokes(0)
+    try assertInk(fixture.canvas, present: false, name: "skia-undo")
+    fixture.app.typeKey("z", modifierFlags: [.command, .shift])
+    fixture.strokes(1)
+    try assertInk(fixture.canvas, present: true, name: "skia-redo")
+    fixture.app.typeKey("h", modifierFlags: .command)
+    fixture.app.activate()
+    fixture.wait { (fixture.canvas.value as? String ?? "").contains("key=true") }
+    try assertInk(fixture.canvas, present: true, name: "skia-reveal")
+  }
+
+  private func presented(_ canvas: XCUIElement) -> UInt64 {
+    let value = canvas.value as? String ?? ""
+    guard let range = value.range(of: "Renderer=Skia,presented=") else { return 0 }
+    return UInt64(value[range.upperBound...].prefix(while: { $0.isNumber })) ?? 0
+  }
+
+  private func assertInk(_ canvas: XCUIElement, present: Bool, name: String) throws {
+    let predicate = XCTNSPredicateExpectation(
+      predicate: NSPredicate { _, _ in
+        guard let pixels = try? redInkPixels(canvas.screenshot()) else { return false }
+        return present ? StrokeExpectation.containsInkInEveryPatch(pixels) : pixels == [0, 0, 0]
+      }, object: nil)
+    XCTAssertEqual(XCTWaiter.wait(for: [predicate], timeout: 10), .completed)
+    let attachment = XCTAttachment(screenshot: canvas.screenshot())
+    attachment.name = name
+    attachment.lifetime = .keepAlways
+    add(attachment)
+  }
+}

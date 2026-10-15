@@ -6,7 +6,8 @@ import CSketchSession
   var zoom = 1.0
   var offset = CGPoint(x: 80, y: 80)
   lazy var input = AppKitInputAdapter(canvas: self)
-  lazy var painter = CoreGraphicsPainter(canvas: self)
+  let renderDiagnostics = RenderDiagnostics()
+  lazy var rendering = CanvasRendering(canvas: self)
   init(owner: EditorWindowController) {
     self.owner = owner
     super.init(frame: .zero)
@@ -71,7 +72,16 @@ import CSketchSession
       CGPoint(x: b.x + b.width, y: b.y + b.height), CGPoint(x: b.x, y: b.y + b.height),
     ]
   }
-  override func draw(_ dirtyRect: NSRect) { painter.draw() }
+  override var wantsUpdateLayer: Bool { true }
+  override func updateLayer() { rendering.invalidate() }
+  override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
+    rendering.attach()
+  }
+  override func viewDidChangeEffectiveAppearance() {
+    super.viewDidChangeEffectiveAppearance()
+    needsDisplay = true
+  }
   override func mouseDown(with event: NSEvent) {
     owner.focusRestoration.discard()
     input.mouseDown(with: event)
