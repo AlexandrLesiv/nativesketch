@@ -1,5 +1,11 @@
 # Task 018: Rust extraction, phase A
 
+This document preserves the phase A/B design checkpoints below. Their references to a
+blocked desktop, future storage work and six oversized host files describe those earlier
+revisions, not current status. Task 019 subsequently adopted the typed native runtime;
+see [desktop validation](../evidence/019-native-desktop-validation.md). Task 021 storage,
+diagnostics and recovery are integrated. Legacy ABI 2 and Wasm 1 remain compatibility paths.
+
 Starting revision: `8ae87622dc26bf7f6b5cd183c20ebc6527f88b62`, descended from the selected
 `codex/github-pages` base. This phase preserves existing public behavior; the additive
 typed session façade and Rust read-only capability enforcement are a separate phase B.

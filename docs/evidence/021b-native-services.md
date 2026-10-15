@@ -72,10 +72,12 @@ these services in macOS; see [current desktop evidence](019-native-desktop-valid
 for the actual scoped save/recovery/close runs. The filesystem and performance limitations
 below still apply unless separately verified by the relevant platform or renderer task.
 
-See `docs/architecture/021-native-services.md` for public APIs and ownership. The typed
-native bridge, native grant lifetime/destination mapping, asynchronous read job, shared
-command router, recovery UI and diagnostic sink wiring remain task019 work. The host must
-drain issued receipts during deferred shutdown. Early worker Drop is not a save promise.
+See `docs/architecture/021-native-services.md` for public APIs and ownership. At the 021B
+checkpoint, the typed native bridge, grant lifetime/destination mapping, asynchronous reads,
+shared command router, recovery UI and diagnostic sink wiring were assigned to task 019.
+They are now integrated, including receipt draining during deferred shutdown; their actual
+checks are recorded in the task 019 desktop and runtime reports. Early worker Drop remains
+different from draining accepted writes and is not a save promise.
 
 Std-only filesystem checks reject observed symlinks but do not prevent hostile concurrent
 path swaps. Local trusted directories and one exclusive owner are required. Standard Unix

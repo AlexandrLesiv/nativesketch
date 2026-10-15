@@ -1,6 +1,11 @@
 # 019: Compose native macOS editor and complete brush E2E
 
 Status: waiting.
+Prerequisite follow-up: [018/021 readiness](../docs/evidence/018-021-pre-skia-readiness.md)
+now consolidates the repaired legacy C consumer gap, implemented macOS services, current
+background verification and remaining acceptance scope. No further native app repair was
+identified. The existing owner/dependency gates remain distinct from technical readiness.
+
 Technical handoff: the remaining maintained gesture checks both pass in attempt 32 at
 clean `5933c5d`: real application deactivation and resize cancel held input before release,
 preserve saved bytes and retain correct subsequent drawing/Undo/Redo. Runtime provenance

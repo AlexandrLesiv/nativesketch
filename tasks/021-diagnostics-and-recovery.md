@@ -1,6 +1,13 @@
 # 021: Structured diagnostics and revision-safe recovery
 
 Status: waiting.
+Closure audit: the portable contracts and macOS service/runtime adoption are implemented;
+specialist and independent audits found no remaining macOS implementation blocker.
+See [the pre-Skia readiness report](../docs/evidence/018-021-pre-skia-readiness.md) for
+current execution, scope and the required distinction from global task completion.
+Windows/Linux service requirements remain unexecuted, and provider/metadata guarantees
+remain limited. They are retained explicitly, not converted to passing macOS evidence.
+
 Local preparation: [storage/recovery contracts](../docs/architecture/021-storage-contracts.md)
 agreed at `62d54e8`; reviewed Rust admission/snapshot/acknowledgement contracts are integrated
 and tested at `5a38bc0` ([021A evidence](../docs/evidence/021a-save-contracts.md)).

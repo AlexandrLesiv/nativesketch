@@ -16,6 +16,7 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | `node scripts/check.ts --platform linux` | GTK Cargo format/Clippy/tests/build |
 | `node scripts/check.ts --platform windows` | Native Windows Rust/WinUI build and interop runner |
 | `node scripts/check.ts --platform android` | Existing installed-device replay; requires verified `ANDROID_SERIAL` |
+| `node scripts/test-legacy-ffi.ts [--output NEW_DIRECTORY]` | Background macOS legacy ABI 2 C compiler/link/runtime check, negative controls and exact binary discovery/execution evidence; included in the full macOS check |
 | `node scripts/build.ts --platform PLATFORM` | macos, ios, tvos, watchos, visionos, apple-family, android, linux, windows, wasm, web |
 | `node scripts/run.ts --platform macos` | Build and open native app |
 | `node scripts/run.ts --platform web` | Build and serve production files on loopback; `PORT` defaults 8077 |

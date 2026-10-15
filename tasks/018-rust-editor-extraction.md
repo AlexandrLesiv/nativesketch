@@ -1,6 +1,13 @@
 # 018: Extract Rust editor responsibilities and typed facades
 
 Status: waiting.
+Closure audit: the core/macOS extraction is implemented. The remaining current legacy
+ABI 2 consumer gap is repaired by a separately compiled C journey and actual-binary
+evidence runner, integrated in `468bf73`/`3f6ca94`; fresh independent review passed.
+Current checks, exact evidence and remaining host obligations are consolidated in
+[the pre-Skia readiness report](../docs/evidence/018-021-pre-skia-readiness.md).
+Formal status still follows owner acceptance and dependencies 015/017; no board gate is weakened.
+
 Local preparation: phase A responsibility extraction integrated and independently compared
 against the original editor; typed session/capability phase B is integrated and independently
 reviewed. Native task 017/019 execution now has scoped passing desktop evidence; upstream

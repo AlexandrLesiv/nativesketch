@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "legacy-abi-consumer",
+  "description": "Task 018 legacy ABI 2 conformance from a separately compiled C consumer on macOS. Real binary enumeration/execution and negative controls are required; Rust-only and native-v1 consumers are separate. Other host layouts and caller synchronization remain separate obligations.",
+  "sourceRevision": "3f6ca94dc88788cc06e4f6c348a8be57a277e4dc",
+  "cases": [
+    {
+      "id": "ABI2-C-001",
+      "expected": "The authoritative legacy C header and linked Rust library preserve layouts, ownership, invalid-input atomicity, prediction exclusion, frozen bytes and history/save revision behavior",
+      "invariants": ["FFI-001", "INPUT-001", "INK-002", "UNDO-001", "SAVE-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration",
+          "pointerWidth": 64,
+          "coverage": {
+            "automation": "implemented",
+            "testIds": ["c-abi:sketch-ffi:macos:legacy-abi2-conformance"],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    }
+  ]
+}

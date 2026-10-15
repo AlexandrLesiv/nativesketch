@@ -125,7 +125,7 @@
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native64-bit Rust layouts only; unexecuted C compiler/OS layouts require consumer conformance.",
+          "reason": "This mapping checks Rust 64-bit layouts. ABI2-C-001 separately verifies the real macOS C compiler/header/library; other compiler/OS layouts still require their own consumer conformance.",
           "ownerTask": "022"
         }
       ]

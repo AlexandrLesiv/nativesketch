@@ -1,6 +1,11 @@
 # 020: Integrate Skia scenes and bounded caches
 
 Status: waiting.
+Prerequisite handoff: [018/021 readiness](../docs/evidence/018-021-pre-skia-readiness.md)
+identifies the completed macOS/core preparation and retained platform/acceptance limits.
+The owner's request authorizes the next local migration work after technical verification;
+the board still requires task 019 owner acceptance before a formal status transition.
+Keep the production renderer change separate from the prerequisite verification commits.
 Owner role: rendering_performance (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: scoped renderer crate/modules; native surface adapter; render fixtures and benchmark runner.

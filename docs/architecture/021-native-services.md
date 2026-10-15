@@ -105,8 +105,9 @@ No paths, names, content, coordinates or per-sample records enter this schema.
 `DiagnosticRing` bounds events and per-code rate, tracks drops and sink failures, and retains
 an event after sink error or panic. Drain it off the ink path. `RotatingSink` bounds owned
 files/bytes and rejects oversized pre-existing files; it does not delete unrelated files.
-The native host still must wire one bounded sink and expose failure counters. No hosted
-telemetry or global logging settings are installed.
+Task 019 subsequently wired the bounded sink and exposed failure counters in the macOS
+runtime. Other hosts still require their own adoption and verification. No hosted telemetry
+or global logging settings are installed.
 
 Coordinator snapshot limits exclude allocator overhead and worker temporaries. Encoding,
 envelope construction and validation may hold additional bounded document-sized buffers
@@ -119,6 +120,8 @@ Services tests cover SAVE-001/002/003, LOAD-001 and ASYNC-001 with injected disk
 cleanup and durability failures, panic supervision, cancellation/ordering contracts from
 021A, bounded diagnostics, corrupt/oversized recovery, capacity, retention and restoration.
 Actual disposable child-process kills exercise ordinary and checkpoint publication. These
-are process-crash tests, not power-loss or real native UI tests. Task 019 still owns native
-save/reopen/recovery presentation, deferred quit, shared command routing and keyboard E2E.
-No native, physical-input, sandbox-provider, Windows or other-device acceptance is inferred.
+are process-crash tests, not power-loss or real native UI tests. Task 019 subsequently
+implemented native save/reopen/recovery presentation, deferred quit, shared command routing
+and keyboard E2E. See [its separate native evidence](../evidence/019-native-desktop-validation.md).
+These service tests do not imply physical-input, sandbox-provider, Windows or other-device
+acceptance.
