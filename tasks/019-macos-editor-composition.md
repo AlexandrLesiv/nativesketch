@@ -19,6 +19,9 @@ caught-panic Close/Quit. Full background checks pass. These are separate scoped 
 no all-43-at-final-revision claim is made. Final gesture evidence and visual review are
 recorded in the desktop validation report. The board remains waiting on unaccepted
 dependencies 018/021; this does not erase the completed native checks.
+The remaining held-gesture probe has been replaced by maintained XCTest cases with proven
+native Save setup. [Repair preparation](../docs/evidence/019-gesture-automation-repair.md)
+records passing builds/review and the explicit new-desktop-approval execution gate.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)
