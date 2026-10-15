@@ -38,7 +38,7 @@ import CSketchSession
       } else {
         owner.editor.reply(token, SK_V1_REPLY_CANCEL)
       }
-      restoreFocus(session: token.session)
+      if result != .OK { owner.focusRestoration.cancelled(session: token.session) }
     }
   }
   func chooseSource(_ token: SketchEffectTokenV1) {
@@ -56,7 +56,7 @@ import CSketchSession
       } else {
         owner.editor.reply(token, SK_V1_REPLY_CANCEL)
       }
-      restoreFocus(session: token.session)
+      if result != .OK { owner.focusRestoration.cancelled(session: token.session) }
     }
   }
   func confirmUnsaved(_ token: SketchEffectTokenV1) {
@@ -75,7 +75,7 @@ import CSketchSession
         ? SK_V1_REPLY_SAVE
         : response == .alertThirdButtonReturn ? SK_V1_REPLY_DISCARD : SK_V1_REPLY_CANCEL
       owner.editor.reply(token, reply)
-      restoreFocus(session: token.session)
+      if reply == SK_V1_REPLY_CANCEL { owner.focusRestoration.cancelled(session: token.session) }
     }
   }
   func awaitWrites(_ token: SketchEffectTokenV1) {
@@ -87,7 +87,7 @@ import CSketchSession
     owner.window.beginSheet(panel) { [weak self] _ in
       guard let self, finish(token) else { return }
       owner.editor.reply(token, SK_V1_REPLY_CANCEL)
-      restoreFocus(session: token.session)
+      owner.focusRestoration.cancelled(session: token.session)
     }
   }
   func failure(_ outcome: SketchOutcomeV1) {
@@ -135,7 +135,6 @@ import CSketchSession
       {
         owner.documents.request(.saveAs)
       }
-      restoreFocus(session: session)
       schedulePendingFailure()
     }
   }
@@ -171,11 +170,5 @@ import CSketchSession
   private func matches(_ lhs: SketchEffectTokenV1, _ rhs: SketchEffectTokenV1) -> Bool {
     lhs.owner == rhs.owner && lhs.session == rhs.session && lhs.serial == rhs.serial
       && lhs.request == rhs.request
-  }
-  private func restoreFocus(session: UInt64) {
-    guard owner.editor.projection.session == session, owner.window.isVisible,
-      owner.window.attachedSheet == nil, owner.actions.fieldEditor == nil
-    else { return }
-    owner.window.makeFirstResponder(owner.canvas)
   }
 }

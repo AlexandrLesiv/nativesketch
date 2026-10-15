@@ -18,8 +18,13 @@ import CSketchSession
   }
 
   func show() {
-    guard owner.inspectorController.fieldEditing.finishEditing(), owner.window.attachedSheet == nil
-    else { return }
+    guard owner.window.attachedSheet == nil else { return }
+    owner.focusRestoration.capture()
+    let session = owner.editor.projection.session
+    guard owner.inspectorController.fieldEditing.finishEditing() else {
+      owner.focusRestoration.discard()
+      return
+    }
     configure()
     status.stringValue = "Loading recovery copies…"
     inventory.onChange = { [weak self] in self?.reload() }
@@ -31,7 +36,11 @@ import CSketchSession
       guard let self else { return }
       inventory.onChange = nil
       inventory.onFailure = nil
-      if let requestedItem { _ = owner.documents.request(.recover(requestedItem)) }
+      if let requestedItem {
+        _ = owner.documents.request(.recover(requestedItem))
+      } else {
+        owner.focusRestoration.cancelled(session: session)
+      }
       requestedItem = nil
       inventory.dismiss()
       // NativeEffectPresenter observes the parent's didEndSheet lifecycle before

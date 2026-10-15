@@ -79,6 +79,10 @@ import CSketchSession
       inspector.performClose(sender)
       return
     }
+    ensureShown()
+  }
+  func ensureShown() {
+    guard !inspector.isShown else { return }
     inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
   }
   private func commitWidth(_ value: Double) -> Bool {

@@ -31,7 +31,6 @@ import AppKit
       confirmUnavailableClose()
       return .terminateLater
     }
-    guard owner.inspectorController.fieldEditing.finishEditing() else { return .terminateCancel }
     terminationPending = true
     guard owner.documents.request(.close) else {
       terminationPending = false

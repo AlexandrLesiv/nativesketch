@@ -16,9 +16,17 @@ import CSketchSession
   }
 
   @discardableResult func request(_ command: SessionCommand) -> Bool {
-    guard owner.inspectorController.fieldEditing.finishEditing() else { return false }
-    guard owner.window.makeFirstResponder(owner.canvas) else { return false }
-    return owner.editor.send(command)
+    owner.focusRestoration.capture()
+    guard owner.inspectorController.fieldEditing.finishEditing() else {
+      owner.focusRestoration.discard()
+      return false
+    }
+    let accepted = owner.editor.send(command)
+    if !accepted { owner.focusRestoration.discard() }
+    if case .save = command, accepted, owner.editor.projection.continuation.serial == 0 {
+      owner.focusRestoration.cancelled(session: owner.editor.projection.session)
+    }
+    return accepted
   }
   @objc func saveDocument(_ sender: Any?) { request(.save) }
   @objc func saveAs(_ sender: Any?) { request(.saveAs) }

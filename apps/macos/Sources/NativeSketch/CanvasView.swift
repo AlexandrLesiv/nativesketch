@@ -72,7 +72,10 @@ import CSketchSession
     ]
   }
   override func draw(_ dirtyRect: NSRect) { painter.draw() }
-  override func mouseDown(with event: NSEvent) { input.mouseDown(with: event) }
+  override func mouseDown(with event: NSEvent) {
+    owner.focusRestoration.discard()
+    input.mouseDown(with: event)
+  }
   override func mouseDragged(with event: NSEvent) { input.mouseDragged(with: event) }
   override func mouseUp(with event: NSEvent) { input.mouseUp(with: event) }
   override func scrollWheel(with event: NSEvent) {
@@ -99,6 +102,7 @@ import CSketchSession
     setZoom(zoom * (1 + event.magnification), at: point(event))
   }
   override func keyDown(with event: NSEvent) {
+    owner.focusRestoration.discard()
     switch event.charactersIgnoringModifiers?.lowercased() {
     case " ": if input.gesture == .idle { input.space = true }
     case "p":

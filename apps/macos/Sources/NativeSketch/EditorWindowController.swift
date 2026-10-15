@@ -19,6 +19,7 @@ import CSketchSession
   let status = NSTextField(labelWithString: "")
   lazy var actions = EditorActions(owner: self)
   lazy var inspectorController = BrushInspectorController(owner: self)
+  lazy var focusRestoration = NativeFocusRestoration(owner: self)
   lazy var documents = DocumentCoordinator(owner: self)
   lazy var failures = EngineFailurePresenter(owner: self)
   lazy var menus = EditorMenuController(owner: self)
