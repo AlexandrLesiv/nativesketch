@@ -34,16 +34,19 @@ impl IoState {
         }
     }
     pub fn resolve(&mut self, path: PathBuf) -> Result<DestinationId, NativeFailure> {
-        DestinationAccess::new(path.clone()).map_err(|_| NativeFailure::Access)?;
-        let canonical = if path.exists() {
-            path.canonicalize()
-        } else {
-            path.parent()
-                .ok_or(NativeFailure::Access)?
-                .canonicalize()
-                .map(|parent| parent.join(path.file_name().expect("validated filename")))
+        if !path.is_absolute() {
+            return Err(NativeFailure::Access);
         }
-        .map_err(|_| NativeFailure::Access)?;
+        let parent = path
+            .parent()
+            .ok_or(NativeFailure::Access)?
+            .canonicalize()
+            .map_err(|_| NativeFailure::Access)?;
+        let name = path.file_name().ok_or(NativeFailure::Access)?;
+        let canonical = parent.join(name);
+        // Standard host aliases (/var on macOS) resolve before strict local access validation.
+        // The final entry itself must still be a regular file or absent, never a symlink.
+        DestinationAccess::new(canonical.clone()).map_err(|_| NativeFailure::Access)?;
         if let Some(entry) = self
             .destinations
             .iter_mut()

@@ -133,3 +133,35 @@ fn disabled_recovery_is_observable_and_ordered_registration_can_be_listed() {
     stop(&mut worker);
     fs::remove_dir_all(root).unwrap();
 }
+#[cfg(target_os = "macos")]
+#[test]
+fn local_resolution_accepts_macos_var_alias_but_rejects_symlink_final_entry() {
+    let root = root();
+    let alias = PathBuf::from("/var").join(root.strip_prefix("/private/var").unwrap());
+    let mut worker = NativeIo::spawn(RuntimeConfig::default()).unwrap();
+    receive(&worker);
+    assert!(
+        worker
+            .submit(WorkerRequest {
+                operation: 1,
+                work: Work::Resolve(alias.join("drawing.nsketch"))
+            })
+            .is_ok()
+    );
+    assert!(matches!(
+        receive(&worker).value,
+        WorkerValue::Destination(_)
+    ));
+    std::os::unix::fs::symlink(root.join("missing"), root.join("linked.nsketch")).unwrap();
+    assert!(
+        worker
+            .submit(WorkerRequest {
+                operation: 2,
+                work: Work::Resolve(alias.join("linked.nsketch"))
+            })
+            .is_ok()
+    );
+    assert!(matches!(receive(&worker).value, WorkerValue::Failure(_)));
+    stop(&mut worker);
+    fs::remove_dir_all(root).unwrap();
+}
