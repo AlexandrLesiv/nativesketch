@@ -120,3 +120,25 @@ ignored evidence and must not be published as product illustrations. Future scre
 collection should prefer the exact test-owned window or popover. This run does not prove
 VoiceOver speech, IME/localized number entry, all invalid ranges or all field navigation.
 The subsequent typed presenter must also preserve active text/caret through async refresh.
+
+## Review followups: feedback ownership and ordinary Save
+
+Commit `eb5e670e73399ea4e62020c85e7ea30e063fc0f6` resolves the width field's recorded
+validation message on Escape restoration or successful edit completion. The host refreshes
+status only when it still equals that field-owned message, retaining unrelated failure text.
+The native regression now checks guidance appears on invalid input and disappears both
+after Escape and after correcting the field and pressing Return.
+
+The Save As keyboard regression now makes a real document edit after cancellation (Undo
+removes the saved stroke), then issues ordinary Command-S. It requires the original file's
+bytes to change to a valid zero-stroke document, the filename/title to remain bound, no file
+panel, and no new entry in the disposable destination directory. A disabled/no-op Save can
+no longer satisfy this assertion. Native save semantics and keyboard bindings are unchanged.
+
+All five native cases passed on the exact clean commit above, first run at
+`artifacts/evidence/native-followups`, attempt 11. Background preparation, pure Swift oracle
+regressions and strict recursive Swift formatting passed. Hardware, toolchain and simulated
+mouse/keyboard route remain as recorded above. The largest changed test is 173 physical lines.
+App SHA-256: `d6a081008833f1f7d6a27bc2237b8331b58314a02e7526e229f33c4a0cb3747d`.
+Test SHA-256: `7f9a4933dc79af9edbd021792eca2471afa3643a5f0444987016f757ef670447`.
+Prior proof remains retained; this does not broaden the physical-input, speech or locale scope.
