@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "id": "native-interactions",
+  "description": "Designer static review acceptance cases; no runtime E2E certification.",
+  "sourceRevision": "e467d402c0f9888ae11a5312a2caabcd9335480f",
+  "cases": [
+    {
+      "id": "VIEWPORT-CENTER-001",
+      "expected": "Resize during draft cancels it and preserves committed content, history and document point at canvas center.",
+      "invariants": [
+        "CANCEL-001",
+        "INK-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "VIEWPORT-ZOOM-001",
+      "expected": "Zoom preserves each host anchor and bounds, including fitted views below manual zoom floor.",
+      "invariants": [],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "TRANSFORM-POLICY-001",
+      "expected": "Resize preserves host corner hit regions, scale calculation and pointer-up policy.",
+      "invariants": [
+        "UNDO-001",
+        "UNDO-002"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "FOCUS-FIELD-001",
+      "expected": "Undo/Delete/P/V/Space in native text fields does not mutate canvas or switch tool.",
+      "invariants": [
+        "FOCUS-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "019"
+        }
+      ]
+    },
+    {
+      "id": "CANCEL-ESCAPE-001",
+      "expected": "Escape cancels draft/preview and applies the documented host selection policy.",
+      "invariants": [
+        "INK-001",
+        "UNDO-002"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "CANCEL-OWNERSHIP-001",
+      "expected": "Capture loss, deactivation and additional contact never commit abandoned input or resume ink inadvertently.",
+      "invariants": [
+        "CANCEL-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "VIEWER-NAV-001",
+      "expected": "Fit/zoom/pan preserve source bytes and do not expose editing operations.",
+      "invariants": [
+        "VIEW-001"
+      ],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "watchos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "tvos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "013"
+        }
+      ]
+    },
+    {
+      "id": "VIEWER-STAGED-001",
+      "expected": "Watch update received during navigation stays staged until Apply Update.",
+      "invariants": [
+        "SOURCE-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "watchos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Static routing review only; actual native event and observable content assertions still required.",
+          "ownerTask": "013"
+        }
+      ]
+    }
+  ]
+}

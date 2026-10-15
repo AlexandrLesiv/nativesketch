@@ -209,7 +209,7 @@
     {
       "id": "015",
       "title": "Architecture contracts and compatibility baseline",
-      "status": "ready",
+      "status": "active",
       "depends_on": [],
       "brief": "tasks/015-contracts-and-baseline.md",
       "roles": [

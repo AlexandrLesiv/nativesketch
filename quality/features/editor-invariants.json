@@ -1,0 +1,495 @@
+{
+  "schemaVersion": 1,
+  "id": "editor-invariants",
+  "description": "Initial target-invariant inventory; mappings establish automation existence, not a complete passing claim.",
+  "sourceRevision": "e467d402c0f9888ae11a5312a2caabcd9335480f",
+  "cases": [
+    {
+      "id": "INK-001",
+      "expected": "Cancel leaves committed content/history unchanged",
+      "invariants": [
+        "INK-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::cancelled_and_stale_input_never_commits",
+        "cargo:sketch-core:lib:tests::cancel_and_noop_resize_preserve_redo_and_history"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Committed bytes are not directly compared after cancellation in the baseline test.",
+          "ownerTask": "018"
+        }
+      ]
+    },
+    {
+      "id": "INPUT-001",
+      "expected": "Invalid batch cannot partially mutate",
+      "invariants": [
+        "INPUT-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::corrections_and_invalid_batches_are_atomic"
+      ],
+      "automation": "partial",
+      "gaps": []
+    },
+    {
+      "id": "INPUT-002",
+      "expected": "Actual samples ordered; missing pressure stays missing",
+      "invariants": [
+        "INPUT-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::replay_preserves_actual_pressure_and_discards_prediction"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Baseline covers absent pressure; rebatching, adapter delivery and correction timestamp sequences need dedicated cases.",
+          "ownerTask": "018"
+        }
+      ]
+    },
+    {
+      "id": "INK-002",
+      "expected": "Predictions never enter saved/committed data",
+      "invariants": [
+        "INK-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::replay_preserves_actual_pressure_and_discards_prediction",
+        "cargo:sketch-core:lib:tests::replay_named_synthetic_trace_and_save_only_actual_samples"
+      ],
+      "automation": "partial",
+      "gaps": []
+    },
+    {
+      "id": "INK-003",
+      "expected": "Brush snapshot fixed for active stroke",
+      "invariants": [
+        "INK-003"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "018"
+        }
+      ]
+    },
+    {
+      "id": "UNDO-001",
+      "expected": "One committed stroke/transform creates one undo entry",
+      "invariants": [
+        "UNDO-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::resize_is_preview_then_one_undo_step_including_width"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Transform history covered; explicit many-sample stroke single-entry check still required.",
+          "ownerTask": "018"
+        }
+      ]
+    },
+    {
+      "id": "UNDO-002",
+      "expected": "Cancel/no-op creates no history; active undo keeps defined rejection",
+      "invariants": [
+        "UNDO-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::cancel_and_noop_resize_preserve_redo_and_history",
+        "cargo:sketch-core:lib:tests::rejects_invalid_pressure_transform_and_gesture_conflicts"
+      ],
+      "automation": "partial",
+      "gaps": []
+    },
+    {
+      "id": "SAVE-001",
+      "expected": "Successful older save cannot mark newer edits clean",
+      "invariants": [
+        "SAVE-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::portable_snapshot_stale_acknowledgement_and_atomic_failure"
+      ],
+      "automation": "partial",
+      "gaps": []
+    },
+    {
+      "id": "SAVE-002",
+      "expected": "New/import invalidates old save completions",
+      "invariants": [
+        "SAVE-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::portable_snapshot_stale_acknowledgement_and_atomic_failure"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Clear/import are tested within one Editor; explicit new session token collision test is pending.",
+          "ownerTask": "018"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-003",
+      "expected": "Older write cannot overwrite newer content at same destination",
+      "invariants": [
+        "SAVE-003"
+      ],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "LOAD-001",
+      "expected": "Invalid candidate preserves current document",
+      "invariants": [
+        "LOAD-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::save_roundtrip_dirty_identity_and_failed_load_save",
+        "cargo:sketch-core:lib:persistence::tests::checksum_and_version_reject_corruption"
+      ],
+      "automation": "partial",
+      "gaps": []
+    },
+    {
+      "id": "FOCUS-001",
+      "expected": "Native text editing wins over canvas shortcuts",
+      "invariants": [
+        "FOCUS-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "019"
+        }
+      ]
+    },
+    {
+      "id": "CANCEL-001",
+      "expected": "Cancel before coordinate remap or gesture ownership change",
+      "invariants": [
+        "CANCEL-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "VIEW-001",
+      "expected": "Read-only sessions reject mutation through the API",
+      "invariants": [
+        "VIEW-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "RENDER-001",
+      "expected": "Renderer cannot mutate document",
+      "invariants": [
+        "RENDER-001"
+      ],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "render-equivalence"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "CACHE-001",
+      "expected": "Cache eviction does not change final content",
+      "invariants": [
+        "CACHE-001"
+      ],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "render-equivalence"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "ASYNC-001",
+      "expected": "Stale callbacks cannot affect replacement session/surface",
+      "invariants": [
+        "ASYNC-001"
+      ],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-001",
+      "expected": "Source fallback preserves document identity and revision policy",
+      "invariants": [
+        "SOURCE-001"
+      ],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:source_policy::tests::identity_and_immutable_revision_are_checked_before_comparison",
+        "cargo:sketch-core:lib:source_policy::tests::published_order_uses_generation_without_clock_or_parent_assumptions",
+        "cargo:sketch-core:lib:source_policy::tests::same_content_published_advance_retains_generation_against_delayed_rollback"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Rust identity policy only; phone/network timing and transport failure require native source replay and device evidence.",
+          "ownerTask": "013"
+        }
+      ]
+    },
+    {
+      "id": "FFI-001",
+      "expected": "Unique handle ownership, serial mutation, no cross-FFI unwind",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-ffi:lib:tests::ffi_errors_copy_ownership_and_real_editor_flow",
+        "cargo:sketch-ffi:lib:tests::byte_buffers_have_owned_copy_and_atomic_capacity_errors",
+        "cargo:sketch-ffi:lib:tests::panic_is_contained"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Rust FFI calls only; C/Swift consumer layouts, lifecycle/thread-affinity verification is separate.",
+          "ownerTask": "018"
+        }
+      ]
+    }
+  ]
+}

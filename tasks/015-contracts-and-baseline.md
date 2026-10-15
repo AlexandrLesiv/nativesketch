@@ -1,6 +1,6 @@
 # 015: Architecture contracts and compatibility baseline
 
-Status: ready.
+Status: active.
 Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: docs/architecture/; quality/features/ initial manifests; scoped compatibility fixtures.

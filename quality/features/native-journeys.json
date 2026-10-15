@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 1,
+  "id": "native-journeys",
+  "description": "Required actual UI journeys; existing smoke/replay checks are not native E2E.",
+  "sourceRevision": "e467d402c0f9888ae11a5312a2caabcd9335480f",
+  "cases": [
+    {
+      "id": "BRUSH-001",
+      "expected": "Change brush width/color using native controls, draw, verify visible ink and saved geometry.",
+      "invariants": [
+        "INK-003"
+      ],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "HISTORY-001",
+      "expected": "Draw, undo once, redo once; verify visible ink and saved geometry.",
+      "invariants": [
+        "UNDO-001"
+      ],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "SELECT-001",
+      "expected": "Select topmost, transform, cancel then commit; verify bytes and undo.",
+      "invariants": [
+        "INK-001",
+        "UNDO-001"
+      ],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "FILE-001",
+      "expected": "Save, quit normally, relaunch and reopen; verify saved geometry.",
+      "invariants": [
+        "SAVE-001",
+        "LOAD-001"
+      ],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "RECOVERY-001",
+      "expected": "Fail save/import, retain content, retry safely.",
+      "invariants": [
+        "SAVE-003",
+        "LOAD-001"
+      ],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "VIEWER-001",
+      "expected": "Open cached drawing, navigate, reject edits and retain content when source fails.",
+      "invariants": [
+        "VIEW-001",
+        "SOURCE-001"
+      ],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "watchos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "tvos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "WATCH-001",
+      "expected": "Launch cached copy, prefer phone within deadline, fall back to same-identity server copy.",
+      "invariants": [
+        "SOURCE-001"
+      ],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "watchos",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    },
+    {
+      "id": "WEB-001",
+      "expected": "Launch offline, handle quota/context loss and interrupted asset updates.",
+      "invariants": [
+        "CACHE-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "012",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "ownerTask": "017"
+        }
+      ]
+    }
+  ]
+}
