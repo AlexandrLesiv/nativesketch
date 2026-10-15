@@ -1,6 +1,6 @@
 //! Renderer-independent editable strokes and transactional editor state.
 #![forbid(unsafe_code)]
-mod application;
+pub mod application;
 mod error;
 mod geometry;
 mod history;

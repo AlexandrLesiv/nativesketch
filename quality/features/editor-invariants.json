@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "editor-invariants",
-  "description": "Initial target-invariant inventory; mappings establish automation existence, not a complete passing claim.",
-  "sourceRevision": "e467d402c0f9888ae11a5312a2caabcd9335480f",
+  "description": "Invariant inventory with task 018 executable mappings and typed-facade coverage; native adoption and remaining target gaps stay explicit.",
+  "sourceRevision": "2c9e2d405db481ef473b3f6e31d6c7c110d802e9",
   "cases": [
     {
       "id": "INK-001",
@@ -40,7 +40,8 @@
       ],
       "testIds": [
         "cargo:sketch-core:lib:tests::input::corrections_and_invalid_batches_are_atomic",
-        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history",
+        "cargo:sketch-core:lib:application::session::tests::transactions::invalid_batch_leaves_preview_summary_and_generation_unchanged"
       ],
       "automation": "partial",
       "gaps": []
@@ -106,7 +107,8 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured"
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured",
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::captured_brush_and_tool_rules_are_additive_without_hidden_cancellation"
       ],
       "automation": "implemented",
       "gaps": []
@@ -126,7 +128,8 @@
       ],
       "testIds": [
         "cargo:sketch-core:lib:tests::editing::resize_is_preview_then_one_undo_step_including_width",
-        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo"
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo",
+        "cargo:sketch-core:lib:application::session::tests::transactions::transform_requires_current_token_and_commits_one_history_operation"
       ],
       "automation": "partial",
       "gaps": []
@@ -358,11 +361,14 @@
           "level": "unit"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_denies_every_edit_command_and_batch_without_partial_state",
+        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_allows_selection_queries_and_idle_cancel_but_not_pen_constructor"
+      ],
+      "automation": "partial",
       "gaps": [
         {
-          "reason": "No discovered executable test proves this target invariant.",
+          "reason": "Typed Rust sessions enforce capabilities; legacy bridges and native viewer source lifecycle are not migrated yet.",
           "ownerTask": "022"
         }
       ]
@@ -484,6 +490,108 @@
           "ownerTask": "018"
         }
       ]
+    },
+    {
+      "id": "FACADE-001",
+      "expected": "Typed editable commands preserve legacy document/history/scene semantics",
+      "invariants": [
+        "UNDO-001",
+        "INK-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::equivalence::generated_editable_sessions_match_legacy_document_history_and_scene"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-002",
+      "expected": "Session and transaction identity reject stale input before mutation",
+      "invariants": [
+        "INPUT-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::replacement_rotates_session_preserves_settings_and_rejects_old_contexts",
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::distinct_instances_with_same_revision_reject_each_others_context",
+        "cargo:sketch-core:lib:application::session::tests::transactions::stable_tokens_survive_batches_but_reused_pointer_rejects_old_transaction",
+        "cargo:sketch-core:lib:application::session::tests::capacity::generation_exhaustion_rejects_before_brush_document_or_preview_mutation",
+        "cargo:sketch-core:lib:application::session::tests::capacity::exhausted_interaction_identity_never_starts_or_reuses_a_transaction",
+        "cargo:sketch-core:lib:application::ids::tests::exhausted_session_identity_never_wraps_or_reuses"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-003",
+      "expected": "Native presenters can distinguish settings, selection and capability-aware action availability",
+      "invariants": [
+        "VIEW-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::capabilities::availability_distinguishes_history_from_actions_and_readonly_queries",
+        "cargo:sketch-core:lib:application::session::tests::projections::outcomes_distinguish_settings_selection_identity_and_preview_changes"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-004",
+      "expected": "Explicit snapshots own committed content and preserve preview freshness identity",
+      "invariants": [
+        "INK-002"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::projections::snapshot_is_owned_committed_content_and_scene_identity_tracks_preview"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-005",
+      "expected": "Validated settings and request correlation do not grant permission or imply deduplication",
+      "invariants": [
+        "VIEW-001"
+      ],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::brush_validation_and_request_correlation_are_not_permissions_or_deduplication"
+      ],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }

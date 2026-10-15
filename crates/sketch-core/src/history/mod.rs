@@ -31,6 +31,12 @@ impl Default for UndoHistory {
     }
 }
 impl UndoHistory {
+    pub(crate) fn check_capacity(&self) -> Result<()> {
+        self.next_revision
+            .checked_add(1)
+            .map(|_| ())
+            .ok_or(Error::InvalidState)
+    }
     pub(crate) fn can_undo(&self) -> bool {
         !self.undo.is_empty()
     }

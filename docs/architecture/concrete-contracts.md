@@ -141,3 +141,31 @@ best effort; completed writes are still processed using their token, never assum
 Worker inputs are immutable owned snapshots. No render/storage worker mutates editor state.
 The host posts completions onto the one editor owner. One-shot cancellation/close invalidates
 pending callbacks before freeing bridge handles; no worker keeps borrowed FFI pointers.
+
+## Task 018 implementation refinement
+
+Phase B implements the additive typed subset described in
+[018-extraction](018-extraction.md), without changing ABI 2/Wasm 1 consumers. The table
+above remains the broader target: save effects/completions are task 021, viewer source
+replacement is task 022, and native hosts have not adopted `EditorSession` yet.
+
+The small `EditorViewState`/outcome does **not** include computed selected bounds. Bounds,
+scene and owned committed-document snapshots are explicit `EditorQuery` variants; only
+these queries may traverse/copy the document. `Editor::summary` is a cheap compatibility
+projection. `availability(ActionId)` separately gates raw history presence with capabilities,
+active state and tool/selection requirements. `StateChanges` names session replacement,
+settings and selection changes separately, avoiding ambiguous presenter update flags.
+
+Input transaction identity and rendering freshness are distinct: `InteractionId` stays fixed
+through one gesture and must match append/commit/update/cancel context; `SceneGeneration`
+advances with successful state changes. `SceneKey` contains document session, revision and
+scene generation. Missing/stale active tokens fail, including pointer-ID reuse. All generation
+increments are checked before mutation. Request IDs correlate errors, not authentication or
+idempotency. Document-session IDs are nonreused within one loaded Rust runtime/Wasm instance.
+
+Constructors take explicit host-selected tool/brush and optional validated initial content.
+SetBrush during ink affects the next stroke; SetTool/new/import reject active work. New/import
+preserve settings and rotate document-session identity. Read-only construction requires Select;
+queries remain allowed regardless of the future export-effect capability. A committed snapshot
+query excludes drafts/predictions while active; legacy byte export still requires idle state.
+No read-only source-replacement service is exposed until its task 022 identity/request contract.

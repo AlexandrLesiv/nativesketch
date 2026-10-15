@@ -41,7 +41,7 @@ impl Editor {
         let document = persistence::load(path)?;
         self.replace_document(document)
     }
-    fn replace_document(&mut self, document: Document) -> Result<()> {
+    pub(crate) fn replace_document(&mut self, document: Document) -> Result<()> {
         let history = self.history.replacement()?;
         let next_id = document
             .strokes

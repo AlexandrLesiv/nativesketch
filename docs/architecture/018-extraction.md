@@ -103,3 +103,70 @@ Native UI/physical pen tests, other OS ABI execution and platform E2E remain une
 Phase A does not enforce viewer capabilities, provide session/request save tokens, install
 structured runtime logging, or finish task 018's typed command façade. Those claims require
 phase B and the separately ordered storage/native/rendering work.
+
+## Phase B: additive typed application boundary
+
+`sketch_core::application` now exposes `EditorSession`, `EditorCommand`, `SampleBatch`,
+`CommandContext`, typed queries, validated `BrushSettings`/`ValidatedDocument`, capabilities,
+IDs and structured errors. Existing `Editor`, native ABI 2 and Wasm 1 consumers remain
+unchanged and editable. No native host adopts the new boundary in this phase.
+
+The session owns its legacy editor privately; neither a mutable editor nor mutable document
+reference escapes. `&mut self` serializes mutation. Context carries an opaque runtime-local
+`DocumentSessionId`, request correlation and optional transaction token. Request IDs do not
+provide authorization, deduplication or replay suppression. Failures contain only operation,
+category and these IDs, never points, bytes or paths. Runtime logging sinks remain task 021.
+
+- Hosts supply explicit initial tool and validated brush settings; no shared platform default
+  is invented. Read-only construction requires Select and may receive a validated document.
+- Pen is required to begin a stroke. Select is required for selection/transform commands.
+  SetTool/new/import reject active work; they never silently cancel it. SetBrush can change
+  settings during ink, but the captured active brush remains unchanged until the next stroke.
+- New/import preserve tool and brush, reset document selection/history as before, and rotate
+  session identity. Context from another session or a replaced document is rejected before
+  mutation, even when revision numbers happen to match.
+- An `InteractionId` remains stable across all batches/updates of one gesture. Append,
+  commit, transform update/commit and active cancellation require that exact token. A token
+  from a previous gesture cannot affect a new gesture that reuses the same pointer ID.
+  Idle cancellation with no token is harmless; a supplied stale token still fails.
+- `SceneGeneration` advances conservatively on every successful execute/append, separately
+  from the stable transaction token. Session IDs, transaction IDs and generations never wrap;
+  counter exhaustion is checked before mutation. Rejected operations preserve state/generation.
+- Read-only sessions reject every editing command and input batch, including new/user import,
+  undo/redo, Pen and brush configuration. They permit selection, Select, idle cancellation and
+  immutable queries. `export_document` is informational until task 021 adds export effects;
+  immutable document queries do not pretend to authorize a filesystem export.
+
+`Editor::summary`, `EditorSession::view_state` and outcomes are constant-sized/constant-time:
+no encoding, cloning, bounds calculation or document/sample traversal. Raw history flags are
+not action availability. `EditorViewState::availability(ActionId)` provides advisory native
+control state with stable disabled reasons for read-only, active interaction, wrong tool,
+missing selection/history or missing active transaction. Execution still validates values and
+context; commit also requires an actual sample. Legacy `state()` keeps its existing behavior.
+
+`StateChanges` distinguishes document revision, document-session replacement, tool/brush
+settings, selected ID and interaction/preview changes. Generation advancement alone does not
+claim a document change. Bounds, scene building and committed snapshot copying are explicit
+queries with their known traversal/copy costs. Committed snapshots own their data and exclude
+active/predicted samples even during drawing; this additive query differs deliberately from
+legacy byte export, which still rejects active interactions. Snapshot encoding is explicit.
+The existing legacy commit/transform costs are unchanged; this is not a latency improvement
+claim or proof that every existing editing operation is bounded.
+
+New unit tests cover the full read-only command/batch matrix, selection/query allowance,
+capability-aware availability, token reuse/missing tokens, stale session contexts, empty/active
+transitions, validated brush/document rejection, immutable snapshots, generation/ID exhaustion,
+brush capture and request correlation. A deterministic 32-seed sequence compares typed and
+legacy committed documents, path commands, bounds, revisions and undo/redo after each step.
+Current feature mappings use executable Cargo discovery; native acceptance remains separate.
+
+Task 021 still owns save/export effects, correlated completions and destination write ordering.
+Task 022 owns viewer selected-source/request token lifecycle and a trusted viewer replacement
+service. There is deliberately no unrestricted read-only replacement method. Task 019/022 owns
+native presenter/bridge adoption. The legacy API remains available; read-only enforcement is
+real for `EditorSession`, not retroactively claimed for existing platform prototypes.
+
+Error compatibility scope: `ResourceLimit` currently identifies exhaustion of the new session,
+interaction and scene counters or reserved history revision capacity. Existing maximum-stroke
+and maximum-sample errors still map from legacy `InvalidArgument` to `InvalidValue`. This phase
+does not relabel every legacy limit failure or distinguish every corrupt-format subtype.
