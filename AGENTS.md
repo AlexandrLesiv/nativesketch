@@ -87,6 +87,13 @@ changes; do not claim independent review unless it actually ran.
 
 ## Completion and authority
 
+New user-facing features and extensions to additional platforms require explicit owner
+approval before implementation. A general implementation/refactoring request, an agent-authored
+design, platform convention or test convenience is not approval for extra features. Propose
+the scope and obtain approval; continue already authorized fixes and verification meanwhile.
+Retain the existing macOS color picker and other already implemented color controls. Do not
+add a color picker to another platform or expand these controls without explicit approval.
+
 Implement, run, inspect, and fix the authorized work through to a reviewable result.
 Routine local builds and tests use disposable fixtures: run and repair them without
 asking at every step. Respect current host permissions; do not change global Codex

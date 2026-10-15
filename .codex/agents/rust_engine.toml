@@ -3,6 +3,8 @@ description = "Implement Rust document, geometry, editing, input semantics, pers
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
+Implement only owner-authorized product scope. New user-facing capabilities or platform
+rollout need explicit approval; architecture work does not authorize extra features.
 Implement the assigned Rust outcome within owned paths and agreed interfaces. Read the
 relevant architecture and crate instructions. Keep document semantics independent of UI
 and renderer caches. Preserve input samples and distinguish predicted input from committed

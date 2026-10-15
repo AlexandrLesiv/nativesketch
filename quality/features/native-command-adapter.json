@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019B-E native adapter acceptance mapped to actual XCTest executable discovery. Automation existence is separate from revision-bound execution status. Twenty cases use real native input; selected disposable worker gates are explicit. Broad acceptance rows retain uncovered subcases; core/headless checks never substitute for native results.",
-  "sourceRevision": "df804bd5fffc86c7df5206d9d86c14c4cd80b05f",
+  "description": "Task019 native acceptance mapped to 36 actually enumerated XCTest cases at79f3028. Attempt20 executes only the focus-restoration case; the15 other added cases are discovered but unexecuted. Automation existence never implies a current-source pass. Poisoned native closure and remaining gesture/focus scenarios stay explicit gaps.",
+  "sourceRevision": "79f3028f7757cdca1b04f37929f95c140e93ac41",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -36,15 +36,11 @@
         }
       ],
       "testIds": [
-        "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing"
+        "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
+        "xctest:NativeSketchUITests:NativeFieldCompletionTests/testSaveCompletionPreservesExistingNonzeroFieldSelection"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "The field is empty when completion arrives; later caret insertion is tested, but preserving a pre-existing nonzero caret/selection across completion remains uncovered.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-ASYNC-SAVE-001",
@@ -77,15 +73,12 @@
       "testIds": [
         "xctest:NativeSketchUITests:AsyncSaveAsTests/testPendingSaveAsRetainsOldBindingUntilAcknowledgement",
         "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
-        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding"
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding",
+        "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testOrdinarySaveDuringPendingSaveAsWritesOldBinding",
+        "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testOrdinarySaveAfterFailedSaveAsKeepsOriginalBinding"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Pending/failure cases verify title and old bytes, but ordinary Save during pending Save As or after its failure must prove the old destination remains the binding. Cancellation has this stronger oracle.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-SAVE-FAILURE-001",
@@ -101,15 +94,11 @@
       "testIds": [
         "xctest:NativeSketchUITests:AsyncSaveAsTests/testDirectorySyncWarningReportsWrittenData",
         "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
-        "xctest:NativeSketchUITests:NativeRoutingTests/testRealWriteFailureWaitsBehindRecoverySheet"
+        "xctest:NativeSketchUITests:NativeRoutingTests/testRealWriteFailureWaitsBehindRecoverySheet",
+        "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testFailedOverwritePreservesLastGoodBytesAndCanRetry"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Failure cases target new destinations. Failure while overwriting an existing destination must separately verify its last-good bytes remain intact.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-OPEN-ORDER-001",
@@ -123,15 +112,12 @@
         }
       ],
       "testIds": [
-        "xctest:NativeSketchUITests:NativeOpenTests/testOpenWaitsForAcceptedSaveAndCorruptReadPreservesContent"
+        "xctest:NativeSketchUITests:NativeOpenTests/testOpenWaitsForAcceptedSaveAndCorruptReadPreservesContent",
+        "xctest:NativeSketchUITests:NativeReadIsolationTests/testOversizedOpenRetainsContentAndBinding",
+        "xctest:NativeSketchUITests:NativeReadIsolationTests/testDelayedValidatedReadCannotReplaceNewerDrawing"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Native oversized/stale delayed-read journeys are not covered; service stale-read tests do not replace native delivery evidence.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-NAVIGATION-001",
@@ -145,15 +131,12 @@
         }
       ],
       "testIds": [
-        "xctest:NativeSketchUITests:NativeNavigationTests/testNewCancelAndDiscardPreservePendingSaveSemantics"
+        "xctest:NativeSketchUITests:NativeNavigationTests/testNewCancelAndDiscardPreservePendingSaveSemantics",
+        "xctest:NativeSketchUITests:NativeDecisionTests/testNewSaveWritesCurrentDrawingBeforeReplacingIt",
+        "xctest:NativeSketchUITests:NativeDecisionTests/testOpenCancelDiscardAndSaveUseCurrentDirtyDrawing"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "The suite covers pending-save cancellation and New Cancel/Discard. New Save and the Open Save/Cancel/Discard matrix still need native coverage.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-CLOSE-QUIT-001",
@@ -168,12 +151,14 @@
       ],
       "testIds": [
         "xctest:NativeSketchUITests:NativeNavigationTests/testQuitCancellationAndSuccessfulDrain",
-        "xctest:NativeSketchUITests:NativeNavigationTests/testInvalidWidthBlocksQuitUntilEscapeRestoration"
+        "xctest:NativeSketchUITests:NativeNavigationTests/testInvalidWidthBlocksQuitUntilEscapeRestoration",
+        "xctest:NativeSketchUITests:NativeDecisionTests/testCloseCancellationKeepsDrawingAndSaveClosesWindow",
+        "xctest:NativeSketchUITests:NativeDecisionTests/testFailedSaveDuringQuitKeepsAppAndDrawingOpen"
       ],
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Cmd-W, write-failure termination, and poisoned-engine native close/quit remain uncovered. Lower-level cleanup tests are separate evidence.",
+          "reason": "Poisoned-engine native Close/Quit remains uncovered; Rust/FFI retirement and caught-boundary-panic tests remain separate evidence.",
           "ownerTask": "019"
         }
       ]
@@ -190,15 +175,13 @@
         }
       ],
       "testIds": [
-        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus"
+        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus",
+        "xctest:NativeSketchUITests:NativeReadIsolationTests/testDelayedValidatedReadCannotReplaceNewerDrawing",
+        "xctest:NativeSketchUITests:NativeReadIsolationTests/testCancelledSourceResolutionFailureCannotPresentObsoleteError",
+        "xctest:NativeSketchUITests:NativeReadIsolationTests/testCloseAfterCancellingReadDoesNotResurrectWindow"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "The mapped case covers cancelled destination resolution. Late reads, obsolete failure sheets and closed-window callbacks need additional native journeys.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-RECOVER-COPY-001",
@@ -212,15 +195,11 @@
         }
       ],
       "testIds": [
-        "xctest:NativeSketchUITests:NativeRecoveryTests/testLaterPreservesRecoveryAndOpensDirtyUnboundCopy"
+        "xctest:NativeSketchUITests:NativeRecoveryTests/testLaterPreservesRecoveryAndOpensDirtyUnboundCopy",
+        "xctest:NativeSketchUITests:NativeRecoveryDecisionTests/testRecoveredCopyOverDirtyDrawingHonorsCancelDiscardAndSave"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Later and dirty/unbound recovered-copy opening are covered; opening over current unsaved edits with Save/Cancel/Discard needs native coverage.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-RECOVER-MANAGE-001",
@@ -235,15 +214,12 @@
       ],
       "testIds": [
         "xctest:NativeSketchUITests:NativeRecoveryTests/testCorruptNewestGenerationFallsBackToEarlierValidCopy",
-        "xctest:NativeSketchUITests:NativeRecoveryTests/testDiscardConfirmationDefaultsToCancelAndRemovesOnlySelectedCopy"
+        "xctest:NativeSketchUITests:NativeRecoveryTests/testDiscardConfirmationDefaultsToCancelAndRemovesOnlySelectedCopy",
+        "xctest:NativeSketchUITests:NativeRecoveryManagementTests/testRecoveryCapacityFeedbackRetainsAllExistingCopies",
+        "xctest:NativeSketchUITests:NativeRecoveryManagementTests/testDiscardCannotRemoveGenerationNewerThanDisplayedCandidate"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Recovery capacity feedback and discard racing a newer candidate generation remain native coverage gaps.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-ASYNC-FOCUS-001",
@@ -258,12 +234,14 @@
       ],
       "testIds": [
         "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
-        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus"
+        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus",
+        "xctest:NativeSketchUITests:NativeFieldCompletionTests/testSaveCompletionPreservesExistingNonzeroFieldSelection",
+        "xctest:NativeSketchUITests:NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection"
       ],
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native resize/deactivation during a gesture and restoring the originating responder after cancelled sheets remain uncovered by these automated cases.",
+          "reason": "Native resize/deactivation during an active gesture and focus restoration through recovery/failure successor sheets still need native coverage. Save As field cancellation and nonzero selection through completion have executable tests.",
           "ownerTask": "019"
         }
       ]

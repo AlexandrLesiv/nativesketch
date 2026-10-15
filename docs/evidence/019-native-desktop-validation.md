@@ -3,7 +3,66 @@
 Host: Mac14,10 arm64, macOS 27.0.1 (26A434), Xcode 27.0 (27A266a),
 Swift 6.4, Rust 1.99.0, Node 24.22.0. These are native mouse/keyboard
 journeys, not physical pen measurements. The owner reserved the foreground desktop
-and subsequently extended that reservation to 2026-10-15 20:10 UTC.
+and subsequently extended it through 2026-10-15 21:30 UTC (00:30 Kyiv on October 16).
+
+## October 15 continuation
+
+The earlier failures below remain preserved. The automation timeout was diagnosed before
+retrying: attempt 18 requested macOS authentication around 20:06 UTC and timed out around
+20:07; the authentication completed at 20:15:25, after that runner had exited. The console
+UID matched the execution user. No system security or global trust setting was changed.
+
+Attempt 19, exact source `1672c49a5219c9d1f97bb839a4db101f8ed08412`, enumerated and passed
+all 20 native cases in 1,057 seconds, with xcodebuild exit 0. This verifies the three
+previously repaired failures, including Return/Escape/click cancellation of pending Quit.
+Subject SHA-256: `fbf5ff87a787f5289a473fe3284ff2a5ca4cbb6bcd5e3f3a03a3161cbd1dc4d2`;
+test SHA-256: `dea2ea697179cea16782afc20589871b5039f424c69f0d0a7ee595e3497a1abf`.
+The revision-bound report records 49 passing rows out of 213; it is not whole-product acceptance.
+
+The acceptance audit then found two implementation gaps. Native file intents discarded the
+originating field/selection; a weak responder, session and generation guarded restoration now
+preserves native selection without stealing focus from a newer control or inactive window.
+Recovery capacity/usage fields were always zero; bounded real inventory accounting now
+reports occupied identities and retained bytes, including resolved entries and staging files.
+Unknown/incomplete accounting is explicit; the reported capacity flag is not a promise that
+an arbitrary next document fits. Tests use actual files and the production worker boundary.
+
+Attempt 20 at `79f3028f7757cdca1b04f37929f95c140e93ac41` enumerated all 36 cases and executed
+only `NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection`: **1/1
+passed**, xcodebuild exit 0, 37.5 seconds. Width `12` with its final digit selected survives
+native Save As cancellation; subsequent typing without clicking produces `18`.
+Subject SHA-256: `db0268a33a71e9b93588a100b00fd8e7ab979bfcc094f71eee3ff22029b5319a`;
+test SHA-256: `3ca616f74338b5833448c53ebc05bbb30a1e9acb68e307a73e93c73d625c7b18`.
+The other 15 new cases were discovered, not executed by this attempt. Earlier revision
+passes remain historical; the exact-source report retained 41 passing rows out of 213.
+
+The full background check at `79f3028` passed: 59 tooling tests, 151 workspace Rust tests,
+format/lint/type/source/dependency gates, real C consumer, default/feature symbol separation,
+Swift build/link and headless smoke. Feature-only read-control tests separately passed 4/4.
+Fresh independent reviews reproduced focused Rust and Swift checks and closed the scoped
+findings. Source review and headless execution do not establish native interaction success.
+
+Independent designer inspection on the attempt 20 subject confirmed Save As and Recovery
+Later preserve the originating width selection, readable inspector and populated recovery,
+keyboard selection, safe Escape cancellation, and normal Quit. The exact-PID AX probe found
+canvas `AXEnabled` unsupported (`-25205`), not false: XCTest's “Disabled” text is not evidence
+that the canvas is disabled. VoiceOver speech remains untested. The waiting-panel screenshot
+was clear and unclipped; its full-desktop background makes it private evidence, not a public
+product image.
+
+The designer also reproduced inspector Escape losing canvas shortcuts and Return doing
+nothing in recovery-discard confirmation. Candidate `9b7e147` integrates guarded inspector
+focus restoration and a native confirmation panel with separate safe Return/Escape paths.
+Its strengthened test requires actual dismissal, preventing the previous no-op Return from
+passing merely because recovery rows remained. An explicit test-only caught-panic hook and
+native Close/Quit journey cover engine unavailability; the hook is excluded from ordinary
+builds. Additional native tests cover Recovery Later and failure-cancellation field selection.
+Fresh code and design reviews found no actionable issue; runtime verification is separate.
+
+Artifacts are under `artifacts/evidence/019-native-runtime-attempt-{19,20}` and
+`artifacts/verification/019-integrated-runtime/`. Attempts retain exact identities, discovery,
+selected execution, logs, xcresult attachments and disposable fixtures. Ongoing expanded
+native execution and any subsequent repairs must be recorded separately below.
 
 ## Preserved runs
 
@@ -69,7 +128,7 @@ empty discovery/results deliberately claim no executed cases. No system settings
   transient popover consumed the click. These test-oracle repairs must retain the error
   assertions and explicitly verify tool selection before drawing.
 
-## Final repaired candidate: `1a5b648`
+## Earlier repaired candidate: `1a5b648`
 
 Attempt 16 reduced the failures to three concrete cases:
 

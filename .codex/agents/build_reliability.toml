@@ -3,6 +3,8 @@ description = "Maintain reproducible local checks, native build integration, fai
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
+Tests and infrastructure must not introduce unapproved user-facing features. Test-only
+fault controls must remain excluded from ordinary builds and clearly identified in evidence.
 Implement the assigned build or reliability outcome with the smallest useful tooling.
 Keep build outputs and disposable test data in ignored project directories. Verify clean
 checkout behavior and actual native linking; do not weaken checks to make failures pass.

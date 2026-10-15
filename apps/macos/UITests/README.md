@@ -53,18 +53,32 @@ journeys below require fresh executable discovery and execution before coverage 
 | NativeOpenTests | NATIVE-OPEN-ORDER-001 / NATIVE-STALE-EFFECT-001 / NATIVE-ASYNC-FOCUS-001: ordered Open, corrupt input retention, cancelled resolution preserving later drawing/focus |
 | NativeRecoveryTests | NATIVE-RECOVER-COPY-001 / NATIVE-RECOVER-MANAGE-001: real checkpoints, Later, dirty unbound copy, corrupt-newest fallback and selected discard |
 | NativeRoutingTests | NATIVE-ROUTING-001 / NATIVE-SAVE-FAILURE-001: menu/shortcut/control equivalence and a real filesystem failure deferred behind another sheet |
+| NativeSaveIntegrityTests | Ordinary Save retains the old binding during/after failed Save As; failed overwrite preserves last-good bytes |
+| NativeDecisionTests | New/Open choice matrix, cancelled Close during a held write, and failed Save during Quit |
+| NativeReadIsolationTests | Oversized input, held validated reads, obsolete resolution failure and closed-window late delivery |
+| NativeRecoveryDecisionTests / NativeRecoveryManagementTests | Recovery over dirty edits, actual capacity exhaustion and discard racing a newer real checkpoint |
+| NativeFieldCompletionTests / NativeFocusRestorationTests / NativeSheetFocusTests | Nonzero selection across save completion, cancelled Save As, Recovery Later and failed-save cancellation |
+| NativeInspectorDismissalTests | Inspector Escape returns working native canvas P/V shortcuts and drawing |
+| NativePoisonClosureTests | Explicit caught Rust panic, cancelled native Close/Quit, confirmed exit and unchanged last-good file reopen |
 
 The runner explicitly builds DEBUG with `native-test-controls`; ordinary/release builds
 do not include this API. Selected tests arm one real-worker stage using a disposable empty
 directory. The worker's `reached` marker proves the stage; the test's `release` marker only
 allows work to proceed. No document mutation or successful receipt is injected. Stage IDs
 come from `sketch_test_v1.h`: resolution=1, before-create=2, before-replace=5, directory-sync=7.
+After-read-validation=8 holds the real decoded Document/Recovery before candidate publication;
+New and invalid reads do not consume it. An explicit `--test-poison-on-close` launch argument
+in DEBUG + NATIVE_TEST_CONTROLS builds causes one panic inside the real caught C boundary at
+the first native Close/Quit. It does not set Swift/Rust poison flags directly. The separate
+C test API is absent from ordinary release builds; the integration gate checks both symbols.
 Other cases use native input and actual file/recovery I/O without arming a gate. Read-only
 DEBUG AX observations expose actual focus and runtime quiescence, never force them.
 
-Remaining gaps include recovery capacity UI, oversized/stale reads, mid-gesture native
-resize/deactivation, all navigation choice combinations, poisoned-engine native UI,
-accessibility speech, keyboard-only traversal, display scale and physical device input.
+Executable discovery and results must be imported independently: adding or compiling these
+tests does not close their runtime acceptance. Remaining specialist checks include active-gesture
+resize/deactivation through real OS events, accessibility speech, full keyboard traversal,
+display scale and physical device input. A disposable CGEvent/AX helper is a different input
+route from XCUIAutomation and must have separate source/binary/fixture evidence.
 The pristine runtime/Swift shutdown-ordering smoke and actual Rust poisoned-detach tests
 are complementary lower-level evidence, not poisoned-engine native E2E.
 

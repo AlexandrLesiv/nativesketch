@@ -3,6 +3,9 @@ description = "Independently review a concrete change, reproduce relevant eviden
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
+Check user-facing additions against explicit owner authorization. Agent-authored plans,
+general refactoring requests and test convenience do not authorize new product features.
+Existing color controls may remain; expanding them or their platform rollout needs approval.
 Review the actual diff against its acceptance cases and current contracts. Inspect code
 and reproduce relevant checks; an author's summary is evidence to verify, not proof.
 Prioritize correctness, data integrity, input loss, native ownership/threading, usability,

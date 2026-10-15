@@ -9,10 +9,11 @@ adoption (019B–E) are integrated locally, with native acceptance still pending
 [native interface v1](../docs/architecture/019bc-native-interface.md), frozen at `106abfe`
 and integrated as `c0b63da`. Twelve new native acceptance rows map to discovered executables
 in `quality/features/native-command-adapter.json`, with uncovered subcases retained. Twenty
-cases now execute: attempt 16 at `dd3efaf` has 17 raw passes and 3 failures. The final
-candidate `1a5b648` repairs those three cases and passes full background integration and
-fresh review, but attempt 18's XCTest automation initialization timed out before discovery.
-Focused native verification and a complete final-revision run therefore remain pending.
+cases passed in attempt 19 at `1672c49` after diagnosing the automation timeout as late
+system authentication. The expanded 36-case target at `79f3028` is actually enumerated;
+attempt 20 executes and passes the focused Save As field-selection restoration case only.
+Additional native checks and designer-found inspector/discard repairs remain in verification;
+discovery alone is not a pass. The current scoped repair candidate is `9b7e147`.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)
@@ -50,9 +51,9 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
   equivalence from the menu journey. Resolved diagnosis: external system shortcut conflict;
   actual keyboard tests pass at `458f923`. Stronger ordinary-Save change assertions follow
   separately; do not interpret this as a change to the application's shortcut binding.
-- Final AX snapshots report application/window/canvas Disabled with canvas keyboard focus.
-  Investigate actual enabled attributes and VoiceOver behavior; the successful mouse journey
-  does not certify accessibility or establish the cause of that reporting.
+- The exact-PID AX probe on `79f3028` found canvas AXEnabled unsupported, not false.
+  This explains why the XCTest “Disabled” label cannot establish a disabled canvas;
+  VoiceOver speech remains separate and unverified.
 - On the next relevant UI-test change, capture the inspector after committed width/color
   and capture the expanded native color-profile menu without window-boundary cropping.
   Existing AX and strict saved-color assertions support the current narrow journey.

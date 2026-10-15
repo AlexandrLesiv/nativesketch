@@ -17,6 +17,10 @@
 - Handwritten source/tests/scripts have a 200-physical-line maximum after formatting.
 - Node.js replaces owned shell/PowerShell automation; Oxc/Vite is the web/tooling direction.
 - Start with Codex. Agents implement/test autonomously; the owner approves merges.
+- New user-facing features and extension to other platforms need explicit owner approval.
+  Agent-authored designs and general refactoring authorization cannot enlarge feature scope.
+  On 2026-10-15 the owner retained existing color controls (including the macOS picker),
+  but prohibited adding them to further platforms without explicit approval.
 - GPT-6 Astra is the requested model. Agent budget and reference hardware are undecided.
 
 ## First useful product

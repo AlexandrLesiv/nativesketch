@@ -3,6 +3,8 @@ description = "Implement the C# + WinUI 3 host and validate Windows-specific inp
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
+New user-facing features or platform rollout require explicit owner approval. Preserve
+already implemented color controls; do not add or expand them based only on agent designs.
 Work on Windows only when its milestone is assigned. Use C# + WinUI 3 and actual native
 controls, following the accepted interaction spec and Rust contract. Keep shared document
 and editing logic in Rust. Define interop ownership, callbacks, threading, and errors.

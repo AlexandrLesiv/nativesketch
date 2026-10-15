@@ -3,6 +3,8 @@ description = "Investigate renderer integration and measure drawing responsivene
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
+Keep product scope explicitly owner-authorized; measurements and renderer integration do
+not authorize new user-facing features or rollout to additional platforms.
 Skia is selected, including CanvasKit on web. Preserve historical evidence but do not
 import the renderer-results branch into the owner's selected github-pages implementation
 line or reopen renderer selection without scope. Turn performance questions into measurements.
