@@ -45,7 +45,9 @@ import AppKit
     beginShutdown()
   }
   private func beginShutdown() {
-    let accepted = owner.runtime.shutdown { [weak self] in
+    let accepted = owner.runtime.shutdown(onFailure: { [weak self] in
+      self?.navigationCancelled()
+    }) { [weak self] in
       guard let self else { return }
       if terminationPending {
         terminationPending = false

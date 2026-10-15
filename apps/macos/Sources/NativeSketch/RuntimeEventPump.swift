@@ -42,7 +42,7 @@ import CSketchSession
       NativeDiagnostics.failure("idle", status: idleStatus)
     }
     runtime.finishShutdownIfReady(state)
-    if state.needs_poll != 0 || state.ready_events != 0 {
+    if state.needs_poll != 0 || state.ready_events != 0 || runtime.awaitingRetirement {
       schedule(after: 0.016)
     } else if state.wake_after_ms != UInt64.max {
       // Runtime can request an idle turn; avoid spinning while active ink owns a retained event.

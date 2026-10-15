@@ -7,7 +7,8 @@ import CSketchSession
   lazy var pump = RuntimeEventPump(runtime: self)
   lazy var recovery = RecoveryInventory(runtime: self)
   var onFailure: ((SketchFailureV1) -> Void)?
-  var onShutdown: (() -> Void)?
+  private let shutdownCoordinator = NativeShutdownCoordinator()
+  var awaitingRetirement: Bool { shutdownCoordinator.awaitingRetirement }
   private var sessions: [UInt64: WeakSession] = [:]
   private var retiring: [RustApplicationSession] = []
   private var orphaned: [OpaquePointer] = []
@@ -57,15 +58,18 @@ import CSketchSession
       }
       return status != SK_V1_OK.rawValue
     }
-  }
-  @discardableResult func shutdown(_ completion: @escaping () -> Void) -> Bool {
-    onShutdown = completion
-    let status = sketch_runtime_v1_request_shutdown(handle)
-    if status != SK_V1_OK.rawValue {
-      NativeDiagnostics.failure("shutdown", status: status)
-      onShutdown = nil
-      return false
+    shutdownCoordinator.advance(retired: retiring.isEmpty && orphaned.isEmpty) {
+      sketch_runtime_v1_request_shutdown(handle)
     }
+  }
+  @discardableResult func shutdown(
+    onFailure: (() -> Void)? = nil,
+    _ completion: @escaping () -> Void
+  ) -> Bool {
+    guard handle != nil else { return false }
+    shutdownCoordinator.request(completion: completion, failure: onFailure)
+    // Detach may transfer accepted writes to a tombstone. Admit shutdown only after that
+    // owner-turn retirement, never by weakening the shared dirty-session close guard.
     pump.schedule()
     return true
   }
@@ -76,9 +80,7 @@ import CSketchSession
       if status != SK_V1_BUSY.rawValue { NativeDiagnostics.failure("runtime-free", status: status) }
       return
     }
-    let callback = onShutdown
-    onShutdown = nil
-    callback?()
+    shutdownCoordinator.finish()
   }
 }
 

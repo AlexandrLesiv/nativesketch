@@ -47,6 +47,7 @@ import CSketchSession
     precondition(editor.send(.undo) && geometry() == original)
     precondition(editor.send(.redo) && geometry() == resized)
     try SmokeStorageJourney.run(editor: editor, expected: resized, geometry: geometry)
+    try NativeRetirementSmoke.run()
     print(
       "PASS: versioned Swift/Rust dispatcher, mouse/pressure geometry, cancellation, transform history and async save/reopen."
     )
