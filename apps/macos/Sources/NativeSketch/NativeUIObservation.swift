@@ -28,5 +28,6 @@ import CSketchSession
       + " | Native ready:active=\(NSApp.isActive),key=\(window?.isKeyWindow == true),canvas=\(window?.firstResponder === canvas),field=\(field)"
       + " | Storage idle=\(storageIdle),dirty=\(projection?.dirty == 1),session=\(projection?.session ?? 0)"
       + " | Save outstanding=\(projection?.outstanding_saves ?? 0),preparing=\(projection?.preparing_operations ?? 0)"
+      + " | Interaction=\(projection?.interaction ?? 0)"
   }
 }
