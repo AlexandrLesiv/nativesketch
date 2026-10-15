@@ -235,7 +235,9 @@
         "xctest:NativeSketchUITests:NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection",
         "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveryLaterRestoresOriginalWidthSelection",
         "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveCancellationRestoresOriginalWidthSelection",
-        "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands"
+        "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands",
+        "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveAsSuccessorCancellationRestoresOriginalWidthSelection",
+        "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection"
       ],
       "automation": "implemented",
       "gaps": [
