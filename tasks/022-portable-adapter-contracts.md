@@ -17,6 +17,13 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
 [refactoring sequence](../docs/refactoring-plan.md). One owner changes shared contracts.
 
 - Freeze native UI/action/sample/viewer contracts and common byte/command fixtures; retain idiomatic native presenters.
+- Use the reviewed `ApplicationSession` and task 019 [native session contract](../docs/architecture/019bc-native-interface.md)
+  as the command boundary. Map every platform's controls and shortcuts to that boundary;
+  keep native field editing first. Do not duplicate file/navigation policy in a new host.
+  Native v1's initial filesystem provider is local-only: Android document providers, Apple
+  coordinated files and browser storage need explicit adapters and failure/ownership tests.
+  Wasm cannot import the native filesystem worker; share semantic commands and conformance,
+  then supply an appropriate browser service adapter with confirmed-result semantics.
 - Split remaining host responsibilities <=200 lines; serialize by host or use isolated worktrees with explicit owners.
 - Preserve Apple editor versus viewer capabilities, standalone Watch source policy, Android desktop reuse and semantic HTML.
 - Port tasks 004/009-013 own platform E2E/packaging; record blocked drivers/hardware honestly. No invented Android/Linux/web agent config.
