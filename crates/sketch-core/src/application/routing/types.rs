@@ -63,7 +63,7 @@ pub enum ApplicationCommand<'a> {
     ResolveEffect(EffectReply),
     CompleteSave(&'a mut Option<SaveCompletion>),
     Install(&'a mut PreparedReplacement),
-    ReplacementFailed(ReplacementFailure),
+    ReplacementFailed(&'a mut Option<ReplacementFailure>),
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ApplicationFailure {

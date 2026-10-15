@@ -167,5 +167,6 @@ fn written() -> WriteOutcome {
 
 mod lifecycle;
 
+mod failure_ownership;
 mod limits;
 mod pending_binding;

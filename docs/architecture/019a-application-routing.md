@@ -72,6 +72,9 @@ authorized revision, source, capabilities and settings. A worker prepares it wit
 validated document (or no document for New), building a fresh editor and binding an ordinary
 opened destination before installation. Recovery uses the separate dirty/unbound constructor.
 Preparation failure returns an issued failure; the current document remains untouched.
+`ReplacementFailed(&mut Option<ReplacementFailure>)` retains that unique terminal event on
+stale-context or wrong-owner rejection, then consumes it only after exact pending-token
+validation. It can therefore be delivered to the correct owner once, like a save completion.
 
 `Install(&mut PreparedReplacement)` checks issued identity, authorized content revision,
 idle interaction and outstanding explicit acknowledgements before taking the candidate.

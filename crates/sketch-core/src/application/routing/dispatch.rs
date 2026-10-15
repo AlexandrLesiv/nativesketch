@@ -80,12 +80,14 @@ impl ApplicationSession {
                 outcome.retired = Some(retired);
             }
             ApplicationCommand::ReplacementFailed(failure) => {
-                if !matches!(self.pending, Some(Pending::Replacement(t, _)) if t == failure.token) {
+                let value = failure.as_ref().ok_or(ApplicationFailure::InvalidEffect)?;
+                if !matches!(self.pending, Some(Pending::Replacement(t, _)) if t == value.token) {
                     return Err(ApplicationFailure::InvalidEffect);
                 }
+                let value = failure.take().unwrap();
                 self.pending = None;
                 self.navigation = None;
-                outcome.effect = Some(ApplicationEffect::Failure(failure.failure));
+                outcome.effect = Some(ApplicationEffect::Failure(value.failure));
                 outcome.projection = self.projection();
             }
         }

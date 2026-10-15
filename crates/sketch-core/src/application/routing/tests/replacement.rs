@@ -123,7 +123,7 @@ fn failed_preparation_preserves_live_document_and_reports_issued_failure() {
     let outcome = run(
         &mut app,
         &mut queue,
-        ApplicationCommand::ReplacementFailed(failure),
+        ApplicationCommand::ReplacementFailed(&mut Some(failure)),
     );
     assert!(matches!(
         outcome.effect,
