@@ -1,12 +1,26 @@
 import AppKit
 import CSketchSession
 
+#if DEBUG && NATIVE_TEST_CONTROLS
+  import CSketchSessionTest
+#endif
+
 @MainActor final class RustApplicationSession {
   let runtime: NativeRuntime
   private(set) var handle: OpaquePointer?
   private(set) var projection = SketchProjectionV1()
   private(set) var unavailable = false
   private var request: UInt64 = 0
+  #if DEBUG && NATIVE_TEST_CONTROLS
+    private var injectedCloseFailure = false
+    func injectCloseFailureIfRequested() {
+      guard !injectedCloseFailure, CommandLine.arguments.contains("--test-poison-on-close")
+      else { return }
+      injectedCloseFailure = true
+      let status = sketch_runtime_v1_test_poison(runtime.handle)
+      _ = accept(status, SketchOutcomeV1())
+    }
+  #endif
   var onOutcome: ((SketchOutcomeV1) -> Void)?
   var onFailure: ((UInt32) -> Void)?
 

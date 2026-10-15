@@ -1,4 +1,4 @@
-use crate::{boundary, dto, runtime_api::*, session_api::*};
+use crate::{dto, runtime_api::*, session_api::*};
 use sketch_core::application::{DeviceKind, EditorCommand, PointerId, routing::ApplicationCommand};
 #[test]
 fn caught_boundary_panic_preserves_dirty_detach_guard_then_allows_terminal_cleanup() {
@@ -96,12 +96,13 @@ fn caught_boundary_panic_preserves_dirty_detach_guard_then_allows_terminal_clean
         // A dirty unapproved document cannot be silently retired through the normal API.
         assert_ne!(sketch_session_v1_detach(runtime, &mut session), 0);
         assert!(!session.is_null());
-        assert_eq!(
-            boundary::runtime(runtime, false, |_| panic!(
-                "injected internal boundary failure"
-            )),
-            6
-        );
+        #[cfg(not(feature = "native-test-controls"))]
+        let poison = crate::boundary::runtime(runtime, false, |_| {
+            panic!("injected internal boundary failure")
+        });
+        #[cfg(feature = "native-test-controls")]
+        let poison = crate::test_api::sketch_runtime_v1_test_poison(runtime);
+        assert_eq!(poison, 6);
         assert_eq!(
             sketch_session_v1_projection(runtime, session, &mut dto::Projection::default()),
             10

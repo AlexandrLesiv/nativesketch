@@ -19,11 +19,12 @@ import XCTest
     runtimeRoot = root.appendingPathComponent("runtime")
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
   }
-  func launch(stage: Int? = nil, failure: Bool = false) throws {
+  func launch(stage: Int? = nil, failure: Bool = false, extraArguments: [String] = []) throws {
     app.launchArguments = [
       "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
       "--native-ui-observation", "--runtime-root", runtimeRoot.path,
     ]
+    app.launchArguments += extraArguments
     if let stage {
       let control = root.appendingPathComponent("gate-\(UUID().uuidString)")
       try FileManager.default.createDirectory(at: control, withIntermediateDirectories: false)

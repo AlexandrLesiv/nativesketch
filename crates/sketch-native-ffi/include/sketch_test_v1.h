@@ -25,6 +25,10 @@ typedef struct {
  * candidate publication. New/invalid reads do not consume it. FAIL reports Access.
  * No production environment variable can enable these symbols or behavior. */
 uint32_t sketch_runtime_v1_test_arm(SketchRuntimeV1 *, const SketchTestControlV1 *);
+/* Owner-thread only. Catches a deliberate panic through the real runtime boundary,
+ * returns PANIC, and leaves normal calls POISONED. Terminal cleanup remains available.
+ * Explicit test builds only; never part of the production umbrella or library. */
+uint32_t sketch_runtime_v1_test_poison(SketchRuntimeV1 *);
 #ifdef __cplusplus
 }
 #endif

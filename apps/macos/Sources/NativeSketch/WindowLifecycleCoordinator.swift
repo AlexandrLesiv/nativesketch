@@ -10,6 +10,9 @@ import AppKit
   init(owner: EditorWindowController) { self.owner = owner }
 
   func requestWindowClose() -> Bool {
+    #if DEBUG && NATIVE_TEST_CONTROLS
+      owner.editor.injectCloseFailureIfRequested()
+    #endif
     if approved { return true }
     if owner.editor.unavailable {
       confirmUnavailableClose()
@@ -19,6 +22,9 @@ import AppKit
     return false
   }
   func requestTermination() -> NSApplication.TerminateReply {
+    #if DEBUG && NATIVE_TEST_CONTROLS
+      owner.editor.injectCloseFailureIfRequested()
+    #endif
     if approved && owner.runtime.handle == nil { return .terminateNow }
     if terminationPending { return .terminateLater }
     if approved {
@@ -72,8 +78,10 @@ import AppKit
     alert.messageText = "Close the unavailable drawing engine?"
     alert.informativeText =
       "Unsaved changes cannot be recovered from this session. Previously accepted saves will finish before the app exits."
-    alert.addButton(withTitle: "Cancel")
-    alert.addButton(withTitle: "Close Window")
+    let cancel = alert.addButton(withTitle: "Cancel")
+    cancel.setAccessibilityIdentifier("sketch.unavailable.cancel")
+    let close = alert.addButton(withTitle: "Close Window")
+    close.setAccessibilityIdentifier("sketch.unavailable.close")
     alert.beginSheetModal(for: owner.window) { [weak self] response in
       guard let self else { return }
       poisonWarning = nil
