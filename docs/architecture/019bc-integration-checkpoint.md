@@ -1,5 +1,7 @@
 # Native runtime integration checkpoint
 
+Historical checkpoint at `861a28c`; superseded by [final background verification](019bc-verification.md).
+
 This is the first linkable 019B/C tranche, not completion or native acceptance. It adds
 `sketch-native-ffi` (host-only tests; core + services dependencies), the versioned C DTOs,
 one-owner ApplicationSession routing, a bounded-operation serial native worker, local
@@ -14,7 +16,7 @@ the C boundary is poisoned. Native UI owns the unsaved-loss warning.
 
 Local root container layout is `owner.lock` plus private `sessions/` for recovery. Diagnostics
 has its own OS lock. Empty registrations verify identity without retaining a directory; the
-first checkpoint allocates storage. Startup/list prune only verified empty directories. No
+first checkpoint allocates storage. Startup prunes only verified empty directories. No
 unresolved checkpoint is removed by empty cleanup. The existing seven-day exact-marker expiry
 runs at root opening. This retains the trusted exclusive local-filesystem assumption; there
 is no sandbox/provider coordination or adversarial path-race guarantee.
