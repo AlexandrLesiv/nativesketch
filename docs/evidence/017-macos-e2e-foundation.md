@@ -129,3 +129,20 @@ as intended for incomplete native acceptance. Evidence is under
 `artifacts/evidence/background-default-check/`. The hex selector correction also compiled.
 The next explicit interactive run will verify this frozen correction; prior failed attempts
 remain untouched. Native execution is authorized within this test-development scope.
+
+## Mouse-route correction after attempt 2
+
+On clean `851a6c7848eb1e2d97760157bf9bef77a57773c0`, attempt 2 entered the requested
+red hex value successfully but committed no stroke. Its preserved execution log shows
+`press(forDuration:thenDragTo:)`. Inspection of the installed Xcode SDK's
+`XCUIAutomation.framework/Headers/XCUICoordinate.h` establishes that this belongs to
+`XCUICoordinateTouchEvents`; the correct AppKit route is the distinct
+`click(forDuration:thenDragTo:)` in `XCUICoordinateMouseEvents`. The test now uses that
+mouse API. The failed run's declared intended mouse route is not evidence of delivered
+AppKit mouse input; the zero-stroke failure and original artifacts remain unchanged.
+
+A frame extracted from the existing recording shows the inspector closing immediately
+before the gesture. This does not establish an additional popover bug. The driver now
+explicitly waits for Colors and inspector closure before drawing, and preserves a pre-drag
+canvas screenshot. It does not inject domain commands or create an extra stroke for focus.
+The lead independently checked the SDK distinction before authorizing this next repair.

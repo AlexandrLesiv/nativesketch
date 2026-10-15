@@ -34,10 +34,12 @@ final class EditorJourneyTests: XCTestCase {
     app.typeKey("n", modifierFlags: .command)
     let canvasFrame = canvas.frame
     let blank = canvas.screenshot()
+    keep(blank, named: "before-native-mouse-drag")
     XCTAssertEqual(try redInkPixels(blank), [0, 0, 0], "Expected blank trajectory before drawing")
     let start = canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.4))
     let end = canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.6))
-    start.press(forDuration: 0.1, thenDragTo: end)
+    // AppKit receives mouse events; XCUI press belongs to its separate touch API.
+    start.click(forDuration: 0.1, thenDragTo: end)
     waitForStroke(in: canvas)
     XCTAssertTrue(StrokeExpectation.containsInkInEveryPatch(try redInkPixels(canvas.screenshot())))
     keep(canvas.screenshot(), named: "drawn-red-ink")

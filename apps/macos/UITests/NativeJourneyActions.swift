@@ -22,7 +22,11 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
   hexadecimal.typeText(hex)
   hexadecimal.typeKey(.return, modifierFlags: [])
   colors.buttons[XCUIIdentifierCloseWindow].click()
-  app.typeKey(.escape, modifierFlags: [])
+  XCTAssertTrue(colors.waitForNonExistence(timeout: 5))
+  if app.popovers.firstMatch.exists {
+    app.buttons["Style and Selection"].click()
+  }
+  XCTAssertTrue(app.popovers.firstMatch.waitForNonExistence(timeout: 5))
 }
 
 @MainActor
