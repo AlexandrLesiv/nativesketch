@@ -15,7 +15,7 @@ import CSketchSession
     {
       refresh()
     }
-    if outcome.invalidation != SK_V1_INVALIDATE_NONE.rawValue { owner.canvas.needsDisplay = true }
+    if outcome.invalidation != SK_V1_INVALIDATE_NONE.rawValue { owner.canvas.requestRepaint() }
     owner.documents.receive(outcome)
   }
 
@@ -49,6 +49,6 @@ import CSketchSession
     owner.canvas.setAccessibilityValue(
       "\(state.stroke_count) strokes, \(selected ? "one selected" : "none selected"), zoom \(Int(owner.canvas.zoom * 100)) percent"
     )
-    owner.canvas.needsDisplay = true
+    owner.canvas.requestRepaint()
   }
 }

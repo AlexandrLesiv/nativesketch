@@ -38,7 +38,7 @@ import Foundation
     case "pan": owner.canvas.offset.x += 1
     default: break
     }
-    owner.canvas.needsDisplay = true
+    owner.canvas.requestRepaint()
   }
   private static func sample(x: Double, y: Double, index: Int, timestamp: Double) -> SketchSampleV1
   {

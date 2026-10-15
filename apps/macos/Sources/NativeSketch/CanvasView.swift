@@ -23,7 +23,7 @@ import CSketchSession
   override var acceptsFirstResponder: Bool { true }
   override func becomeFirstResponder() -> Bool {
     let accepted = super.becomeFirstResponder()
-    if accepted { needsDisplay = true }
+    if accepted { requestRepaint() }
     return accepted
   }
   var editor: RustApplicationSession { owner.editor }
@@ -55,7 +55,7 @@ import CSketchSession
   }
   override func viewDidChangeBackingProperties() {
     super.viewDidChangeBackingProperties()
-    needsDisplay = true
+    requestRepaint()
   }
   override func setFrameSize(_ size: NSSize) {
     let old = frame.size
@@ -65,6 +65,7 @@ import CSketchSession
       offset.y += (size.height - old.height) / 2
     }
     super.setFrameSize(size)
+    if old != size { requestRepaint() }
   }
   func corners(_ b: SketchBoundsV1) -> [CGPoint] {
     [
@@ -73,6 +74,8 @@ import CSketchSession
     ]
   }
   override var wantsUpdateLayer: Bool { true }
+  // A hosted CAMetalLayer does not use AppKit's ordinary backing-store display cycle.
+  func requestRepaint() { rendering.invalidate() }
   override func updateLayer() { rendering.invalidate() }
   override func viewDidMoveToWindow() {
     super.viewDidMoveToWindow()
@@ -80,7 +83,7 @@ import CSketchSession
   }
   override func viewDidChangeEffectiveAppearance() {
     super.viewDidChangeEffectiveAppearance()
-    needsDisplay = true
+    requestRepaint()
   }
   override func mouseDown(with event: NSEvent) {
     owner.focusRestoration.discard()
@@ -92,7 +95,7 @@ import CSketchSession
     guard input.gesture == .idle else { return }
     offset.x -= event.scrollingDeltaX
     offset.y -= event.scrollingDeltaY
-    needsDisplay = true
+    requestRepaint()
   }
   func resetViewport() {
     input.gesture = .idle

@@ -23,7 +23,7 @@ import CSketchSession
       pressure: pen ? Double(event.pressure) : 0, sample_id: sampleID, has_pressure: pen ? 1 : 0,
       kind: 0)
     if !editor.append([sample], pointer: 1) { canvas.cancel() }
-    canvas.needsDisplay = true
+    canvas.requestRepaint()
   }
   func mouseDown(with event: NSEvent) {
     guard !editor.unavailable, owner.inspectorController.fieldEditing.finishEditing(),
@@ -74,7 +74,7 @@ import CSketchSession
       canvas.offset.x += point.x - start.x
       canvas.offset.y += point.y - start.y
       start = point
-      canvas.needsDisplay = true
+      canvas.requestRepaint()
     case .idle: break
     }
   }
