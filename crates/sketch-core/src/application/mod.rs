@@ -27,4 +27,5 @@ pub use session::EditorSession;
 pub use settings::{BrushSettings, DeviceKind, PointerId, ToolId};
 pub use summary::EditorSummary;
 mod availability;
+pub mod storage;
 pub use availability::{ActionId, Availability, DisabledReason};

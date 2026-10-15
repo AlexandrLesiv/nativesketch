@@ -1,6 +1,7 @@
 mod dispatch;
 mod guard;
 mod projections;
+mod storage;
 use super::*;
 /// One owner performs mutations through exclusive references. This type exposes no
 /// mutable legacy editor or document. Worker results must return to this owner.
@@ -14,6 +15,7 @@ pub struct EditorSession {
     transaction: Option<InteractionId>,
     next_interaction: u64,
     generation: SceneGeneration,
+    save: super::storage::SaveState,
 }
 impl EditorSession {
     /// Hosts supply their own defaults. An initial validated viewer document is allowed;
@@ -48,6 +50,7 @@ impl EditorSession {
             transaction: None,
             next_interaction: 1,
             generation: SceneGeneration(0),
+            save: super::storage::SaveState::default(),
         })
     }
     pub fn append(

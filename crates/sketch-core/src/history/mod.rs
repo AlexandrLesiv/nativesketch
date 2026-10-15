@@ -16,7 +16,7 @@ pub(crate) struct UndoHistory {
     undo: Vec<Entry>,
     redo: Vec<Entry>,
     pub(crate) revision: u64,
-    saved_revision: u64,
+    saved_revision: Option<u64>,
     next_revision: u64,
 }
 impl Default for UndoHistory {
@@ -25,7 +25,7 @@ impl Default for UndoHistory {
             undo: Vec::new(),
             redo: Vec::new(),
             revision: 0,
-            saved_revision: 0,
+            saved_revision: Some(0),
             next_revision: 1,
         }
     }
@@ -44,7 +44,7 @@ impl UndoHistory {
         !self.redo.is_empty()
     }
     pub(crate) fn dirty(&self) -> bool {
-        self.revision != self.saved_revision
+        Some(self.revision) != self.saved_revision
     }
     pub(crate) fn record(&mut self, change: Change) {
         let after = self.next_revision;
@@ -62,7 +62,7 @@ impl UndoHistory {
         let next_revision = revision.checked_add(1).ok_or(Error::InvalidState)?;
         Ok(Self {
             revision,
-            saved_revision: revision,
+            saved_revision: Some(revision),
             next_revision,
             ..Self::default()
         })
@@ -71,8 +71,12 @@ impl UndoHistory {
         if revision != self.revision {
             return Err(Error::InvalidState);
         }
-        self.saved_revision = revision;
+        self.saved_revision = Some(revision);
         Ok(())
+    }
+    /// Typed persistence acknowledges issued snapshots, including older revisions.
+    pub(crate) fn acknowledge_snapshot(&mut self, revision: Option<u64>) {
+        self.saved_revision = revision;
     }
     pub(crate) fn undo(&mut self, document: &mut Document) -> Result<()> {
         let entry = self.undo.pop().ok_or(Error::InvalidState)?;

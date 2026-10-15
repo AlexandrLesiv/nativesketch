@@ -103,6 +103,7 @@ impl EditorSession {
         }
         if let Some(session) = replacement {
             self.session = session;
+            self.save = super::super::storage::SaveState::default();
         }
         self.next_interaction = next_interaction;
         self.generation = generation;

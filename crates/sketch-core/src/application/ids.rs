@@ -38,7 +38,7 @@ pub struct CommandContext {
     pub interaction: Option<InteractionId>,
 }
 
-fn reserve(counter: &AtomicU64) -> Result<u64, FailureKind> {
+pub(super) fn reserve(counter: &AtomicU64) -> Result<u64, FailureKind> {
     let mut current = counter.load(Ordering::Relaxed);
     loop {
         let next = current.checked_add(1).ok_or(FailureKind::ResourceLimit)?;
