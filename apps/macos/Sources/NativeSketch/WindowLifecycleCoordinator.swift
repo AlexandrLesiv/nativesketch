@@ -5,10 +5,15 @@ import AppKit
   unowned let owner: EditorWindowController
   private var approved = false
   private var terminationPending = false
+  private var poisonWarning: NSAlert?
   init(owner: EditorWindowController) { self.owner = owner }
 
   func requestWindowClose() -> Bool {
     if approved { return true }
+    if owner.editor.unavailable {
+      confirmUnavailableClose()
+      return false
+    }
     _ = owner.documents.request(.close)
     return false
   }
@@ -17,6 +22,12 @@ import AppKit
     if terminationPending { return .terminateLater }
     if approved {
       terminationPending = true
+      beginShutdown()
+      return .terminateLater
+    }
+    if owner.editor.unavailable {
+      terminationPending = true
+      confirmUnavailableClose()
       return .terminateLater
     }
     guard owner.inspectorController.fieldEditing.finishEditing() else { return .terminateCancel }
@@ -31,7 +42,10 @@ import AppKit
     approved = true
     owner.window.close()
     owner.runtime.retire(owner.editor)
-    owner.runtime.shutdown { [weak self] in
+    beginShutdown()
+  }
+  private func beginShutdown() {
+    let accepted = owner.runtime.shutdown { [weak self] in
       guard let self else { return }
       if terminationPending {
         terminationPending = false
@@ -39,6 +53,27 @@ import AppKit
       } else {
         NSApp.terminate(nil)
       }
+    }
+    if !accepted { Task { @MainActor [weak self] in self?.navigationCancelled() } }
+  }
+  private func confirmUnavailableClose() {
+    guard poisonWarning == nil else { return }
+    if let sheet = owner.window.attachedSheet {
+      owner.window.endSheet(sheet, returnCode: .cancel)
+      Task { @MainActor [weak self] in self?.confirmUnavailableClose() }
+      return
+    }
+    let alert = NSAlert()
+    poisonWarning = alert
+    alert.messageText = "Close the unavailable drawing engine?"
+    alert.informativeText =
+      "Unsaved changes cannot be recovered from this session. Previously accepted saves will finish before the app exits."
+    alert.addButton(withTitle: "Cancel")
+    alert.addButton(withTitle: "Close Window")
+    alert.beginSheetModal(for: owner.window) { [weak self] response in
+      guard let self else { return }
+      poisonWarning = nil
+      if response == .alertSecondButtonReturn { closeConfirmed() } else { navigationCancelled() }
     }
   }
   func navigationCancelled() {

@@ -19,7 +19,7 @@ import Foundation
     var rows = ["iteration,sample,input_append_us,path_copy_us"]
     for iteration in -10..<100 {
       precondition(session.send(.new))
-      SmokeStorageJourney.wait(runtime) {
+      try SmokeStorageJourney.wait(runtime, stage: "timing-new", editor: session) {
         session.projection.file_phase == SK_V1_FILE_IDLE.rawValue
           && session.projection.stroke_count == 0
       }
@@ -61,7 +61,7 @@ import Foundation
     runtime.retire(session)
     var stopped = false
     runtime.shutdown { stopped = true }
-    SmokeStorageJourney.wait(runtime) { stopped }
+    try SmokeStorageJourney.wait(runtime, stage: "timing-shutdown", editor: session) { stopped }
   }
   private static func summary(_ name: String, _ values: [Double]) {
     let sorted = values.sorted()

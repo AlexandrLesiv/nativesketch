@@ -58,14 +58,16 @@ import CSketchSession
       return status != SK_V1_OK.rawValue
     }
   }
-  func shutdown(_ completion: @escaping () -> Void) {
+  @discardableResult func shutdown(_ completion: @escaping () -> Void) -> Bool {
     onShutdown = completion
     let status = sketch_runtime_v1_request_shutdown(handle)
     if status != SK_V1_OK.rawValue {
       NativeDiagnostics.failure("shutdown", status: status)
-      return
+      onShutdown = nil
+      return false
     }
     pump.schedule()
+    return true
   }
   func finishShutdownIfReady(_ state: SketchRuntimeStateV1) {
     guard state.stopped != 0, handle != nil else { return }

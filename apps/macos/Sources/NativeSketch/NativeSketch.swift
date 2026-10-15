@@ -4,6 +4,7 @@ import CSketchSession
 @main enum NativeSketch {
   @MainActor static func main() {
     do {
+      try NativeLaunchConfiguration.validateAutomationArguments()
       guard sketch_runtime_v1_version() == 1 else {
         throw NativeBridgeError(operation: "native-version", status: SK_V1_UNSUPPORTED.rawValue)
       }

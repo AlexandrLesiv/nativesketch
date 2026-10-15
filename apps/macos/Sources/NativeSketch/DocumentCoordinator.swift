@@ -7,7 +7,13 @@ import CSketchSession
   init(owner: EditorWindowController) { self.owner = owner }
   var url: URL? { owner.runtime.grants.url(owner.editor.projection.binding_grant) }
   var displayName: String { url?.lastPathComponent ?? "Untitled" }
-  var busyMessage: String?
+  var busyMessage: String? {
+    let state = owner.editor.projection
+    if state.preparing_operations > 0 { return "Preparing…" }
+    if state.file_phase == SK_V1_FILE_WRITES.rawValue { return "Finishing Save…" }
+    if state.file_phase == SK_V1_FILE_REPLACEMENT.rawValue { return "Opening…" }
+    return state.outstanding_saves > 0 ? "Saving…" : nil
+  }
 
   @discardableResult func request(_ command: SessionCommand) -> Bool {
     guard owner.inspectorController.fieldEditing.finishEditing() else { return false }
@@ -31,18 +37,12 @@ import CSketchSession
     case SK_V1_CHOOSE_DESTINATION.rawValue: sheets.chooseDestination(outcome.effect)
     case SK_V1_CHOOSE_SOURCE.rawValue: sheets.chooseSource(outcome.effect)
     case SK_V1_CONFIRM_UNSAVED.rawValue: sheets.confirmUnsaved(outcome.effect)
-    case SK_V1_AWAIT_WRITES.rawValue: busyMessage = "Finishing Save…"
-    case SK_V1_PREPARING.rawValue: busyMessage = "Preparing…"
-    case SK_V1_OPENING.rawValue: busyMessage = "Opening…"
-    case SK_V1_SAVE_QUEUED.rawValue: busyMessage = "Saving…"
     case SK_V1_CLOSE_READY.rawValue:
       owner.editor.reply(outcome.effect, SK_V1_REPLY_CONFIRM_CLOSE)
     case SK_V1_CLOSE_CONFIRMED.rawValue: owner.lifecycle.closeConfirmed()
     case SK_V1_CANCELLED.rawValue:
-      busyMessage = nil
       owner.lifecycle.navigationCancelled()
     case SK_V1_FAILURE.rawValue:
-      busyMessage = nil
       sheets.failure(outcome)
       owner.lifecycle.navigationCancelled()
     default: break
@@ -50,10 +50,12 @@ import CSketchSession
     if outcome.has_save_result != 0 {
       if outcome.save_result == SK_V1_SAVE_FAILED.rawValue
         || outcome.save_result == SK_V1_UNCERTAIN.rawValue
+        || outcome.save_result == SK_V1_FAILED_AFTER_CANCEL.rawValue
+        || outcome.save_result == SK_V1_UNCERTAIN_AFTER_CANCEL.rawValue
+        || outcome.durability == SK_V1_DIRECTORY_SYNC_UNCONFIRMED.rawValue
       {
         sheets.failure(outcome)
       }
-      if outcome.projection.outstanding_saves == 0 { busyMessage = nil }
     }
     if let busyMessage { owner.status.stringValue = busyMessage }
   }

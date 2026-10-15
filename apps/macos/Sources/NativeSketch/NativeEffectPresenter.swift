@@ -7,6 +7,7 @@ import CSketchSession
   private var sheet: NSWindow?
   private var failureOperation: UInt64?
   private var failureSession: UInt64?
+  private var pendingFailure: NativePendingFailure?
   init(owner: EditorWindowController) { self.owner = owner }
 
   func chooseDestination(_ token: SketchEffectTokenV1) {
@@ -17,7 +18,9 @@ import CSketchSession
     panel.beginSheetModal(for: owner.window) { [weak self] result in
       guard let self, finish(token) else { return }
       if result == .OK, let url = panel.url {
-        _ = owner.editor.supply(url, token: token)
+        if !owner.editor.supply(url, token: token) {
+          owner.editor.reply(token, SK_V1_REPLY_CANCEL)
+        }
         owner.refresh()
       } else {
         owner.editor.reply(token, SK_V1_REPLY_CANCEL)
@@ -33,7 +36,9 @@ import CSketchSession
     panel.beginSheetModal(for: owner.window) { [weak self] result in
       guard let self, finish(token) else { return }
       if result == .OK, let url = panel.url {
-        _ = owner.editor.supply(url, token: token)
+        if !owner.editor.supply(url, token: token) {
+          owner.editor.reply(token, SK_V1_REPLY_CANCEL)
+        }
         owner.refresh()
       } else {
         owner.editor.reply(token, SK_V1_REPLY_CANCEL)
@@ -61,30 +66,34 @@ import CSketchSession
     }
   }
   func failure(_ outcome: SketchOutcomeV1) {
-    guard
-      outcome.failure.session == 0 || outcome.failure.session == owner.editor.projection.session,
-      outcome.acknowledgement != SK_V1_STALE_SESSION.rawValue,
-      outcome.acknowledgement != SK_V1_STALE_BINDING.rawValue,
-      sheet == nil, failureOperation != outcome.operation_id
-    else { return }
+    NativeDiagnostics.failure(
+      "file-result", status: outcome.failure.code,
+      session: outcome.failure.session)
+    var pending = NativePendingFailure(outcome: outcome)
+    guard pending.isCurrent(owner.editor.projection) else { return }
+    if failureOperation == outcome.operation_id
+      || pendingFailure?.outcome.operation_id == outcome.operation_id
+    {
+      return
+    }
+    pending.additionalFailures = pendingFailure.map { $0.additionalFailures + 1 } ?? 0
+    pendingFailure = pending
+    presentPendingFailure()
+  }
+  func presentPendingFailure() {
+    guard !owner.editor.unavailable, sheet == nil, owner.window.attachedSheet == nil,
+      let pending = pendingFailure
+    else {
+      return
+    }
+    pendingFailure = nil
+    guard pending.isCurrent(owner.editor.projection) else { return }
+    let outcome = pending.outcome
     failureOperation = outcome.operation_id
     failureSession = owner.editor.projection.session
-    let alert = NSAlert()
-    let uncertain =
-      outcome.save_result == SK_V1_UNCERTAIN.rawValue
-      || outcome.durability == SK_V1_DIRECTORY_SYNC_UNCONFIRMED.rawValue
-    alert.messageText =
-      uncertain
-      ? "The file was written, but durability is unconfirmed"
-      : "The operation could not be completed"
-    alert.informativeText =
-      uncertain
-      ? "Keep this document open and save again when storage is available."
-      : "Your current document is retained. Check the destination and available storage."
+    let alert = NativeFailurePresentation.alert(
+      outcome, additionalFailures: pending.additionalFailures)
     let retry = SessionCommand.retry(outcome.retry_action)
-    if retry != nil { alert.addButton(withTitle: "Try Again") }
-    alert.addButton(withTitle: "Save As…")
-    alert.addButton(withTitle: "Cancel")
     sheet = alert.window
     let session = owner.editor.projection.session
     alert.beginSheetModal(for: owner.window) { [weak self] response in
@@ -101,6 +110,7 @@ import CSketchSession
         owner.documents.request(.saveAs)
       }
       restoreFocus(session: session)
+      schedulePendingFailure()
     }
   }
   func dismissIfObsolete(_ projection: SketchProjectionV1) {
@@ -112,6 +122,7 @@ import CSketchSession
     failureSession = nil
     sheet = nil
     owner.window.endSheet(old, returnCode: .cancel)
+    schedulePendingFailure()
   }
   private func begin(_ next: SketchEffectTokenV1) -> Bool {
     guard sheet == nil else { return false }
@@ -124,7 +135,11 @@ import CSketchSession
     else { return false }
     self.token = nil
     sheet = nil
+    schedulePendingFailure()
     return true
+  }
+  private func schedulePendingFailure() {
+    Task { @MainActor [weak self] in self?.presentPendingFailure() }
   }
   private func matches(_ lhs: SketchEffectTokenV1, _ rhs: SketchEffectTokenV1) -> Bool {
     lhs.owner == rhs.owner && lhs.session == rhs.session && lhs.serial == rhs.serial

@@ -54,6 +54,9 @@ import CSketchSession
   @objc func quit(_ sender: Any?) { NSApp.terminate(sender) }
   @objc func closeWindow(_ sender: Any?) { owner.window.performClose(sender) }
   func validateMenuItem(_ item: NSMenuItem) -> Bool {
+    if item.action == #selector(EditorMenuController.closeWindow(_:)), owner.editor.unavailable {
+      return true  // Terminal native cleanup remains available after a poisoned engine.
+    }
     if item.action == #selector(EditorActions.undo(_:)), let field = owner.actions.fieldEditor {
       return field.undoManager?.canUndo == true
     }

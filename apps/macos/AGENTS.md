@@ -13,3 +13,13 @@ Record real versus simulated input; physical pen-to-screen measurements need a c
 Keep new/extracted source and test files at most 200 physical lines. Expose accessibility
 identifiers and bounded diagnostic spans; validate resize/display/focus cancellation.
 
+Production Swift imports only CSketchSession, never the legacy ABI2 module/header. Native
+controls and system shortcuts translate intent into the shared ApplicationSession dispatcher;
+native fields retain responder priority. The installed native-session boundary gate checks
+imports, header reachability and package configuration. CSketchSessionTest and worker controls
+require explicit DEBUG test builds and must not enter normal/release artifacts.
+Exercise real event draining and lifecycle: deferred save/read readiness during ink, correlated
+sheet cancellation, retained write receipts, access-grant release and exactly-once termination.
+Use controlled worker scheduling only with disposable roots and label it in test evidence;
+never replace native command admission or inject document mutations to satisfy E2E assertions.
+

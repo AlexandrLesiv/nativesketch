@@ -6,6 +6,18 @@ import Foundation
 #endif
 
 @MainActor enum NativeLaunchConfiguration {
+  static func validateAutomationArguments() throws {
+    let supported = ["--smoke-test", "--integration-test", "--native-smoke-test"]
+    for argument in CommandLine.arguments
+    where argument.hasPrefix("--")
+      && (argument.contains("smoke") || argument.contains("integration"))
+    {
+      guard supported.contains(argument) else {
+        throw NativeBridgeError(
+          operation: "unknown-test-mode", status: SK_V1_INVALID_ARGUMENT.rawValue)
+      }
+    }
+  }
   static func argument(_ name: String) -> String? {
     guard let index = CommandLine.arguments.firstIndex(of: name),
       CommandLine.arguments.indices.contains(index + 1)
