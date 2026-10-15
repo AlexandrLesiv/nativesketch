@@ -51,7 +51,7 @@ relative URLs and standard service-worker cache behavior. No renderer runtime ch
 The old apps/web compiler package/lockfile remain for legacy-path parity until removal.
 
 JS formatting/type-aware lint checks cover all new orchestration and quality modules;
-legacy app sources are not silently reformatted. Source-size gate reports twelve linked
+legacy app sources are not silently reformatted. After task 018 phase A, the source-size gate reports six linked
 legacy debts and rejects new violations, growth after partial extraction, and all debt
 in final mode. Cargo dependency checks enforce boundaries; **not** license/advisory scans.
 
