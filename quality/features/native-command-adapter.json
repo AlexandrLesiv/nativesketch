@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019B-E native adapter acceptance. Twenty source-authored XCTest cases compile, but executable discovery and foreground execution remain pending. These rows require real macOS UI evidence; historical keyboard or current headless passes do not certify the migrated runtime.",
-  "sourceRevision": "32095bc",
+  "description": "Task019B-E native adapter acceptance mapped to actual XCTest executable discovery. Automation existence is separate from revision-bound execution status. Twenty cases use real native input; selected disposable worker gates are explicit. Broad acceptance rows retain uncovered subcases; core/headless checks never substitute for native results.",
+  "sourceRevision": "df804bd5fffc86c7df5206d9d86c14c4cd80b05f",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -15,14 +15,14 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
-      "gaps": [
-        {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
-          "ownerTask": "019"
-        }
-      ]
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState",
+        "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen",
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding",
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"
+      ],
+      "automation": "implemented",
+      "gaps": []
     },
     {
       "id": "NATIVE-FIELD-REFRESH-001",
@@ -35,11 +35,13 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "The field is empty when completion arrives; later caret insertion is tested, but preserving a pre-existing nonzero caret/selection across completion remains uncovered.",
           "ownerTask": "019"
         }
       ]
@@ -55,14 +57,11 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
-      "gaps": [
-        {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
-          "ownerTask": "019"
-        }
-      ]
+      "testIds": [
+        "xctest:NativeSketchUITests:AsyncSaveTests/testAdmittedSaveKeepsNewerDrawingDirty"
+      ],
+      "automation": "implemented",
+      "gaps": []
     },
     {
       "id": "NATIVE-ASYNC-SAVEAS-001",
@@ -75,11 +74,15 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:AsyncSaveAsTests/testPendingSaveAsRetainsOldBindingUntilAcknowledgement",
+        "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
+        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Pending/failure cases verify title and old bytes, but ordinary Save during pending Save As or after its failure must prove the old destination remains the binding. Cancellation has this stronger oracle.",
           "ownerTask": "019"
         }
       ]
@@ -95,11 +98,15 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:AsyncSaveAsTests/testDirectorySyncWarningReportsWrittenData",
+        "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
+        "xctest:NativeSketchUITests:NativeRoutingTests/testRealWriteFailureWaitsBehindRecoverySheet"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Failure cases target new destinations. Failure while overwriting an existing destination must separately verify its last-good bytes remain intact.",
           "ownerTask": "019"
         }
       ]
@@ -115,11 +122,13 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeOpenTests/testOpenWaitsForAcceptedSaveAndCorruptReadPreservesContent"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Native oversized/stale delayed-read journeys are not covered; service stale-read tests do not replace native delivery evidence.",
           "ownerTask": "019"
         }
       ]
@@ -135,11 +144,13 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeNavigationTests/testNewCancelAndDiscardPreservePendingSaveSemantics"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "The suite covers pending-save cancellation and New Cancel/Discard. New Save and the Open Save/Cancel/Discard matrix still need native coverage.",
           "ownerTask": "019"
         }
       ]
@@ -155,11 +166,14 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeNavigationTests/testQuitCancellationAndSuccessfulDrain",
+        "xctest:NativeSketchUITests:NativeNavigationTests/testInvalidWidthBlocksQuitUntilEscapeRestoration"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Cmd-W, write-failure termination, and poisoned-engine native close/quit remain uncovered. Lower-level cleanup tests are separate evidence.",
           "ownerTask": "019"
         }
       ]
@@ -175,11 +189,13 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "The mapped case covers cancelled destination resolution. Late reads, obsolete failure sheets and closed-window callbacks need additional native journeys.",
           "ownerTask": "019"
         }
       ]
@@ -195,11 +211,13 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeRecoveryTests/testLaterPreservesRecoveryAndOpensDirtyUnboundCopy"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Later and dirty/unbound recovered-copy opening are covered; opening over current unsaved edits with Save/Cancel/Discard needs native coverage.",
           "ownerTask": "019"
         }
       ]
@@ -215,11 +233,14 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:NativeRecoveryTests/testCorruptNewestGenerationFallsBackToEarlierValidCopy",
+        "xctest:NativeSketchUITests:NativeRecoveryTests/testDiscardConfirmationDefaultsToCancelAndRemovesOnlySelectedCopy"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Recovery capacity feedback and discard racing a newer candidate generation remain native coverage gaps.",
           "ownerTask": "019"
         }
       ]
@@ -235,11 +256,14 @@
           "level": "native-e2e"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
+      "testIds": [
+        "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
+        "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus"
+      ],
+      "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native suite is compiled but has not been enumerated or executed in a reserved foreground session. Complementary Rust/C and headless results do not satisfy this native journey. Controlled worker scheduling and remaining per-group limits are documented in apps/macos/UITests/README.md.",
+          "reason": "Native resize/deactivation during a gesture and restoring the originating responder after cancelled sheets remain uncovered by these automated cases.",
           "ownerTask": "019"
         }
       ]
