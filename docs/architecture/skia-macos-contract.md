@@ -41,7 +41,11 @@ Skia paths use a stable local origin and f64 viewport-relative translation befor
 ## Renderer boundary
 
 New `sketch-renderer` crate owns Skia composition and CPU reference tests. Pin skia-safe
-0.153.3 with default features disabled; enable binary-cache, ganesh and Metal on macOS.
+0.153.3 with its standard default features plus Ganesh and Metal on macOS. The owner
+explicitly chose the standard build on October 16 rather than minimizing features, to
+allow future Skia use. Record the resolved feature set and resulting size; do not turn
+size reduction into an acceptance requirement. Narrow objc2/objc2-metal bindings are
+approved for native object ownership and actual texture/device validation.
 The renderer worker owns Cargo manifests/lockfile, dependency-policy review and the
 additive `sketch_renderer_v1.h` ABI. No authored C++ implementation is introduced.
 
