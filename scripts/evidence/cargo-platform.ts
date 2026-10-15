@@ -14,3 +14,10 @@ export function cargoTestPlatform(declaration: unknown, host: string): string {
       throw new Error(`Unsupported native Cargo evidence host: ${host}`);
   }
 }
+
+/** Host-dependent executable identities cannot collide with another operating system. */
+export function cargoTestId(pkg: string, platform: string, target: string, test: string) {
+  return platform === 'portable'
+    ? `cargo:${pkg}:${target}:${test}`
+    : `cargo:${pkg}:${platform}:${target}:${test}`;
+}

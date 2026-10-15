@@ -12,14 +12,24 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding"
+            ],
+            "gaps": []
+          }
         }
       ],
-      "testIds": [
-        "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding"
-      ],
-      "automation": "implemented",
-      "gaps": []
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Acceptance requires the mapped native macOS journey at the tested revision.",
+          "ownerTask": "019"
+        }
+      ]
     },
     {
       "id": "NATIVE-FIELD-KEYS-001",
@@ -29,14 +39,24 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState"
+            ],
+            "gaps": []
+          }
         }
       ],
-      "testIds": [
-        "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState"
-      ],
-      "automation": "implemented",
-      "gaps": []
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Acceptance requires the mapped native macOS journey at the tested revision.",
+          "ownerTask": "019"
+        }
+      ]
     },
     {
       "id": "NATIVE-HISTORY-KEYS-001",
@@ -46,12 +66,24 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"
+            ],
+            "gaps": []
+          }
         }
       ],
-      "testIds": ["xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"],
-      "automation": "implemented",
-      "gaps": []
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Acceptance requires the mapped native macOS journey at the tested revision.",
+          "ownerTask": "019"
+        }
+      ]
     }
   ]
 }

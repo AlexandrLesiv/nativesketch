@@ -1,17 +1,82 @@
 mod common;
 use common::*;
-use sketch_core::application::storage::SavePurpose;
+use sketch_core::application::storage::{Acknowledgement, SavePurpose};
 use sketch_services::storage::{DestinationAccess, Stage, StoreHooks};
 use sketch_services::worker::{SerialStorageWorker, Submission, WriteTarget};
 use std::{
     io,
     sync::{Arc, Condvar, Mutex, mpsc},
-    time::Duration,
+    time::{Duration, Instant},
 };
 struct Gate {
     entered: mpsc::Sender<()>,
     released: Mutex<bool>,
     condition: Condvar,
+}
+
+#[test]
+fn shutdown_drains_accepted_receipts_in_order_and_rejects_new_admission() {
+    let temp = Temp::new();
+    let (entered, receiver) = mpsc::channel();
+    let gate = Arc::new(Gate {
+        entered,
+        released: Mutex::new(false),
+        condition: Condvar::new(),
+    });
+    let mut worker = SerialStorageWorker::with_hooks(1, gate.clone()).unwrap();
+    let mut accepted = Vec::new();
+    for name in ["first", "second"] {
+        let (session, queue, job) = job(SavePurpose::SaveAs);
+        let token = job.token();
+        assert!(
+            worker
+                .try_submit(Submission {
+                    job,
+                    target: WriteTarget::Document(
+                        DestinationAccess::new(temp.0.join(name)).unwrap()
+                    ),
+                })
+                .is_ok()
+        );
+        accepted.push((session, queue, token, name));
+        if name == "first" {
+            receiver.recv_timeout(Duration::from_secs(2)).unwrap();
+        }
+    }
+    // A shutdown request must return while the first write is deliberately blocked.
+    let (returned, shutdown) = mpsc::channel();
+    std::thread::spawn(move || {
+        worker.request_shutdown();
+        returned.send(worker).ok();
+    });
+    let result = shutdown.recv_timeout(Duration::from_secs(2));
+    *gate.released.lock().unwrap() = true;
+    gate.condition.notify_all();
+    let worker = result.expect("shutdown waited for the active write");
+    let rejected = submission(&temp, "third");
+    let rejected_token = rejected.job.token();
+    assert_eq!(
+        worker.try_submit(rejected).unwrap_err().job.token(),
+        rejected_token
+    );
+    for (mut session, mut queue, token, name) in accepted {
+        queue.finish(receipt(&worker).write).unwrap();
+        assert_eq!(
+            session.acknowledge_save(queue.take_completion(token).unwrap()),
+            Acknowledgement::SavedCurrent
+        );
+        assert_eq!(std::fs::read(temp.0.join(name)).unwrap(), FIXTURE);
+    }
+    let deadline = Instant::now() + Duration::from_secs(2);
+    while !worker.is_stopped() {
+        assert!(
+            Instant::now() < deadline,
+            "shutdown did not finish after draining"
+        );
+        std::thread::sleep(Duration::from_millis(1));
+    }
+    assert!(worker.poll_receipt().is_err(), "unexpected extra receipt");
+    assert!(!temp.0.join("third").exists());
 }
 impl StoreHooks for Gate {
     fn at(&self, stage: Stage) -> io::Result<()> {

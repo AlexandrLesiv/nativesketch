@@ -16,10 +16,10 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:staged_store:injected_pre_replace_failures_preserve_destination_and_report_cleanup_failure",
-              "cargo:sketch-services:staged_store:directory_sync_or_post_replace_failure_reports_written_with_warning",
-              "cargo:sketch-services:staged_store:disappeared_destination_parent_is_access_failure_without_replacement",
-              "cargo:sketch-services:staged_store:destination_and_parent_symlinks_are_rejected_without_touching_target"
+              "cargo:sketch-services:macos:staged_store:injected_pre_replace_failures_preserve_destination_and_report_cleanup_failure",
+              "cargo:sketch-services:macos:staged_store:directory_sync_or_post_replace_failure_reports_written_with_warning",
+              "cargo:sketch-services:macos:staged_store:disappeared_destination_parent_is_access_failure_without_replacement",
+              "cargo:sketch-services:macos:staged_store:destination_and_parent_symlinks_are_rejected_without_touching_target"
             ],
             "gaps": []
           }
@@ -54,10 +54,11 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:worker:native_worker_writes_owned_snapshot_and_returns_correlated_receipt",
-              "cargo:sketch-services:worker:worker_panic_after_replace_delivers_uncertain_terminal_receipt",
-              "cargo:sketch-services:worker:checkpoint_worker_uses_envelope_store_and_cannot_write_plain_user_document",
-              "cargo:sketch-services:worker_lifecycle:worker_backpressure_returns_unique_job_and_shutdown_does_not_join_active_write"
+              "cargo:sketch-services:macos:worker:native_worker_writes_owned_snapshot_and_returns_correlated_receipt",
+              "cargo:sketch-services:macos:worker:worker_panic_after_replace_delivers_uncertain_terminal_receipt",
+              "cargo:sketch-services:macos:worker:checkpoint_worker_uses_envelope_store_and_cannot_write_plain_user_document",
+              "cargo:sketch-services:macos:worker_lifecycle:worker_backpressure_returns_unique_job_and_shutdown_does_not_join_active_write",
+              "cargo:sketch-services:macos:worker_lifecycle:shutdown_drains_accepted_receipts_in_order_and_rejects_new_admission"
             ],
             "gaps": []
           }
@@ -92,11 +93,11 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:recovery:corrupt_latest_falls_back_without_deleting_older_valid_generation",
-              "cargo:sketch-services:recovery:identity_checksum_lengths_and_oversized_candidates_are_rejected",
-              "cargo:sketch-services:recovery:quotas_preserve_unresolved_data_and_exclusive_id_allocation",
-              "cargo:sketch-services:recovery:recovered_document_is_new_dirty_unbound_and_readonly_cannot_restore",
-              "cargo:sketch-services:recovery:recovery_symlink_entries_are_rejected_without_reading_or_deleting_target"
+              "cargo:sketch-services:macos:recovery:corrupt_latest_falls_back_without_deleting_older_valid_generation",
+              "cargo:sketch-services:macos:recovery:identity_checksum_lengths_and_oversized_candidates_are_rejected",
+              "cargo:sketch-services:macos:recovery:quotas_preserve_unresolved_data_and_exclusive_id_allocation",
+              "cargo:sketch-services:macos:recovery:recovered_document_is_new_dirty_unbound_and_readonly_cannot_restore",
+              "cargo:sketch-services:macos:recovery:recovery_symlink_entries_are_rejected_without_reading_or_deleting_target"
             ],
             "gaps": []
           }
@@ -131,11 +132,11 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:recovery_retention:resolved_candidate_is_hidden_and_newer_generation_remains_unresolved",
-              "cargo:sketch-services:recovery_retention:corrupt_or_foreign_resolution_marker_cannot_authorize_deletion",
-              "cargo:sketch-services:recovery_retention:overfull_session_does_not_block_other_recovery_or_bounded_management",
-              "cargo:sketch-services:recovery_retention:corrupt_newest_does_not_hide_valid_unresolved_fallback_after_older_resolution",
-              "cargo:sketch-services:recovery_budget:resolution_reserves_aggregate_marker_staging_without_exceeding_budget"
+              "cargo:sketch-services:macos:recovery_retention:resolved_candidate_is_hidden_and_newer_generation_remains_unresolved",
+              "cargo:sketch-services:macos:recovery_retention:corrupt_or_foreign_resolution_marker_cannot_authorize_deletion",
+              "cargo:sketch-services:macos:recovery_retention:overfull_session_does_not_block_other_recovery_or_bounded_management",
+              "cargo:sketch-services:macos:recovery_retention:corrupt_newest_does_not_hide_valid_unresolved_fallback_after_older_resolution",
+              "cargo:sketch-services:macos:recovery_budget:resolution_reserves_aggregate_marker_staging_without_exceeding_budget"
             ],
             "gaps": []
           }
@@ -170,8 +171,8 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:checkpoint_schedule:debounce_max_schedule_input_deferral_and_explicit_save_priority_are_deterministic",
-              "cargo:sketch-services:checkpoint_schedule:only_latest_pending_survives_failure_requires_retry_and_stale_completion_is_rejected"
+              "cargo:sketch-services:macos:checkpoint_schedule:debounce_max_schedule_input_deferral_and_explicit_save_priority_are_deterministic",
+              "cargo:sketch-services:macos:checkpoint_schedule:only_latest_pending_survives_failure_requires_retry_and_stale_completion_is_rejected"
             ],
             "gaps": []
           }
@@ -206,11 +207,11 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:diagnostics:full_rate_limited_and_failing_sinks_remain_bounded_and_observable",
-              "cargo:sketch-services:diagnostics:rotating_sink_caps_file_count_and_bytes",
-              "cargo:sketch-services:diagnostics:oversized_existing_diagnostic_files_are_rejected_without_rotation",
-              "cargo:sketch-services:diagnostics:worker_emits_correlated_redacted_stage_failure_and_durability_codes",
-              "cargo:sketch-services:diagnostic_schema:diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen"
+              "cargo:sketch-services:macos:diagnostics:full_rate_limited_and_failing_sinks_remain_bounded_and_observable",
+              "cargo:sketch-services:macos:diagnostics:rotating_sink_caps_file_count_and_bytes",
+              "cargo:sketch-services:macos:diagnostics:oversized_existing_diagnostic_files_are_rejected_without_rotation",
+              "cargo:sketch-services:macos:diagnostics:worker_emits_correlated_redacted_stage_failure_and_durability_codes",
+              "cargo:sketch-services:macos:diagnostic_schema:diagnostic_schema_v1_numeric_codes_and_absent_fields_are_frozen"
             ],
             "gaps": []
           }
@@ -245,8 +246,8 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:process_kill:process_death_preserves_old_or_new_valid_document_at_publication_boundaries",
-              "cargo:sketch-services:process_kill:killed_checkpoint_keeps_last_valid_generation_discoverable"
+              "cargo:sketch-services:macos:process_kill:process_death_preserves_old_or_new_valid_document_at_publication_boundaries",
+              "cargo:sketch-services:macos:process_kill:killed_checkpoint_keeps_last_valid_generation_discoverable"
             ],
             "gaps": []
           }
@@ -281,7 +282,7 @@
           "coverage": {
             "automation": "implemented",
             "testIds": [
-              "cargo:sketch-services:store_permissions:stage_is_private_and_replacement_preserves_existing_unix_mode"
+              "cargo:sketch-services:macos:store_permissions:stage_is_private_and_replacement_preserves_existing_unix_mode"
             ],
             "gaps": []
           }

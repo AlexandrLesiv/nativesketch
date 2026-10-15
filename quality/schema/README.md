@@ -13,7 +13,9 @@ bundle executable hash separately from the app executable hash. Cargo hashes the
 libtest binary. Node hashes the test module, identifies Node version, and binds imported
 source through the whole-source fingerprint; this is not an application package hash.
 
-IDs are `cargo:package:target:function`, `node:relativeFile:declaredName`, and
+IDs are `cargo:package:target:function` for portable contracts,
+`cargo:package:platform:target:function` for host-scoped Cargo packages,
+`node:relativeFile:declaredName`, and
 `xctest:bundle:Class/method`. Cargo discovery runs compiled `--list`. Node discovery is
 combined with execution through structured runner events. Nested duplicate Node names
 are rejected until callers provide globally distinct names within each file.

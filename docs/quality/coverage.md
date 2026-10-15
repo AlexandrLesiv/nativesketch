@@ -13,6 +13,8 @@ Cargo packages with native effects declare `[package.metadata.native-sketch]`
 `test-platform = "host"`. Discovery and execution then record the actual OS; they cannot
 claim another host. Unspecified packages retain portable contract-test scope. In particular,
 `sketch-services` filesystem and worker results on macOS do not certify Windows or Linux.
+Host-scoped Cargo IDs include the OS (`cargo:package:macos:target:test`); portable IDs
+retain their previous form. A foreign host cannot collide with a required native test ID.
 The service and keyboard manifests map narrower tested cases; they do not promote the
 broader persistence, focus or recovery invariants to complete native acceptance.
 

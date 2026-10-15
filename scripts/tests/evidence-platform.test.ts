@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { Discovery, Execution, Feature } from '../evidence/types.ts';
 import { buildReport } from '../evidence/report.ts';
+import { cargoTestId } from '../evidence/cargo-platform.ts';
 const source = { revision: 'a'.repeat(40), dirtyDiffSha256: null };
 const id = 'xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen';
 const hash = 'b'.repeat(64);
@@ -114,6 +115,32 @@ await test('native mappings reject wrong platform, level and pointer width', () 
     Object.assign(f.discovery.tests[0], { pointerWidth: 64 }, change);
     const report = buildReport(f.features, f.discovery, []);
     assert.match(report.issues[0], /Orphan/);
+    assert.equal(report.rows[0].status, 'invalid-mapping');
+  }
+});
+await test('host-qualified Cargo IDs cannot certify or invalidate an unenumerated native host', () => {
+  for (const platform of ['windows', 'linux']) {
+    const f = fixture();
+    const expectedId = cargoTestId('services', 'macos', 'store', 'write');
+    const foreignId = cargoTestId('services', platform, 'store', 'write');
+    const requirement = f.features[0].cases[0].requirements[0];
+    assert.ok(requirement.coverage);
+    requirement.coverage.testIds = [expectedId];
+    requirement.level = 'integration';
+    Object.assign(f.discovery.tests[0], { id: foreignId, runner: 'cargo', level: 'integration' });
+    f.execution.results[0].testId = foreignId;
+    f.discovery.tests[0].platform = platform;
+    f.execution.results[0].platform = platform;
+    let report = buildReport(f.features, f.discovery, [f.execution]);
+    assert.deepEqual(report.issues, []);
+    assert.equal(report.rows[0].status, 'missing-discovery');
+    assert.deepEqual(report.rows[0].discoveredTestIds, []);
+    assert.deepEqual(report.rows[0].attempts, []);
+    assert.equal(report.passed, false);
+    // If the requested host was enumerated, a copy on another OS cannot hide its missing ID.
+    f.discovery.scopes = [{ runner: 'cargo', platform: 'macos', level: 'integration' }];
+    report = buildReport(f.features, f.discovery, [f.execution]);
+    assert.match(report.issues[0], /Undiscovered required test/);
     assert.equal(report.rows[0].status, 'invalid-mapping');
   }
 });

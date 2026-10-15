@@ -2,7 +2,7 @@ import type { DiscoveredTest, Result } from './types.ts';
 import { performance } from 'node:perf_hooks';
 import { run } from '../lib/process.ts';
 import { fileHash } from './identity.ts';
-import { cargoTestPlatform } from './cargo-platform.ts';
+import { cargoTestId, cargoTestPlatform } from './cargo-platform.ts';
 type CargoPackage = {
   id: string;
   name: string;
@@ -55,7 +55,7 @@ export async function discoverCargo(root: string) {
       if (!entry.endsWith(': test')) continue;
       const test = entry.slice(0, -6);
       tests.push({
-        id: `cargo:${pkg.name}:${target}:${test}`,
+        id: cargoTestId(pkg.name, pkg.platform, target, test),
         runner: 'cargo',
         level: target === 'lib' ? 'unit' : 'integration',
         platform: pkg.platform,
