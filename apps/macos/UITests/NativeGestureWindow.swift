@@ -35,7 +35,9 @@ import XCTest
     XCTAssertTrue(
       file.resolvingSymlinksInPath().path.hasPrefix(
         fixture.root.resolvingSymlinksInPath().path + "/"))
-    XCTAssertEqual(fixture.runtimeRoot.deletingLastPathComponent(), fixture.root)
+    XCTAssertEqual(
+      fixture.runtimeRoot.deletingLastPathComponent().resolvingSymlinksInPath().path,
+      fixture.root.resolvingSymlinksInPath().path)
     pointer = try NativeHeldPointer(pid: subject.processIdentifier)
     let app = AXUIElementCreateApplication(subject.processIdentifier)
     let windows = Self.attribute(app, kAXWindowsAttribute) as? [AXUIElement] ?? []
