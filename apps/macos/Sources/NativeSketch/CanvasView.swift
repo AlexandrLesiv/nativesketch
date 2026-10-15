@@ -1,5 +1,5 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class CanvasView: NSView {
   unowned let owner: EditorWindowController
@@ -25,7 +25,7 @@ import CSketchFFI
     if accepted { needsDisplay = true }
     return accepted
   }
-  var editor: LegacyEditorBridge { owner.editor }
+  var editor: RustApplicationSession { owner.editor }
   override func accessibilityValue() -> Any? {
     let value = super.accessibilityValue()
     return owner.uiObservation?.value(appendingTo: value) ?? value
@@ -38,7 +38,7 @@ import CSketchFFI
   }
   func point(_ event: NSEvent) -> CGPoint { convert(event.locationInWindow, from: nil) }
   func cancel() {
-    if editor.handle != nil { editor.observe(sketch_cancel(editor.handle)) }
+    if editor.projection.interaction != 0 { editor.send(.cancel) }
     input.gesture = .idle
     input.space = false
     owner.refresh()
@@ -48,7 +48,7 @@ import CSketchFFI
     let idle = input.gesture == .idle
     cancel()
     if idle {
-      editor.observe(sketch_select_clear(editor.handle))
+      editor.send(.clearSelection)
       owner.refresh()
     }
   }
@@ -65,7 +65,7 @@ import CSketchFFI
     }
     super.setFrameSize(size)
   }
-  func corners(_ b: SketchBounds) -> [CGPoint] {
+  func corners(_ b: SketchBoundsV1) -> [CGPoint] {
     [
       CGPoint(x: b.x, y: b.y), CGPoint(x: b.x + b.width, y: b.y),
       CGPoint(x: b.x + b.width, y: b.y + b.height), CGPoint(x: b.x, y: b.y + b.height),
@@ -80,6 +80,12 @@ import CSketchFFI
     offset.x -= event.scrollingDeltaX
     offset.y -= event.scrollingDeltaY
     needsDisplay = true
+  }
+  func resetViewport() {
+    input.gesture = .idle
+    input.space = false
+    zoom = 1
+    offset = CGPoint(x: 80, y: 80)
   }
   func setZoom(_ value: Double, at point: CGPoint? = nil) {
     guard input.gesture == .idle else { return }
@@ -96,11 +102,9 @@ import CSketchFFI
     switch event.charactersIgnoringModifiers?.lowercased() {
     case " ": if input.gesture == .idle { input.space = true }
     case "p":
-      owner.inspectorController.tool.selectedSegment = 0
-      owner.actions.changeTool(nil)
+      owner.actions.penTool(nil)
     case "v":
-      owner.inspectorController.tool.selectedSegment = 1
-      owner.actions.changeTool(nil)
+      owner.actions.selectTool(nil)
     case "\u{7f}", "\u{f728}": owner.actions.deleteStroke(nil)
     case "\u{1b}": escape()
     default: super.keyDown(with: event)

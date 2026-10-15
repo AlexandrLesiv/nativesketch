@@ -1,76 +1,61 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class DocumentCoordinator: NSObject, NSMenuItemValidation {
   unowned let owner: EditorWindowController
+  lazy var sheets = NativeEffectPresenter(owner: owner)
   init(owner: EditorWindowController) { self.owner = owner }
-  var url: URL?
-  var approvedClose = false
-  func save(forcePanel: Bool = false) -> Bool {
-    owner.canvas.cancel()
-    owner.window.makeFirstResponder(owner.canvas)
-    var destination = url
-    if destination == nil || forcePanel {
-      let panel = NSSavePanel()
-      panel.nameFieldStringValue = url?.lastPathComponent ?? "Untitled.nsketch"
-      guard panel.runModal() == .OK else { return false }
-      destination = panel.url
-    }
-    guard let destination else { return false }
-    let success = owner.failures.checkFile(
-      owner.editor.file(destination, save: true), url: destination, verb: "save")
-    if success { url = destination }
-    owner.refresh()
-    return success
+  var url: URL? { owner.runtime.grants.url(owner.editor.projection.binding_grant) }
+  var displayName: String { url?.lastPathComponent ?? "Untitled" }
+  var busyMessage: String?
+
+  @discardableResult func request(_ command: SessionCommand) -> Bool {
+    guard owner.inspectorController.fieldEditing.finishEditing() else { return false }
+    guard owner.window.makeFirstResponder(owner.canvas) else { return false }
+    return owner.editor.send(command)
   }
-  func mayReplace() -> Bool {
-    owner.canvas.cancel()
-    guard owner.editor.state.dirty != 0 else { return true }
-    let alert = NSAlert()
-    alert.messageText = "Save changes to \(url?.lastPathComponent ?? "Untitled")?"
-    alert.informativeText = "Your changes will be lost if you don’t save them."
-    alert.addButton(withTitle: "Save")
-    alert.addButton(withTitle: "Cancel")
-    alert.addButton(withTitle: "Don’t Save")
-    switch alert.runModal() {
-    case .alertFirstButtonReturn: return save()
-    case .alertThirdButtonReturn: return true
-    default: return false
-    }
+  @objc func saveDocument(_ sender: Any?) { request(.save) }
+  @objc func saveAs(_ sender: Any?) { request(.saveAs) }
+  @objc func newDocument(_ sender: Any?) { request(.new) }
+  @objc func openDocument(_ sender: Any?) { request(.open) }
+  @objc func showRecovery(_ sender: Any?) { owner.recoveryPresenter.show() }
+  @objc func cancelNavigation(_ sender: Any?) {
+    let token = owner.editor.projection.continuation
+    guard token.serial != 0 else { return }
+    owner.editor.reply(token, SK_V1_REPLY_CANCEL)
   }
-  @objc func saveDocument(_ sender: Any?) { _ = save() }
-  @objc func saveAs(_ sender: Any?) { _ = save(forcePanel: true) }
-  func recoverEditorIfNeeded() {
-    guard owner.editor.unavailable else { return }
-    // A new empty editor must never inherit the previous document destination.
-    url = nil
-    owner.editor.reset()
-    owner.failures.reportedEngineFailure = false
-  }
-  @objc func newDocument(_ sender: Any?) {
-    guard mayReplace() else { return }
-    recoverEditorIfNeeded()
-    if owner.failures.check(sketch_document_new(owner.editor.handle)) {
-      url = nil
-      owner.canvas.zoom = 1
-      owner.canvas.offset = CGPoint(x: 80, y: 80)
+
+  func receive(_ outcome: SketchOutcomeV1) {
+    sheets.dismissIfObsolete(outcome.projection)
+    switch outcome.effect_kind {
+    case SK_V1_CHOOSE_DESTINATION.rawValue: sheets.chooseDestination(outcome.effect)
+    case SK_V1_CHOOSE_SOURCE.rawValue: sheets.chooseSource(outcome.effect)
+    case SK_V1_CONFIRM_UNSAVED.rawValue: sheets.confirmUnsaved(outcome.effect)
+    case SK_V1_AWAIT_WRITES.rawValue: busyMessage = "Finishing Save…"
+    case SK_V1_PREPARING.rawValue: busyMessage = "Preparing…"
+    case SK_V1_OPENING.rawValue: busyMessage = "Opening…"
+    case SK_V1_SAVE_QUEUED.rawValue: busyMessage = "Saving…"
+    case SK_V1_CLOSE_READY.rawValue:
+      owner.editor.reply(outcome.effect, SK_V1_REPLY_CONFIRM_CLOSE)
+    case SK_V1_CLOSE_CONFIRMED.rawValue: owner.lifecycle.closeConfirmed()
+    case SK_V1_CANCELLED.rawValue:
+      busyMessage = nil
+      owner.lifecycle.navigationCancelled()
+    case SK_V1_FAILURE.rawValue:
+      busyMessage = nil
+      sheets.failure(outcome)
+      owner.lifecycle.navigationCancelled()
+    default: break
     }
-    owner.refresh()
-  }
-  @objc func openDocument(_ sender: Any?) {
-    guard mayReplace() else { return }
-    let panel = NSOpenPanel()
-    panel.allowsMultipleSelection = false
-    guard panel.runModal() == .OK, let destination = panel.url else { return }
-    recoverEditorIfNeeded()
-    if owner.failures.checkFile(
-      owner.editor.file(destination, save: false), url: destination, verb: "open")
-    {
-      url = destination
-      owner.canvas.zoom = 1
-      owner.canvas.offset = CGPoint(x: 80, y: 80)
+    if outcome.has_save_result != 0 {
+      if outcome.save_result == SK_V1_SAVE_FAILED.rawValue
+        || outcome.save_result == SK_V1_UNCERTAIN.rawValue
+      {
+        sheets.failure(outcome)
+      }
+      if outcome.projection.outstanding_saves == 0 { busyMessage = nil }
     }
-    owner.refresh()
+    if let busyMessage { owner.status.stringValue = busyMessage }
   }
   func validateMenuItem(_ item: NSMenuItem) -> Bool { owner.menus.validateMenuItem(item) }
 }

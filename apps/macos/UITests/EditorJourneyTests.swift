@@ -12,6 +12,12 @@ final class EditorJourneyTests: XCTestCase {
     app = XCUIApplication(
       url: URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_APP"])))
     app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+    app.launchArguments += [
+      "--runtime-root",
+      FileManager.default.temporaryDirectory.appendingPathComponent(
+        "native-ui-runtime-\(UUID().uuidString)"
+      ).path,
+    ]
     document = URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_DOCUMENT"]))
   }
 

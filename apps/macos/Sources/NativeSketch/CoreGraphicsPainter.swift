@@ -1,5 +1,5 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 // Provisional painter retained unchanged until task 020.
 @MainActor final class CoreGraphicsPainter {
@@ -20,7 +20,7 @@ import CSketchFFI
       context.setFillColor(color)
       context.fillPath()
     }
-    for c in canvas.editor.commands() {
+    for c in canvas.owner.scene.commands() {
       if id != c.stroke_id {
         if id != nil { flush() }
         path = CGMutablePath()
@@ -39,8 +39,8 @@ import CSketchFFI
     }
     if id != nil { flush() }
     context.restoreGState()
-    if canvas.editor.state.selected_id != 0 {
-      let b = canvas.editor.state.selection
+    if canvas.editor.projection.selected_id != 0 {
+      guard let b = canvas.owner.scene.bounds() else { return }
       let p = canvas.screen(CGPoint(x: b.x, y: b.y))
       let r = CGRect(x: p.x, y: p.y, width: b.width * canvas.zoom, height: b.height * canvas.zoom)
       NSColor.systemBlue.setStroke()

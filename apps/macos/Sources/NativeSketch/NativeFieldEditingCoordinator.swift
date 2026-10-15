@@ -8,15 +8,18 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
   private unowned let field: NSTextField
   private let report: (String) -> Void
   private let resolve: (String) -> Void
+  private let commit: (Double) -> Bool
   private var originalText: String?
   private var reportedMessage: String?
 
   init(
-    field: NSTextField, report: @escaping (String) -> Void, resolve: @escaping (String) -> Void
+    field: NSTextField, report: @escaping (String) -> Void, resolve: @escaping (String) -> Void,
+    commit: @escaping (Double) -> Bool
   ) {
     self.field = field
     self.report = report
     self.resolve = resolve
+    self.commit = commit
   }
 
   func controlTextDidBeginEditing(_ notification: Notification) {
@@ -37,7 +40,7 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
       reject()
       return false
     }
-    return true
+    return commit(number.doubleValue)
   }
 
   func control(

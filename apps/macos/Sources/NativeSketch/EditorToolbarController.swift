@@ -1,5 +1,5 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class EditorToolbarController: NSObject, NSToolbarDelegate {
   unowned let owner: EditorWindowController

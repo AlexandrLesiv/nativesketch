@@ -9,6 +9,12 @@ import XCTest
     app.launchArguments = [
       "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--native-ui-observation",
     ]
+    app.launchArguments += [
+      "--runtime-root",
+      FileManager.default.temporaryDirectory.appendingPathComponent(
+        "native-ui-runtime-\(UUID().uuidString)"
+      ).path,
+    ]
     app.launch()
     defer {
       let tree = XCTAttachment(string: app.debugDescription)

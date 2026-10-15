@@ -16,6 +16,9 @@ import XCTest
     let root = URL(fileURLWithPath: try XCTUnwrap(environment["NATIVE_SKETCH_DOCUMENT"]))
       .deletingLastPathComponent()
     document = root.appendingPathComponent("shortcut-\(UUID().uuidString).nsketch")
+    app.launchArguments += [
+      "--runtime-root", root.appendingPathComponent("runtime-\(UUID().uuidString)").path,
+    ]
     app.launch()
     XCTAssertTrue(canvas.waitForExistence(timeout: 15))
     assertCanvasKeyboardFocus()

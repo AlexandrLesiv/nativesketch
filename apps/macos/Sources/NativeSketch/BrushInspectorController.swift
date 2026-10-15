@@ -1,5 +1,5 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class BrushInspectorController: NSObject {
   unowned let owner: EditorWindowController
@@ -19,13 +19,15 @@ import CSketchFFI
     resolve: { [weak self] message in
       guard let self, owner.status.stringValue == message else { return }
       owner.refresh()
-    })
+    }, commit: { [weak self] value in self?.commitWidth(value) ?? false })
   func configure() {
     tool.selectedSegment = 0
     tool.target = owner.actions
     tool.action = #selector(EditorActions.changeTool(_:))
     tool.setAccessibilityLabel("Drawing tool")
     color.color = .black
+    color.target = self
+    color.action = #selector(colorChanged(_:))
     NativeAccessibility.label(color, id: "sketch.brush.color", text: "Stroke color")
     color.widthAnchor.constraint(equalToConstant: 44).isActive = true
     NativeAccessibility.label(
@@ -79,8 +81,27 @@ import CSketchFFI
     }
     inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
   }
-  @objc func widthChanged(_ sender: Any?) {
-    stepper.doubleValue = width.doubleValue
+  private func commitWidth(_ value: Double) -> Bool {
+    var brush = owner.editor.projection.brush
+    if brush.width == value { return true }
+    brush.width = value
+    return owner.editor.send(.brush(brush))
   }
-  @objc func widthStepped(_ sender: Any?) { width.doubleValue = stepper.doubleValue }
+  @objc func widthChanged(_ sender: Any?) { _ = commitWidth(width.doubleValue) }
+  @objc func widthStepped(_ sender: Any?) {
+    let proposed = stepper.doubleValue
+    guard fieldEditing.finishEditing() else { return }
+    _ = commitWidth(proposed)
+  }
+  @objc func colorChanged(_ sender: Any?) {
+    guard let selected = color.color.usingColorSpace(.sRGB), fieldEditing.finishEditing() else {
+      return
+    }
+    var brush = owner.editor.projection.brush
+    brush.red = selected.redComponent
+    brush.green = selected.greenComponent
+    brush.blue = selected.blueComponent
+    brush.alpha = selected.alphaComponent
+    owner.editor.send(.brush(brush))
+  }
 }

@@ -1,36 +1,40 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class EditorActions: NSObject, NSMenuItemValidation {
   unowned let owner: EditorWindowController
   init(owner: EditorWindowController) { self.owner = owner }
-  @objc func penTool(_ sender: Any?) {
-    owner.inspectorController.tool.selectedSegment = 0
-    changeTool(sender)
-    owner.window.makeFirstResponder(owner.canvas)
-  }
-  @objc func selectTool(_ sender: Any?) {
-    owner.inspectorController.tool.selectedSegment = 1
-    changeTool(sender)
-    owner.window.makeFirstResponder(owner.canvas)
-  }
-  @objc func changeTool(_ sender: Any?) {
-    owner.canvas.cancel()
-    if owner.inspectorController.tool.selectedSegment == 0 {
-      owner.editor.observe(sketch_select_clear(owner.editor.handle))
+  var fieldEditor: NSTextView? {
+    guard let text = NSApp.keyWindow?.firstResponder as? NSTextView, text.isFieldEditor else {
+      return nil
     }
-    owner.refresh()
+    return text
+  }
+  @objc func penTool(_ sender: Any?) { chooseTool(SK_V1_PEN.rawValue) }
+  @objc func selectTool(_ sender: Any?) { chooseTool(SK_V1_SELECT.rawValue) }
+  @objc func changeTool(_ sender: Any?) {
+    chooseTool(
+      owner.inspectorController.tool.selectedSegment == 0
+        ? SK_V1_PEN.rawValue : SK_V1_SELECT.rawValue)
+  }
+  private func chooseTool(_ tool: UInt32) {
+    guard owner.inspectorController.fieldEditing.finishEditing() else {
+      owner.refresh()
+      return
+    }
+    owner.canvas.cancel()
+    if owner.editor.send(.tool(tool)) { owner.window.makeFirstResponder(owner.canvas) }
   }
   @objc func resize(_ sender: Any?) {
-    owner.canvas.cancel()
+    guard owner.inspectorController.fieldEditing.finishEditing() else { return }
     guard
       let percent = Double(
         owner.inspectorController.scale.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)),
-      percent.isFinite && percent > 0 && percent <= 10_000
+      percent.isFinite, percent > 0, percent <= 10_000
     else {
       NSSound.beep()
       let message = "Enter a scale greater than 0 and at most 10000 percent."
-      owner.window.makeFirstResponder(owner.inspectorController.scale)
+      owner.inspectorController.scale.window?.makeFirstResponder(owner.inspectorController.scale)
       owner.inspectorController.scale.selectText(nil)
       owner.status.stringValue = message
       NSAccessibility.post(
@@ -38,58 +42,43 @@ import CSketchFFI
         userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
       return
     }
-    let factor = percent / 100
-    guard factor.isFinite && factor > 0 && factor <= 100 else {
-      NSSound.beep()
-      return
-    }
-    let b = owner.editor.state.selection
-    if owner.failures.check(sketch_resize_begin(owner.editor.handle))
-      && owner.failures.check(
-        sketch_resize_update(owner.editor.handle, factor, b.x + b.width / 2, b.y + b.height / 2))
+    owner.canvas.cancel()
+    guard let bounds = owner.scene.bounds(), owner.editor.send(.beginTransform) else { return }
+    if owner.editor.send(
+      .transform(percent / 100, bounds.x + bounds.width / 2, bounds.y + bounds.height / 2))
     {
-      _ = owner.failures.check(sketch_resize_commit(owner.editor.handle))
+      _ = owner.editor.send(.commitTransform)
     }
-    if owner.editor.state.interaction != 0 {
-      if owner.editor.handle != nil { owner.editor.observe(sketch_cancel(owner.editor.handle)) }
-    }
+    if owner.editor.projection.interaction != 0 { owner.editor.send(.cancel) }
     owner.inspectorController.scale.stringValue = "100"
-    owner.refresh()
   }
-  @objc func nextStroke(_ sender: Any?) {
+  @objc func nextStroke(_ sender: Any?) { cycle(1) }
+  @objc func previousStroke(_ sender: Any?) { cycle(-1) }
+  private func cycle(_ direction: Int32) {
+    guard owner.inspectorController.fieldEditing.finishEditing() else { return }
     owner.canvas.cancel()
-    owner.inspectorController.tool.selectedSegment = 1
-    _ = owner.failures.check(sketch_select_cycle(owner.editor.handle, 1))
-    owner.refresh()
-  }
-  @objc func previousStroke(_ sender: Any?) {
-    owner.canvas.cancel()
-    owner.inspectorController.tool.selectedSegment = 1
-    _ = owner.failures.check(sketch_select_cycle(owner.editor.handle, -1))
-    owner.refresh()
+    if owner.editor.send(.tool(SK_V1_SELECT.rawValue)) { owner.editor.send(.cycle(direction)) }
   }
   @objc func deleteStroke(_ sender: Any?) {
+    guard fieldEditor == nil else { return }
     owner.canvas.cancel()
-    _ = owner.failures.check(sketch_delete_selected(owner.editor.handle))
-    owner.refresh()
+    owner.editor.send(.delete)
   }
   @objc func undo(_ sender: Any?) {
-    if let text = owner.window.firstResponder as? NSTextView {
-      text.undoManager?.undo()
+    if let fieldEditor {
+      fieldEditor.undoManager?.undo()
       return
     }
     owner.canvas.cancel()
-    _ = owner.failures.check(sketch_undo(owner.editor.handle))
-    owner.refresh()
+    owner.editor.send(.undo)
   }
   @objc func redo(_ sender: Any?) {
-    if let text = owner.window.firstResponder as? NSTextView {
-      text.undoManager?.redo()
+    if let fieldEditor {
+      fieldEditor.undoManager?.redo()
       return
     }
     owner.canvas.cancel()
-    _ = owner.failures.check(sketch_redo(owner.editor.handle))
-    owner.refresh()
+    owner.editor.send(.redo)
   }
   @objc func zoomIn(_ sender: Any?) { owner.canvas.setZoom(owner.canvas.zoom * 1.25) }
   @objc func zoomOut(_ sender: Any?) { owner.canvas.setZoom(owner.canvas.zoom / 1.25) }

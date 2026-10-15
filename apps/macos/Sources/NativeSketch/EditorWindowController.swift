@@ -1,8 +1,18 @@
 import AppKit
-import CSketchFFI
+import CSketchSession
 
 @MainActor final class EditorWindowController: NSObject, NSWindowDelegate {
-  let editor = LegacyEditorBridge()
+  let editor: RustApplicationSession
+  let runtime: NativeRuntime
+  lazy var scene = SessionScene(session: editor)
+  lazy var presenter = EditorPresenter(owner: self)
+  lazy var lifecycle = WindowLifecycleCoordinator(owner: self)
+  lazy var recoveryPresenter = RecoveryPresenter(owner: self)
+  init(runtime: NativeRuntime) throws {
+    self.runtime = runtime
+    self.editor = try RustApplicationSession(runtime: runtime)
+    super.init()
+  }
   var window: NSWindow!
   var canvas: CanvasView!
   var uiObservation: NativeUIObservation?
@@ -16,6 +26,13 @@ import CSketchFFI
   func show() {
     editor.onFailure = { [weak self] code in
       Task { @MainActor in self?.failures.engineFailure(code) }
+    }
+    editor.onOutcome = { [weak self] outcome in self?.presenter.receive(outcome) }
+    runtime.onFailure = { [weak self] failure in
+      NativeDiagnostics.failure(
+        "runtime-background", status: failure.code, session: failure.session)
+      self?.status.stringValue =
+        "Background storage is unavailable. Your open document is retained."
     }
     menus.makeMenu()
     window = NSWindow(
@@ -47,6 +64,7 @@ import CSketchFFI
     status.font = .systemFont(ofSize: 12)
     status.textColor = .secondaryLabelColor
     status.setAccessibilityLabel("Document status")
+    status.setAccessibilityIdentifier("sketch.status")
     let root = NSView()
     window.contentView = root
     for v in [canvas!, status] {
@@ -72,6 +90,7 @@ import CSketchFFI
     }
     refresh()
     window.center()
+    editor.registerRecovery(name: documents.displayName)
     window.makeKeyAndOrderFront(nil)
     window.makeFirstResponder(canvas)
     NSApp.activate(ignoringOtherApps: true)
@@ -79,37 +98,7 @@ import CSketchFFI
       DispatchQueue.main.async { NativeSmokeJourney(owner: self).run() }
     }
   }
-  func refresh() {
-    guard canvas != nil else { return }
-    let s = editor.state
-    window.isDocumentEdited = s.dirty != 0
-    window.title = "\(documents.url?.lastPathComponent ?? "Untitled") — Native Sketch"
-    for control in [
-      self.inspectorController.tool, self.inspectorController.color, self.inspectorController.width,
-      self.inspectorController.stepper,
-    ] as [NSControl] {
-      control.isEnabled = !editor.unavailable
-    }
-    if editor.unavailable {
-      self.inspectorController.scale.isEnabled = false
-      self.inspectorController.apply.isEnabled = false
-      status.stringValue = "Engine unavailable — use File > New or Open."
-      canvas.needsDisplay = true
-      return
-    }
-    let selected = s.selected_id != 0
-    self.inspectorController.scale.isEnabled = selected
-    self.inspectorController.apply.isEnabled = selected
-    status.stringValue =
-      "\(s.stroke_count) stroke\(s.stroke_count == 1 ? "" : "s") · \(selected ? "Stroke selected" : inspectorController.tool.selectedSegment == 0 ? "Pen — drag to draw" : "Select — click a stroke") · \(Int(canvas.zoom*100))% · Space-drag to pan"
-    canvas.setAccessibilityValue(
-      "\(s.stroke_count) strokes, \(selected ? "one selected" : "none selected"), zoom \(Int(canvas.zoom*100)) percent"
-    )
-    canvas.needsDisplay = true
-  }
-  func windowShouldClose(_ sender: NSWindow) -> Bool {
-    self.documents.approvedClose = self.documents.mayReplace()
-    return self.documents.approvedClose
-  }
+  func refresh() { presenter.refresh() }
+  func windowShouldClose(_ sender: NSWindow) -> Bool { lifecycle.requestWindowClose() }
   func windowDidResignKey(_ notification: Notification) { canvas?.cancel() }
 }

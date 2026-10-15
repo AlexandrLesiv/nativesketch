@@ -5,6 +5,9 @@ import { command, root, requireHost } from '../lib/context.ts';
 export async function buildMacos(profile: string = 'debug') {
   requireHost('darwin');
   if (!['debug', 'release'].includes(profile)) throw new Error('Expected debug or release');
+  const testControls = process.env.SKETCH_NATIVE_TEST_CONTROLS === '1';
+  if (profile === 'release' && testControls)
+    throw new Error('Native test controls require a debug build');
   const env = {
     SKETCH_RUST_PROFILE: profile,
     CLANG_MODULE_CACHE_PATH: join(root, '.build-cache/clang'),
@@ -15,7 +18,8 @@ export async function buildMacos(profile: string = 'debug') {
     'build',
     '--locked',
     '-p',
-    'sketch-ffi',
+    'sketch-native-ffi',
+    ...(testControls ? ['--features', 'native-test-controls'] : []),
     ...(profile === 'release' ? ['--release'] : []),
   ]);
   const flags = [
