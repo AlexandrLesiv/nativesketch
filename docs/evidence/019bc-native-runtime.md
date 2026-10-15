@@ -3,6 +3,9 @@
 Task 019B–E is not acceptance-ready. This records actual integration checkpoints, failures
 and review work; it does not certify native event delivery or the remaining refactoring plan.
 The branch remains a descendant of `codex/github-pages`; no main merge or release occurred.
+Subsequent reserved-desktop execution, newly found native failures and repairs are recorded
+in [desktop validation](019-native-desktop-validation.md); the earlier checkpoints below
+retain their original scope.
 
 ## Integrated checkpoints
 
@@ -104,8 +107,8 @@ FFI acceptance. Nine runtime acceptance rows map to discovered host executables 
 raw evidence until dedicated discovery lanes are modeled. The 20 compiled native cases preserve the
 five existing journeys and add asynchronous save, navigation, failure and recovery coverage.
 Preparation and headless checks do not constitute executable XCTest discovery or execution.
-Execute them in an explicitly reserved desktop session; the reservation request is pending.
-Designer inspection, broader accessibility,
+The subsequent reserved session enumerated and ran all 20 cases; attempt 15 has 11 raw
+passes and 9 failures, documented separately above. Broader designer inspection, accessibility,
 physical pen latency and other platform hosts remain separate, explicit evidence gaps.
 
 All new/extracted source remains subject to the 200-line gate. Five other-platform source

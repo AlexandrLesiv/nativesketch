@@ -7,11 +7,15 @@ ApplicationSession command router is integrated and independently reviewed at `f
 [router evidence](../docs/evidence/019a-application-routing.md). New C/runtime and native
 adoption (019B–E) are integrated locally, with native acceptance still pending, against the agreed
 [native interface v1](../docs/architecture/019bc-native-interface.md), frozen at `106abfe`
-and integrated as `c0b63da`. Twelve new native acceptance journeys are registered as planned
-in `quality/features/native-command-adapter.json`. Twenty native test cases compile; actual
-executable discovery/execution and designer inspection remain pending a reserved desktop
-session. Background integration and Wasm checks pass; reported runtime and shutdown review
-findings are repaired and closed, with remaining coverage limits recorded explicitly.
+and integrated as `c0b63da`. Twelve new native acceptance rows map to discovered executables
+in `quality/features/native-command-adapter.json`, with uncovered subcases retained. Twenty
+cases now execute: attempt 15 at `1fc0174` has 11 raw passes and 9 failures, so native
+acceptance remains pending. The designer reproduced the original ordinary Quit hang,
+which attempt 15 confirms repaired;
+first-launch private-root provisioning and pending-navigation presentation need the next
+native candidate. See [desktop validation](../docs/evidence/019-native-desktop-validation.md)
+for exact revisions, reviews and preserved failures. Background integration and Wasm checks
+pass; remaining coverage limits are recorded explicitly.
 See [runtime evidence](../docs/evidence/019bc-native-runtime.md).
 Save As keyboard delivery passes after
 the owner disabled a conflicting system shortcut; the original app binding was preserved.
