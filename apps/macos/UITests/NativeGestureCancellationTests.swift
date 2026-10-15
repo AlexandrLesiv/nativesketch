@@ -12,7 +12,8 @@ import XCTest
   private func verifyCancellation(resize: Bool) throws {
     continueAfterFailure = false
     let fixture = try NativeSessionFixture()
-    defer { fixture.record(in: self) }
+    let teardown = NativeGestureTeardown(fixture: fixture, test: self)
+    addTeardownBlock { await teardown.recordFixture() }
     try fixture.launch()
     fixture.draw(count: 1)
     let file = fixture.document("gesture-\(UUID().uuidString)")
@@ -23,10 +24,7 @@ import XCTest
     waitForSaved(fixture)
     let original = try Data(contentsOf: file)
     let native = try NativeGestureWindow(fixture: fixture, file: file)
-    defer {
-      record(native.projection, name: "final-gesture-projection")
-      do { try native.cleanup() } catch { XCTFail("Native gesture cleanup failed: \(error)") }
-    }
+    addTeardownBlock { try await teardown.cleanup(native) }
     record(
       "XCUIAutomation native Save/Undo; CGEvent.postToPid held mouse; AX resize; own runner window activation. No physical pen or direct editor commands.",
       name: "gesture-input-provenance")
@@ -90,5 +88,26 @@ import XCTest
     attachment.name = name
     attachment.lifetime = .keepAlways
     add(attachment)
+  }
+}
+
+/// XCTest invokes teardown blocks even when its assertion exception bypasses Swift defer.
+@MainActor private final class NativeGestureTeardown {
+  let fixture: NativeSessionFixture
+  let test: XCTestCase
+
+  init(fixture: NativeSessionFixture, test: XCTestCase) {
+    self.fixture = fixture
+    self.test = test
+  }
+
+  func recordFixture() { fixture.record(in: test) }
+
+  func cleanup(_ native: NativeGestureWindow) throws {
+    let attachment = XCTAttachment(string: native.projection)
+    attachment.name = "final-gesture-projection"
+    attachment.lifetime = .keepAlways
+    test.add(attachment)
+    try native.cleanup()
   }
 }

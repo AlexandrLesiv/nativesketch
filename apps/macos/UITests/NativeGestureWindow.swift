@@ -91,17 +91,17 @@ import XCTest
 
   func cleanup() throws {
     // Always release even if cancellation, an assertion, or a later save fails.
-    defer {
-      focusWindow?.close()
-      focusWindow = nil
-      if let originalActivationPolicy {
-        XCTAssertTrue(NSApplication.shared.setActivationPolicy(originalActivationPolicy))
-        self.originalActivationPolicy = nil
-      }
-    }
     var failures: [String] = []
     do { try pointer.release() } catch { failures.append("mouse-up: \(error)") }
     do { try setSize(originalSize) } catch { failures.append("size restoration: \(error)") }
+    focusWindow?.close()
+    focusWindow = nil
+    if let originalActivationPolicy {
+      if !NSApplication.shared.setActivationPolicy(originalActivationPolicy) {
+        failures.append("activation policy restoration rejected")
+      }
+      self.originalActivationPolicy = nil
+    }
     if !failures.isEmpty {
       throw NSError(
         domain: "NativeGestureCleanup", code: 1,
@@ -113,9 +113,13 @@ import XCTest
 
   private func setSize(_ requested: CGSize) throws {
     var value = requested
-    let encoded = try XCTUnwrap(AXValueCreate(.cgSize, &value))
-    XCTAssertEqual(
-      AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, encoded), .success)
+    guard let encoded = AXValueCreate(.cgSize, &value) else {
+      throw NSError(domain: "NativeGestureResize", code: 1)
+    }
+    let result = AXUIElementSetAttributeValue(window, kAXSizeAttribute as CFString, encoded)
+    guard result == .success else {
+      throw NSError(domain: "NativeGestureResize", code: Int(result.rawValue))
+    }
   }
 
   private static func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {

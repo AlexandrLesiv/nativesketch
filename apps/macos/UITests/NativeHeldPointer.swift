@@ -33,9 +33,12 @@ import XCTest
   }
 
   private func post(_ type: CGEventType, at location: CGPoint) throws {
-    let event = try XCTUnwrap(
-      CGEvent(
-        mouseEventSource: nil, mouseType: type, mouseCursorPosition: location, mouseButton: .left))
+    guard
+      let event = CGEvent(
+        mouseEventSource: nil, mouseType: type, mouseCursorPosition: location, mouseButton: .left)
+    else {
+      throw NSError(domain: "NativeGestureEvent", code: 1)
+    }
     event.setIntegerValueField(.mouseEventClickState, value: 1)
     event.postToPid(pid)
     point = location
