@@ -1,6 +1,17 @@
 # 019: Compose native macOS editor and complete brush E2E
 
 Status: waiting.
+Technical handoff: the remaining maintained gesture checks both pass in attempt 32 at
+clean `5933c5d`: real application deactivation and resize cancel held input before release,
+preserve saved bytes and retain correct subsequent drawing/Undo/Redo. Runtime provenance
+passes for both selected cases out of 45 discovered. The desktop is released; see the
+[final gesture evidence](../docs/evidence/019-gesture-automation-repair.md).
+The implementation and scoped native verification are ready for owner review. Board status
+remains waiting on unaccepted dependencies 018/021; no main merge or done status is implied.
+
+Historical preparation and verification checkpoints follow; their pending gesture statements
+are superseded by attempt 32 above. Broader coverage limits remain explicit.
+
 Local preparation: reviewed native composition and focused keyboard/field journeys are
 integrated; [native evidence](../docs/evidence/019-native-composition.md). The portable
 ApplicationSession command router is integrated and independently reviewed at `f4524fb`;

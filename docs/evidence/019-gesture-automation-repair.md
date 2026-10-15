@@ -1,6 +1,54 @@
 # Task 019: maintained gesture automation
 
-## Current checkpoint: resize verified, deactivation driver pending
+## Current checkpoint: both maintained gesture cases pass
+
+Attempt 32 executed both cases on clean `5933c5d5eabb776cf3bb7dc41f6fcc827cab937d`
+after the owner reserved 22:36:34–22:41:34 UTC on October 15 (01:36:34–01:41:34 Kyiv
+on October 16). Both passed, with xcodebuild exit 0: deactivation in 52.949 seconds and
+resize in 49.795 seconds. The complete target enumerated 45 cases; only these two ran.
+The lead confirmed that the owned Subject, focus helper and stable runner had exited and
+released the desktop early, around 22:39 UTC. No further foreground work is authorized.
+
+Both cases observe Interaction=2 while the pointer is held, then Interaction=0 before
+mouse-up. Resize changes the actual window from 1000×780 to 960×750. Deactivation now
+launches the paired disposable app, verifies its actual foreground identity and observes
+`subject.isActive=false`. Each case then checks unchanged saved bytes, successful new
+drawing, two Undo operations and Redo restoring the original bytes. The final document
+is clean with one stroke. These are synthetic native input checks, not physical pen tests.
+
+Evidence: `artifacts/evidence/019-native-runtime-attempt-32/`, including raw xcresult,
+selected/discovered IDs, normalized results, exported attachments, both preserved fixtures,
+`gesture-observations.json` and `focus-helper-validation.json`. Runtime provenance passes
+for both cases; host and loaded external test identities are verified after execution.
+
+- Subject SHA-256: `9b4587d779b1f66adb66545b8062db20e8b1f19db1cfd31a23af3269c67c7f34`.
+- Test SHA-256: `e797a2501171ff6a39194b7f329e222b8619dd28bcc46b8834d53d966d53165c`.
+- Focus helper SHA-256: `1e8bc295a49c39cafd86d6187e1faab1166c4ac3efef61faec8697bf19494a81`.
+- Stable host executable SHA-256: `8a7f4a10579762169dc27b4c7896555df84d14fc56ec471a5d4ffd14b00679eb`.
+
+The revision-bound report imports this run successfully. It reports zero complete acceptance
+rows out of 213 because these two cases alone do not satisfy any entire mapped requirement;
+no core tests or other native cases were executed by that reporting command. The two native
+passes remain explicit in the raw and normalized evidence. Log:
+`artifacts/verification/019-integrated-runtime/evidence-attempt32-5933c5d.log`.
+Earlier failures remain unchanged below. Physical pen behavior, VoiceOver speech, Shift-Tab,
+other-platform acceptance and owner acceptance of task dependencies remain separate.
+
+Fresh independent review read the actual xcresult and attachments, rehashed all three
+executables, checked actual focus-helper ownership/foreground PID and both preserved
+one-stroke files, and verified the executed cancellation/history assertions and teardown.
+No actionable finding remained. The broader focus acceptance row also maps nine other
+tests: this run does not rerun or certify those cases. Earlier designer acceptance remains
+scoped to the unchanged product interface; this repair changed test infrastructure only.
+
+The ordinary app was rebuilt without test controls after execution, without launching or
+replacing the existing running instance. Artifact: `artifacts/NativeSketch.app`; executable
+SHA-256: `6236ff6837c5753b67e3380e8964c76621ba43a53a42f91e08740f08f577e417`.
+Log: `artifacts/verification/019-integrated-runtime/ordinary-build-5933c5d.log`.
+The clean full integration check at `3f1f63c` covers the same implementation; `5933c5d`
+only adds documentation. No main merge, publication or owner acceptance is implied.
+
+## Earlier checkpoint: resize verified, deactivation driver pending
 
 The owner approved a new desktop session from 22:06:53 to 22:26:53 UTC on October 15
 (01:06:53–01:26:53 Kyiv on October 16). No foreground work continues after this cutoff.
@@ -73,9 +121,9 @@ then deliberately exited 1 at the foreground guard. No enumeration or UI ran. Ev
 - Focus helper SHA-256: `8c2c087cf712384274f98e45b569c72918c09c29750ad08f5360e3a6a8d5918b`.
 
 The frozen host identity is unchanged. The ordinary app was rebuilt afterward without
-launching it; preparation is not a native pass. Actual focus transfer with this helper
-requires a newly approved desktop run. Physical pen behavior and broader accessibility
-gaps remain separate. Task 019 is not marked complete.
+launching it; preparation was not a native pass. Attempt 32 above subsequently verified
+actual focus transfer with this helper. Physical pen behavior and broader accessibility
+gaps remain separate. Task 019 is not marked done without owner acceptance.
 
 ## Earlier preparation and failures
 

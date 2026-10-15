@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019 native acceptance. Automation existence is separate from revision-bound discovery/execution. Forty-five cases were discovered at7e3608d; attempt30 passed resize cancellation and attempt31 failed the actual-deactivation prerequisite. Historical results never become current-source passes.",
-  "sourceRevision": "3f1f63c76932a401b50842a327682db3e318e5c8",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound discovery/execution. At clean 5933c5d, attempt 32 discovered 45 cases and passed the two selected held-gesture cancellation cases, including actual resize and deactivation, saved bytes and Undo/Redo. Earlier failures are preserved. Historical results never become current-source passes.",
+  "sourceRevision": "5933c5d5eabb776cf3bb7dc41f6fcc827cab937d",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -242,12 +242,7 @@
         "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Attempt30 at7e3608d verifies actual held-stroke resize cancellation, saved bytes and Undo/Redo. Attempt31 observes held input but the helper fails to deactivate the Subject. A paired disposable focus-app repair is prepared/reviewed at3f1f63c; actual activation and deactivation cancellation still require a newly approved desktop run. Earlier failures remain retained.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     }
   ]
 }

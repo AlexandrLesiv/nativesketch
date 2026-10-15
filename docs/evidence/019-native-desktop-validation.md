@@ -7,6 +7,18 @@ and subsequently extended it through 2026-10-15 21:30 UTC (00:30 Kyiv on October
 
 ## Gesture continuation after the earlier session
 
+The final five-minute reservation began at 22:36:34 UTC on October 15. Attempt 32 at
+clean `5933c5d` passed both maintained held-gesture cases: actual application deactivation
+and window resize, cancellation before mouse-up, saved-byte preservation, subsequent
+drawing and Undo/Redo. Both passing cases have validated loaded-test provenance. The owned
+apps and runner exited, and the desktop was released early around 22:39 UTC. This closes
+the held-gesture automation gap; it is not a physical pen test or a full 45-case run.
+Exact identities, preserved fixtures and earlier failures are in the
+[gesture repair report](019-gesture-automation-repair.md).
+
+The following paragraphs preserve earlier checkpoints, superseded by attempt 32 for
+held-gesture acceptance only.
+
 The subsequent 22:06:53–22:26:53 UTC reservation verified the resize case in attempt 30
 at `7e3608d`. Attempt 31 reached held input but failed the actual-deactivation prerequisite;
 no deactivation cancellation pass is claimed. The desktop is released. Current outcomes,
