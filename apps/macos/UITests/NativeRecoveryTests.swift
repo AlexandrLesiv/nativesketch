@@ -13,6 +13,29 @@ import XCTest
     let enumerator = FileManager.default.enumerator(at: root, includingPropertiesForKeys: nil)
     return (enumerator?.allObjects as? [URL] ?? []).filter { $0.pathExtension == "nskr" }
   }
+  private func checkpointMetadata(_ url: URL) -> (revision: UInt64, strokes: UInt64)? {
+    guard let bytes = try? Data(contentsOf: url), bytes.count >= 88,
+      String(data: bytes.prefix(8), encoding: .utf8) == "NSRECOV1"
+    else { return nil }
+    func integer(_ offset: Int) -> UInt64 {
+      bytes[offset..<(offset + 8)].enumerated().reduce(UInt64(0)) {
+        $0 | UInt64($1.element) << (8 * $1.offset)
+      }
+    }
+    let nameLength = integer(48)
+    let payloadLength = integer(56)
+    guard nameLength <= 256, payloadLength >= 16, payloadLength <= 64 * 1024 * 1024,
+      UInt64(bytes.count) == 72 + nameLength + payloadLength
+    else { return nil }
+    let checksum = bytes.dropLast(8).reduce(UInt64(0xcbf2_9ce4_8422_2325)) {
+      ($0 ^ UInt64($1)) &* 0x100_0000_01b3
+    }
+    guard checksum == integer(bytes.count - 8) else { return nil }
+    let payload = 64 + Int(nameLength)
+    guard String(data: bytes[payload..<(payload + 8)], encoding: .utf8) == "NSKETCH1"
+    else { return nil }
+    return (integer(32), integer(payload + 8))
+  }
   private func showRecovery() -> XCUIElement {
     let f = fixture!
     f.app.menuBars.menuBarItems["File"].click()
@@ -76,12 +99,20 @@ import XCTest
     try f.launch()
     f.draw(count: 1)
     f.wait { self.checkpoints().count == 1 }
+    let firstIdentity = try XCTUnwrap(checkpoints().first).deletingLastPathComponent()
     f.app.typeKey("n", modifierFlags: .command)
     nativeFilePanel(in: f.app).buttons["Don’t Save"].click()
     f.strokes(0)
     f.draw(count: 1)
     f.draw(count: 2, y: 0.65)
-    f.wait { self.checkpoints().count >= 2 }
+    f.wait {
+      self.checkpoints().contains { url in
+        guard url.deletingLastPathComponent() != firstIdentity,
+          let metadata = self.checkpointMetadata(url)
+        else { return false }
+        return metadata.revision == 2 && metadata.strokes == 2
+      } && (f.canvas.value as? String ?? "").contains("Storage idle=true")
+    }
     f.app.terminate()
     try f.launch()
     let table = showRecovery()

@@ -20,6 +20,7 @@ import XCTest
     try f.release()
     f.diskStrokes(1, at: destination)
     f.wait { f.app.windows.firstMatch.title.contains(destination.lastPathComponent) }
+    f.wait { (f.canvas.value as? String ?? "").contains("Storage idle=true,dirty=true") }
     // Saving B must remain enabled and write the second stroke to the confirmed binding.
     f.app.typeKey("s", modifierFlags: .command)
     f.diskStrokes(2, at: destination)
