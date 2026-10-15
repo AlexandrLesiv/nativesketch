@@ -22,6 +22,7 @@ struct RenderBenchmarkPhase: Encodable {
   let missingCompletions: Int
   let missingPresentations: Int
   let coalescedOrMissingFrames: Int
+  let latestStatePresented: Bool
   let failures: UInt64
   let acquisitionFailureCount: UInt64
   let acquisitionFailureRecordsDropped: UInt64
@@ -29,6 +30,7 @@ struct RenderBenchmarkPhase: Encodable {
   let records: [RenderBenchmarkFrame]
   init(
     name: String, steps: Int, startedAt: Double, endedAt: Double, failures: UInt64,
+    latestStatePresented: Bool,
     acquisitionFailureCount: UInt64, acquisitionFailures: [RenderAcquisitionFailure],
     records: [RenderFrameRecord]
   ) {
@@ -38,6 +40,7 @@ struct RenderBenchmarkPhase: Encodable {
     wallSeconds = endedAt - startedAt
     requestedSteps = steps
     self.failures = failures
+    self.latestStatePresented = latestStatePresented
     self.acquisitionFailureCount = acquisitionFailureCount
     acquisitionFailureRecordsDropped = acquisitionFailureCount - UInt64(acquisitionFailures.count)
     acquisitionAttempts =

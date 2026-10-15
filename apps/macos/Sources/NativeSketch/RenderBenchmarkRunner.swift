@@ -122,6 +122,7 @@ import AppKit
         name: phase.0, steps: stepIndex, startedAt: phaseStartedAt,
         endedAt: ProcessInfo.processInfo.systemUptime,
         failures: owner.canvas.rendering.failures - phaseFailures,
+        latestStatePresented: owner.canvas.rendering.currentScenePresented,
         acquisitionFailureCount: owner.canvas.renderDiagnostics.acquisitionFailureCount,
         acquisitionFailures: owner.canvas.renderDiagnostics.failedAcquisitions(),
         records: owner.canvas.renderDiagnostics.snapshot()))
@@ -137,7 +138,7 @@ import AppKit
     if error == nil
       && report.phases.contains(where: {
         $0.failures > 0 || $0.missingCompletions > 0 || $0.missingPresentations > 0
-          || $0.records.isEmpty
+          || $0.records.isEmpty || !$0.latestStatePresented
       })
     {
       report.valid = false
