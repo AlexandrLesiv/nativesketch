@@ -6,6 +6,8 @@ import {
   requireValue,
 } from './validate.ts';
 
+import { matchesRequirement, mappingIssues, wasEnumerated } from './mappings.ts';
+
 const sameSource = (a: Source, b: Source) =>
   a.revision === b.revision && a.dirtyDiffSha256 === b.dirtyDiffSha256;
 
@@ -13,9 +15,7 @@ export function buildReport(features: Feature[], discovery: Discovery, execution
   validateFeatures(features);
   validateDiscovery(discovery);
   const tests = new Map(discovery.tests.map((test) => [test.id, test]));
-  const mapped = new Set(features.flatMap((f) => f.cases.flatMap((c) => c.testIds)));
-  const issues = [];
-  for (const id of mapped) if (!tests.has(id)) issues.push(`Undiscovered required test: ${id}`);
+  const issues = mappingIssues(features, discovery);
 
   const attempts: Map<
     string,
@@ -41,15 +41,15 @@ export function buildReport(features: Feature[], discovery: Discovery, execution
   const rows = features.flatMap((feature) =>
     feature.cases.flatMap((item) =>
       item.requirements.map((requirement) => {
-        const eligible = item.testIds.filter((id) => {
+        const coverage = requirement.coverage ?? item;
+        const absent = requirement.coverage?.testIds.filter((id) => !tests.has(id)) ?? [];
+        const incompatible = requirement.coverage?.testIds.some((id) => {
           const test = tests.get(id);
-          return (
-            test &&
-            test.platform === requirement.platform &&
-            test.level === requirement.level &&
-            (requirement.pointerWidth === undefined ||
-              test.pointerWidth === requirement.pointerWidth)
-          );
+          return test && !matchesRequirement(test, requirement);
+        });
+        const eligible = coverage.testIds.filter((id) => {
+          const test = tests.get(id);
+          return test && matchesRequirement(test, requirement);
         });
         const statuses = eligible.map((id) => {
           const test = tests.get(id);
@@ -71,36 +71,35 @@ export function buildReport(features: Feature[], discovery: Discovery, execution
           return states.find((state) => state !== 'passed') ?? 'passed';
         });
         const status =
+          (incompatible ? 'invalid-mapping' : undefined) ??
+          (absent.length
+            ? absent.some((id) => wasEnumerated(id, requirement, discovery))
+              ? 'invalid-mapping'
+              : 'missing-discovery'
+            : undefined) ??
           statuses.find((s) => s !== 'passed') ??
           (!eligible.length
             ? 'missing'
-            : item.gaps.length || item.automation !== 'implemented'
+            : coverage.gaps.length || coverage.automation !== 'implemented'
               ? 'gap'
               : 'passed');
         return {
           feature: feature.id,
           caseId: item.id,
           expected: item.expected,
-          ...requirement,
-          automation: item.automation,
+          platform: requirement.platform,
+          level: requirement.level,
+          pointerWidth: requirement.pointerWidth,
+          automation: coverage.automation,
           status,
-          testIds: eligible,
-          gaps: item.gaps,
+          testIds: requirement.coverage ? coverage.testIds : eligible,
+          discoveredTestIds: eligible,
+          gaps: coverage.gaps,
           attempts: eligible.flatMap((id) => (attempts.get(id) ?? []).map((r) => r.result)),
         };
       }),
     ),
   );
-  for (const item of features.flatMap((f) => f.cases)) {
-    for (const id of item.testIds) {
-      const test = tests.get(id);
-      if (
-        test &&
-        !item.requirements.some((r) => r.platform === test.platform && r.level === test.level)
-      )
-        issues.push(`Orphan mapping: ${item.id} -> ${id}`);
-    }
-  }
   return {
     schemaVersion: 1,
     source: discovery.source,

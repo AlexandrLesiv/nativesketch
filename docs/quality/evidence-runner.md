@@ -24,6 +24,9 @@ input from core tests.
 All malformed mappings fail independently of scope. `--require` selects acceptance IDs,
 not platforms: it deliberately cannot hide missing platforms within one acceptance case.
 Partial/planned automation and explicit gaps cannot pass even when mapped tests pass.
+Each requirement may carry a complete `coverage` override with `automation`, `testIds` and
+`gaps`; absent overrides inherit case defaults. This lets macOS automation be implemented
+without claiming implementation on other platforms.
 A failed attempt followed by pass is `flaky`; all attempts remain in the report. Stale
 source, binary mismatch, invalid environment, skip/blocked/unsupported cannot pass.
 
@@ -40,6 +43,31 @@ skipped. Cargo package and target names come from metadata and compiler output.
 The executable validator implements only the JSON Schema keywords used in the checked-in
 schemas; this is not a general JSON Schema service. Cross-record rules are additional.
 Failures/skips are data, not a reason to alter manifests or auto-update expectations.
+
+## Native mapping and absent host discovery
+
+BRUSH-001 and FILE-001 map only their macOS/native-e2e requirements to
+`xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen`. The actual journey passed
+at source `50dbeef880a589ee8a064d3dc18d4840aeadd793`; its historical artifacts are recorded in
+[the native evidence](../evidence/017-macos-e2e-foundation.md). Mapping this executable ID
+records automation existence, not a current-source execution pass. The ordinary background
+report has no native discovery and therefore shows those rows as `missing-discovery`.
+It never opens an app. Current native discovery and results must be imported explicitly.
+
+Discovery may declare `scopes: [{runner, platform, level}]` only after completed actual
+runner enumeration, including successful empty enumeration. Existing discovered tests
+also establish their runner/platform/level scopes for backward compatibility. Producers
+must provide the complete enumeration for a declared scope; filtered test execution does
+not establish enumeration completeness. Blocked setup and prepare-only builds omit scopes.
+No producer is granted successful enumeration merely by compiling or scanning source.
+
+For explicit requirement mappings, an absent ID in an enumerated matching scope is
+`invalid-mapping` and a report issue (including typos and zero-test completed enumeration).
+An absent scope is `missing-discovery`: a nonpassing gap, but a valid background report.
+Until that runner enumerates, the ID cannot be verified and no passing claim is possible.
+Legacy case-wide mappings keep their strict undiscovered-ID error behavior. Discovered
+IDs with the wrong platform, level or required pointer width are orphan mapping errors.
+The full gate and acceptance-case gate still reject every missing platform requirement.
 
 ## Remaining scope
 

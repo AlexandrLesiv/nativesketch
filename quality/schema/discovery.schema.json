@@ -74,6 +74,32 @@
           "binarySha256"
         ]
       }
+    },
+    "scopes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "runner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platform": {
+            "type": "string",
+            "minLength": 1
+          },
+          "level": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "runner",
+          "platform",
+          "level"
+        ]
+      }
     }
   },
   "required": [

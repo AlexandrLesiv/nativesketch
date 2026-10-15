@@ -1,4 +1,4 @@
-import type { Source, Discovery, Execution, Feature } from './types.ts';
+import type { Source, Discovery, Execution, Feature, Coverage } from './types.ts';
 import { loadSchema, validateSchema } from './schema.ts';
 const schemas = {
   feature: loadSchema('feature'),
@@ -30,6 +30,10 @@ export function validateDiscovery(discovery: Discovery) {
   unique(
     discovery.tests.map((test) => test.id),
     'discovery ID',
+  );
+  unique(
+    (discovery.scopes ?? []).map((s) => JSON.stringify([s.runner, s.platform, s.level])),
+    'enumeration scope',
   );
   for (const test of discovery.tests) {
     requireValue(
@@ -101,6 +105,16 @@ export function validateExecution(execution: Execution) {
   }
 }
 
+function validateCoverage(coverage: Coverage) {
+  unique(coverage.testIds, 'case test mapping');
+  for (const id of coverage.testIds)
+    requireValue(/^[a-z][a-z0-9-]*:.+/.test(id), 'Invalid mapping namespace');
+  for (const gap of coverage.gaps)
+    requireValue(gap.reason && /^\d{3}$/.test(gap.ownerTask), 'Invalid gap');
+  if (coverage.automation === 'implemented')
+    requireValue(coverage.testIds.length, 'Implemented case needs tests');
+}
+
 export function validateFeatures(features: Feature[]) {
   unique(
     features.map((feature) => feature.id),
@@ -127,17 +141,16 @@ export function validateFeatures(features: Feature[]) {
         ),
         'Unknown automation state',
       );
-      unique(item.testIds, 'case test mapping');
+      validateCoverage(item);
       requireValue(item.requirements.length > 0, 'Missing case requirements');
       unique(
         item.requirements.map((r) => `${r.platform}:${r.level}:${r.pointerWidth ?? ''}`),
         'requirement',
       );
-      for (const r of item.requirements) requireValue(r.platform && r.level, 'Invalid requirement');
-      for (const gap of item.gaps)
-        requireValue(gap.reason && /^\d{3}$/.test(gap.ownerTask), 'Invalid gap');
-      if (item.automation === 'implemented')
-        requireValue(item.testIds.length, 'Implemented case needs tests');
+      for (const r of item.requirements) {
+        requireValue(r.platform && r.level, 'Invalid requirement');
+        if (r.coverage) validateCoverage(r.coverage);
+      }
     }
   }
 }

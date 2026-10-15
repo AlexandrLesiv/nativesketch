@@ -60,6 +60,53 @@
                     32,
                     64
                   ]
+                },
+                "coverage": {
+                  "type": "object",
+                  "properties": {
+                    "automation": {
+                      "enum": [
+                        "planned",
+                        "partial",
+                        "implemented",
+                        "unsupported",
+                        "not-applicable"
+                      ]
+                    },
+                    "testIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "gaps": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "ownerTask": {
+                            "type": "string",
+                            "pattern": "^[0-9]{3}$"
+                          }
+                        },
+                        "required": [
+                          "reason",
+                          "ownerTask"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "automation",
+                    "testIds",
+                    "gaps"
+                  ]
                 }
               },
               "required": [

@@ -64,6 +64,7 @@ for (const path of inputs) {
       'Imported discovery has stale source',
     );
     discovery.tests.push(...envelope.tests);
+    discovery.scopes = [...(discovery.scopes ?? []), ...(envelope.scopes ?? [])];
   } else {
     validateExecution(envelope);
     for (const result of envelope.results) {

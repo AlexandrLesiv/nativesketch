@@ -28,7 +28,18 @@ export interface Result {
   os?: string;
   inputRoute?: string;
 }
+export interface Coverage {
+  automation: string;
+  testIds: string[];
+  gaps: { reason: string; ownerTask: string }[];
+}
+export interface EnumerationScope {
+  runner: string;
+  platform: string;
+  level: string;
+}
 export interface Requirement {
+  coverage?: Coverage;
   platform: string;
   level: string;
   pointerWidth?: number;
@@ -51,6 +62,7 @@ export interface Feature {
   cases: Case[];
 }
 export interface Discovery {
+  scopes?: EnumerationScope[];
   schemaVersion: number;
   source: Source;
   tests: DiscoveredTest[];

@@ -4,8 +4,8 @@ Tasks 015/017 provide the registry and executable Cargo/Node evidence report. Na
 macOS drawing/save/reopen now has a passing actual XCTest journey at `50dbeef`; other platform
 drivers and broader native journeys are pending. See the [native evidence](../evidence/017-macos-e2e-foundation.md)
 for exact test identity, failed development attempts and review limits. The cross-platform
-registry still retains conservative gaps; complete native-case mapping/report integration
-is remaining task 017 work. A successful imported execution alone does not change manifest
+registry maps BRUSH-001 and FILE-001 to that executable journey for macOS only; other
+platforms and broader journeys retain gaps. A successful imported execution alone does not change manifest
 automation state or certify every platform. The report is not complete passing coverage.
 See [runner commands and limitations](evidence-runner.md).
 
@@ -26,7 +26,10 @@ compiling its test target does not create discovered tests or passing results.
 Feature: stable feature ID, description, acceptance cases, applicability, owner task.
 Case: observable expected behavior, required levels per platform, linked invariant IDs,
 input/device capabilities, test mappings or gap with reason and responsible task.
-Mapping: runner, suite, stable executable test ID, level, platform and fixture identity.
+Requirement: optional complete `coverage` override (`automation`, `testIds`, `gaps`) scoped
+to its platform/level/pointer width. Otherwise the case-wide defaults apply. Overrides
+replace defaults completely; they must explicitly retain any gap applicable to that row.
+Mapping: runner-qualified stable executable test ID, level, platform and fixture identity.
 Execution: source revision + dirty diff hash when relevant, binary hash, toolchain/OS/device,
 test ID, attempt, status, duration, timestamp, logs/screenshots/traces, environment validity.
 
@@ -77,7 +80,9 @@ Test hooks may select fixtures/reset state but must not bypass the behavior clai
 
 ## Gates and reporting
 
-- Reject duplicate/unknown IDs, orphan mappings and required undiscovered tests.
+- Reject duplicate/unknown IDs, orphan mappings and required tests missing from an
+  enumerated runner scope. An absent native host enumeration is `missing-discovery`,
+  never passing evidence; background reporting does not launch native automation.
 - Discover tests from runners; matching a string in source is insufficient.
 - Validate test applicability, binary/revision identity and platform against requirements.
 - Report coverage dimensions separately: functional, recovery, accessibility, performance,

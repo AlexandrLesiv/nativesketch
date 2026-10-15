@@ -14,7 +14,14 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen"
+            ],
+            "gaps": []
+          }
         },
         {
           "platform": "ios",
@@ -53,7 +60,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "reason": "No native UI runner/test mapped for this platform journey. Smoke and replay checks are narrower evidence.",
           "ownerTask": "017"
         }
       ]
@@ -178,7 +185,14 @@
       "requirements": [
         {
           "platform": "macos",
-          "level": "native-e2e"
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen"
+            ],
+            "gaps": []
+          }
         },
         {
           "platform": "ios",
@@ -217,7 +231,7 @@
       "automation": "planned",
       "gaps": [
         {
-          "reason": "No native UI runner/test for this full journey discovered at the selected baseline. Smoke and replay checks are narrower evidence.",
+          "reason": "No native UI runner/test mapped for this platform journey. Smoke and replay checks are narrower evidence.",
           "ownerTask": "017"
         }
       ]
