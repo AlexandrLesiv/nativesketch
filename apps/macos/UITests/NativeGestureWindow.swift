@@ -9,8 +9,7 @@ import XCTest
   private let window: AXUIElement
   private let canvas: AXUIElement
   private let originalSize: CGSize
-  private var focusWindow: NSWindow?
-  private var originalActivationPolicy: NSApplication.ActivationPolicy?
+  private let focusHelper: NativeFocusHelper
 
   init(fixture: NativeSessionFixture, file: URL) throws {
     guard AXIsProcessTrusted() else {
@@ -48,6 +47,7 @@ import XCTest
       }, "Require exact native Save-bound disposable filename")
     canvas = try XCTUnwrap(Self.findCanvas(window))
     originalSize = try Self.size(window)
+    focusHelper = try NativeFocusHelper(fixture: fixture, subject: subject)
     XCTAssertEqual(interaction, 0, "Missing observation cannot stand in for idle")
   }
 
@@ -102,35 +102,16 @@ import XCTest
 
   func currentSize() throws -> CGSize { try Self.size(window) }
 
-  func deactivate() {
-    let helper = NSApplication.shared
-    originalActivationPolicy = helper.activationPolicy()
-    helper.setActivationPolicy(.regular)
-    let owned = NSWindow(
-      contentRect: NSRect(x: 40, y: 40, width: 260, height: 100),
-      styleMask: [.titled], backing: .buffered, defer: false)
-    owned.isReleasedWhenClosed = false
-    owned.title = "Native Sketch disposable gesture test"
-    focusWindow = owned
-    owned.makeKeyAndOrderFront(nil)
-    helper.activate(ignoringOtherApps: true)
-  }
+  func deactivate() throws { try focusHelper.activate() }
 
-  func hideFocusWindow() { focusWindow?.orderOut(nil) }
+  func dismissFocusHelper() throws { try focusHelper.terminate() }
 
   func cleanup() throws {
     // Always release even if cancellation, an assertion, or a later save fails.
     var failures: [String] = []
     do { try pointer.release() } catch { failures.append("mouse-up: \(error)") }
     do { try setSize(originalSize) } catch { failures.append("size restoration: \(error)") }
-    focusWindow?.close()
-    focusWindow = nil
-    if let originalActivationPolicy {
-      if !NSApplication.shared.setActivationPolicy(originalActivationPolicy) {
-        failures.append("activation policy restoration rejected")
-      }
-      self.originalActivationPolicy = nil
-    }
+    do { try focusHelper.terminate() } catch { failures.append("focus helper: \(error)") }
     if !failures.isEmpty {
       throw NSError(
         domain: "NativeGestureCleanup", code: 1,

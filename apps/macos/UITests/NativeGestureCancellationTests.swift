@@ -29,7 +29,7 @@ import XCTest
       try native.cleanup()
     }
     record(
-      "XCUIAutomation native Save/Undo; canvas-verified CGEvent session-tap held mouse; AX resize; own runner window activation. No physical pen or direct editor commands.",
+      "XCUIAutomation native Save/Undo and paired focus-helper activation; canvas-verified CGEvent session-tap held mouse; AX resize. No physical pen or direct editor commands.",
       name: "gesture-input-provenance")
     try native.begin()
     fixture.wait { (native.interaction ?? 0) > 0 }
@@ -41,14 +41,14 @@ import XCTest
       XCTAssertNotEqual(before, try native.currentSize())
       record("before=\(before), after=\(try native.currentSize())", name: "actual-window-resize")
     } else {
-      native.deactivate()
+      try native.deactivate()
       fixture.wait { !native.subject.isActive }
       record("subject.isActive=false", name: "actual-subject-deactivation")
     }
     fixture.wait { native.interaction == 0 }
     record(native.projection, name: "cancelled-before-mouse-up")
     try native.pointer.release()
-    native.hideFocusWindow()
+    try native.dismissFocusHelper()
     fixture.app.activate()
     fixture.wait { native.subject.isActive }
     fixture.strokes(1)

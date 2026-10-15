@@ -78,11 +78,11 @@ DEBUG AX observations expose actual focus and runtime quiescence, never force th
 Executable discovery and results must be imported independently: adding or compiling these
 tests does not close their runtime acceptance. The two maintained gesture cancellation cases
 combine XCUIAutomation Save/Undo with CGEvent held mouse input, AX native resize and a
-test-runner-owned window for deactivation. They require a strictly positive observed interaction
+paired disposable native app activated by XCUIAutomation for deactivation. They require a strictly positive observed interaction
 before cancellation, actual size/inactivity readback, and idle before releasing the pointer.
 After undoing a fresh stroke, a second Undo must remove the original stroke and Redo restore
-its exact saved bytes, excluding a hidden cancelled-draft history entry. Cleanup restores the
-test runner's previous activation policy as well as releasing the pointer and owned window.
+its exact saved bytes, excluding a hidden cancelled-draft history entry. Framework cleanup
+releases the pointer before terminating the paired helper and original subject.
 They prepare their UUID document through the existing native Save helper; the retired ad-hoc
 probe failed before drawing while locating the Go To path field. That failure was file-dialog
 setup evidence, not evidence of a canvas cancellation defect. Its retained traces remain failures.
@@ -119,6 +119,16 @@ external bundle, using required `NATIVE_SKETCH_TEST_BUNDLE_PATH` (absolute `.xct
 canonical bundle path, executable path and SHA-256 are attached before comparison. Missing,
 malformed or mismatched provenance fails before subject launch, including older raw-app
 journeys. Preparation does not prove that the external bundle was actually loaded at runtime.
+
+The deactivation driver requires `NATIVE_SKETCH_FOCUS_APP`, the canonical sibling
+`FocusSubject.app` with the subject's bundle ID plus `.focus`, and
+`NATIVE_SKETCH_FOCUS_BINARY_SHA256`, its recorded lowercase executable SHA-256. It checks
+path/ID/hash before launch, uses only its fixture's separate `focus-runtime` directory, and
+verifies the actual foreground process has the paired path and ID. A stale helper from
+another attempt is not an acceptable target. No storage-test gates or user stores are used.
+The earlier runner-owned NSWindow could not deactivate the subject; retained attempt 31
+is a driver failure, not a passing cancellation check. The paired-app driver requires a new
+reserved native run; background compilation does not close that coverage gap.
 
 ## Stable runner identity
 
