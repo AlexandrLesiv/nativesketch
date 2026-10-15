@@ -1,14 +1,27 @@
 import AppKit
 import CSketchSession
 
-@MainActor final class NativeEffectPresenter {
+@MainActor final class NativeEffectPresenter: NSObject {
   unowned let owner: EditorWindowController
   private var token: SketchEffectTokenV1?
   private var sheet: NSWindow?
   private var failureOperation: UInt64?
   private var failureSession: UInt64?
   private var pendingFailure: NativePendingFailure?
-  init(owner: EditorWindowController) { self.owner = owner }
+  private var observingSheetEnd = false
+  init(owner: EditorWindowController) {
+    self.owner = owner
+    super.init()
+  }
+  deinit { NotificationCenter.default.removeObserver(self) }
+  private func observeSheetEnd() {
+    guard !observingSheetEnd, let window = owner.window else { return }
+    observingSheetEnd = true
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(sheetEnded(_:)), name: NSWindow.didEndSheetNotification,
+      object: window)
+  }
+  @objc private func sheetEnded(_ notification: Notification) { schedulePendingFailure() }
 
   func chooseDestination(_ token: SketchEffectTokenV1) {
     guard begin(token) else { return }
@@ -92,6 +105,7 @@ import CSketchSession
     }
   }
   func failure(_ outcome: SketchOutcomeV1) {
+    observeSheetEnd()
     NativeDiagnostics.failure(
       "file-result", status: outcome.failure.code,
       session: outcome.failure.session)
@@ -151,6 +165,7 @@ import CSketchSession
     schedulePendingFailure()
   }
   private func begin(_ next: SketchEffectTokenV1) -> Bool {
+    observeSheetEnd()
     guard sheet == nil else { return false }
     token = next
     return true

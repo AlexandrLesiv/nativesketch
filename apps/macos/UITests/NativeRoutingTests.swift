@@ -53,6 +53,7 @@ import XCTest
     try FileManager.default.removeItem(at: directory)
     try f.release()
     f.wait { !f.app.staticTexts["sketch.recovery.status"].label.contains("Loading") }
+    f.wait { (f.canvas.value as? String ?? "").contains("Storage idle=true") }
     XCTAssertFalse(
       f.app.buttons["sketch.failure.cancel"].exists,
       "A save failure must not stack a sheet over recovery")

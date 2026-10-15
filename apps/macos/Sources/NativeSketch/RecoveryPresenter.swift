@@ -34,9 +34,8 @@ import CSketchSession
       if let requestedItem { _ = owner.documents.request(.recover(requestedItem)) }
       requestedItem = nil
       inventory.dismiss()
-      // AppKit finishes detaching the old sheet after its completion callback.
-      // Present the retained failure on the next owner turn, once the slot is free.
-      Task { @MainActor [weak owner] in owner?.documents.sheets.presentPendingFailure() }
+      // NativeEffectPresenter observes the parent's didEndSheet lifecycle before
+      // presenting any retained failure; this callback may precede detachment.
     }
     inventory.refresh()
   }
