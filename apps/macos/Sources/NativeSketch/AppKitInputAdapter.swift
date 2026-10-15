@@ -29,7 +29,9 @@ import CSketchFFI
   }
   func mouseDown(with event: NSEvent) {
     guard !editor.unavailable else { return }
-    canvas.window?.makeFirstResponder(canvas)
+    guard owner.inspectorController.fieldEditing.finishEditing(),
+      canvas.window?.makeFirstResponder(canvas) == true
+    else { return }
     start = canvas.point(event)
     if space {
       gesture = .pan

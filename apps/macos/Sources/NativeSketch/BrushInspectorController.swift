@@ -13,6 +13,9 @@ import CSketchFFI
   let apply = NSButton(title: "Apply", target: nil, action: nil)
   var toolbarControls: NSStackView!
   let inspector = NSPopover()
+  lazy var fieldEditing = NativeFieldEditingCoordinator(field: width) { [weak self] message in
+    self?.owner.status.stringValue = message
+  }
   func configure() {
     tool.selectedSegment = 0
     tool.target = owner.actions
@@ -31,6 +34,8 @@ import CSketchFFI
     formatter.maximum = 256
     formatter.maximumFractionDigits = 1
     width.formatter = formatter
+    width.delegate = fieldEditing
+    inspector.delegate = fieldEditing
     stepper.minValue = 0.1
     stepper.maxValue = 256
     stepper.increment = 1
@@ -65,13 +70,12 @@ import CSketchFFI
   @objc func showInspector(_ sender: Any?) {
     owner.canvas.cancel()
     if inspector.isShown {
-      inspector.close()
+      inspector.performClose(sender)
       return
     }
     inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
   }
   @objc func widthChanged(_ sender: Any?) {
-    width.doubleValue = min(256, max(0.1, width.doubleValue))
     stepper.doubleValue = width.doubleValue
   }
   @objc func widthStepped(_ sender: Any?) { width.doubleValue = stepper.doubleValue }
