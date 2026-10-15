@@ -17,3 +17,7 @@ pub use model::{Bounds, Brush, Document, Input, Sample, Stroke, Transform};
 pub use scene::PathCommand;
 pub const MAX_SAMPLES: usize = 100_000;
 pub const MAX_STROKES: usize = 10_000;
+pub use scene::{
+    RenderScene, RenderViewport, SceneCacheStats, SceneError, SceneLimits, SceneStroke,
+    StrokeGeometry, TransformPreview,
+};

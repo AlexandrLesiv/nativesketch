@@ -7,3 +7,8 @@ pub struct PathCommand {
     pub verb: u32,
     pub points: [f64; 6],
 }
+mod render_types;
+pub use render_types::{
+    RenderScene, RenderViewport, SceneCacheStats, SceneError, SceneLimits, SceneStroke,
+    StrokeGeometry, TransformPreview,
+};
