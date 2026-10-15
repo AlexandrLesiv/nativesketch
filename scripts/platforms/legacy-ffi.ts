@@ -9,7 +9,7 @@ const caseName = 'legacy-abi2-conformance';
 const testId = `c-abi:sketch-ffi:macos:${caseName}`;
 
 /** Actual C header/compiler/link/runtime acceptance; never opens an application. */
-export async function checkLegacyFfi(destination?: string) {
+export async function checkLegacyFfi(destination?: string, execute = command) {
   requireHost('darwin');
   const output = resolve(root, destination ?? `artifacts/evidence/legacy-ffi-${randomUUID()}`);
   await mkdir(output, { recursive: true });
@@ -23,7 +23,7 @@ export async function checkLegacyFfi(destination?: string) {
     const path = `${name}.log`;
     logs.push(path);
     try {
-      const text = await command(executable, args, { capture: true });
+      const text = await execute(executable, args, { capture: true });
       await writeFile(join(output, path), `${text}\n`);
       return text;
     } catch (error) {
@@ -34,7 +34,6 @@ export async function checkLegacyFfi(destination?: string) {
   const discovery: Discovery = {
     schemaVersion: 1,
     source,
-    scopes: [{ runner: 'c-abi', platform: 'macos', level: 'integration' }],
     tests: [],
   };
   const execution: Execution = { schemaVersion: 1, source, results: [] };
@@ -81,6 +80,7 @@ export async function checkLegacyFfi(destination?: string) {
     });
     const listed = await run('discovery', binary, ['--list']);
     if (listed !== caseName) throw new Error('Unexpected actual C consumer enumeration');
+    discovery.scopes = [{ runner: 'c-abi', platform: 'macos', level: 'integration' }];
     discovery.tests.push({
       id: testId,
       runner: 'c-abi',
