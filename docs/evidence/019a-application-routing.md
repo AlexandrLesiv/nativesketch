@@ -72,3 +72,22 @@ Snapshot admission is still synchronous O(document), outside input callbacks. No
 thread scheduling, latency, native text-field or physical-input behavior is claimed here.
 019B/C add versioned native interfaces and services; 019D/E adopt native presentation and run
 actual UI journeys. No Skia/Core Graphics changes, main merge or release occurred.
+
+## Integrated verification and independent closure
+
+Clean integrated revision `f4524fb893b04f5ca61f9ec10f056646b68522bd` passed 54 Node tests,
+129 Rust tests, macOS build and headless Swift/Rust integration, and format/lint/type/source/
+dependency gates. One inherited child-writer fixture remains ignored as a standalone test
+and is exercised by the process-kill parent tests. No additional native UI run was made.
+
+The executable evidence report maps all 24 routing tests into seven narrow portable/unit
+cases; all seven pass. Overall coverage remains incomplete: 192 rows, 32 passed, zero
+mapping issues. C/runtime/native adoption and foreign-host acceptance are not inferred.
+Raw integrated records are in `artifacts/verification/019a-integrated/`.
+
+Fresh review closed both findings at `1344d3d`: duplicate unbound Save chooser admission
+and lost ownership of rejected read failures. The reviewer independently ran 91 core tests,
+five public-API probes, formatting and Clippy. A separate integration review at `f4524fb`
+verified every mapped executable ID, result and binary hash and found no remaining mapping
+issues. Review records are in `artifacts/verification/019a-independent/`. The actual
+Wasm/native and 20 protocol-pair proof remains bound to the worker revision recorded above.

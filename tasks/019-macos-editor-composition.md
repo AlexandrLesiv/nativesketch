@@ -1,9 +1,11 @@
 # 019: Compose native macOS editor and complete brush E2E
 
 Status: waiting.
-Local preparation: independently reviewed mechanical extraction is integrated and tested
-at `91efb03`; [evidence](../docs/evidence/019-composition-extraction.md). Typed session/storage
-adoption and broader native acceptance remain pending. Save As keyboard delivery passes after
+Local preparation: reviewed native composition and focused keyboard/field journeys are
+integrated; [native evidence](../docs/evidence/019-native-composition.md). The portable
+ApplicationSession command router is integrated and independently reviewed at `f4524fb`;
+[router evidence](../docs/evidence/019a-application-routing.md). New C/runtime and native
+adoption (019B–E) and broader native acceptance remain pending. Save As keyboard delivery passes after
 the owner disabled a conflicting system shortcut; the original app binding was preserved.
 The [agreed staged bridge contract](../docs/architecture/019-session-bridge.md) defines 019A–E.
 Owner role: macos_ui (lead assigns concrete worker).
