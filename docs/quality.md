@@ -1,7 +1,9 @@
 # Quality and evidence
 
-Policy updated 2026-10-15. Current scripts below remain authoritative until their Node
-replacements pass parity. New quality tooling is planned, not installed by documentation.
+Policy updated 2026-10-15. Node orchestration and source/dependency gates are implemented;
+see [enabled commands and remaining tool/host gaps](quality/commands.md). macOS/core/Wasm/web
+replacements have local parity evidence. Retained platform scripts remain available until
+each native host is verified. The target gates below are not all implemented yet.
 See [tooling](quality/tooling.md), [feature coverage](quality/coverage.md),
 [platform E2E](quality/platforms.md), [reliability](quality/reliability.md), and
 [invariants](architecture/invariants.md). The [refactoring plan](refactoring-plan.md)
@@ -43,14 +45,18 @@ unless new changes or evidence justify it.
 
 ## Local baseline
 
-`./scripts/check` validates the task board, checks Rust formatting and clippy, runs the
+`node scripts/check.mjs` also validates/types/lints/formats new Node tooling, runs its
+negative tests, and enforces source-size and dependency boundaries. It validates the task board,
+checks Rust formatting and clippy, runs the
 Rust tests, builds the macOS shell, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
 editing, pressure replay, persistence, and FFI failure behavior. The Swift integration
 check covers geometry/style round-trips and editing through the actual C boundary.
 Running-app interaction, native event replay, Windows, physical tablets, and GPU or
 pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
-`./scripts/check --core` skips macOS and is suitable for a non-Mac Rust runner.
+`node scripts/check.mjs --core` skips macOS and is suitable for a non-Mac Rust runner.
+Install root dependencies with `npm ci --ignore-scripts` first. The old `./scripts/check`
+remains available as a parity reference, but does not include the new Node quality gates.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.
 
 ## Portable host checks

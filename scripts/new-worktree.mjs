@@ -12,6 +12,6 @@ await main(async () => {
     throw new Error('Commit intended base changes first; worktrees start from HEAD');
   await mkdir(join(root, '.worktrees'), { recursive: true });
   const path = join(root, '.worktrees', name);
-  await command('git', ['worktree', 'add', '-b', `agent/${name}`, path, 'HEAD']);
+  await command('git', ['worktree', 'add', '-b', `codex/${name}`, path, 'HEAD']);
   console.log(`Give the worker this checkout: ${path}`);
 });

@@ -1,7 +1,8 @@
 # Tooling and script migration
 
-Selected tool families, not an installed/pinned toolchain. Task 016 verifies current stable
-compatible versions, records exact pins and enables checks. Do not claim latest/best from
+Selected tool families. Task 016 has installed/pinned the Node toolchain and source/dependency
+gates; [commands](commands.md) distinguishes enabled checks from pending language/host adoption.
+Do not claim latest/best from
 an old conversation; review upstream compatibility when installing/upgrading.
 
 | Scope | Formatting / analysis | Testing |
@@ -26,12 +27,13 @@ Vite/tool installation size is not shipped app size.
 
 Use `.mjs` with JSDoc/type checking, one pinned Node LTS, explicit dependencies, Oxlint/Oxfmt.
 One small entry point dispatches to modules for build/check/run/E2E/result aggregation.
-Examples below are TARGET commands, unavailable until task 016 implements them:
+Current integration/build entry points are implemented by task 016. E2E entry points remain
+task 017 work:
 
 ```text
 node scripts/check.mjs
 node scripts/build.mjs --platform macos
-node scripts/test-e2e.mjs --platform windows
+# Planned, not implemented: node scripts/test-e2e.mjs --platform windows
 ```
 
 Use filesystem/path/process APIs, executable + argument arrays, explicit working directories,

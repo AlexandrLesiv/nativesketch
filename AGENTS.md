@@ -87,8 +87,10 @@ publishing or distributing releases. Keep implementation and checks complete bef
 requesting that approval. This is a workflow rule, not a configured branch-protection
 service; no remote or server-enforced merge policy exists yet.
 
-Run ./scripts/check for scaffold/integration changes; use narrower relevant checks
-for low-impact edits. State what passed, failed, and was not run. Evidence must identify
+Run node scripts/check.mjs for scaffold/integration changes after npm ci --ignore-scripts;
+use narrower relevant checks from docs/quality/commands.md for low-impact edits. Retained
+legacy scripts remain available until each host's parity is verified. State what passed,
+failed, and was not run. Evidence must identify
 the tested revision. Do not alter baselines or thresholds merely to get green checks.
 Do not describe the scaffold as a working drawing app.
 

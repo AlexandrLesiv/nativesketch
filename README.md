@@ -49,13 +49,14 @@ pen latency claim is made.
 
 ## Build and run
 
-Start on macOS with Rust 1.85+, Swift 6+ and a macOS SDK:
+Start on macOS with pinned Node 24.12.0, Rust 1.99.0, Swift 6+ and a macOS SDK:
 
 ```sh
-./scripts/check
-./scripts/run-macos
-./scripts/check --core
-./scripts/board
+npm ci --ignore-scripts
+node scripts/check.mjs
+node scripts/run.mjs --platform macos
+node scripts/check.mjs --core
+node scripts/board.mjs
 ```
 
 See prerequisites and behavior in [iOS](apps/ios/README.md),
@@ -63,6 +64,8 @@ See prerequisites and behavior in [iOS](apps/ios/README.md),
 [GTK](apps/linux/README.md), and [browser](apps/web/README.md) guides.
 Mobile device signing and store distribution are not configured. Build outputs are
 ignored under `artifacts/`, `target/`, and platform build directories.
+See [Node commands and verification gaps](docs/quality/commands.md). The legacy platform
+commands above remain available until their native-host replacements have verified parity.
 
 ## Limits and approval
 
