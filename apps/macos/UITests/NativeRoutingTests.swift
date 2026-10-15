@@ -47,13 +47,18 @@ import XCTest
     let destination = directory.appendingPathComponent("drawing.nsketch")
     try saveDocument(in: f.app, to: destination, saveAs: false, waitForWrite: false)
     try f.reached()
+    XCTAssertTrue((f.canvas.value as? String ?? "").contains("Save outstanding=1,preparing=0"))
     f.app.menuBars.menuBarItems["File"].click()
     f.app.menuItems["Recover Drawings…"].click()
     XCTAssertTrue(f.app.tables["sketch.recovery.list"].waitForExistence(timeout: 5))
     try FileManager.default.removeItem(at: directory)
     try f.release()
-    f.wait { !f.app.staticTexts["sketch.recovery.status"].label.contains("Loading") }
-    f.wait { (f.canvas.value as? String ?? "").contains("Storage idle=true") }
+    f.wait {
+      let status = f.app.staticTexts["sketch.recovery.status"].value as? String ?? ""
+      return status.contains("recovery copies") && !status.contains("Loading")
+    }
+    f.wait { (f.canvas.value as? String ?? "").contains("Save outstanding=0,preparing=0") }
+    XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
     XCTAssertFalse(
       f.app.buttons["sketch.failure.cancel"].exists,
       "A save failure must not stack a sheet over recovery")

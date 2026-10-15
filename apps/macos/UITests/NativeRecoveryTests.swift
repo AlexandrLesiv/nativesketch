@@ -126,7 +126,7 @@ import XCTest
     XCTAssertEqual(
       table.tableRows.count, 2, "Return must choose the non-destructive Cancel default")
     f.app.buttons["sketch.recovery.discard"].click()
-    f.app.buttons["Discard"].click()
+    f.app.buttons["sketch.recovery.confirm-discard"].click()
     f.wait { table.tableRows.count == 1 }
     XCTAssertTrue(
       table.staticTexts.containing(NSPredicate(format: "value CONTAINS 'revision 1'"))

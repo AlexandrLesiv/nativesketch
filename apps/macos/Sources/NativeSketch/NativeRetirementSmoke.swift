@@ -23,6 +23,10 @@ import CSketchSession
     ordering()
     pumpDecisions()
     try modalRetirement()
+    let waiting = NativeWaitingPanel(
+      navigation: SK_V1_NAV_CLOSE.rawValue, terminating: true)
+    precondition(waiting.cancelButton.keyEquivalent == "\r")
+    precondition(waiting.defaultButtonCell === waiting.cancelButton.cell)
   }
   /// Exercise the real timer and C runtime in AppKit's modal mode, without a window.
   private static func modalRetirement() throws {

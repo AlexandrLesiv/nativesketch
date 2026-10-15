@@ -46,6 +46,11 @@ import XCTest
     XCTAssertNotEqual(f.app.state, .notRunning)
     let cancel = f.app.buttons["sketch.navigation.cancel"]
     XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+    f.app.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
+    XCTAssertNotEqual(f.app.state, .notRunning)
+    f.app.typeKey("q", modifierFlags: .command)
+    XCTAssertTrue(cancel.waitForExistence(timeout: 5))
     f.app.typeKey(.escape, modifierFlags: [])
     XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
     XCTAssertNotEqual(f.app.state, .notRunning)

@@ -123,8 +123,10 @@ import CSketchSession
     let alert = NSAlert()
     alert.messageText = "Discard this recovery copy?"
     alert.informativeText = "This removes only the selected recovery generation."
-    alert.addButton(withTitle: "Cancel")
-    alert.addButton(withTitle: "Discard")
+    alert.addButton(withTitle: "Cancel").setAccessibilityIdentifier(
+      "sketch.recovery.confirm-cancel")
+    alert.addButton(withTitle: "Discard").setAccessibilityIdentifier(
+      "sketch.recovery.confirm-discard")
     alert.beginSheetModal(for: panel) { [weak self] response in
       if response == .alertSecondButtonReturn { self?.inventory.discard(id) }
     }
