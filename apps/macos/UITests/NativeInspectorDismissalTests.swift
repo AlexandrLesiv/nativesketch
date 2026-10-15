@@ -1,6 +1,31 @@
 import XCTest
 
 @MainActor final class NativeInspectorDismissalTests: XCTestCase {
+  func testSmallDarkWindowFitsInspectorAndAcceptsDrawing() throws {
+    continueAfterFailure = false
+    let fixture = try NativeSessionFixture()
+    defer { fixture.record(in: self) }
+    try fixture.launch(extraArguments: ["--small-window", "--appearance", "dark"])
+    let app = fixture.app
+    let window = app.windows["Untitled — Native Sketch"]
+    XCTAssertLessThanOrEqual(window.frame.width, 700)
+    XCTAssertLessThanOrEqual(window.frame.height, 600)
+    app.buttons["Style and Selection"].click()
+    let inspector = app.popovers.firstMatch
+    XCTAssertTrue(inspector.waitForExistence(timeout: 5))
+    for control in [app.textFields["sketch.brush.width"], app.colorWells["sketch.brush.color"]] {
+      XCTAssertTrue(control.exists)
+      XCTAssertTrue(inspector.frame.contains(control.frame))
+    }
+    let screenshot = XCTAttachment(screenshot: app.screenshot())
+    screenshot.name = "private-small-dark-inspector"
+    screenshot.lifetime = .keepAlways
+    add(screenshot)
+    app.buttons["Style and Selection"].click()
+    XCTAssertTrue(inspector.waitForNonExistence(timeout: 5))
+    fixture.draw(count: 1)
+  }
+
   func testInspectorEscapeRestoresCanvasKeyboardCommands() throws {
     let fixture = try NativeSessionFixture()
     defer { fixture.record(in: self) }
