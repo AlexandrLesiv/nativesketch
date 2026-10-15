@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "native-runtime",
   "description": "Scoped task019 native runtime regressions discovered from macOS Cargo executables. No native UI, physical input, arbitrary memory-corruption recovery, other host or complete FFI acceptance is inferred. Feature-only fault tests and the C consumer retain separate raw evidence until their runner lanes are modeled.",
-  "sourceRevision": "21327bd",
+  "sourceRevision": "bb49291",
   "cases": [
     {
       "id": "RUNTIME-RESOLUTION-001",
@@ -42,7 +42,7 @@
     },
     {
       "id": "RUNTIME-ROOT-001",
-      "expected": "A competing runtime cannot own the same recovery root, drawing/local I/O remains available, and disabled recovery is observable",
+      "expected": "The worker provisions fresh private recovery/diagnostic ancestors and produces real checkpoints, rejects unsafe paths without changing existing permissions, excludes competing root owners, and keeps drawing/local I/O available with observable degraded recovery",
       "invariants": ["ASYNC-001"],
       "ownerTask": "019",
       "requirements": [
@@ -53,7 +53,11 @@
       ],
       "testIds": [
         "cargo:sketch-services:macos:native_worker:exclusive_recovery_root_degrades_second_runtime_without_blocking_local_io",
-        "cargo:sketch-services:macos:native_worker:disabled_recovery_is_observable_and_ordered_registration_can_be_listed"
+        "cargo:sketch-services:macos:native_worker:disabled_recovery_is_observable_and_ordered_registration_can_be_listed",
+        "cargo:sketch-services:macos:native_first_launch:first_launch_nested_private_roots_support_registration_and_real_checkpoint",
+        "cargo:sketch-services:macos:native_private_roots:fresh_nested_roots_are_provisioned_privately_by_worker_and_reopen",
+        "cargo:sketch-services:macos:native_private_roots:non_directory_ancestor_is_rejected_without_overwrite",
+        "cargo:sketch-services:macos:native_private_roots:symlink_ancestors_and_permissive_existing_roots_are_rejected_unchanged"
       ],
       "automation": "implemented",
       "gaps": []
