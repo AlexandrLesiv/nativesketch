@@ -4,6 +4,24 @@ use crate::application::storage::{
     StorageError,
 };
 impl EditorSession {
+    /// A user-selected validated recovery becomes an editable, dirty, unbound new session.
+    pub fn new_recovered(
+        capabilities: Capabilities,
+        tool: ToolId,
+        brush: BrushSettings,
+        document: ValidatedDocument,
+    ) -> Result<Self, EditorError> {
+        if !capabilities.edit_document {
+            return Err(EditorError {
+                operation: Operation::Construct,
+                kind: FailureKind::ReadOnly,
+                context: None,
+            });
+        }
+        let mut session = Self::new(capabilities, tool, brush, Some(document))?;
+        session.editor.history.acknowledge_snapshot(None);
+        Ok(session)
+    }
     pub fn save_state(&self) -> SaveState {
         self.save
     }

@@ -1,0 +1,9 @@
+[package]
+name = "sketch-services"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+sketch-core = { path = "../sketch-core" }
