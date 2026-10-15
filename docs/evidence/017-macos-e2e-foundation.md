@@ -229,3 +229,34 @@ Reopened canvas attachment is `5D1EC14D-B183-4EF9-A1F6-CCD088DAD773.png`.
 The normalized duration (73.56 seconds) includes execution/report collection and is
 not a rendering or pen latency measurement. Attempts 1–6 remain failures at their
 original source revisions; this successful repair does not rewrite them as passes.
+
+## Integrated TypeScript runner: attempt 8 passed
+
+At clean `50dbeef880a589ee8a064d3dc18d4840aeadd793`, pinned Node 24.22.0 executed
+`scripts/test-e2e.ts --platform macos --interactive --attempt 8 --output artifacts/evidence/native-attempt-8`.
+The same real enumerated journey passed with successful runner finalization and valid
+environment. The app binary SHA-256 was
+`ccb9d330e401d2c888bacf53cb506861b48736395ce81164c043f70f58b844a7`;
+the test binary SHA-256 was
+`d5a4ed15d030ddae30b2047c75b0f114cc1256818730bad41ae4f3da1f1f8390`.
+Both drawings are 5,448 identical bytes, SHA-256
+`c84e36123938d23cecbdf31dd4737b233c83592d7e1022dd77926f0240c03a6a`.
+This verifies the migrated native runner on the integrated typed-session code, not just
+the earlier isolated implementation. Foreground testing ended after this run.
+
+A fresh reviewer independently checked source/discovery/execution identities, retained
+binary hash, finalization, byte equality and unchanged reviewed Swift test sources.
+No findings remained in this narrow journey. The designer reviewed attempt 7 screenshots,
+AX and execution artifacts rather than operating the app: native controls and visible
+saved/reopened ink are supported. Command-Shift-S and AX enabled-state reporting remain
+follow-ups in task 019. Field shortcuts, VoiceOver, other native journeys, other operating
+systems, physical pen input and latency remain unverified.
+
+The primary checkout retains attempt 8 under `artifacts/evidence/native-attempt-8/` and
+copies of all seven development attempts under `artifacts/evidence/native-development/`.
+These raw files remain ignored, including incidental system-menu information. The actual
+native envelopes imported successfully into the revision-bound report alongside shared
+core execution at `50dbeef`; the report retained 152 rows, 11 passing and no mapping issues.
+BRUSH-001/FILE-001 native manifest integration remains pending, so the matrix conservatively
+retains those gaps rather than promoting this narrow pass to cross-platform coverage.
+No main merge or deployment occurred.

@@ -2,8 +2,10 @@
 
 Status: waiting.
 Local preparation: registry/schema, Cargo/Node discovery and HTML/JSON reporting implemented;
-macOS XCTest driver builds, but native execution is blocked before discovery by console
-ownership. Task completion and upstream owner acceptance remain pending. See
+macOS XCTest drawing/save/reopen passed at clean `50dbeef` through the integrated TypeScript
+runner, with independent reviewer and designer artifact assessments. Console ownership is
+resolved. Native manifest mapping/report integration, broader journeys and upstream owner
+acceptance remain pending; this is not complete cross-platform coverage. See
 [runner](../docs/quality/evidence-runner.md) and
 [native evidence](../docs/evidence/017-macos-e2e-foundation.md).
 Owner role: build_reliability (lead assigns concrete worker).

@@ -45,8 +45,9 @@ changing runtime code. A fresh reviewer independently passed 44 Node tests, 51 R
 strict TypeScript/Oxc, size/dependency checks, Wasm/native-byte equivalence, all 20 frozen
 protocol pairs and the built web/precache checks. At clean `082bd14`, executable evidence
 discovery produced 152 acceptance/platform rows, 11 passing, no mapping issues and overall
-incomplete coverage. The reviewer found one stale native-test README command, assigned to
-the native-test integration. No other actionable migration findings remained.
+incomplete coverage. The reviewer found one stale native-test README command. It was corrected
+during native-test integration and independently rechecked at `247f3cb`; no migration findings
+remain open.
 
 At clean integrated `f64a288`, the lead repeated the complete background check (44 Node,
 51 Rust, all tooling gates and native Swift linking/headless smoke) and executable evidence
@@ -55,3 +56,7 @@ requirements passed; the report retained 152 rows, 11 passing and the remaining 
 Raw logs, reviewer evidence and the official checksum list are preserved in ignored
 `artifacts/verification/typescript-automation/`. Native interaction, other-host acceptance
 and remote CI are separate; no main merge or deployment was performed.
+
+The integrated `.ts` native runner subsequently passed the actual macOS drawing/save/reopen
+journey at clean `50dbeef`; see [native evidence](../evidence/017-macos-e2e-foundation.md).
+This explicit foreground commit-verification run does not change background check policy.

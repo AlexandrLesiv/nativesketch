@@ -1,8 +1,12 @@
 # Feature coverage and E2E evidence
 
 Tasks 015/017 provide the registry and executable Cargo/Node evidence report. Native
-macOS tests compile but remain blocked before discovery/execution; other platform drivers
-are pending. The report is populated with explicit gaps, not complete passing coverage.
+macOS drawing/save/reopen now has a passing actual XCTest journey at `50dbeef`; other platform
+drivers and broader native journeys are pending. See the [native evidence](../evidence/017-macos-e2e-foundation.md)
+for exact test identity, failed development attempts and review limits. The cross-platform
+registry still retains conservative gaps; complete native-case mapping/report integration
+is remaining task 017 work. A successful imported execution alone does not change manifest
+automation state or certify every platform. The report is not complete passing coverage.
 See [runner commands and limitations](evidence-runner.md).
 
 ## Three sources of truth

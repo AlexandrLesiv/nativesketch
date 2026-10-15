@@ -21,6 +21,22 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
 - Preserve cancellation, coalesced samples, missing pressure, selection and keyboard access; instrument operation boundaries.
 - Run real UI journeys, AX/keyboard/focus/display/resize checks, designer review; record real pen versus replay and unavailable hardware.
 
+## Findings carried from task 017
+
+- Command-Shift-S failed to expose a Save As panel in native attempt 6, despite a defined
+  shortcut/enabled menu. The native File → Save As menu passes. Diagnose responder/menu
+  routing and test the shortcut independently with canvas focus; do not infer keyboard
+  equivalence from the menu journey.
+- Final AX snapshots report application/window/canvas Disabled with canvas keyboard focus.
+  Investigate actual enabled attributes and VoiceOver behavior; the successful mouse journey
+  does not certify accessibility or establish the cause of that reporting.
+- On the next relevant UI-test change, capture the inspector after committed width/color
+  and capture the expanded native color-profile menu without window-boundary cropping.
+  Existing AX and strict saved-color assertions support the current narrow journey.
+
+These findings came from actual task 017 artifacts and the designer review, not a new
+requirement to run native UI on every background check.
+
 ## Required evidence
 
 Name affected acceptance/invariant IDs, executable test mappings, exact source/diff and
