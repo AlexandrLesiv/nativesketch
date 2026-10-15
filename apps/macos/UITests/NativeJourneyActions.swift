@@ -34,7 +34,13 @@ func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
   app.typeKey("s", modifierFlags: saveAs ? [.command, .shift] : .command)
   let panel = app.dialogs.firstMatch
   XCTAssertTrue(panel.waitForExistence(timeout: 5))
-  try navigateFilePanel(app, to: url)
+  let name = panel.textFields["saveAsNameTextField"]
+  XCTAssertTrue(name.waitForExistence(timeout: 5))
+  name.click()
+  name.typeKey("a", modifierFlags: .command)
+  name.typeText(url.lastPathComponent)
+  try navigateFilePanel(app, to: url.deletingLastPathComponent())
+  XCTAssertTrue(panel.buttons["Save"].isEnabled)
   panel.buttons["Save"].click()
   let saved = XCTNSPredicateExpectation(
     predicate: NSPredicate { _, _ in
@@ -57,9 +63,12 @@ func openDocument(in app: XCUIApplication, at url: URL) throws {
 @MainActor
 private func navigateFilePanel(_ app: XCUIApplication, to url: URL) throws {
   app.typeKey("g", modifierFlags: [.command, .shift])
-  let field = app.comboBoxes.firstMatch
+  let sheet = app.sheets["GoToWindow"]
+  XCTAssertTrue(sheet.waitForExistence(timeout: 5))
+  let field = sheet.textFields["PathTextField"]
   XCTAssertTrue(field.waitForExistence(timeout: 5))
+  field.typeKey("a", modifierFlags: .command)
   field.typeText(url.path)
   field.typeKey(.return, modifierFlags: [])
-  XCTAssertTrue(field.waitForNonExistence(timeout: 5))
+  XCTAssertTrue(sheet.waitForNonExistence(timeout: 5))
 }

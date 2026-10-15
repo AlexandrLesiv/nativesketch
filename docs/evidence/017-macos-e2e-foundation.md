@@ -146,3 +146,16 @@ before the gesture. This does not establish an additional popover bug. The drive
 explicitly waits for Colors and inspector closure before drawing, and preserves a pre-drag
 canvas screenshot. It does not inject domain commands or create an extra stroke for focus.
 The lead independently checked the SDK distinction before authorizing this next repair.
+
+## Native Save selector correction after attempt 3
+
+On clean `bc4a3f4`, the native mouse route committed one stroke and all three independent
+red-pixel patches passed. Attempt 3 then reached the actual Save panel and failed at an
+outdated combo-box query. Its AX attachment identifies the Go To sheet as `GoToWindow`
+and its text field as `PathTextField`. The compact Save panel independently exposes
+`saveAsNameTextField`. The helper now selects/replaces those native field values, navigates
+to the parent directory and enters the new filename separately for Save. Open retains
+the existing-file path route. Sheet dismissal and Save enablement are checked before
+proceeding. The lead verified these observations before authorizing the next attempt.
+All failed attempt 3 artifacts remain under `artifacts/evidence/native-attempt-3/`.
+No saved-file or full journey pass is inferred from its successful drawing segment.
