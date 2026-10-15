@@ -3,13 +3,13 @@ import CSketchFFI
 
 @MainActor enum Integration {
   static func run() {
-    let poisoned = Editor()
+    let poisoned = LegacyEditorBridge()
     precondition(poisoned.observe(6) == 6 && poisoned.handle == nil)
     precondition(poisoned.state.stroke_count == 0 && poisoned.commands().isEmpty)
     poisoned.observe(6)  // idempotent discard
     poisoned.reset()
     precondition(poisoned.handle != nil && poisoned.state.stroke_count == 0)
-    let e = Editor()
+    let e = LegacyEditorBridge()
     func ok(_ status: UInt32) { precondition(status == 0, "FFI status \(status)") }
     func stroke(_ pressure: Bool) {
       ok(
@@ -79,7 +79,7 @@ import CSketchFFI
     let corrupt = directory.appendingPathComponent("corrupt.nsketch")
     try! Data("invalid document".utf8).write(to: corrupt)
     precondition(e.file(corrupt, save: false) != 0 && geometry() == unsaved)
-    let fresh = Editor()
+    let fresh = LegacyEditorBridge()
     ok(fresh.file(url, save: false))
     precondition(fresh.commands().count == resized.count / 12)
     print(
@@ -87,7 +87,7 @@ import CSketchFFI
     )
   }
   static func timing() {
-    let editor = Editor()
+    let editor = LegacyEditorBridge()
     var appendTimes: [Double] = []
     var copyTimes: [Double] = []
     var rows = ["iteration,sample,input_append_us,path_copy_us"]
