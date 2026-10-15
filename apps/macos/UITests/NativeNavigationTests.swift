@@ -46,6 +46,10 @@ import XCTest
     XCTAssertNotEqual(f.app.state, .notRunning)
     let cancel = f.app.buttons["sketch.navigation.cancel"]
     XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+    let waiting = XCTAttachment(screenshot: f.app.screenshot())
+    waiting.name = "native-finishing-save-panel"
+    waiting.lifetime = .keepAlways
+    add(waiting)
     f.app.typeKey(.return, modifierFlags: [])
     XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
     XCTAssertNotEqual(f.app.state, .notRunning)
