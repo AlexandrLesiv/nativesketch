@@ -157,3 +157,11 @@ proof are under `artifacts/evidence/019-native/{native-field-validation,native-f
 review records are under `artifacts/verification/{019-field-independent,019-followup-independent}`.
 The native registry maps the narrow field-validation case and keeps broader FOCUS-001
 partial. Historical worker proof is not relabeled as an integrated-revision native run.
+
+Clean integrated `cced859` passed the full background integration command: 54 Node tests,
+105 Rust tests (one standalone child fixture ignored), macOS build and headless Swift/Rust
+smoke, format/lint/type and source/dependency gates. Five oversized legacy platform files
+remain migration debt. Actual evidence discovery/reporting passed with zero mapping issues:
+185 rows, 25 passed; four narrow keyboard/field native cases correctly remain
+missing-discovery at this integrated revision. The exact native worker runs above provide
+their historical UI proof. Local integrated logs/report: `artifacts/verification/019-integrated/`.
