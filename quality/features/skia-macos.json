@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "id": "skia-macos",
+  "description": "Task 020 acceptance separates portable scene geometry, host Skia pixels and actual native presentation. Automation mappings are not execution results.",
+  "sourceRevision": "10b05487e438cc918f878fe72dafe1d2f6900f3c",
+  "cases": [
+    {
+      "id": "SKIA-VISUAL-001",
+      "expected": "Cached and reference rendering preserve geometry, pixels, order and clipping.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:budgets::eviction_clear_and_zero_retention_preserve_reference_geometry_across_viewports"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-ALPHA-001",
+      "expected": "Actual and predicted contours fill once; translucent live and committed ink retain opacity.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::committed_root_is_shared_through_predictions_and_commit_has_no_duplicate_ink"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-COMMIT-001",
+      "expected": "Stroke and transform commits present once, retaining ordered content and undo semantics.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::committed_root_is_shared_through_predictions_and_commit_has_no_duplicate_ink",
+              "cargo:sketch-core:scene_cache:lifecycle::committed_transform_undo_redo_reuse_geometry_but_update_presentation_metadata"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-INVALIDATE-001",
+      "expected": "Cancel, undo, delete, document replacement and eviction never resurrect old content.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::cancellation_id_reuse_new_session_and_import_never_reuse_wrong_geometry",
+              "cargo:sketch-core:scene_cache:budgets::eviction_clear_and_zero_retention_preserve_reference_geometry_across_viewports"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-VIEWPORT-001",
+      "expected": "Culling, pan, zoom and density preserve geometry and point-sized native adornments.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:visibility::antialias_margin_predictions_and_transform_crossing_are_not_culled_incorrectly",
+              "cargo:sketch-core:scene_cache:visibility::large_coordinate_geometry_keeps_small_local_differences_in_f64"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-SURFACE-001",
+      "expected": "Missing drawables, stale work and context recreation preserve state and resume latest rendering without spinning.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-NATIVE-001",
+      "expected": "AppKit controls, focus, shortcuts, cancellation and accessibility remain intact with the Metal canvas.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Skia native presentation and interaction verification await implementation and an explicitly reserved desktop session.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Actual Skia pixels, native presentation and renderer lifecycle require distinct evidence; core geometry alone is insufficient.",
+          "ownerTask": "020"
+        }
+      ]
+    }
+  ]
+}
