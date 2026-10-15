@@ -1,7 +1,9 @@
 # macOS typed-session integration contract
 
-Agreed implementation boundary after reviewed task 021 services. This document does
-not claim new symbols or migrated native callers. The existing ABI 2 and Wasm 1 stay intact.
+Agreed implementation boundary after reviewed task 021 services. The concrete
+[native v1 declarations](019bc-native-interface.md) are frozen at `106abfe` (integrated
+as `c0b63da`). Implementation and native caller adoption are in progress; declarations
+alone are not executable evidence. The existing ABI 2 and Wasm 1 stay intact.
 The initial native extraction remains a compatibility step; it must not create another
 Swift authority for brush, tool, document, history or saved revision.
 
@@ -12,8 +14,10 @@ Swift authority for brush, tool, document, history or saved revision.
   save coordinator, ordered bounded read/write service, destination/event registries,
   recovery scheduling and diagnostics. The FFI validates C values and ownership; it does
   not implement another set of editing or file rules.
-- An additive, independently versioned C session interface wraps `ApplicationSession`; legacy
-  `SketchEditor` symbols and numeric statuses retain their existing semantics.
+- An additive, independently versioned `sketch-native-ffi` C session interface wraps
+  `ApplicationSession` and the services runtime. Swift imports only `CSketchSession`, whose
+  include graph cannot expose legacy entry points. Legacy `SketchEditor` symbols and numeric
+  statuses remain in the separate `sketch-ffi` crate with their existing semantics.
 - One Swift `@MainActor` bridge owns each session handle and frees it once. All session
   calls, including destruction, occur on that owner. Worker code never receives the handle.
 - One application-owned service bridge owns the process-wide save coordinator and bounded
@@ -76,7 +80,8 @@ text retains field focus and must not start ink with a silently different brush 
 
 ## Save and completion ownership
 
-The native file panel resolves a private access grant and canonical destination identity.
+The native file panel supplies a private access grant and copied location descriptor;
+the worker resolves the canonical destination identity without filesystem work on the UI owner.
 The application service retains that grant until its terminal receipt is drained, including
 after a window closes. Existing-file aliases and nonexistent-file identity use one documented
 native resolver: resolve the existing parent identity plus the proposed leaf for new files;
@@ -87,7 +92,10 @@ validation/canonicalization and `DestinationAccess` construction run on the work
 UI owner. An issued terminal event releases the retained grant. Reads share accepted ordering
 with writes: Open must not overtake an accepted Save and observe obsolete bytes.
 Snapshot admission runs on the session owner, outside pen callbacks, with capacity reserved
-before copying. It captures the exact requested revision. The service worker owns encoding
+before copying. For a newly chosen destination it captures the current committed revision
+at resolved admission, not the earlier panel click. Readiness defers while a newer stroke
+is active and is retried in a later owner turn. An unresolved runtime barrier rejects later
+I/O admissions as Busy before mutation, across windows; editing stays available. The service worker owns encoding
 and staged writes; Swift never serializes a document or marks it clean independently.
 
 An issued completion is consumed once. Its session, revision, destination, binding generation

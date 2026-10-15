@@ -5,7 +5,11 @@ Local preparation: reviewed native composition and focused keyboard/field journe
 integrated; [native evidence](../docs/evidence/019-native-composition.md). The portable
 ApplicationSession command router is integrated and independently reviewed at `f4524fb`;
 [router evidence](../docs/evidence/019a-application-routing.md). New C/runtime and native
-adoption (019B–E) and broader native acceptance remain pending. Save As keyboard delivery passes after
+adoption (019B–E) are now in implementation against the agreed
+[native interface v1](../docs/architecture/019bc-native-interface.md), frozen at `106abfe`
+and integrated as `c0b63da`. Twelve new native acceptance journeys are registered as planned
+in `quality/features/native-command-adapter.json`; broader native acceptance remains pending.
+Save As keyboard delivery passes after
 the owner disabled a conflicting system shortcut; the original app binding was preserved.
 The [agreed staged bridge contract](../docs/architecture/019-session-bridge.md) defines 019A–E.
 Owner role: macos_ui (lead assigns concrete worker).
