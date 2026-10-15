@@ -34,6 +34,13 @@ import AppKit
     }
     return generation
   }
+  func captureForPresentation() -> UInt64 {
+    if pending && session == owner.editor.projection.session {
+      pending = false
+      return generation
+    }
+    return capture()
+  }
   func isCurrent(_ expected: UInt64) -> Bool {
     expected == generation && session == owner.editor.projection.session
   }
@@ -42,8 +49,10 @@ import AppKit
     origin = nil
     pending = false
   }
-  func cancelled(session expected: UInt64) {
-    guard expected == session else { return }
+  func cancelled(session expected: UInt64, generation expectedGeneration: UInt64? = nil) {
+    guard expected == session,
+      expectedGeneration == nil || expectedGeneration == generation
+    else { return }
     pending = true
     schedule()
   }

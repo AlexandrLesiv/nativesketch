@@ -39,7 +39,7 @@ import CSketchSession
       if let requestedItem {
         _ = owner.documents.request(.recover(requestedItem), preservingFocus: focusGeneration)
       } else {
-        owner.focusRestoration.cancelled(session: session)
+        owner.focusRestoration.cancelled(session: session, generation: focusGeneration)
       }
       requestedItem = nil
       inventory.dismiss()

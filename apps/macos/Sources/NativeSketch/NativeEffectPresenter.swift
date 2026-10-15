@@ -122,6 +122,7 @@ import CSketchSession
     let retry = SessionCommand.retry(outcome.retry_action)
     sheet = alert.window
     let session = owner.editor.projection.session
+    let focusGeneration = owner.focusRestoration.captureForPresentation()
     alert.beginSheetModal(for: owner.window) { [weak self] response in
       guard let self, failureSession == session else { return }
       sheet = nil
@@ -129,11 +130,13 @@ import CSketchSession
       failureOperation = nil
       guard owner.editor.projection.session == session else { return }
       if let retry, response == .alertFirstButtonReturn {
-        owner.documents.request(retry)
+        owner.documents.request(retry, preservingFocus: focusGeneration)
       } else if response.rawValue == NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
         + (retry == nil ? 0 : 1)
       {
-        owner.documents.request(.saveAs)
+        owner.documents.request(.saveAs, preservingFocus: focusGeneration)
+      } else {
+        owner.focusRestoration.cancelled(session: session, generation: focusGeneration)
       }
       schedulePendingFailure()
     }
