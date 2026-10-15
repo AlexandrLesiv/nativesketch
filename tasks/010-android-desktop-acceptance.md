@@ -1,7 +1,7 @@
 # 010: Android, ChromeOS and Googlebook port acceptance
 
 Status: waiting. Roles: ui_ux_designer, rust_engine, build_reliability, reviewer.
-Dependencies: 002, 008.
+Dependencies: 008, 022.
 
 Complete native Kotlin/Material Views acceptance on Android phones/tablets and compatible ChromeOS/Googlebook systems. Continue the existing ARM64/x86-64 implementation; adapt by window/input capabilities, not branding. Verify actual runtime availability on each target before promising support.
 
@@ -15,3 +15,14 @@ Acceptance:
 - Deliver real-device/OS evidence, final designer assessment and fresh review. Emulator results alone do not certify ChromeOS/Googlebook.
 
 Existing evidence: docs/evidence/008-android-desktop.md. Production network storage is separate.
+
+## Architecture refactoring acceptance
+
+Follow [the selected architecture](../docs/architecture.md) and task 022 contracts.
+Skia is selected; task 002 historical results are not a new implementation prerequisite.
+Use native presenters/input adapters and <=200 physical lines per handwritten source/test.
+Map acceptance/invariant IDs to executable tests and actual revision/platform results.
+Run the applicable [native E2E and quality lanes](../docs/quality/platforms.md); injected
+replay, screenshots and cross-host compilation do not replace real UI acceptance.
+Preserve viewer versus editor capabilities, structured diagnostics and failure recovery.
+Native UI/GPU runs are exclusive; missing hardware or unsupported automation remains a gap.

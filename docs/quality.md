@@ -1,5 +1,42 @@
 # Quality and evidence
 
+Policy updated 2026-10-15. Current scripts below remain authoritative until their Node
+replacements pass parity. New quality tooling is planned, not installed by documentation.
+See [tooling](quality/tooling.md), [feature coverage](quality/coverage.md),
+[platform E2E](quality/platforms.md), [reliability](quality/reliability.md), and
+[invariants](architecture/invariants.md). The [refactoring plan](refactoring-plan.md)
+assigns implementation owners and gates.
+
+## Required target gates and adoption
+
+| Gate | Owner | Implementation task / scope |
+| --- | --- | --- |
+| Format/lint/type and <=200 physical source lines | build_reliability + implementers | 016; new/extracted files comply immediately |
+| Dependency/FFI boundaries | rust_engine + build_reliability | 015/016/018; verify violating fixtures |
+| Acceptance/invariant IDs and executable mappings | implementers + reviewer | 015/017; feature manifests and real runner discovery |
+| Platform E2E | platform implementer | 017/019/022 and port tasks; real UI route |
+| Error diagnostics and recovery | implementers + build_reliability | 021; failure injection and redaction |
+| Render/cache equivalence and performance | rendering_performance | 020/023; release builds on named hardware |
+| Fuzz/property/sanitizer and dependency checks | rust_engine + build_reliability | 018/023; supported configurations only |
+| Accessibility and native behavior | ui_ux_designer + platform implementer | 019 and port tasks; separate automation/runtime evidence |
+| Package/upgrade/symbol checks | build_reliability | 024; selected distribution, no publishing implied |
+
+Review policy applies now. Until an automated gate exists, report its manual evidence or
+gap. Do not claim automation from policy text. Existing oversized files are enumerated debt:
+new/extracted files <=200; touched oversized files cannot grow and have an extraction task.
+Final refactor acceptance requires zero handwritten source violations. Do not compress code,
+hide executable code in data or split a coupled object into arbitrary fragments.
+
+For each change, name acceptance cases and invariant IDs before implementation. Native
+E2E, bridge/replay, core tests and physical-device checks remain distinct. Required missing,
+skipped, flaky or unsupported evidence cannot be silently reported as passing. Generate a
+feature/platform matrix from manifests, discovered tests and revision-specific results.
+Code coverage percentages supplement this matrix; they do not prove user journeys.
+
+Use fast deterministic checks per change; affected native E2E per integration; longer fuzz,
+sustained and hardware checks in explicitly provisioned jobs or release validation. Do not
+create recurring automation/runners merely because this policy describes a cadence.
+
 Use checks proportionate to the changed behavior. Do not write tests that merely repeat
 constants or implementation details. Do not rerun unrelated suites after successful checks
 unless new changes or evidence justify it.

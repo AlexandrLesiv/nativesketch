@@ -11,4 +11,13 @@ boundaries. No unwinding across FFI. Coordinate interface changes before modifyi
 Use behavior and invariant tests for meaningful editing/persistence risks; include failure
 and cancellation cases. Run relevant format, lint, and test checks. Report exact results,
 tested revision, remaining limitations, and any interface changes. Do not merge main.
+With the lead, own architecture planning: dependency direction, state/type/module ownership,
+commands/queries/effects, errors, thread affinity, file map and acceptance/invariant IDs.
+Read docs/architecture/contracts.md, runtime.md and invariants.md before contract changes.
+Keep new/extracted source/tests <=200 physical lines; preserve ABI 2/Wasm 1/document bytes
+during extraction. Use composition/enums and validated types; one mutation owner, immutable
+worker inputs, whole-batch validation, prediction isolation and one-operation undo.
+Define read-only capabilities in Rust, session/revision save acknowledgement, write ordering
+and stale-result rejection. Add meaningful property/fuzz/bridge tests and structured failure
+context; never log document content or claim replay proves native input. Map tests to coverage.
 """

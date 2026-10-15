@@ -11,6 +11,11 @@
 - These parallel prototypes were authorized on 2026-10-14; shipping every platform
   simultaneously remains outside this milestone.
 - Responsiveness and consistent drawing behavior are primary quality requirements.
+- Skia is selected, including standard CanvasKit on web. Native controls remain native.
+- Shared Rust semantic tools/actions; native layout/focus/accessibility; typed command boundary
+  for future agents. Agent transport is deferred.
+- Handwritten source/tests/scripts have a 200-physical-line maximum after formatting.
+- Node.js replaces owned shell/PowerShell automation; Oxc/Vite is the web/tooling direction.
 - Start with Codex. Agents implement/test autonomously; the owner approves merges.
 - GPT-6 Astra is the requested model. Agent budget and reference hardware are undecided.
 
@@ -28,12 +33,12 @@ advanced vector booleans, textured brush engine, and simultaneous launch on ever
 ## Proposed, not yet committed
 
 iPadOS/iOS is the intended second full app. Its touch prototype challenges desktop
-assumptions; production platform acceptance remains separate from simulator checks. Skia-over-Metal is a benchmark baseline; evaluate Vello with the same
-geometry and presentation conditions before choosing the production renderer.
+assumptions; production platform acceptance remains separate from simulator checks.
+Implement the selected Skia renderer under the [architecture/refactoring plan](refactoring-plan.md).
 
 ## Open decisions
 
-Working name; reference Mac and pen device; oldest supported OSes; monthly agent budget;
-distribution/signing; document format; renderer; final keyboard shortcuts and toolbar layout.
+Working name; shipping reference hardware/budgets; oldest supported OSes; monthly agent budget;
+distribution/signing; future format evolution; final keyboard shortcuts and toolbar layout.
 Resolve decisions when they affect the current milestone, without blocking unrelated work.
 

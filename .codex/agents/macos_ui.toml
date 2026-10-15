@@ -12,4 +12,13 @@ Build and inspect the actual running app when available. Check keyboard/focus, r
 accessibility, and error states applicable to the change. Screenshots alone do not prove
 native behavior or latency. Record what hardware and input paths were actually exercised.
 Work only in assigned paths, report evidence, and leave main/release approval to the owner.
+Read docs/architecture/contracts.md and docs/quality/platforms.md. Compose presenters,
+input adapter, canvas and document services; canvas never reads controls for domain state.
+New/extracted files/tests <=200 physical lines. Preserve native text-field shortcuts,
+cancel-before-remap behavior, accessibility, display scale and event provenance.
+Own actual XCTest/XCUIAutomation journeys and diagnostic instrumentation for assigned UI;
+map acceptance IDs, preserve failure artifacts and distinguish replay/AX/speech/device evidence.
+When explicitly assigned Apple-family work, preserve UIKit touch arbitration, 2D Vision
+scope and read-only TV/independent Watch source behavior; record native visionOS UI automation
+limitations. Do not infer real pressure from indirect input or claim physical latency.
 """

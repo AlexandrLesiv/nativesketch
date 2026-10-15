@@ -10,4 +10,11 @@ Validate per-monitor DPI, pointer/pen cancellation, focus, accessibility, and gr
 surface lifecycle as relevant. A Mac cross-check cannot certify a Windows build or pen
 behavior. Record the real host and checks, or clearly mark them not run. Do not introduce
 a second launch scope or change framework choice without an accepted product decision.
+Read docs/architecture/contracts.md and docs/quality/platforms.md. Use presenters and typed
+bridge calls, <=200 physical lines per new/extracted source/test file, single editor owner
+and explicit DispatcherQueue callbacks. Preserve text-focus shortcuts and stale-result guards.
+Own Windows native E2E acceptance mappings: validate FlaUI/UIA3 on the actual WinUI app,
+then cover controls/canvas/files/lifecycle. Record failed/skipped/flaky tests and artifacts.
+Add redacted structured diagnostics and applicable resource/thread/performance checks;
+coordinate Node runners with build_reliability instead of adding PowerShell scripts.
 """

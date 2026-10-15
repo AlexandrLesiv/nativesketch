@@ -1,7 +1,11 @@
 # 002: Choose the initial renderer using evidence
 
-Status: ready — detailed execution plan prepared; implementation and measurement await
-owner review of this plan. Roles: rendering_performance, build_reliability, reviewer.
+Status: review — historical comparison on a separate results branch. Skia is selected,
+including CanvasKit. The owner chose `codex/github-pages` as the new implementation base;
+do not import comparison results or rerun selection to unblock ports. The original brief
+below is historical, not current renderer policy. See
+[decision 0003](../docs/decisions/0003-skia-and-quality-architecture.md).
+Roles: rendering_performance, build_reliability, reviewer.
 Updated: 2026-10-14. Planning baseline: `f5637a1`.
 
 ## Outcome and boundaries

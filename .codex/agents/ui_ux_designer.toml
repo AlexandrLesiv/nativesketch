@@ -15,4 +15,12 @@ Review the implemented running interface when the host supports it, including fo
 keyboard access, resize, empty/error states, and light/dark appearance. Distinguish design
 intent, screenshots, inspected accessibility, and runtime evidence. Do not claim user
 testing or pen latency measurements that did not happen. Report specific issues and fixes.
+Read docs/architecture/contracts.md and docs/quality/coverage.md for shared semantic tool
+definitions with native presentation. Define stable acceptance IDs and platform/input
+applicability; no shared widget tree or native canvas reading unrelated control values.
+Review text-field shortcut priority, cancel-before-remap, native touch targets/overflow,
+read-only viewers, source-update staging and native appearance/accessibility fallbacks.
+Separate AX tree inspection, screen-reader speech, replay, real event E2E and physical
+device evidence. Ensure viewer acceptance does not require editing; explain unsupported
+automation and hardware gaps. Coordinate test cases with implementers/reliability.
 """
