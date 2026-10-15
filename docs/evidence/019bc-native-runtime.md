@@ -16,6 +16,9 @@ The branch remains a descendant of `codex/github-pages`; no main merge or releas
 | `b7528c2` / worker `7e7e589` | Native failure/presentation repairs and labeled smoke errors; integrated build and headless journey pass |
 | `32095bc` | Recovery identity/allocation repairs and 20 source-authored XCTest cases integrated; full background check and actual Wasm compatibility pass |
 | `f451c26` | Correlated worker diagnostics, authoritative Save As retry and caught-panic cleanup; full background check passes: 59 Node, 139 workspace Rust plus one explicit feature test; one existing child fixture ignored |
+| `4c42862` / worker `c82f027` | Separate recovery authorization, correlated failure kinds, checkpoint scheduling, process-lock and stale-read checks |
+| `21327bd` / worker `95f9da8` | Recovery completion matches exact session and identity; independent runtime review closes reported findings |
+| `350017d` / worker `df804bd` | Stronger native test assertions for acknowledged dirty state and the exact second document's recovery revision; 20-case suite compiles, headless candidate passes |
 
 The `f451c26` check also executes the real linked C consumer, verifies the fault-injection
 symbol is absent from the normal release library and present only in the explicit feature
@@ -25,6 +28,16 @@ Logs are `check-f451c26.log` and `wasm-32095bc.log` in the integration verificat
 The Wasm run executes real Node WebAssembly and 20 fixed protocol-v1 request/response pairs.
 The coverage report at `32095bc` has 32 passing rows out of 204; this is explicitly incomplete
 coverage, not an overall acceptance pass.
+
+Final integrated implementation code `350017d` passes the full background check: 59 Node
+tests, 144 workspace Rust tests plus one explicit feature-control test, actual C consumer,
+normal/feature symbol separation, Swift build/link and headless integration. Two ignored
+subprocess entrypoints are exercised by passing parent tests. Documentation-only evidence
+updates occurred during this run; implementation/test sources were unchanged. Log:
+`artifacts/verification/019-integrated-runtime/check-350017d.log`.
+The Rust owner's all-feature lane separately passes 146 tests at `95f9da8` (same integrated
+runtime code), including feature-only save-failure coverage. See
+[runtime verification](../architecture/019bc-verification.md) for lane distinctions.
 
 The one ignored Rust test at `3047916` is the existing child-process fixture exercised by
 its parent kill/recovery tests, not a newly skipped acceptance case. The full run's headless
@@ -56,8 +69,18 @@ failure is printed separately. Build/timeout logs are under
 - Runtime review at `3047916` reproduced cancelled recovery metadata resolving an unrelated
   later document's candidate, and first-allocation failure making later retry ineffective.
   It also identified missing read/recovery failure diagnostics and lost correlation.
-  Repairs and regression tests are integrated in `0c486d9` and `f451c26`; independent
-  runtime review closure is still pending. None is waived.
+  Repairs and regression tests are integrated in `0c486d9` and `f451c26`. Further review
+  caught Retry authorizing a rejected recovery identity, then a delayed Retry updating a
+  replacement session. Explicit approval and exact session/identity completion matching
+  repair both success and failure paths. Independent review at `21327bd` closes the reported
+  findings: eight independent probes, eleven service tests and one FFI panic test passed.
+  A disposable combined-probe run had colliding fixture names; isolated reruns passed, and
+  that fixture failure is retained in the review record. No finding was waived.
+- A separate review of the 15 new native cases identified missing dirty-state acknowledgement
+  and a timing-dependent recovery checkpoint assertion. `350017d` strengthens both; actual
+  UI execution still remains pending and cannot be replaced by test-source review.
+  Independent review closes both at that revision and independently compiles the native
+  test target. No native journey pass is inferred from this compilation.
 
 Review records and disposable probe copies are under
 `artifacts/verification/019bc-contract/` and `artifacts/verification/019de-independent/`.
@@ -73,9 +96,12 @@ audit, not independent review or native event-delivery evidence. Native-only fie
 viewport mapping and presentation remain intentional. Compound native command sequences and
 future agent equivalence are explicitly documented in the session bridge contract.
 
-Deterministic worker controls, automated C-consumer execution, caught-boundary-panic cleanup
-and Wasm compatibility now have lower-level evidence. Broader FFI ownership/capacity cases
-and runtime review closure remain in progress. The 20 compiled native cases preserve the
+Deterministic worker controls, automated C-consumer execution, caught-boundary-panic cleanup,
+cross-process locks, stale-read/grant retirement and Wasm compatibility have lower-level
+evidence. The scoped runtime and shutdown review findings are closed; this is not exhaustive
+FFI acceptance. Nine runtime acceptance rows map to discovered host executables in
+`quality/features/native-runtime.json`; feature-only tests and the C consumer retain separate
+raw evidence until dedicated discovery lanes are modeled. The 20 compiled native cases preserve the
 five existing journeys and add asynchronous save, navigation, failure and recovery coverage.
 Preparation and headless checks do not constitute executable XCTest discovery or execution.
 Execute them in an explicitly reserved desktop session; the reservation request is pending.

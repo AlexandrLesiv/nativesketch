@@ -10,8 +10,9 @@ adoption (019B–E) are integrated locally, with native acceptance still pending
 and integrated as `c0b63da`. Twelve new native acceptance journeys are registered as planned
 in `quality/features/native-command-adapter.json`. Twenty native test cases compile; actual
 executable discovery/execution and designer inspection remain pending a reserved desktop
-session. Background integration and Wasm checks pass; runtime review closure and broader
-ownership checks remain in progress. See [runtime evidence](../docs/evidence/019bc-native-runtime.md).
+session. Background integration and Wasm checks pass; reported runtime and shutdown review
+findings are repaired and closed, with remaining coverage limits recorded explicitly.
+See [runtime evidence](../docs/evidence/019bc-native-runtime.md).
 Save As keyboard delivery passes after
 the owner disabled a conflicting system shortcut; the original app binding was preserved.
 The [agreed staged bridge contract](../docs/architecture/019-session-bridge.md) defines 019A–E.
