@@ -101,9 +101,9 @@ impl NativeRuntime {
         };
         let kind = match op.kind {
             OperationKind::List => EventKind::RecoveryReady,
-            OperationKind::Register | OperationKind::RetryRecovery | OperationKind::Maintenance => {
-                EventKind::Maintenance
-            }
+            OperationKind::Register(_)
+            | OperationKind::RetryRecovery(_)
+            | OperationKind::Maintenance => EventKind::Maintenance,
             _ => EventKind::OwnerReady,
         };
         let event = NativeEvent {

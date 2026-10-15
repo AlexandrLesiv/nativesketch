@@ -8,7 +8,7 @@ impl NativeRuntime {
         let op = &self.operations[index];
         if !matches!(
             op.kind,
-            OperationKind::Register | OperationKind::RetryRecovery
+            OperationKind::Register(_) | OperationKind::RetryRecovery(_)
         ) {
             return;
         }
@@ -17,9 +17,22 @@ impl NativeRuntime {
                 && (op.session == 0 || op.session == slot.app.projection().editor.session.get())
                 && let Some(recovery) = &mut slot.recovery
             {
+                let matches_identity = match op.kind {
+                    OperationKind::Register(identity) => {
+                        op.session != 0 && identity == recovery.identity
+                    }
+                    OperationKind::RetryRecovery(Some(identity)) => {
+                        op.session != 0 && identity == recovery.identity
+                    }
+                    OperationKind::RetryRecovery(None) => op.window == 0 && recovery.approved,
+                    _ => false,
+                };
+                if !matches_identity {
+                    continue;
+                }
                 recovery.state = match value {
                     WorkerValue::Complete => {
-                        if matches!(op.kind, OperationKind::Register) {
+                        if matches!(op.kind, OperationKind::Register(_)) {
                             recovery.approved = true;
                         }
                         if recovery.approved {

@@ -40,7 +40,7 @@ impl NativeRuntime {
                 request: 0,
                 grant: 0,
             },
-            OperationKind::Register,
+            OperationKind::Register(identity),
             OperationState::Queued(Box::new(Work::Register(identity))),
             0,
         )?;

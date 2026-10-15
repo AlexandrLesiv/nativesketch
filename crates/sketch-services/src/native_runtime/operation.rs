@@ -11,8 +11,8 @@ impl OperationKind {
                 SavePurpose::ExportCopy => 22,
                 SavePurpose::Checkpoint => 205,
             },
-            Self::Register => 205,
-            Self::RetryRecovery => 209,
+            Self::Register(_) => 205,
+            Self::RetryRecovery(_) => 209,
             Self::List => 206,
             Self::Retirement => 211,
             Self::Maintenance => match state {

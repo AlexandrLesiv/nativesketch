@@ -1,36 +1,48 @@
 use super::{NativeRuntime, owner_types::*, work::*};
 impl NativeRuntime {
     pub fn retry_recovery(&mut self, request: u64, window: u64) -> Result<u64, RuntimeError> {
-        if window != 0 {
-            self.session(window)?;
+        self.check_owner()?;
+        self.capacity()?;
+        if self.barrier.is_some() || self.stopping {
+            return Err(RuntimeError::Busy);
         }
-        let registration = if window == 0 {
-            None
+        let (session, identity, approved) = if window == 0 {
+            (0, None, true)
         } else {
-            self.session(window)?
-                .recovery
-                .as_ref()
-                .filter(|r| !r.approved)
-                .map(|r| r.identity)
+            let slot = self.session(window)?;
+            let registration = slot.recovery.as_ref().ok_or(RuntimeError::Invalid)?;
+            (
+                slot.app.projection().editor.session.get(),
+                Some(registration.identity),
+                registration.approved,
+            )
         };
-        let work = registration.map_or(Work::Retry, Work::Register);
-        let id = self.maintenance(request, window, work)?;
-        self.operations
-            .iter_mut()
-            .find(|op| op.id == id)
-            .expect("issued retry")
-            .kind = if registration.is_some() {
-            OperationKind::Register
+        let (kind, work) = if approved {
+            (OperationKind::RetryRecovery(identity), Work::Retry)
         } else {
-            OperationKind::RetryRecovery
+            let identity = identity.expect("scoped registration");
+            (OperationKind::Register(identity), Work::Register(identity))
         };
+        let id = self.enqueue(
+            OperationOwner {
+                window,
+                session,
+                request,
+                grant: 0,
+            },
+            kind,
+            OperationState::Queued(Box::new(work)),
+            0,
+        )?;
         for slot in &mut self.sessions {
             if (window == 0 || slot.window == window)
                 && let Some(recovery) = &mut slot.recovery
+                && (window != 0 || recovery.approved)
             {
                 recovery.state = 1;
             }
         }
+        self.pump()?;
         Ok(id)
     }
 }
