@@ -4,10 +4,17 @@ import { command, root } from '../lib/context.ts';
 
 export const developer = process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer';
 /** Capture failures as durable artifacts before propagating. */
-export async function logged(output: string, name: string, executable: string, args: string[]) {
+export async function logged(
+  output: string,
+  name: string,
+  executable: string,
+  args: string[],
+  timeout?: number,
+) {
   try {
     const text = await command(executable, args, {
       capture: true,
+      timeout,
       env: { DEVELOPER_DIR: developer },
     });
     await writeFile(join(output, name), text);

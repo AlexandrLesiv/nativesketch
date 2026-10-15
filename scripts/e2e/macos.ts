@@ -105,11 +105,15 @@ export async function macosJourney(output: string, execute: boolean = false, att
     let executionError;
     const started = performance.now();
     try {
-      await logged(output, 'execution.log', 'xcodebuild', [
-        ...args,
-        '-resultBundlePath',
-        join(output, 'journey.xcresult'),
-      ]);
+      // Twenty native journeys include real panels, relaunches and worker gates.
+      // Bound the whole suite independently of unchanged per-case readiness limits.
+      await logged(
+        output,
+        'execution.log',
+        'xcodebuild',
+        [...args, '-resultBundlePath', join(output, 'journey.xcresult')],
+        20 * 60_000,
+      );
     } catch (error) {
       executionError = error;
     }
