@@ -1,7 +1,7 @@
 # 002: Choose the initial renderer using evidence
 
 Status: review — comparison implemented and measured; owner acceptance pending. Roles: rendering_performance, build_reliability, reviewer.
-Updated: 2026-10-14. Planning baseline: `f5637a1`.
+Updated: 2026-10-15. Planning baseline: `f5637a1`.
 
 Execution: [comparison report](../docs/evidence/002-renderer-comparison.md) and
 [decision proposal](../docs/decisions/0003-renderer-comparison.md). Original 320-process
@@ -18,7 +18,7 @@ matched macOS Skia/Vello/blank/both builds and distinct linker optimization lane
 
 Follow-up experiment: [Skia versus Core Graphics physical pen latency](../docs/benchmarks/skia-coregraphics-pen-latency-plan.md), using the owner's connected Wacom Cintiq and Pro Pen 3.
 It holds input semantics, caching policy and canvas size constant, with physical optical
-measurements separate from identical-sample replay. The software harness is implemented and preflight validated; acquisition is partial (138 accepted runs and two sustained completion failures retained in complete pairs). Physical measurements remain pending. See the [partial Cintiq software report](../docs/evidence/cintiq-software-comparison.html) and [execution contract](../docs/benchmarks/cintiq-software-execution.md).
+measurements separate from identical-sample replay. The software comparison is complete: 368 accepted runs and four Core Graphics sustained completion failures in 186 matched pairs, with no pending matrix entries. Skia completed all six sustained trials. The recommendation is to develop Skia next while retaining Core Graphics as a lightweight baseline; physical measurements and permanent production selection remain pending. See the [Cintiq software report](../docs/evidence/cintiq-software-comparison.html) and [execution contract](../docs/benchmarks/cintiq-software-execution.md).
 
 ## Outcome and boundaries
 

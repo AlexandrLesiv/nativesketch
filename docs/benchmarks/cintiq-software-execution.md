@@ -92,37 +92,66 @@ See [bounded performance failures](cintiq-software-protocol-amendment.md) for th
 2026-10-15 opt-in collector amendment, diagnostic evidence, trace limitations and
 separate native/collector provenance. Native measurements and watchdogs stay unchanged.
 
-## Current acquisition record (2026-10-15)
+## Completed acquisition record (2026-10-15)
 
-The [partial HTML/SVG report](../evidence/cintiq-software-comparison.html) and
-[validated analysis](../evidence/cintiq-software-analysis.json) retain 138 accepted
-runs and two classified sustained failures in 70 complete pairs. Another 232 runs
-need a valid outcome. Implementation/preflight passed; acquisition is incomplete.
+The [HTML/SVG report](../evidence/cintiq-software-comparison.html) and
+[validated analysis](../evidence/cintiq-software-analysis.json) contain all 372 outcomes:
+368 accepted, four classified Core Graphics sustained failures, zero pending and zero
+invalid entries in the retained matrix. All 186 pairs have matching identities;
+182 support numeric paired differences. All 360 primary runs completed.
+Skia completed six of six sustained trials; Core Graphics completed two and failed four.
+Accepted means complete validated artifacts, not a deadline guarantee: the cooperative
+main-thread watchdog cannot preempt a long callback. The two completed Core Graphics
+sustained runs still have per-run p95 input-to-draw-start delays of 14.46 and 21.19 seconds.
 
-Session 3 halted on a Sony secondary-display disconnect. The Cintiq kept its mode.
-Sony reappeared before any continuation trial; no single-display trial was accepted.
-Session 4 preserved complete pairs but its first repeat halted immediately on a small
-Window Server overlay in the canvas. Pointer-placement attempts did not clear it, so
-collection awaits the requested physical pointer/pen adjustment. Keep both halted
-sessions and the valid but unpaired Skia member of the interrupted pair. On recovery,
-repeat both members; never pool that orphan into the matched result.
+Native source remains `8a26d1d7a25bfcbc526584d386a4f49c30ecbbcf`; binary SHA-256
+`9e7ad2880182ab4ea5416cff763f417fde59a31dab4a992d1d0faad27cb2c16d`.
+Final collection: `artifacts/cintiq-software-8a26d1d-session8`, frozen at collector
+revision `1dcdb92` with runner/analyzer hashes unchanged from `acabb64`.
+Earlier outcomes retain their original receipt and recovery provenance. All retained
+initial/final power observations report low-power mode false and thermal state 0.
 
-The source binary remains `8a26d1d`; collector `acabb64` is separately frozen.
-The phrase “long growing stroke” above means accumulated outline geometry: the actual
-trace repeatedly retraces the same curve with abrupt position resets, as documented
-in the amendment. It is not a smooth spatially growing physical stroke.
+All eight acquisition sessions remain preserved. Six environmental attempts were
+rejected: Dock overlay (session1), Sony display change (session3), Window Server
+overlay (session4), Dock overlay (session5), locked startup before manifest creation
+(session6), and owner-confirmed covered window/desktop switch (session7). Session2
+stopped on the first performance failure before the documented continuation amendment.
+An accepted but unpaired Skia session3 run remains excluded; both pair members were
+repeated together. No performance failure was retried. Session8 completed acquisition
+at 07:25 UTC on 15 October. The original Sony-to-Cintiq mirror was restored afterward,
+and the task's temporary awake assertion was stopped.
 
-Report reproduction:
+The phrase “long growing stroke” means accumulated outline geometry: the trace
+retraces the same curve with abrupt position resets. It is not smooth spatially growing
+physical pen motion. The report separates these adversarial stress cells from short
+strokes. Its recommendation prioritizes Skia for the next implementation, with long-stroke
+and cache optimization still needed. Core Graphics remains a lightweight baseline.
+Physical-latency ranking and permanent production selection remain open.
+
+Secondary [first-mark evidence](../evidence/cintiq-first-mark-analysis.json) covers
+all 80 accepted first-use/after-idle runs. It follows the first expected sample through
+its actual delivery batch to its first representing draw start, verifies immutable
+receipts, and binds the output to the analysis and collection checksums. First callback
+wall time remains separate; host-start time begins at the first Swift statement, includes the explicit one-second
+autostart wait and preparation, and, after idle,
+warm-up plus the idle wait. No primary metric or threshold changed.
+
+Reproduction after acquiring the local raw artifacts:
 
 ```sh
+./scripts/analyze-cintiq-comparison artifacts/cintiq-software-8a26d1d-session8 \
+  --output docs/evidence/cintiq-software-analysis.json
+./scripts/extract-cintiq-first-mark docs/evidence/cintiq-software-analysis.json \
+  artifacts/cintiq-software-8a26d1d-session8 \
+  --output docs/evidence/cintiq-first-mark-analysis.json
 ./scripts/build-cintiq-report docs/evidence/cintiq-software-analysis.json \
   --context docs/evidence/cintiq-software-context.json \
+  --first-mark docs/evidence/cintiq-first-mark-analysis.json \
   --output docs/evidence/cintiq-software-comparison.html
 ```
 
 Only the reviewed narrative is supplied by the context file; it does not change
-measurements. Update its status/counts when acquisition resumes. Physical measurements,
-real Wacom input characterization, and the previously stopped bundle-size checks remain
-pending. The original mirrored display arrangement was restored during this pause, verified
-with Sony display 2 mirroring Cintiq display 3. Temporarily separate them again only
-when resuming acquisition, and restore afterward.
+measurements. Native integration checks and preflight evidence remain tied to their
+original revisions. Final portable tool tests and independent review are recorded below.
+Physical measurements, real Wacom input characterization, and the previously stopped
+15 bundle-size rendering checks remain pending.

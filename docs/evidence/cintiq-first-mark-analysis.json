@@ -1,0 +1,2108 @@
+{
+  "schema_version": 1,
+  "analysis_sha256": "85a46c48efd2326b98ea7d45624e47bae795af4b8838cfcee2d45dac0ba3cbb5",
+  "collection_sha256": "e553c7616cc5a96e20953438ecfb137b544d98025c7e7d178db3ed984ab0beb5",
+  "native_identity": {
+    "binary_sha256": "9e7ad2880182ab4ea5416cff763f417fde59a31dab4a992d1d0faad27cb2c16d",
+    "build": {
+      "abi": 1,
+      "build_environment": {},
+      "cargo_lock_sha256": "0e0e0a7f245607495664d2ee6887568c5c9b70c989e340c2c40bc6e94b21cc88",
+      "rust_build_skipped": false,
+      "rust_flags": "release thinLTO skia-backend",
+      "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+      "sdk_version": "27.0",
+      "source_revision": "8a26d1d7a25bfcbc526584d386a4f49c30ecbbcf",
+      "source_status": "",
+      "source_tree_sha256": "f5d2f3c14b32226f81f39ee26b6aabe5e84375464eca7da065a55de21815c915",
+      "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+      "swift_flags": "-O -swift-version 5 -warnings-as-errors"
+    }
+  },
+  "rows": [
+    {
+      "run_id": "primary-7-C-2560x1600-pair4-coregraphics",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.352208333657472,
+      "receipt_to_draw_start_ms": 0.1420833332304028,
+      "scheduled_to_draw_start_ms": 19.494291666887875,
+      "first_frame_draw_wall_ms": 1.829958333473769,
+      "first_frame_cache_build_ms": 1.6048750003392342,
+      "host_launch_to_first_measured_draw_start_ms": 1265.2164166665898,
+      "initialization_stages": [
+        {
+          "duration_ms": 32.78429166675778,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003833333266811678,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair4-skia",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 13.749958333391987,
+      "receipt_to_draw_start_ms": 2.535458333113638,
+      "scheduled_to_draw_start_ms": 16.285416666505625,
+      "first_frame_draw_wall_ms": 6.854166666926176,
+      "first_frame_cache_build_ms": 0.055416,
+      "host_launch_to_first_measured_draw_start_ms": 1219.0677499997946,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.23879166656115558,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 17.324458333405346,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0016666667761455756,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair4-skia",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.08812500027488568,
+      "receipt_to_draw_start_ms": 0.050583333177200984,
+      "scheduled_to_draw_start_ms": 0.13870833345208666,
+      "first_frame_draw_wall_ms": 8.584333333146787,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36675.35204166688,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7025833333500486,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 228.54612499986615,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004999999873689376,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 223.88562500009357,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038749999475840013,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair4-coregraphics",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.17600000001039007,
+      "receipt_to_draw_start_ms": 0.27479166692501167,
+      "scheduled_to_draw_start_ms": 0.45079166693540174,
+      "first_frame_draw_wall_ms": 11.53804166642658,
+      "first_frame_cache_build_ms": 0.007208333045127802,
+      "host_launch_to_first_measured_draw_start_ms": 36922.55966666699,
+      "initialization_stages": [
+        {
+          "duration_ms": 222.7303333334021,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0046666664275107905,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 204.77312499997424,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004500000159168849,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair4-coregraphics",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.3299999998489511,
+      "receipt_to_draw_start_ms": 0.5504166665559751,
+      "scheduled_to_draw_start_ms": 0.8804166664049262,
+      "first_frame_draw_wall_ms": 0.1632500002415327,
+      "first_frame_cache_build_ms": 0.012708333542832406,
+      "host_launch_to_first_measured_draw_start_ms": 36944.77783333332,
+      "initialization_stages": [
+        {
+          "duration_ms": 229.06129166676692,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004708333108283114,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 209.6558333332723,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004375000116851879,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair4-skia",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.21329166656869347,
+      "receipt_to_draw_start_ms": 0.152916666593228,
+      "scheduled_to_draw_start_ms": 0.3662083331619215,
+      "first_frame_draw_wall_ms": 0.9209166664732038,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36673.688458333345,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.4972916667611571,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 221.03799999968032,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004791666924575111,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 234.6532083333841,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004583333520713495,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair2-coregraphics",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.28487500003393507,
+      "receipt_to_draw_start_ms": 0.3916250002475863,
+      "scheduled_to_draw_start_ms": 0.6765000002815214,
+      "first_frame_draw_wall_ms": 0.1549166663608048,
+      "first_frame_cache_build_ms": 0.011333333532093093,
+      "host_launch_to_first_measured_draw_start_ms": 36928.242500000124,
+      "initialization_stages": [
+        {
+          "duration_ms": 228.0815000003713,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004541666385193821,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 210.0958749997517,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003333333552291151,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair2-skia",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.14220833327271976,
+      "receipt_to_draw_start_ms": 0.084208333191782,
+      "scheduled_to_draw_start_ms": 0.22641666646450176,
+      "first_frame_draw_wall_ms": 0.46983333322714316,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36679.721958333175,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7444583334290655,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 223.92583333339644,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004083333351445617,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 236.387625000134,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004333332981332205,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair2-coregraphics",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1343750000160071,
+      "receipt_to_draw_start_ms": 0.27025000053981785,
+      "scheduled_to_draw_start_ms": 0.40462500055582495,
+      "first_frame_draw_wall_ms": 12.05912499972328,
+      "first_frame_cache_build_ms": 0.005333333319867961,
+      "host_launch_to_first_measured_draw_start_ms": 36922.14462500033,
+      "initialization_stages": [
+        {
+          "duration_ms": 223.99220833358413,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004583333065966144,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 211.30041666674515,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004541666385193821,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair2-skia",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.14600000031350646,
+      "receipt_to_draw_start_ms": 0.08541666647943202,
+      "scheduled_to_draw_start_ms": 0.23141666679293849,
+      "first_frame_draw_wall_ms": 13.128874999893014,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36685.14704166682,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7262500002980232,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 222.9025000006004,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004499999704421498,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 226.02016666678537,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038750004023313522,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair0-skia",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.06254166692087892,
+      "receipt_to_draw_start_ms": 0.036083333725400735,
+      "scheduled_to_draw_start_ms": 0.09862500064627966,
+      "first_frame_draw_wall_ms": 0.2291249993504607,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36677.868624999974,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6365833332893089,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 225.98999999991065,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004374999662104528,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 226.00612500082207,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004333332981332205,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair0-coregraphics",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.18799999998009298,
+      "receipt_to_draw_start_ms": 0.5214166667428799,
+      "scheduled_to_draw_start_ms": 0.7094166667229729,
+      "first_frame_draw_wall_ms": 0.14254166671889834,
+      "first_frame_cache_build_ms": 0.0117083327495493,
+      "host_launch_to_first_measured_draw_start_ms": 36938.968833334,
+      "initialization_stages": [
+        {
+          "duration_ms": 225.2362916660786,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004583333975460846,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 208.5930000002918,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004624999746738467,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair3-skia",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.2365000000281725,
+      "receipt_to_draw_start_ms": 0.10549999933573417,
+      "scheduled_to_draw_start_ms": 0.3419999993639067,
+      "first_frame_draw_wall_ms": 11.283291666586592,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36675.89483333268,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6644166669502738,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 224.2536250005287,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004374999662104528,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 226.19987500002026,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0033750002330634743,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair3-coregraphics",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.160666666488396,
+      "receipt_to_draw_start_ms": 0.47645833365095314,
+      "scheduled_to_draw_start_ms": 0.6371250001393491,
+      "first_frame_draw_wall_ms": 16.18724999934784,
+      "first_frame_cache_build_ms": 0.012124999557272531,
+      "host_launch_to_first_measured_draw_start_ms": 36923.88804166694,
+      "initialization_stages": [
+        {
+          "duration_ms": 223.35666666640464,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005666666766046546,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 212.136083333462,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0051666665967786685,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair2-coregraphics",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 17.689791667180543,
+      "receipt_to_draw_start_ms": 0.1712916664473596,
+      "scheduled_to_draw_start_ms": 17.861083333627903,
+      "first_frame_draw_wall_ms": 1.646916666686593,
+      "first_frame_cache_build_ms": 1.4257916664064396,
+      "host_launch_to_first_measured_draw_start_ms": 1237.1031250004307,
+      "initialization_stages": [
+        {
+          "duration_ms": 24.498000000676257,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005083333235234022,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair2-skia",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.40845833309868,
+      "receipt_to_draw_start_ms": 0.09570833390171174,
+      "scheduled_to_draw_start_ms": 21.50416666700039,
+      "first_frame_draw_wall_ms": 6.322874999568739,
+      "first_frame_cache_build_ms": 0.0625,
+      "host_launch_to_first_measured_draw_start_ms": 1251.4124583340163,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6219583337951917,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 31.391041666211095,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003541666956152767,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair1-skia",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 23.59916666682693,
+      "receipt_to_draw_start_ms": 1.8595833325889544,
+      "scheduled_to_draw_start_ms": 25.458749999415886,
+      "first_frame_draw_wall_ms": 6.211125000845641,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1262.783958332875,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.72162499964179,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 33.517458333335526,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003041666786884889,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair1-coregraphics",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 24.15445833321428,
+      "receipt_to_draw_start_ms": 0.38195833258214407,
+      "scheduled_to_draw_start_ms": 24.536416665796423,
+      "first_frame_draw_wall_ms": 0.20650000078603625,
+      "first_frame_cache_build_ms": 0.002249999852210749,
+      "host_launch_to_first_measured_draw_start_ms": 1249.735999999757,
+      "initialization_stages": [
+        {
+          "duration_ms": 32.67324999978882,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0045000006139162,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair3-skia",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 25.901625000187778,
+      "receipt_to_draw_start_ms": 0.06841666618129238,
+      "scheduled_to_draw_start_ms": 25.97004166636907,
+      "first_frame_draw_wall_ms": 6.215625000550062,
+      "first_frame_cache_build_ms": 0.060417,
+      "host_launch_to_first_measured_draw_start_ms": 1259.9398749998727,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6861249994472018,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 31.959083333276794,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003083333467657212,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair3-coregraphics",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 24.57779166616092,
+      "receipt_to_draw_start_ms": 0.15391666602226906,
+      "scheduled_to_draw_start_ms": 24.73170833218319,
+      "first_frame_draw_wall_ms": 1.6876666668395046,
+      "first_frame_cache_build_ms": 1.4648749984189635,
+      "host_launch_to_first_measured_draw_start_ms": 1264.2492499999207,
+      "initialization_stages": [
+        {
+          "duration_ms": 35.28687499965599,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003291666871518828,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair2-coregraphics",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.36462499947811,
+      "receipt_to_draw_start_ms": 0.13125000077707227,
+      "scheduled_to_draw_start_ms": 21.495875000255182,
+      "first_frame_draw_wall_ms": 0.18795833238982596,
+      "first_frame_cache_build_ms": 0.002499999027349986,
+      "host_launch_to_first_measured_draw_start_ms": 1256.7245416666992,
+      "initialization_stages": [
+        {
+          "duration_ms": 33.532833334902534,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003458331775618717,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair2-skia",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.82437500009837,
+      "receipt_to_draw_start_ms": 0.07525000000896398,
+      "scheduled_to_draw_start_ms": 19.899625000107335,
+      "first_frame_draw_wall_ms": 5.514874999789754,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1258.1913333342527,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.8899583335733041,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 33.724291666658246,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002291666532983072,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair3-coregraphics",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 22.149916667331127,
+      "receipt_to_draw_start_ms": 2.0577916657202877,
+      "scheduled_to_draw_start_ms": 24.207708333051414,
+      "first_frame_draw_wall_ms": 0.8791250002104789,
+      "first_frame_cache_build_ms": 0.6291249992500525,
+      "host_launch_to_first_measured_draw_start_ms": 1243.636791665267,
+      "initialization_stages": [
+        {
+          "duration_ms": 34.99583333359624,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003291666871518828,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair3-skia",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 28.539958333567483,
+      "receipt_to_draw_start_ms": 0.0981666671577841,
+      "scheduled_to_draw_start_ms": 28.638125000725267,
+      "first_frame_draw_wall_ms": 8.297624999613618,
+      "first_frame_cache_build_ms": 0.072042,
+      "host_launch_to_first_measured_draw_start_ms": 1256.756166667401,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6129583325673593,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 31.61020833249495,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003291666871518828,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair3-coregraphics",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.12670833348238375,
+      "receipt_to_draw_start_ms": 0.30037499891477637,
+      "scheduled_to_draw_start_ms": 0.4270833323971601,
+      "first_frame_draw_wall_ms": 0.10262500109092798,
+      "first_frame_cache_build_ms": 0.006249998477869667,
+      "host_launch_to_first_measured_draw_start_ms": 36918.240833332675,
+      "initialization_stages": [
+        {
+          "duration_ms": 223.08820833313803,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.006083333573769778,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.5555416682182,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003708331860252656,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair3-skia",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.11262499901931733,
+      "receipt_to_draw_start_ms": 0.0742083338991506,
+      "scheduled_to_draw_start_ms": 0.18683333291846793,
+      "first_frame_draw_wall_ms": 0.5089999995107064,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36695.84116666738,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.49020833284885157,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 226.85595833354455,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.006541666152770631,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 229.95979166807956,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003916666173608974,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair0-skia",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 17.410416667189565,
+      "receipt_to_draw_start_ms": 1.9252916663390351,
+      "scheduled_to_draw_start_ms": 19.3357083335286,
+      "first_frame_draw_wall_ms": 6.707374999677995,
+      "first_frame_cache_build_ms": 0.0555,
+      "host_launch_to_first_measured_draw_start_ms": 1249.7445833323582,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6967916651774431,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 31.95962500103633,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0029583334253402427,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair0-coregraphics",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 25.105791666646837,
+      "receipt_to_draw_start_ms": 0.9523333337710937,
+      "scheduled_to_draw_start_ms": 26.05812500041793,
+      "first_frame_draw_wall_ms": 0.8451249996141996,
+      "first_frame_cache_build_ms": 0.6132916660135379,
+      "host_launch_to_first_measured_draw_start_ms": 1252.5530000002618,
+      "initialization_stages": [
+        {
+          "duration_ms": 31.693333332441398,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002833334292517975,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair1-skia",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.498541665598168,
+      "receipt_to_draw_start_ms": 0.07004166764090769,
+      "scheduled_to_draw_start_ms": 19.568583333239076,
+      "first_frame_draw_wall_ms": 6.3845416661934,
+      "first_frame_cache_build_ms": 0.083625,
+      "host_launch_to_first_measured_draw_start_ms": 1245.1667916666338,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.3969583322032122,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 30.618624999988242,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0026666657504392788,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair1-coregraphics",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.57508333362057,
+      "receipt_to_draw_start_ms": 1.6930416659306502,
+      "scheduled_to_draw_start_ms": 21.26812499955122,
+      "first_frame_draw_wall_ms": 1.7723333330650348,
+      "first_frame_cache_build_ms": 1.5167916662903735,
+      "host_launch_to_first_measured_draw_start_ms": 1258.9721666663536,
+      "initialization_stages": [
+        {
+          "duration_ms": 28.16016666656651,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002583334207884036,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair0-coregraphics",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.20579166630341206,
+      "receipt_to_draw_start_ms": 0.5123749997437699,
+      "scheduled_to_draw_start_ms": 0.7181666660471819,
+      "first_frame_draw_wall_ms": 12.410458333761198,
+      "first_frame_cache_build_ms": 0.009375000445288606,
+      "host_launch_to_first_measured_draw_start_ms": 36924.15854166575,
+      "initialization_stages": [
+        {
+          "duration_ms": 216.75037499881,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038750004023313522,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.7728749987291,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004875000740867108,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair0-skia",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.19479166803648695,
+      "receipt_to_draw_start_ms": 0.11620833356573712,
+      "scheduled_to_draw_start_ms": 0.3110000016022241,
+      "first_frame_draw_wall_ms": 9.41291666640609,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36676.47808333459,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.8072500004345784,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 224.94424999968032,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004499999704421498,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 221.7078333342215,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0031250001484295353,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair2-coregraphics",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.364041665947298,
+      "receipt_to_draw_start_ms": 0.1374166677123867,
+      "scheduled_to_draw_start_ms": 21.501458333659684,
+      "first_frame_draw_wall_ms": 0.19437499940977432,
+      "first_frame_cache_build_ms": 0.002624998160172254,
+      "host_launch_to_first_measured_draw_start_ms": 1259.6586666659277,
+      "initialization_stages": [
+        {
+          "duration_ms": 33.81670833186945,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003916669811587781,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair2-skia",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 20.40708333151997,
+      "receipt_to_draw_start_ms": 0.06750000102329068,
+      "scheduled_to_draw_start_ms": 20.47458333254326,
+      "first_frame_draw_wall_ms": 6.2128333338478114,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1264.0012916672276,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7432083330058958,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 33.5576666657289,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003958331944886595,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair4-coregraphics",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.13733333253185265,
+      "receipt_to_draw_start_ms": 0.25312499928986654,
+      "scheduled_to_draw_start_ms": 0.3904583318217192,
+      "first_frame_draw_wall_ms": 11.163625000335742,
+      "first_frame_cache_build_ms": 0.004249999619787559,
+      "host_launch_to_first_measured_draw_start_ms": 36929.43499999819,
+      "initialization_stages": [
+        {
+          "duration_ms": 227.1167916696868,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004958332283422351,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.41295833390905,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003249999281251803,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair4-skia",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.15229166820063256,
+      "receipt_to_draw_start_ms": 0.10187500083702616,
+      "scheduled_to_draw_start_ms": 0.2541666690376587,
+      "first_frame_draw_wall_ms": 8.426624997809995,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36692.04941666976,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6239583344722632,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 219.96845833200496,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004958332283422351,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 207.16483333308133,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004541667294688523,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair2-skia",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 20.931749997544102,
+      "receipt_to_draw_start_ms": 0.07329166692215949,
+      "scheduled_to_draw_start_ms": 21.005041664466262,
+      "first_frame_draw_wall_ms": 7.069625000440283,
+      "first_frame_cache_build_ms": 0.066458,
+      "host_launch_to_first_measured_draw_start_ms": 1269.0804999983811,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7638333336217329,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 34.62970833425061,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0033750002330634743,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair2-coregraphics",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 22.913333334145136,
+      "receipt_to_draw_start_ms": 0.291416665277211,
+      "scheduled_to_draw_start_ms": 23.204749999422347,
+      "first_frame_draw_wall_ms": 1.5062083330121823,
+      "first_frame_cache_build_ms": 1.1327083338983357,
+      "host_launch_to_first_measured_draw_start_ms": 1250.784666666732,
+      "initialization_stages": [
+        {
+          "duration_ms": 31.79745833404013,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003958331944886595,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair1-skia",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.56166666423087,
+      "receipt_to_draw_start_ms": 0.07254166848724708,
+      "scheduled_to_draw_start_ms": 19.634208332718117,
+      "first_frame_draw_wall_ms": 6.500874998891959,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1287.2094583326543,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6377083300321829,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 33.77958333294373,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0040000013541430235,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair1-coregraphics",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 12.873124996986007,
+      "receipt_to_draw_start_ms": 0.17025000124704093,
+      "scheduled_to_draw_start_ms": 13.043374998233048,
+      "first_frame_draw_wall_ms": 0.18554166672402062,
+      "first_frame_cache_build_ms": 0.0018749997252598405,
+      "host_launch_to_first_measured_draw_start_ms": 1234.841375000542,
+      "initialization_stages": [
+        {
+          "duration_ms": 24.705874999199295,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002416669303784147,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair3-skia",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 15.678499999921769,
+      "receipt_to_draw_start_ms": 0.06450000000768341,
+      "scheduled_to_draw_start_ms": 15.742999999929452,
+      "first_frame_draw_wall_ms": 6.6134583357779775,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1222.6317499989818,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.23662500097998418,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 19.590791664086282,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002125001628883183,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair3-coregraphics",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.71779166383203,
+      "receipt_to_draw_start_ms": 0.47558333608321846,
+      "scheduled_to_draw_start_ms": 22.19337499991525,
+      "first_frame_draw_wall_ms": 0.25208333318005316,
+      "first_frame_cache_build_ms": 0.0019166654965374619,
+      "host_launch_to_first_measured_draw_start_ms": 1266.0083333357761,
+      "initialization_stages": [
+        {
+          "duration_ms": 34.48766666770098,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003958331944886595,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair3-coregraphics",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1042916665028315,
+      "receipt_to_draw_start_ms": 0.18770833412418142,
+      "scheduled_to_draw_start_ms": 0.2920000006270129,
+      "first_frame_draw_wall_ms": 9.05304166735732,
+      "first_frame_cache_build_ms": 0.0035833363654091954,
+      "host_launch_to_first_measured_draw_start_ms": 36952.19954166532,
+      "initialization_stages": [
+        {
+          "duration_ms": 224.32462500000838,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004874997102888301,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 203.63104166608537,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003916666173608974,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair3-skia",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.15841666754567996,
+      "receipt_to_draw_start_ms": 0.10287499753758311,
+      "scheduled_to_draw_start_ms": 0.26129166508326307,
+      "first_frame_draw_wall_ms": 8.164958337147254,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36680.06070833144,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6659583305008709,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 228.85758333359263,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003916666173608974,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 223.23904166842112,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.006041667802492157,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair1-coregraphics",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.24666666286066175,
+      "receipt_to_draw_start_ms": 0.5155000035301782,
+      "scheduled_to_draw_start_ms": 0.76216666639084,
+      "first_frame_draw_wall_ms": 12.445874999684747,
+      "first_frame_cache_build_ms": 0.0118750031106174,
+      "host_launch_to_first_measured_draw_start_ms": 36927.60712499876,
+      "initialization_stages": [
+        {
+          "duration_ms": 227.14883333537728,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004166664439253509,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 203.49458333657822,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0037916615838184953,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair1-skia",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.13641666737385094,
+      "receipt_to_draw_start_ms": 0.09941666212398559,
+      "scheduled_to_draw_start_ms": 0.23583332949783653,
+      "first_frame_draw_wall_ms": 7.551208334916737,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36667.35516666813,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.739250004698988,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 228.29350000392878,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005041663825977594,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 223.05416667222744,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004249995981808752,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair1-skia",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.12958333536516875,
+      "receipt_to_draw_start_ms": 0.09087500075111166,
+      "scheduled_to_draw_start_ms": 0.2204583361162804,
+      "first_frame_draw_wall_ms": 0.46637500054202974,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36689.18025000312,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6634583332925104,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 225.4817083303351,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.006458336429204792,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 223.55412500473903,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0030833325581625104,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair1-coregraphics",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.10787499923026189,
+      "receipt_to_draw_start_ms": 1.8686666662688367,
+      "scheduled_to_draw_start_ms": 1.9765416654990986,
+      "first_frame_draw_wall_ms": 0.07466666284017265,
+      "first_frame_cache_build_ms": 0.004333334800321609,
+      "host_launch_to_first_measured_draw_start_ms": 36913.11020833382,
+      "initialization_stages": [
+        {
+          "duration_ms": 213.36450000671903,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003749999450519681,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.61345833266387,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0035833363654091954,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair4-skia",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.15879166312515736,
+      "receipt_to_draw_start_ms": 0.09604166552890092,
+      "scheduled_to_draw_start_ms": 0.2548333286540583,
+      "first_frame_draw_wall_ms": 0.8770416679908521,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36673.29608333239,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.9038749994942918,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 224.19058333616704,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0035833290894515812,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 222.29816666367697,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004875000740867108,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair4-coregraphics",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.20762500207638368,
+      "receipt_to_draw_start_ms": 0.4493333326536231,
+      "scheduled_to_draw_start_ms": 0.6569583347300068,
+      "first_frame_draw_wall_ms": 0.14495832874672487,
+      "first_frame_cache_build_ms": 0.010208335879724473,
+      "host_launch_to_first_measured_draw_start_ms": 36934.89966666675,
+      "initialization_stages": [
+        {
+          "duration_ms": 224.96354166651145,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004249995981808752,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 207.89070832688594,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004375004209578037,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair0-coregraphics",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 20.888375001959503,
+      "receipt_to_draw_start_ms": 1.6409166637458839,
+      "scheduled_to_draw_start_ms": 22.529291665705387,
+      "first_frame_draw_wall_ms": 1.993999998376239,
+      "first_frame_cache_build_ms": 1.6458333266200498,
+      "host_launch_to_first_measured_draw_start_ms": 1246.044958330458,
+      "initialization_stages": [
+        {
+          "duration_ms": 32.002874999307096,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.009250004950445145,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-2560x1600-pair0-skia",
+      "cell": "primary-7-C-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 22.416458334191702,
+      "receipt_to_draw_start_ms": 0.07558333891211078,
+      "scheduled_to_draw_start_ms": 22.492041673103813,
+      "first_frame_draw_wall_ms": 8.420208330790047,
+      "first_frame_cache_build_ms": 0.06191599999999999,
+      "host_launch_to_first_measured_draw_start_ms": 1249.4060416720458,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6662916639470495,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 30.4326250043232,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.00345832813763991,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair4-skia",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 18.919458336313255,
+      "receipt_to_draw_start_ms": 2.7213333305553533,
+      "scheduled_to_draw_start_ms": 21.64079166686861,
+      "first_frame_draw_wall_ms": 8.043958332564216,
+      "first_frame_cache_build_ms": 0.10675000000000001,
+      "host_launch_to_first_measured_draw_start_ms": 1243.7810416668071,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.39762499363860115,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 30.256083329732064,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003041670424863696,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair4-coregraphics",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 26.229874994896818,
+      "receipt_to_draw_start_ms": 0.14795833703828976,
+      "scheduled_to_draw_start_ms": 26.377833331935108,
+      "first_frame_draw_wall_ms": 0.7987083299667574,
+      "first_frame_cache_build_ms": 0.6125416693976149,
+      "host_launch_to_first_measured_draw_start_ms": 1260.409875001642,
+      "initialization_stages": [
+        {
+          "duration_ms": 31.093208337551914,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003541666956152767,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair4-coregraphics",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.669666668050922,
+      "receipt_to_draw_start_ms": 1.9291249991510995,
+      "scheduled_to_draw_start_ms": 21.598791667202022,
+      "first_frame_draw_wall_ms": 0.17120833217632025,
+      "first_frame_cache_build_ms": 0.0020000006770715117,
+      "host_launch_to_first_measured_draw_start_ms": 1264.5620416660677,
+      "initialization_stages": [
+        {
+          "duration_ms": 32.59266666282201,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003958339220844209,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair4-skia",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 23.757124996336643,
+      "receipt_to_draw_start_ms": 0.0738333401386626,
+      "scheduled_to_draw_start_ms": 23.830958336475305,
+      "first_frame_draw_wall_ms": 6.70920832635602,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1257.48470833787,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7764166657580063,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 32.73037500184728,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003249995643272996,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair1-coregraphics",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.19670833717100322,
+      "receipt_to_draw_start_ms": 0.4252083308529109,
+      "scheduled_to_draw_start_ms": 0.6219166680239141,
+      "first_frame_draw_wall_ms": 0.15837499813642353,
+      "first_frame_cache_build_ms": 0.010750001820269972,
+      "host_launch_to_first_measured_draw_start_ms": 36880.666791665135,
+      "initialization_stages": [
+        {
+          "duration_ms": 225.069166663161,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003666667907964438,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.8288749976782,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.010249998013023287,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair1-skia",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.12091666576452553,
+      "receipt_to_draw_start_ms": 0.0747500016586855,
+      "scheduled_to_draw_start_ms": 0.19566666742321104,
+      "first_frame_draw_wall_ms": 0.5226249995757826,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36685.06729166984,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.699583331879694,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 226.71587499644374,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005583337042480707,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 226.50516666908516,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0037916615838184953,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair0-coregraphics",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.62329166458221,
+      "receipt_to_draw_start_ms": 0.1426666640327312,
+      "scheduled_to_draw_start_ms": 21.765958328614943,
+      "first_frame_draw_wall_ms": 0.18704166723182425,
+      "first_frame_cache_build_ms": 0.0017916681827045977,
+      "host_launch_to_first_measured_draw_start_ms": 1266.1717500013765,
+      "initialization_stages": [
+        {
+          "duration_ms": 34.3254999970668,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003333334461785853,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-1600x1000-pair0-skia",
+      "cell": "primary-7-R-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 17.08179166598711,
+      "receipt_to_draw_start_ms": 2.4025833336054347,
+      "scheduled_to_draw_start_ms": 19.484374999592546,
+      "first_frame_draw_wall_ms": 8.764791666180827,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1246.9407916651107,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.3996250015916303,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 28.742666661855765,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002916669473052025,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair1-skia",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1621249975869432,
+      "receipt_to_draw_start_ms": 0.09258333739126101,
+      "scheduled_to_draw_start_ms": 0.2547083349782042,
+      "first_frame_draw_wall_ms": 8.433875002083369,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36671.4812916689,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.4275833343854174,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 222.49666666903067,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.00466666097054258,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 229.44808333704714,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005291665729600936,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-2560x1600-pair1-coregraphics",
+      "cell": "primary-8-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1273333400604315,
+      "receipt_to_draw_start_ms": 0.26483333203941584,
+      "scheduled_to_draw_start_ms": 0.39216667209984735,
+      "first_frame_draw_wall_ms": 10.238583330647089,
+      "first_frame_cache_build_ms": 0.005249996320344508,
+      "host_launch_to_first_measured_draw_start_ms": 36910.029500002565,
+      "initialization_stages": [
+        {
+          "duration_ms": 202.17200000479352,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004249995981808752,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 201.3492916667019,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004333334800321609,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair3-skia",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.210458332963753,
+      "receipt_to_draw_start_ms": 2.406666666502133,
+      "scheduled_to_draw_start_ms": 21.617124999465887,
+      "first_frame_draw_wall_ms": 7.089041668223217,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1254.5947916660225,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6390833295881748,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 28.762291665771045,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0031666713766753674,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair3-coregraphics",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 14.95545833313372,
+      "receipt_to_draw_start_ms": 0.18512499809730798,
+      "scheduled_to_draw_start_ms": 15.140583331231028,
+      "first_frame_draw_wall_ms": 0.20762500207638368,
+      "first_frame_cache_build_ms": 0.002708336978685111,
+      "host_launch_to_first_measured_draw_start_ms": 1236.2159166659694,
+      "initialization_stages": [
+        {
+          "duration_ms": 25.666208333859686,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.002833330654539168,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair0-coregraphics",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.27712500013876706,
+      "receipt_to_draw_start_ms": 1.9409583328524604,
+      "scheduled_to_draw_start_ms": 2.2180833329912275,
+      "first_frame_draw_wall_ms": 0.13891666458221152,
+      "first_frame_cache_build_ms": 0.010458330507390201,
+      "host_launch_to_first_measured_draw_start_ms": 36899.901333337766,
+      "initialization_stages": [
+        {
+          "duration_ms": 206.10475000285078,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.006291666068136692,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 212.41137500328477,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004041663487441838,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair0-skia",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.12779166718246415,
+      "receipt_to_draw_start_ms": 0.07654166256543249,
+      "scheduled_to_draw_start_ms": 0.20433332974789664,
+      "first_frame_draw_wall_ms": 0.463583339296747,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36686.62116666383,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.7267499968293123,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 227.44937500101514,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003249995643272996,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 221.7167499984498,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038750004023313522,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair0-coregraphics",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 20.363166666356847,
+      "receipt_to_draw_start_ms": 0.19245833391323686,
+      "scheduled_to_draw_start_ms": 20.555625000270084,
+      "first_frame_draw_wall_ms": 0.27550000231713057,
+      "first_frame_cache_build_ms": 0.003166664100717753,
+      "host_launch_to_first_measured_draw_start_ms": 1260.6302083295304,
+      "initialization_stages": [
+        {
+          "duration_ms": 30.443750001722947,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0032916650525294244,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair0-skia",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 21.62191666138824,
+      "receipt_to_draw_start_ms": 0.08562500443076715,
+      "scheduled_to_draw_start_ms": 21.707541665819008,
+      "first_frame_draw_wall_ms": 6.93808333016932,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1250.862083332322,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.4212916683172807,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 27.846333337947726,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004791661922354251,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair2-skia",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.09804166620597243,
+      "receipt_to_draw_start_ms": 0.046375003876164556,
+      "scheduled_to_draw_start_ms": 0.144416670082137,
+      "first_frame_draw_wall_ms": 0.3862083322019316,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36680.068666668376,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.8358333288924769,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 220.08383333741222,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004999994416721165,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 223.20404166384833,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004583329427987337,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-2560x1600-pair2-coregraphics",
+      "cell": "primary-8-C-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.2249583340017125,
+      "receipt_to_draw_start_ms": 0.25404166080988944,
+      "scheduled_to_draw_start_ms": 0.47899999481160194,
+      "first_frame_draw_wall_ms": 0.07404167263302952,
+      "first_frame_cache_build_ms": 0.00483333133161068,
+      "host_launch_to_first_measured_draw_start_ms": 36933.87608332705,
+      "initialization_stages": [
+        {
+          "duration_ms": 228.2655833332683,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004624998837243766,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 205.50775000447175,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0034999975468963385,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair4-coregraphics",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 19.86012499401113,
+      "receipt_to_draw_start_ms": 0.15175000589806587,
+      "scheduled_to_draw_start_ms": 20.011874999909196,
+      "first_frame_draw_wall_ms": 0.20854166359640658,
+      "first_frame_cache_build_ms": 0.0024583350750617683,
+      "host_launch_to_first_measured_draw_start_ms": 1249.286916667188,
+      "initialization_stages": [
+        {
+          "duration_ms": 31.305291668104474,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0035000048228539526,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-R-2560x1600-pair4-skia",
+      "cell": "primary-7-R-2560x1600",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 20.620166666049045,
+      "receipt_to_draw_start_ms": 0.08591666119173169,
+      "scheduled_to_draw_start_ms": 20.706083327240776,
+      "first_frame_draw_wall_ms": 6.252708335523494,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 1261.3285833285772,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6770833351765759,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 32.52683333266759,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0024583350750617683,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair0-skia",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.22191667085280642,
+      "receipt_to_draw_start_ms": 0.11874999472638592,
+      "scheduled_to_draw_start_ms": 0.34066666557919234,
+      "first_frame_draw_wall_ms": 7.429458339174744,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36698.31808332674,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6443750025937334,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 228.93425000074785,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0051249953685328364,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 221.72300000238465,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004791669198311865,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair0-coregraphics",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.11254166020080447,
+      "receipt_to_draw_start_ms": 1.3670000043930486,
+      "scheduled_to_draw_start_ms": 1.479541664593853,
+      "first_frame_draw_wall_ms": 12.234916663146578,
+      "first_frame_cache_build_ms": 0.01183333370136097,
+      "host_launch_to_first_measured_draw_start_ms": 36924.68850000296,
+      "initialization_stages": [
+        {
+          "duration_ms": 211.7144583389745,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038333309930749238,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 202.65666666819016,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003666667907964438,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair2-skia",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.10479166667209938,
+      "receipt_to_draw_start_ms": 0.05245833017397672,
+      "scheduled_to_draw_start_ms": 0.1572499968460761,
+      "first_frame_draw_wall_ms": 3.3681250060908496,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36681.53749999328,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.33279166382271796,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 224.38687500107335,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.005458328814711422,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 222.9262083346839,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003374996595084667,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-R-1600x1000-pair2-coregraphics",
+      "cell": "primary-8-R-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1660833295318298,
+      "receipt_to_draw_start_ms": 0.4291666700737551,
+      "scheduled_to_draw_start_ms": 0.5952499996055849,
+      "first_frame_draw_wall_ms": 13.00062499649357,
+      "first_frame_cache_build_ms": 0.010833333362825215,
+      "host_launch_to_first_measured_draw_start_ms": 36915.629875002196,
+      "initialization_stages": [
+        {
+          "duration_ms": 219.2235416659969,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0038750004023313522,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 202.67212500039022,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003625005774665624,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair1-coregraphics",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 25.71116667240858,
+      "receipt_to_draw_start_ms": 0.16258333198493347,
+      "scheduled_to_draw_start_ms": 25.873750004393514,
+      "first_frame_draw_wall_ms": 0.9258749996661209,
+      "first_frame_cache_build_ms": 0.6895416663610376,
+      "host_launch_to_first_measured_draw_start_ms": 1249.3134583346546,
+      "initialization_stages": [
+        {
+          "duration_ms": 33.35241666354705,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.0030000010156072676,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-7-C-1600x1000-pair1-skia",
+      "cell": "primary-7-C-1600x1000",
+      "backend": "skia",
+      "start_state": "first-use",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 22.543166662217118,
+      "receipt_to_draw_start_ms": 0.09954167035175487,
+      "scheduled_to_draw_start_ms": 22.642708332568873,
+      "first_frame_draw_wall_ms": 8.7680416618241,
+      "first_frame_cache_build_ms": 0.106291,
+      "host_launch_to_first_measured_draw_start_ms": 1246.5488333327812,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.5531249989871867,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 30.64487499796087,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.003333334461785853,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair3-skia",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "skia",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.1444583322154358,
+      "receipt_to_draw_start_ms": 0.0940000027185306,
+      "scheduled_to_draw_start_ms": 0.2384583349339664,
+      "first_frame_draw_wall_ms": 0.792166669270955,
+      "first_frame_cache_build_ms": 0,
+      "host_launch_to_first_measured_draw_start_ms": 36678.19716666418,
+      "initialization_stages": [
+        {
+          "duration_ms": 0.6481666714535095,
+          "stage": "skia_context_creation"
+        },
+        {
+          "duration_ms": 226.11062500072876,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004791669198311865,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 217.82712499407353,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.009083334589377046,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    },
+    {
+      "run_id": "primary-8-C-1600x1000-pair3-coregraphics",
+      "cell": "primary-8-C-1600x1000",
+      "backend": "coregraphics",
+      "start_state": "after-idle",
+      "first_sample_id": 1,
+      "scheduled_to_receipt_ms": 0.23741666518617421,
+      "receipt_to_draw_start_ms": 0.4220000046188943,
+      "scheduled_to_draw_start_ms": 0.6594166698050685,
+      "first_frame_draw_wall_ms": 0.1396249936078675,
+      "first_frame_cache_build_ms": 0.010291667422279716,
+      "host_launch_to_first_measured_draw_start_ms": 36924.48783333384,
+      "initialization_stages": [
+        {
+          "duration_ms": 219.41558332764544,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.007000002369750291,
+          "stage": "replay_creation_and_reference_oracle"
+        },
+        {
+          "duration_ms": 206.94400000502355,
+          "initial_sample_applied": false,
+          "initial_snapshot_ms": 0.004749999789055437,
+          "stage": "replay_creation_and_reference_oracle"
+        }
+      ]
+    }
+  ],
+  "scope": "Secondary evidence only: scheduled first expected sample to its receipt and first representing draw start. Not callback completion, visible ink, or physical pen-to-screen latency; camera pending. Generated replay bypasses the Wacom digitizer and driver. No primary metric, threshold, or backend selection is changed.",
+  "aggregation_warning": "A whole 30-second run p95 can dilute a one-time first-mark cost. These rows identify the first expected sample, not the latest sample represented by the first frame.",
+  "host_launch_scope": "The host_launch clock starts at the first Swift statement, not the OS process-launch request. It includes the explicit one-second autostart wait and replay/reference construction. For after-idle runs it also includes warm-up, reset, cache preparation and idle waiting; it is not first-mark latency. Initialization stages are reported separately as recorded.",
+  "draw_wall_scope": "First-frame synchronous callback wall duration includes the backend-specific draw path and possible drawable acquisition. Core Graphics can rasterize after callback return; process CPU and optical endpoints have different scopes."
+}

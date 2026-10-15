@@ -65,7 +65,7 @@ def extract(analysis_path, collection_path):
         'rows': rows,
         'scope': 'Secondary evidence only: scheduled first expected sample to its receipt and first representing draw start. Not callback completion, visible ink, or physical pen-to-screen latency; camera pending. Generated replay bypasses the Wacom digitizer and driver. No primary metric, threshold, or backend selection is changed.',
         'aggregation_warning': 'A whole 30-second run p95 can dilute a one-time first-mark cost. These rows identify the first expected sample, not the latest sample represented by the first frame.',
-        'host_launch_scope': 'Host-launch-to-first-measured-draw includes process initialization and replay/reference construction. For after-idle runs it also includes warm-up, reset, cache preparation and idle waiting; it is not first-mark latency. Initialization stages are reported separately as recorded.',
+        'host_launch_scope': 'The host_launch clock starts at the first Swift statement, not the OS process-launch request. It includes the explicit one-second autostart wait and replay/reference construction. For after-idle runs it also includes warm-up, reset, cache preparation and idle waiting; it is not first-mark latency. Initialization stages are reported separately as recorded.',
         'draw_wall_scope': 'First-frame synchronous callback wall duration includes the backend-specific draw path and possible drawable acquisition. Core Graphics can rasterize after callback return; process CPU and optical endpoints have different scopes.',
     }
 

@@ -1,6 +1,6 @@
 # Skia versus Core Graphics: physical pen-to-screen comparison plan
 
-Status: software harness implemented and preflight validated; comparison acquisition is partial. The authorized
+Status: software comparison complete (368 accepted runs and four classified sustained failures; 372 outcomes). The authorized
 software scope and frozen matrix are specified in
 [cintiq-software-execution.md](cintiq-software-execution.md). Physical measurements
 remain pending suitable camera equipment and the real-pen input adapter/validation.
@@ -19,7 +19,7 @@ Vello is outside this experiment. Preserve its historical code and results. Prod
 selection remains OPEN, with owner acceptance before permanent integration or merge.
 
 The owner has made a connected **Wacom Cintiq and Wacom Pro Pen 3** available. These are
-the physical input and display for this experiment. Execution verified a Cintiq Pro 22 at 3840×2160 physical pixels, 1920×1080 points and nominal 120 Hz on the M2 Pro Mac. Wacom Center reports 6.4.14-1; the driver/pen firmware and physical Pro Pen 3 delivery remain unverified. Physical acquisition is explicitly deferred until suitable camera equipment is available. See the execution contract and partial report for current evidence.
+the physical input and display for this experiment. Execution verified a Cintiq Pro 22 at 3840×2160 physical pixels, 1920×1080 points and nominal 120 Hz on the M2 Pro Mac. Wacom Center reports 6.4.14-1; the driver/pen firmware and physical Pro Pen 3 delivery remain unverified. Physical acquisition is explicitly deferred until suitable camera equipment is available. See the execution contract and completed software report for current evidence.
 
 ## 1. Two complementary kinds of evidence
 

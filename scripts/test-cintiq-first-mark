@@ -2,6 +2,8 @@
 """Portable first-mark identity and batched-sample evidence tests; no native launches."""
 import json
 import runpy
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -110,6 +112,41 @@ class FirstMarkTests(unittest.TestCase):
     def test_warm_runs_do_not_become_first_use_evidence(self):
         analysis, _ = self.prepare('warm')
         self.assertEqual(EXTRACT['extract'](analysis, self.root)['rows'], [])
+
+    def report_fixture(self):
+        analysis, _ = self.prepare()
+        data = A['read'](analysis)
+        data.update(status='partial', declared_runs=1, attempted_runs=1, pending=[], invalid=[], failed_runs=0, failed=[], cells=[], pair_outcomes=[], pairs=[])
+        self.fixture.write(analysis, data)
+        first = self.root / 'first.json'
+        self.fixture.write(first, EXTRACT['extract'](analysis, self.root))
+        return analysis, first
+
+    def render_report(self, analysis, first):
+        return subprocess.run([sys.executable, str(HERE / 'build-cintiq-report'), str(analysis), '--first-mark', str(first), '--output', str(self.root / 'report.html')], capture_output=True, text=True)
+
+    def test_report_keeps_first_sample_and_callback_boundaries(self):
+        analysis, first = self.report_fixture()
+        result = self.render_report(analysis, first)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = (self.root / 'report.html').read_text()
+        self.assertIn('<td>30.00</td><td>25.00</td><td>5.00</td><td>5.50</td><td>3.20</td>', report)
+        self.assertIn('not sub-millisecond visible ink', report)
+        self.assertIn('Component medians need not sum', report)
+
+    def test_report_rejects_first_mark_from_other_analysis(self):
+        analysis, first = self.report_fixture()
+        analysis.write_text(analysis.read_text() + ' ')
+        self.assertNotEqual(self.render_report(analysis, first).returncode, 0)
+        self.assertFalse((self.root / 'report.html').exists())
+
+    def test_report_rejects_missing_first_mark_row(self):
+        analysis, first = self.report_fixture()
+        data = A['read'](first)
+        data['rows'] = []
+        self.fixture.write(first, data)
+        self.assertNotEqual(self.render_report(analysis, first).returncode, 0)
+        self.assertFalse((self.root / 'report.html').exists())
 
 
 if __name__ == '__main__':
