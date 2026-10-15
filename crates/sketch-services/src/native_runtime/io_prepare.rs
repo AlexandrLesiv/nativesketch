@@ -15,6 +15,7 @@ impl IoState {
         &self,
         ticket: ReplacementTicket,
         recovery: Option<CheckpointMetadata>,
+        after_validation: impl FnOnce() -> Result<(), NativeFailure>,
     ) -> Result<PreparedReplacement, ReplacementFailure> {
         let document = catch_unwind(AssertUnwindSafe(|| match ticket.source() {
             ReplacementSource::New => Ok(None),
@@ -59,7 +60,12 @@ impl IoState {
         }))
         .unwrap_or(Err(NativeFailure::Panic));
         match document {
-            Ok(document) => ticket.prepare(document),
+            Ok(document) => {
+                if document.is_some() && after_validation().is_err() {
+                    return Err(ticket.fail(StorageFailure::Access));
+                }
+                ticket.prepare(document)
+            }
             Err(error) => Err(ticket.fail(match error {
                 NativeFailure::Capacity => StorageFailure::Capacity,
                 NativeFailure::Corrupt => StorageFailure::Encode,

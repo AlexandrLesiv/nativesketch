@@ -18,7 +18,7 @@ pub struct TestControl {
 }
 impl TestControl {
     pub fn new(root: PathBuf, stage: u32, mode: u32) -> Result<Self, NativeFailure> {
-        if !root.is_absolute() || !(1..=7).contains(&stage) || !(1..=2).contains(&mode) {
+        if !root.is_absolute() || !(1..=8).contains(&stage) || !(1..=2).contains(&mode) {
             return Err(NativeFailure::Unsupported);
         }
         Ok(Self {
@@ -92,6 +92,9 @@ impl TestControls {
             }
             std::thread::sleep(Duration::from_millis(5));
         }
+    }
+    pub fn after_read_validation(&self, stop: &AtomicBool) -> io::Result<()> {
+        self.reach(8, stop)
     }
     pub fn resolve(&self, stop: &AtomicBool) -> io::Result<()> {
         self.reach(1, stop)

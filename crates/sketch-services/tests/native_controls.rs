@@ -1,4 +1,6 @@
 #![cfg(feature = "native-test-controls")]
+#[path = "native_runtime/read_controls.rs"]
+mod read_controls;
 #[path = "native_runtime/support.rs"]
 mod support;
 use sketch_core::application::{routing::*, storage::SaveResult, *};

@@ -53,6 +53,11 @@ pub(super) fn run(
                 if let Work::ArmTest(control) = work {
                     return controls.arm(control).map(|_| WorkerValue::Complete).unwrap_or_else(WorkerValue::Failure);
                 }
+                if let Work::Prepare { ticket, recovery } = work {
+                    return WorkerValue::Replacement(Box::new(state.prepare(ticket, recovery, || {
+                        controls.after_read_validation(controls_stop).map_err(|_| NativeFailure::Access)
+                    })));
+                }
                 if matches!(work, Work::Resolve(_)) && controls.resolve(controls_stop).is_err() {
                     return WorkerValue::Failure(NativeFailure::Access);
                 }

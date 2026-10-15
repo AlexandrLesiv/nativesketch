@@ -13,7 +13,7 @@ impl IoState {
                 .map(WorkerValue::Destination)
                 .unwrap_or_else(WorkerValue::Failure),
             Work::Prepare { ticket, recovery } => {
-                WorkerValue::Replacement(Box::new(self.prepare(ticket, recovery)))
+                WorkerValue::Replacement(Box::new(self.prepare(ticket, recovery, || Ok(()))))
             }
             Work::Write { job, checkpoint } => {
                 let target = if let Some(metadata) = checkpoint {
