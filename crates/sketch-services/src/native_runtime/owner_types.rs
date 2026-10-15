@@ -99,6 +99,7 @@ pub(super) struct PendingOperation {
     pub event: Option<u64>,
     pub retry: u32,
     pub checkpoint: Option<CheckpointMetadata>,
+    pub recovery_source: Option<CheckpointMetadata>,
     pub cancelled: bool,
     pub items: Vec<(u64, CheckpointMetadata)>,
 }

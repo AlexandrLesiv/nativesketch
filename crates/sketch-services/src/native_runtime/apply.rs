@@ -93,7 +93,8 @@ impl NativeRuntime {
             self.bind_grant(window, op.grant, destination)?;
         }
         if outcome.changes.session_replaced {
-            self.sessions[slot].recovered_from = self.sessions[slot].requested_recovery.take();
+            self.sessions[slot].recovered_from = op.recovery_source.clone();
+            self.sessions[slot].requested_recovery = None;
         }
         if let Some(save) = &outcome.save {
             self.checkpoint_complete(window, op.checkpoint.as_ref(), save)?;

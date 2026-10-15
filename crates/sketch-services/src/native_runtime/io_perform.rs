@@ -21,12 +21,10 @@ impl IoState {
                         .as_ref()
                         .map_err(|error| *error)
                         .and_then(|access| {
-                            if metadata.generation == 1 {
-                                access
-                                    .store
-                                    .allocate(metadata.identity)
-                                    .map_err(NativeFailure::Recovery)?;
-                            }
+                            access
+                                .store
+                                .ensure_allocated(metadata.identity)
+                                .map_err(NativeFailure::Recovery)?;
                             Ok(WriteTarget::Checkpoint {
                                 store: access.store.clone(),
                                 metadata,

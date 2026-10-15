@@ -43,10 +43,14 @@ impl NativeRuntime {
             ApplicationCommand::Edit(_) | ApplicationCommand::Input(_) => 0,
             _ => return Err(RuntimeError::Invalid),
         };
+        let clears_recovery = matches!(&command, ApplicationCommand::File(FileIntent::Navigate(intent)) if !matches!(intent, NavigationIntent::Recover(_)));
         let outcome = self.sessions[index]
             .app
             .dispatch(&mut self.coordinator, context, command)
             .map_err(|error| RuntimeError::Application(error.failure))?;
+        if clears_recovery {
+            self.sessions[index].requested_recovery = None;
+        }
         self.action(window, outcome, self.sessions[index].bound_grant, retry)
     }
     pub fn reply(
@@ -79,6 +83,7 @@ impl NativeRuntime {
             )
             .map_err(|error| RuntimeError::Application(error.failure))?;
         if matches!(decision, EffectDecision::Cancel) {
+            self.sessions[index].requested_recovery = None;
             for operation in &mut self.operations {
                 if operation.window == window
                     && matches!(operation.kind,
@@ -109,6 +114,7 @@ impl NativeRuntime {
         }
         if outcome.changes.session_replaced {
             self.sessions[index].recovery = None;
+            self.sessions[index].last_checkpoint = None;
             self.sessions[index].schedule.replace_session();
         }
         let (effect, operation) =

@@ -29,6 +29,7 @@ impl NativeRuntime {
             event: None,
             retry,
             checkpoint: None,
+            recovery_source: None,
             cancelled: false,
             items: Vec::new(),
         });
@@ -77,6 +78,7 @@ impl NativeRuntime {
                 } else {
                     None
                 };
+                let captured_recovery = recovery.clone();
                 operation = self.enqueue(
                     OperationOwner {
                         window,
@@ -88,6 +90,11 @@ impl NativeRuntime {
                     OperationState::Queued(Box::new(Work::Prepare { ticket, recovery })),
                     retry,
                 )?;
+                self.operations
+                    .iter_mut()
+                    .find(|op| op.id == operation)
+                    .expect("issued prepare")
+                    .recovery_source = captured_recovery;
                 IntentEffect::Opening
             }
             Some(ApplicationEffect::NavigationReady(token)) => IntentEffect::CloseReady(token),
