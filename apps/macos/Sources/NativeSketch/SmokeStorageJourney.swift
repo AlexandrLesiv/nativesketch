@@ -39,7 +39,7 @@ import Foundation
       latest = outcome
       if outcome.failure.domain != 0 {
         fputs(
-          "Smoke failure effect=\(outcome.effect_kind) domain=\(outcome.failure.domain) code=\(outcome.failure.code) operation=\(outcome.failure.operation)\n",
+          "Smoke failure effect=\(outcome.effect_kind) domain=\(outcome.failure.domain) code=\(outcome.failure.code) operationKind=\(outcome.failure.operation) operationID=\(outcome.failure.operation_id) request=\(outcome.failure.request)\n",
           stderr)
       }
     }
