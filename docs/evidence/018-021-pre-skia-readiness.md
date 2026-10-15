@@ -35,6 +35,15 @@ subprocess setup-failure regression and found no remaining actionable issues. It
 are `/private/tmp/legacy-abi-closure-review-82a6f9f/`. Final primary integration evidence
 is added below after verification of the frozen candidate.
 
+The first primary acceptance report also exposed obsolete case-wide XCTest mappings in
+the task 019 manifest. Without a current desktop enumeration these produced 48 mapping
+issues, although every requested core/storage/C case passed. The twelve single-macOS rows
+now use the existing per-requirement coverage representation, preserving every test ID,
+automation state and gap. Absent native enumeration remains `missing-discovery`, never a
+pass; a test missing from an actually enumerated target remains `invalid-mapping`. No runner
+rule or acceptance threshold changes. The initial nonzero report is retained at
+`artifacts/verification/018-021-closure-8f1abf3/acceptance.log` and its immutable history.
+
 ## Baseline verification
 
 At clean `f0c9bc2`, the lead ran:
