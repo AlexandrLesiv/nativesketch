@@ -102,7 +102,7 @@ still requires actual UI tests on each host.
 
 ## Capture/check evidence
 
-On macOS 27.0.1 (26A434), Rust/Cargo 1.99.0, Node 24.22.0, the task 015 fixture change passed
+On macOS 27.0.1 (26A434), Rust/Cargo 1.99.0, Node 24.12.0, the task 015 fixture change passed
 all 32 Cargo tests (26 existing + 6 new), strict workspace Clippy, rustfmt, the existing
 native/Wasm conformance runner, and all 20 frozen Wasm request/response pairs. No runtime
 source changed. New formatted test/script sizes are 128/83/50 physical lines. Native UI,
