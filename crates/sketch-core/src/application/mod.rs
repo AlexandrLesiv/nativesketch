@@ -29,3 +29,4 @@ pub use summary::EditorSummary;
 mod availability;
 pub mod storage;
 pub use availability::{ActionId, Availability, DisabledReason};
+pub mod routing;

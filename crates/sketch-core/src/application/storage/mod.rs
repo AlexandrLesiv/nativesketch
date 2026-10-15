@@ -42,6 +42,15 @@ impl SaveCoordinator {
     pub fn outstanding(&self) -> usize {
         self.entries.len()
     }
+    /// Includes finished results until consumed; navigation must await their acknowledgements.
+    pub fn explicit_outstanding(&self, session: super::DocumentSessionId) -> usize {
+        self.entries
+            .iter()
+            .filter(|entry| {
+                entry.token.session() == session && entry.token.purpose() != SavePurpose::Checkpoint
+            })
+            .count()
+    }
     pub fn reserved_snapshot_bytes(&self) -> usize {
         self.reserved_bytes
     }
