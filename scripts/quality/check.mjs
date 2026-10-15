@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { checkSourceSize, isSource } from './source-size.mjs';
 import { checkDependencies } from './dependencies.mjs';
+import { checkLegacyGrowth, legacyChanges } from './legacy-growth.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const args = process.argv.slice(2);
@@ -28,7 +29,10 @@ const board = json('tasks/board.json');
 const size = checkSourceSize(files, baseline.entries, policy,
   new Set(board.tasks.map(/** @param {{id: string}} task */ (task) => task.id)), args[0] === '--final');
 const metadata = JSON.parse(run('cargo', ['metadata', '--locked', '--no-deps', '--format-version', '1']));
-const failures = [...size.failures, ...checkDependencies(metadata, json('quality/dependency-policy.json'))];
+const legacy = baseline.oversized.map(/** @param {{path: string}} entry */ (entry) => entry.path);
+const growth = legacyChanges((...argv) => run('git', argv), baseline.revision, legacy, files);
+const failures = [...size.failures, ...checkLegacyGrowth(growth, policy.maximumPhysicalLines),
+  ...checkDependencies(metadata, json('quality/dependency-policy.json'))];
 for (const entry of size.debt) console.log(`DEBT task ${entry.task}: ${entry.path} (${entry.lines} lines)`);
 for (const failure of failures) console.error(`FAIL: ${failure}`);
 if (failures.length) process.exitCode = 1;
