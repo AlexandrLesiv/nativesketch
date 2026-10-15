@@ -202,3 +202,30 @@ unchanged subsequent panel/geometry/byte assertions. This route is valid FILE-00
 but does **not** certify the Command-Shift-S shortcut. Its failure, keyboard coverage gap,
 and attempt 6 evidence remain preserved. If the menu action also fails, UI retries stop
 for product/modal-process diagnosis rather than further selector changes.
+
+## Executed native acceptance: attempt 7 passed
+
+On clean `41d498dc7d620ce8ff70cdfd89b2637954849cb4`, the real enumerated XCTest
+`xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen` passed. The run used
+Xcode 27.0 (27A266a), SDK 27.0, macOS 27.0.1 (26A434), Mac14,10/arm64, and the
+isolated signed identity `dev.nativesketch.e2e.1d2e918f0fe8820a3c5ee028`.
+
+Actual native width and explicit sRGB color controls, mouse click-drag, blank baseline,
+three independent ink patches, native Save, strict saved geometry/style/provenance,
+normal Quit and a new process, native Open, restored ink, and native File → Save As…
+all passed. The second saved file matched the original bytes. The reopened canvas
+screenshot was also inspected and shows the expected single red diagonal stroke.
+This establishes this narrow BRUSH-001/FILE-001 journey; it does not establish all
+editing, recovery or shortcut behavior. Command-Shift-S remains an unresolved gap
+with its attempt 6 failure retained. No physical pen, pressure or latency was measured.
+
+Local evidence is retained in the acceptance worktree under
+`artifacts/evidence/native-attempt-7/`: discovery/results/identity JSON, execution log,
+`journey.xcresult`, both disposable drawings and exported attachments. App executable
+SHA256 is `3026854c7b1cdb3f560204c8315245e1b9938a28b9e69fea3c55e794ddb4592b`;
+test executable SHA256 is
+`eae308b1429a994d3b36e9fe45f62f10db55a25bb6a1610a66459fcd2a8ff27e`.
+Reopened canvas attachment is `5D1EC14D-B183-4EF9-A1F6-CCD088DAD773.png`.
+The normalized duration (73.56 seconds) includes execution/report collection and is
+not a rendering or pen latency measurement. Attempts 1–6 remain failures at their
+original source revisions; this successful repair does not rewrite them as passes.
