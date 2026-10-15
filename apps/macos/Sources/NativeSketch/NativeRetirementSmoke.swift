@@ -20,6 +20,7 @@ import CSketchSession
     runtime.pump.drain()
     precondition(replies == 1)
     ordering()
+    pumpDecisions()
   }
   private static func ordering() {
     let coordinator = NativeShutdownCoordinator()
@@ -43,5 +44,17 @@ import CSketchSession
     coordinator.finish()
     coordinator.finish()
     precondition(admissions == 1 && replies == 1 && failures == 0)
+  }
+  private static func pumpDecisions() {
+    var state = SketchRuntimeStateV1()
+    state.wake_after_ms = UInt64.max
+    precondition(NativePumpDecision(state: state, retiring: false).delay == nil)
+    precondition(NativePumpDecision(state: state, retiring: true).delay != nil)
+    // The old poll snapshot was idle; retirement/shutdown generated new pending work.
+    state.needs_poll = 1
+    precondition(NativePumpDecision(state: state, retiring: false).delay != nil)
+    state.needs_poll = 0
+    state.stopped = 1
+    precondition(NativePumpDecision(state: state, retiring: false).delay == nil)
   }
 }

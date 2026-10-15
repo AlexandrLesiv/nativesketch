@@ -45,17 +45,19 @@ import AppKit
     beginShutdown()
   }
   private func beginShutdown() {
-    let accepted = owner.runtime.shutdown(onFailure: { [weak self] in
-      self?.navigationCancelled()
-    }) { [weak self] in
-      guard let self else { return }
-      if terminationPending {
-        terminationPending = false
-        NSApp.reply(toApplicationShouldTerminate: true)
-      } else {
-        NSApp.terminate(nil)
-      }
-    }
+    let accepted = owner.runtime.shutdown(
+      onFailure: { [weak self] in
+        self?.navigationCancelled()
+      },
+      { [weak self] in
+        guard let self else { return }
+        if terminationPending {
+          terminationPending = false
+          NSApp.reply(toApplicationShouldTerminate: true)
+        } else {
+          NSApp.terminate(nil)
+        }
+      })
     if !accepted { Task { @MainActor [weak self] in self?.navigationCancelled() } }
   }
   private func confirmUnavailableClose() {
