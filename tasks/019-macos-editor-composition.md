@@ -24,9 +24,10 @@ native Save setup. [Repair preparation](../docs/evidence/019-gesture-automation-
 records passing builds/review and the explicit new-desktop-approval execution gate.
 Subsequent attempts 23–25 discovered 45 cases but both selected gesture tests failed
 before held input: permission preflight, then a repaired fixture-path assertion, then
-permission preflight after rebuilding. Test-host identity and framework cleanup are being
-repaired in the background. Gesture acceptance remains open; the last desktop reservation
-has ended. Exact failures and cleanup are retained in the repair report.
+permission preflight after rebuilding. Test-host identity and framework cleanup repairs are
+integrated at `07b895b`; full background checks, preparation and fresh independent review
+pass. Gesture acceptance remains open; the last desktop reservation has ended. Exact
+failures, cleanup and prepared binary identities are retained in the repair report.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)

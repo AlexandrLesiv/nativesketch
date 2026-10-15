@@ -119,3 +119,19 @@ external bundle, using required `NATIVE_SKETCH_TEST_BUNDLE_PATH` (absolute `.xct
 canonical bundle path, executable path and SHA-256 are attached before comparison. Missing,
 malformed or mismatched provenance fails before subject launch, including older raw-app
 journeys. Preparation does not prove that the external bundle was actually loaded at runtime.
+
+## Stable runner identity
+
+Preparation freezes the generated host at
+`artifacts/e2e-stable-runner/host-v1/NativeSketchUITests-Runner.app` and loads each attempt's
+current test bundle separately. Ordinary rebuilds never replace or re-sign this host.
+Its manifest records toolchain, architecture, signature and complete bundle fingerprint.
+Mutation or a toolchain/architecture change stops preparation and requires explicit host
+renewal; do not delete the manifest or overwrite the host to bypass that failure.
+The owner may need to grant Accessibility for this stable path once. Tests never grant it.
+
+The run records host/test identities and exports XCTest attachments. Every passing case
+must contain matching loaded-bundle provenance; missing evidence cannot become a pass.
+Post-run checks reject changes to the host or external test bundle. The frozen embedded
+tests are not the intended execution target. External loading and permission continuity
+require real native verification in an approved desktop session.

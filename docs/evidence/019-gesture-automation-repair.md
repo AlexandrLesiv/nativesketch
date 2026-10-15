@@ -83,15 +83,49 @@ requirement. Changing an external test bundle leaves the host identity unchanged
 supports the identity diagnosis but does not prove the OS's permission decision.
 Raw experiment: `artifacts/verification/019-runner-identity/`.
 
-The follow-up repair separates a stable host from the current test bundle, verifies
-loaded-bundle provenance, and expands framework-owned cleanup to the other vulnerable
-test fixtures. Background preparation/review and native validation are separate gates;
-successful builds or signature checks cannot establish permission continuity.
+The follow-up repair is integrated at clean `07b895b701219084d623d4cdb3fca2e726282471`.
+It separates a stable host from the current test bundle, verifies loaded-bundle provenance,
+and expands framework-owned cleanup to the other vulnerable fixtures. Each passing case
+must supply matching runtime provenance in exported XCTest attachments. Missing, stale or
+mismatched provenance prevents normalized passing results, including for old tests without
+the new Swift guard. Host or test-bundle mutation also prevents acceptance.
+
+At that revision the full background integration check passed: 69 tooling tests, 151
+workspace Rust tests plus separately exercised feature tests, format/type/lint/source and
+dependency gates, real C consumer, test-symbol separation, Swift build and headless smoke.
+The first attempt reached a Swift manifest sandbox restriction; the rerun with normal
+host build access passed. Both logs are retained as `check-07b895b.log` and
+`check-07b895b-unsandboxed.log` under `artifacts/verification/019-integrated-runtime/`.
+
+Primary background preparation then passed app/test builds, oracle checks and the real
+Apple XCTest negative cleanup regression, and deliberately stopped at the foreground guard
+with exit 1. Its exact trace proves cleanup after an assertion abort and remaining LIFO
+cleanup after a throwing block. No native enumeration or application launch occurred.
+Evidence: `artifacts/evidence/019-stable-runner-preparation-07b895b/`.
+Subject SHA-256: `37b7252dbff5717a1db8ab62a0b0c3ec2f64b58be68f25c6b59e9bb3763b058c`.
+External test SHA-256: `c0aec3a3d748746eb2df6419a8d33dc1e3fb80289e46cfcb865ef33f5cae0a50`.
+Stable host executable SHA-256: `8a7f4a10579762169dc27b4c7896555df84d14fc56ec471a5d4ffd14b00679eb`.
+The ordinary app was rebuilt without test controls after preparation, without launching
+or replacing the existing running instance. Its on-disk executable SHA-256 is
+`f76b3750a2d474e619a37d928b6719eeb3868769bd41f330d8f2e02c907c8445`;
+the test-control symbol scan is empty. Log: `ordinary-build-07b895b.log`.
+
+Fresh independent review of worker commits `a04e821` and `d2b4bb2` found no remaining
+actionable issue. It independently ran the seven new Node regressions and actual Apple
+XCTest cleanup regression and cross-checked signed bundle identities. All changed sources
+meet the 200-line cap. Successful builds, review and signature checks cannot establish
+external bundle loading, permission continuity or native gesture behavior.
 
 After explicit desktop approval, enumerate and execute:
 
 - `NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument`
 - `NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument`
+
+Use the stable host under `artifacts/e2e-stable-runner/host-v1/`. The owner may need to
+authorize this new path once; automation must not change permissions. Require actual
+matching runtime provenance, then verify a changed external test bundle can execute with
+the unchanged host and retained permission. Stop and diagnose if Xcode cannot load the
+external bundle; do not silently fall back to the embedded tests or weaken the guards.
 
 Retain failures, exact source/binary identities and attachments; verify actual runner
 permissions rather than inferring them from entitlements. Existing gesture coverage stays

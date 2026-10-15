@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "native-command-adapter",
   "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Forty-five cases were discovered in attempts23–25; both selected gesture cases failed before held input. Historical results never become current-source passes.",
-  "sourceRevision": "68e990f7551391efcf09f0024227a9cfa00cbf23",
+  "sourceRevision": "07b895b701219084d623d4cdb3fca2e726282471",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
