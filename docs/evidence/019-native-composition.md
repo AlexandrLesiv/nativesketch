@@ -92,3 +92,31 @@ The designer independently opened/cancelled fresh Command-Shift-S and observed c
 return on the frozen d800 candidate. Inspector/ink/Save As screenshots were reviewed. Full
 color-profile popup and keyboard-only traversal remain explicit inspection gaps. The designer
 quit the disposable app before handing the host back for the strengthened tests.
+
+## Native incomplete-width validation
+
+Separate behavior commit `8973b71e950f11355cb4de19cf4997ac4feff01a` adds a native
+field-edit coordinator: unfinished/rollback text only, native formatter acceptance,
+popover close veto, Escape restoration, and successful native edit/focus transfer before
+canvas input. The inspector no longer silently clamps unfinished width text. This is a
+native FOCUS-001 case; Rust remains the intended authority for validated brush settings
+in the subsequent typed command migration.
+
+All five enumerated native cases passed on that clean revision, first execution attempt
+10 at `artifacts/evidence/native-field-validation`. The new case is
+`NativeFieldValidationTests/testIncompleteWidthRefusesInkAndEscapeRestoresValue`.
+It clears the actual width field and drags the canvas: the popover, empty text and native
+field focus remain, with zero ink. Escape restores 6. Correcting to 12 and drawing produces
+one saved stroke with serialized width 12; one Undo removes it and no extra Undo remains.
+The four strengthened existing journeys also passed. Preparation/pure oracle regressions
+and strict Swift formatting passed. Hardware/toolchain/input route are unchanged.
+
+App SHA-256: `0fafa4399c3da19ee03a7cdd41699c925415ca23e3166f13dfa42baa40923ce8`.
+Test SHA-256: `050602c894e042a696823b7ea8712fa238913a8c316172a5d965456b7147e7f0`.
+The local attachment `attachments/24278AFE-2525-4A30-8B07-3B9280025B20.png` shows the
+empty focused width, blank canvas and explanatory status. XCTest app-level screenshots
+include background desktop content on this host: raw screenshots/recordings remain local,
+ignored evidence and must not be published as product illustrations. Future screenshot
+collection should prefer the exact test-owned window or popover. This run does not prove
+VoiceOver speech, IME/localized number entry, all invalid ranges or all field navigation.
+The subsequent typed presenter must also preserve active text/caret through async refresh.
