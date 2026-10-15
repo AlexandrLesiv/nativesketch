@@ -10,6 +10,8 @@ import CSketchSession
       styleMask: [.titled], backing: .buffered, defer: false)
     title = "Finishing Save…"
     setAccessibilityIdentifier("sketch.navigation.waiting")
+    let heading = NSTextField(labelWithString: title)
+    heading.font = .boldSystemFont(ofSize: NSFont.systemFontSize)
     let destination: String
     switch navigation {
     case SK_V1_NAV_NEW.rawValue: destination = "creating a new drawing"
@@ -22,24 +24,34 @@ import CSketchSession
         "Waiting for pending saves before \(destination). Cancelling keeps this drawing open; saves already in progress will still finish."
     )
     explanation.setAccessibilityIdentifier("sketch.navigation.explanation")
+    explanation.preferredMaxLayoutWidth = 400
     cancelButton.target = self
     cancelButton.action = #selector(cancelOperation(_:))
     cancelButton.keyEquivalent = "\r"
     cancelButton.setAccessibilityIdentifier("sketch.navigation.cancel")
     defaultButtonCell = cancelButton.cell as? NSButtonCell
+    initialFirstResponder = cancelButton
     guard let contentView else { return }
-    for view in [explanation, cancelButton] {
+    for view in [heading, explanation, cancelButton] {
       view.translatesAutoresizingMaskIntoConstraints = false
       contentView.addSubview(view)
     }
     NSLayoutConstraint.activate([
+      heading.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+      heading.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
       explanation.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
       explanation.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-      explanation.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
+      explanation.topAnchor.constraint(equalTo: heading.bottomAnchor, constant: 10),
+      cancelButton.topAnchor.constraint(
+        greaterThanOrEqualTo: explanation.bottomAnchor, constant: 16),
       cancelButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
       cancelButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
       cancelButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 90),
     ])
+    let height =
+      62 + heading.fittingSize.height + explanation.fittingSize.height
+      + cancelButton.fittingSize.height
+    setContentSize(NSSize(width: 440, height: max(180, height)))
   }
   override func cancelOperation(_ sender: Any?) {
     sheetParent?.endSheet(self, returnCode: .cancel)
