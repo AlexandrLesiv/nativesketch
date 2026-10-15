@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019 native acceptance mapped to 36 actually enumerated XCTest cases at79f3028. Attempt20 executes only the focus-restoration case; the15 other added cases are discovered but unexecuted. Automation existence never implies a current-source pass. Poisoned native closure and remaining gesture/focus scenarios stay explicit gaps.",
-  "sourceRevision": "79f3028f7757cdca1b04f37929f95c140e93ac41",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Thirty-six cases were actually discovered at79f3028; subsequently added cases require fresh discovery before acceptance. Historical results never become current-source passes.",
+  "sourceRevision": "6c0140e89d80e043e4ec21ff7577668229bc3e64",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -153,15 +153,11 @@
         "xctest:NativeSketchUITests:NativeNavigationTests/testQuitCancellationAndSuccessfulDrain",
         "xctest:NativeSketchUITests:NativeNavigationTests/testInvalidWidthBlocksQuitUntilEscapeRestoration",
         "xctest:NativeSketchUITests:NativeDecisionTests/testCloseCancellationKeepsDrawingAndSaveClosesWindow",
-        "xctest:NativeSketchUITests:NativeDecisionTests/testFailedSaveDuringQuitKeepsAppAndDrawingOpen"
+        "xctest:NativeSketchUITests:NativeDecisionTests/testFailedSaveDuringQuitKeepsAppAndDrawingOpen",
+        "xctest:NativeSketchUITests:NativePoisonClosureTests/testCaughtEnginePanicAllowsCancelledCloseAndQuitThenSafeExit"
       ],
       "automation": "implemented",
-      "gaps": [
-        {
-          "reason": "Poisoned-engine native Close/Quit remains uncovered; Rust/FFI retirement and caught-boundary-panic tests remain separate evidence.",
-          "ownerTask": "019"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "NATIVE-STALE-EFFECT-001",
@@ -236,12 +232,15 @@
         "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
         "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus",
         "xctest:NativeSketchUITests:NativeFieldCompletionTests/testSaveCompletionPreservesExistingNonzeroFieldSelection",
-        "xctest:NativeSketchUITests:NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection"
+        "xctest:NativeSketchUITests:NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection",
+        "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveryLaterRestoresOriginalWidthSelection",
+        "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveCancellationRestoresOriginalWidthSelection",
+        "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands"
       ],
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Native resize/deactivation during an active gesture and focus restoration through recovery/failure successor sheets still need native coverage. Save As field cancellation and nonzero selection through completion have executable tests.",
+          "reason": "XCTest does not automate native resize/deactivation during an active gesture. The separate disposable CGEvent/AX probe requires its own actual execution evidence; compilation and replay are not native passes.",
           "ownerTask": "019"
         }
       ]
