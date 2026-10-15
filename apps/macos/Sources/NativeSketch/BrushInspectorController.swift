@@ -13,9 +13,13 @@ import CSketchFFI
   let apply = NSButton(title: "Apply", target: nil, action: nil)
   var toolbarControls: NSStackView!
   let inspector = NSPopover()
-  lazy var fieldEditing = NativeFieldEditingCoordinator(field: width) { [weak self] message in
-    self?.owner.status.stringValue = message
-  }
+  lazy var fieldEditing = NativeFieldEditingCoordinator(
+    field: width,
+    report: { [weak self] message in self?.owner.status.stringValue = message },
+    resolve: { [weak self] message in
+      guard let self, owner.status.stringValue == message else { return }
+      owner.refresh()
+    })
   func configure() {
     tool.selectedSegment = 0
     tool.target = owner.actions

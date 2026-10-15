@@ -35,15 +35,22 @@ import XCTest
     XCTAssertEqual(width.value as? String, "")
     XCTAssertTrue((canvas.value as? String ?? "").contains("field=true"))
     XCTAssertTrue((canvas.value as? String ?? "").hasPrefix("0 strokes,"))
+    let status = app.staticTexts["Document status"]
+    XCTAssertTrue((status.value as? String ?? "").contains("Enter a stroke width"))
     let invalid = XCTAttachment(screenshot: app.screenshot())
     invalid.name = "incomplete-width-retains-native-edit"
     invalid.lifetime = .keepAlways
     add(invalid)
     width.typeKey(.escape, modifierFlags: [])
     XCTAssertEqual(width.value as? String, "6")
+    XCTAssertFalse((status.value as? String ?? "").contains("Enter a stroke width"))
     width.typeKey("a", modifierFlags: .command)
+    width.typeKey(.delete, modifierFlags: [])
+    width.typeKey(.return, modifierFlags: [])
+    XCTAssertTrue((status.value as? String ?? "").contains("Enter a stroke width"))
     width.typeText("12")
     width.typeKey(.return, modifierFlags: [])
+    XCTAssertFalse((status.value as? String ?? "").contains("Enter a stroke width"))
     app.buttons["Style and Selection"].click()
     XCTAssertTrue(app.popovers.firstMatch.waitForNonExistence(timeout: 5))
     start.click(forDuration: 0.1, thenDragTo: end)

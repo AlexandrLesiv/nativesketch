@@ -7,11 +7,16 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
 {
   private unowned let field: NSTextField
   private let report: (String) -> Void
+  private let resolve: (String) -> Void
   private var originalText: String?
+  private var reportedMessage: String?
 
-  init(field: NSTextField, report: @escaping (String) -> Void) {
+  init(
+    field: NSTextField, report: @escaping (String) -> Void, resolve: @escaping (String) -> Void
+  ) {
     self.field = field
     self.report = report
+    self.resolve = resolve
   }
 
   func controlTextDidBeginEditing(_ notification: Notification) {
@@ -20,6 +25,7 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
 
   func controlTextDidEndEditing(_ notification: Notification) {
     originalText = nil
+    resolveValidation()
   }
 
   func control(_ control: NSControl, textShouldEndEditing fieldEditor: NSText) -> Bool {
@@ -49,6 +55,7 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
     else { return false }
     textView.string = originalText
     field.stringValue = originalText
+    resolveValidation()
     return true
   }
 
@@ -61,10 +68,17 @@ final class NativeFieldEditingCoordinator: NSObject, NSTextFieldDelegate,
 
   private func reject() {
     let message = "Enter a stroke width from 0.1 to 256 points, or press Escape to restore it."
+    reportedMessage = message
     report(message)
     NSSound.beep()
     NSAccessibility.post(
       element: field, notification: .announcementRequested,
       userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
+  }
+
+  private func resolveValidation() {
+    guard let reportedMessage else { return }
+    self.reportedMessage = nil
+    resolve(reportedMessage)
   }
 }

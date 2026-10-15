@@ -50,10 +50,21 @@ import XCTest
     XCTAssertEqual(try Data(contentsOf: document), saved)
     waitForStrokeCount(1)
     XCTAssertTrue(app.windows.firstMatch.title.contains(document.lastPathComponent))
-    // A cancelled Save As must leave the existing destination bound.
+    // Require a real edit so disabled/no-op Save cannot satisfy the binding oracle.
+    let directory = document.deletingLastPathComponent()
+    let filesBefore = try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted()
+    app.typeKey("z", modifierFlags: .command)
+    waitForStrokeCount(0)
     app.typeKey("s", modifierFlags: .command)
     XCTAssertFalse(app.dialogs.firstMatch.waitForExistence(timeout: 2))
-    XCTAssertEqual(try Data(contentsOf: document), saved)
+    let updated = try Data(contentsOf: document)
+    XCTAssertNotEqual(updated, saved)
+    XCTAssertEqual(String(data: updated.prefix(8), encoding: .utf8), "NSKETCH1")
+    guard updated.count >= 16 else { return XCTFail("Truncated saved document header") }
+    XCTAssertEqual(Array(updated[8..<16]), Array(repeating: UInt8(0), count: 8))
+    XCTAssertEqual(
+      try FileManager.default.contentsOfDirectory(atPath: directory.path).sorted(), filesBefore)
+    XCTAssertTrue(app.windows.firstMatch.title.contains(document.lastPathComponent))
   }
 
   func testOneStrokeUndoRedoKeyboard() throws {
