@@ -8,6 +8,8 @@ import { fileHash, sourceIdentity } from '../evidence/identity.ts';
 import { logged, prepareTests, readJSON, testArguments } from './xcode.ts';
 import { enumeratedTests, executionOutcome, testOutcomes } from './xcode-results.ts';
 import { selectedTests, selectionArguments, nativeInputRoute } from './selection.ts';
+import { validateRuntimeProvenance } from './loaded-provenance.ts';
+import { captureNativeIdentity } from './native-identity.ts';
 
 export async function macosJourney(
   output: string,
@@ -53,33 +55,15 @@ export async function macosJourney(
     ]);
     await command('codesign', ['--force', '--sign', '-', app]);
     const binarySha256 = await fileHash(join(app, 'Contents/MacOS/NativeSketch'));
-    const { configuration, testBinary } = await prepareTests(output, app);
+    const { configuration, testBinary, stable } = await prepareTests(output, app);
     const testBinarySha256 = await fileHash(testBinary);
     await assertSource();
-    const toolchain = await logged(output, 'toolchain.log', 'xcodebuild', ['-version']);
-    const os = await command('sw_vers', [], { capture: true });
-    const device = `${await command('sysctl', ['-n', 'hw.model'], { capture: true })}/${process.arch}`;
-    await writeFile(
-      join(output, 'identity.json'),
-      JSON.stringify(
-        {
-          source,
-          bundleIdentifier,
-          binarySha256,
-          testBinarySha256,
-          toolchain,
-          os,
-          device,
-          inputRoute:
-            'XCUIAutomation; gesture cases additionally use native CGEvent/AX; no physical pen',
-          buildFeatures: [
-            'native-test-controls (DEBUG-only; individual test arms disposable worker boundary)',
-          ],
-        },
-        null,
-        2,
-      ),
-    );
+    const { toolchain, os, device } = await captureNativeIdentity(output, {
+      source,
+      bundleIdentifier,
+      binarySha256,
+      testBinarySha256,
+    });
     if (!execute)
       throw new Error(
         'UI execution deferred: background preparation only; use --interactive in a reserved foreground session. No executable discovery attempted.',
@@ -142,6 +126,15 @@ export async function macosJourney(
     ]);
     await assertSource();
     const outcomes = testOutcomes(JSON.parse(raw), ids);
+    try {
+      await validateRuntimeProvenance(
+        output,
+        outcomes.filter((item) => item.status === 'passed').map((item) => item.testId),
+        stable,
+      );
+    } catch (error) {
+      executionError = error;
+    }
     if (outcomes.some((outcome) => !selected.includes(outcome.testId)))
       throw new Error(
         'XCTest executed a case outside the requested selection; inspect raw results',
@@ -161,7 +154,14 @@ export async function macosJourney(
         device,
         os,
         inputRoute: nativeInputRoute(id),
-        artifacts: ['execution.log', 'xcresult-tests.json', 'journey.xcresult', 'identity.json'],
+        artifacts: [
+          'execution.log',
+          'xcresult-tests.json',
+          'journey.xcresult',
+          'identity.json',
+          'runner-identity.json',
+          'provenance-validation.json',
+        ],
       });
     }
     await save();

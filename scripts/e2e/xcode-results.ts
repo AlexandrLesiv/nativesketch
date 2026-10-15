@@ -62,7 +62,10 @@ export function executionOutcome(
 ) {
   const reasons: string[] = [];
   if (!outcome) reasons.push('No executable test outcome; inspect xcresult');
-  if (executionError) reasons.push('xcodebuild execution failed; inspect execution.log');
+  if (executionError)
+    reasons.push(
+      'Native execution or evidence validation failed; inspect execution.log and provenance-validation.json',
+    );
   return {
     status:
       outcome?.status === 'passed' && executionError ? 'blocked' : (outcome?.status ?? 'blocked'),

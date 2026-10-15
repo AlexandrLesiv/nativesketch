@@ -1,6 +1,8 @@
 import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { command, root } from '../lib/context.ts';
+import { prepareStableHost, configureStableHost } from './stable-host.ts';
+import { teardownRegression } from './teardown-regression.ts';
 
 export const developer = process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer';
 /** Capture failures as durable artifacts before propagating. */
@@ -26,6 +28,7 @@ export async function logged(
 }
 
 export async function prepareTests(output: string, app: string) {
+  await teardownRegression(output, developer);
   const oracle = join(output, 'oracle-regression');
   await logged(output, 'oracle-build.log', 'xcrun', [
     'swiftc',
@@ -55,11 +58,24 @@ export async function prepareTests(output: string, app: string) {
   );
   if (!original) throw new Error('No built xctestrun configuration');
   const parsed = JSON.parse(
-    await command('plutil', ['-convert', 'json', '-o', '-', join(products, original)], {
-      capture: true,
-    }),
+    (
+      await command('plutil', ['-convert', 'json', '-o', '-', join(products, original)], {
+        capture: true,
+      })
+    ).replaceAll('__TESTROOT__', products),
   );
   const target = parsed.NativeSketchUITests;
+  const stable = await prepareStableHost({
+    originalHost: target.TestHostPath,
+    storage: join(root, 'artifacts/e2e-stable-runner'),
+    output,
+    toolchain: await command('xcodebuild', ['-version'], {
+      capture: true,
+      env: { DEVELOPER_DIR: developer },
+    }),
+    architecture: process.arch,
+  });
+  configureStableHost(target, stable);
   target.EnvironmentVariables.NATIVE_SKETCH_APP = app;
   target.EnvironmentVariables.NATIVE_SKETCH_DOCUMENT = join(output, 'drawing.nsketch');
   target.TestLanguage = 'en';
@@ -67,16 +83,14 @@ export async function prepareTests(output: string, app: string) {
   target.UserAttachmentLifetime = 'keepAlways';
   target.SystemAttachmentLifetime = 'keepAlways';
   // Move the run file into its evidence directory with explicit product paths.
-  const expanded = JSON.stringify(parsed).replaceAll('__TESTROOT__', products);
+  const expanded = JSON.stringify(parsed);
   const configuration = join(output, 'configured.xctestrun');
   await writeFile(configuration, expanded);
   await command('plutil', ['-convert', 'xml1', configuration]);
   return {
     configuration,
-    testBinary: join(
-      products,
-      'Debug/NativeSketchUITests-Runner.app/Contents/PlugIns/NativeSketchUITests.xctest/Contents/MacOS/NativeSketchUITests',
-    ),
+    testBinary: stable.testBinary,
+    stable,
   };
 }
 
