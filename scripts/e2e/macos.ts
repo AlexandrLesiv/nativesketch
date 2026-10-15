@@ -1,15 +1,15 @@
 import type { Discovery, Execution } from '../evidence/types.ts';
-import { cp, mkdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createHash } from 'node:crypto';
 import { userInfo } from 'node:os';
-import { command, root, requireHost } from '../lib/context.ts';
+import { root, requireHost } from '../lib/context.ts';
 import { fileHash, sourceIdentity } from '../evidence/identity.ts';
 import { logged, prepareTests, readJSON, testArguments } from './xcode.ts';
 import { enumeratedTests, executionOutcome, testOutcomes } from './xcode-results.ts';
 import { selectedTests, selectionArguments, nativeInputRoute } from './selection.ts';
 import { validateRuntimeProvenance } from './loaded-provenance.ts';
 import { captureNativeIdentity } from './native-identity.ts';
+import { prepareSubjectApps } from './subject-apps.ts';
 
 export async function macosJourney(
   output: string,
@@ -39,23 +39,13 @@ export async function macosJourney(
       '--platform',
       'macos',
     ]);
-    const app = join(output, 'Subject.app');
-    await cp(join(root, 'artifacts/NativeSketch.app'), app, { recursive: true });
-    const isolation = createHash('sha256')
-      .update(root + JSON.stringify(source))
-      .digest('hex')
-      .slice(0, 24);
-    const bundleIdentifier = `dev.nativesketch.e2e.${isolation}`;
-    await command('plutil', [
-      '-replace',
-      'CFBundleIdentifier',
-      '-string',
-      bundleIdentifier,
-      join(app, 'Contents/Info.plist'),
-    ]);
-    await command('codesign', ['--force', '--sign', '-', app]);
-    const binarySha256 = await fileHash(join(app, 'Contents/MacOS/NativeSketch'));
-    const { configuration, testBinary, stable } = await prepareTests(output, app);
+    const { subject, focusApp } = await prepareSubjectApps(output, source);
+    const { bundleIdentifier, binarySha256 } = subject;
+    const { configuration, testBinary, stable } = await prepareTests(
+      output,
+      subject.path,
+      focusApp,
+    );
     const testBinarySha256 = await fileHash(testBinary);
     await assertSource();
     const { toolchain, os, device } = await captureNativeIdentity(output, {
@@ -63,6 +53,7 @@ export async function macosJourney(
       bundleIdentifier,
       binarySha256,
       testBinarySha256,
+      focusApp,
     });
     if (!execute)
       throw new Error(

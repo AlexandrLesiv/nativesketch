@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { command, root } from '../lib/context.ts';
 import { prepareStableHost, configureStableHost } from './stable-host.ts';
 import { teardownRegression } from './teardown-regression.ts';
+import { configureSubjectApps } from './subject-apps.ts';
+import type { AppIdentity } from './subject-apps.ts';
 
 export const developer = process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer';
 /** Capture failures as durable artifacts before propagating. */
@@ -27,7 +29,7 @@ export async function logged(
   }
 }
 
-export async function prepareTests(output: string, app: string) {
+export async function prepareTests(output: string, app: string, focusApp: AppIdentity) {
   await teardownRegression(output, developer);
   const oracle = join(output, 'oracle-regression');
   await logged(output, 'oracle-build.log', 'xcrun', [
@@ -76,7 +78,7 @@ export async function prepareTests(output: string, app: string) {
     architecture: process.arch,
   });
   configureStableHost(target, stable);
-  target.EnvironmentVariables.NATIVE_SKETCH_APP = app;
+  configureSubjectApps(target.EnvironmentVariables, app, focusApp);
   target.EnvironmentVariables.NATIVE_SKETCH_DOCUMENT = join(output, 'drawing.nsketch');
   target.TestLanguage = 'en';
   target.TestRegion = 'US';

@@ -1,4 +1,5 @@
 import type { Source } from '../evidence/types.ts';
+import type { AppIdentity } from './subject-apps.ts';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { command } from '../lib/context.ts';
@@ -11,6 +12,7 @@ export async function captureNativeIdentity(
     bundleIdentifier: string;
     binarySha256: string;
     testBinarySha256: string;
+    focusApp: AppIdentity;
   },
 ) {
   const toolchain = await logged(output, 'toolchain.log', 'xcodebuild', ['-version']);
