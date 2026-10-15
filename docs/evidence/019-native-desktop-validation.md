@@ -7,6 +7,12 @@ and subsequently extended it through 2026-10-15 21:30 UTC (00:30 Kyiv on October
 
 ## Gesture continuation after the earlier session
 
+The subsequent 22:06:53–22:26:53 UTC reservation verified the resize case in attempt 30
+at `7e3608d`. Attempt 31 reached held input but failed the actual-deactivation prerequisite;
+no deactivation cancellation pass is claimed. The desktop is released. Current outcomes,
+permission diagnosis, runtime rebuild evidence and exact binaries are recorded at the top
+of the [gesture repair report](019-gesture-automation-repair.md).
+
 A separate owner-approved 15-minute reservation ran from 21:33:30 to 21:48:30 UTC;
 the desktop was released at 21:47:37. Attempts 23–25 discovered 45 cases and each ran
 the two selected maintained gesture cases. All stopped before held input. Native file

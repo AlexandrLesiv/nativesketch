@@ -1,5 +1,57 @@
 # Task 019: maintained gesture automation
 
+## Current checkpoint: resize verified, deactivation driver pending
+
+The owner approved a new desktop session from 22:06:53 to 22:26:53 UTC on October 15
+(01:06:53–01:26:53 Kyiv on October 16). No foreground work continues after this cutoff.
+Attempts 26–31 retain separate immutable evidence under
+`artifacts/evidence/019-native-runtime-attempt-N/`; all discovered 45 cases.
+
+| Attempt | Clean source | Selected outcome |
+| --- | --- | --- |
+| 26 | `b1e972e` | Both failed Accessibility preflight; actual external test bundle loading verified |
+| 27 | `b1e972e` | Both still failed preflight after the owner enabled the visible runner entry |
+| 28 | `b1e972e` | Permission passed after owner removed/re-added the stale entry; both failed to observe held input from direct PID events |
+| 29 | `1fba3fb` | Public exact-window event metadata did not fix direct PID delivery; both still failed before active input |
+| 30 | `7e3608d8e25df11fab0aeaf006d7ebf0c9f4b943` | Resize case passed, 50.874 seconds; validated runtime provenance |
+| 31 | `7e3608d8e25df11fab0aeaf006d7ebf0c9f4b943` | Deactivation case failed, 47.300 seconds: held input observed, but the runner's helper window did not deactivate the Subject |
+
+Detailed OS diagnostics proved the stale permission cause: Accessibility requests from
+the exact frozen host were checked against an obsolete code-signing requirement and
+returned `-67050`, `errSecCSReqFailed` in the installed Security framework header.
+The owner manually removed and re-added the stable runner. Automation did not edit the
+permission database, change entitlements, or grant access. Scoped private logs are retained
+as `tcc-attempt27-detail.log` under `artifacts/verification/019-integrated-runtime/`.
+
+The final input repair uses the public session event tap, after verifying the owned app
+is frontmost and both planned points hit its canvas through system AX hit-testing. Cleanup
+always balances held input even after intentional deactivation. There is no silent route
+fallback, editor command injection, or relaxed cancellation assertion. The ineffective
+PID routing attempts remain visible in history.
+
+Attempt 30 proves Interaction=2 before a real 1000×780 → 960×750 resize, Interaction=0
+before mouse-up, unchanged saved bytes, successful fresh drawing, two Undo operations and
+Redo restoring the original bytes. The final document is clean with one stroke. Fresh
+independent review checked the raw outcomes, attachments, hashes and executed assertions.
+Attempt 31 stops at the actual-inactivity prerequisite; it does not establish a product
+deactivation bug or a cancellation pass. Its framework cleanup ran, and its runner/Subject
+had exited when checked at the end of the session. No process was forcibly terminated.
+
+Both final attempts used app SHA-256
+`a19b3a4bd5c67af32c22e0bb1516ec6bfc1a6ab84c788c85758035653836ca62`
+and external test SHA-256
+`b1cecf554ed6fa180fb24946ba781510920805c1d01a38b0c9b44fe839c06def`.
+The frozen host identity remained identical across external test rebuilds in attempts
+28–31, with successful permission checks. This verifies the scoped rebuild behavior;
+future toolchain or OS upgrades remain separate. All modified Swift helpers build and
+meet the 200-line limit; fresh independent review found no source blocker. Three focused
+Node selection/evidence-route tests pass. Earlier full background checks are listed below.
+
+Remaining work is a background repair of the deactivation driver, followed by a newly
+approved desktop run. Physical pen behavior and broader accessibility gaps remain separate.
+
+## Earlier preparation and failures
+
 Prepared source: `8d3efe6a16295242a25ab035a36ead93384e1d5d`, clean task branch.
 This records background preparation, not native execution or task acceptance.
 The owner requires a new desktop reservation before any foreground checks.

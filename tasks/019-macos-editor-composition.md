@@ -28,6 +28,11 @@ permission preflight after rebuilding. Test-host identity and framework cleanup 
 integrated at `07b895b`; full background checks, preparation and fresh independent review
 pass. Gesture acceptance remains open; the last desktop reservation has ended. Exact
 failures, cleanup and prepared binary identities are retained in the repair report.
+The next reserved session verified actual resize cancellation in attempt 30 at `7e3608d`,
+including saved-byte preservation, fresh drawing and Undo/Redo. Attempt 31 reached held
+input but its helper window failed to deactivate the Subject; this automation step remains
+open. Stable runner permission survives the changed external test bundle after the owner
+replaced a stale permission entry. The session has ended; no new desktop use is authorized.
 The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
 attempt 16 also verifies fresh recovery-root provisioning. See
 [desktop validation](../docs/evidence/019-native-desktop-validation.md)

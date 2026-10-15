@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Forty-five cases were discovered in attempts23–25; both selected gesture cases failed before held input. Historical results never become current-source passes.",
-  "sourceRevision": "07b895b701219084d623d4cdb3fca2e726282471",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound discovery/execution. Forty-five cases were discovered at7e3608d; attempt30 passed resize cancellation and attempt31 failed the actual-deactivation prerequisite. Historical results never become current-source passes.",
+  "sourceRevision": "7e3608d8e25df11fab0aeaf006d7ebf0c9f4b943",
   "cases": [
     {
       "id": "NATIVE-ROUTING-001",
@@ -244,7 +244,7 @@
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Attempts23–25 discovered both maintained gesture cases and passed native drawing/Save setup, but permission preflight and a repaired fixture-path assertion stopped execution before held input. Stable runner identity and framework cleanup repairs require fresh approved native verification. Resize/deactivation cancellation remains unverified; compilation is not a pass.",
+          "reason": "Attempt30 at7e3608d verifies actual held-stroke resize cancellation, saved bytes and Undo/Redo. Attempt31 observes held input but the helper fails to deactivate the Subject, so deactivation cancellation remains unverified. Repair the native activation driver and execute in a newly approved desktop session; earlier failures remain retained.",
           "ownerTask": "019"
         }
       ]
