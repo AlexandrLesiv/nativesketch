@@ -42,3 +42,5 @@ mod io_events;
 mod operation;
 
 mod recovery_retry;
+
+mod private_root;
