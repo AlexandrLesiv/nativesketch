@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { checkSourceSize } from './source-size.mjs';
+import { checkSourceSize, isSource } from './source-size.mjs';
 import { checkDependencies } from './dependencies.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -19,9 +19,10 @@ const run = (executable, argv) => execFileSync(executable, argv, {
 const paths = [...new Set(run('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'])
   .split('\0').filter(Boolean))];
 const deleted = new Set(run('git', ['ls-files', '-z', '--deleted']).split('\0'));
-const files = paths.filter((path) => !deleted.has(path))
-  .map((path) => ({ path, text: readFileSync(resolve(root, path), 'utf8') }));
 const policy = json('quality/source-policy.json');
+const files = paths.filter((path) => !deleted.has(path) &&
+  (isSource(path, '', policy) || path.startsWith('scripts/')))
+  .map((path) => ({ path, text: readFileSync(resolve(root, path), 'utf8') }));
 const baseline = json(policy.baseline);
 const board = json('tasks/board.json');
 const size = checkSourceSize(files, baseline.entries, policy,

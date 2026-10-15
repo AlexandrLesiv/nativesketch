@@ -10,7 +10,9 @@ Do not cherry-pick its benchmark reports/tools merely to satisfy this plan.
 A maintainable native drawing application: shared Rust semantics, typed commands/native
 presenters, selected Skia rendering, bounded asynchronous work and caches, files <=200
 physical lines, Node automation, discoverable platform E2E coverage and diagnosable recovery.
-This change writes the plan/instructions/tasks; it does not implement those runtime changes.
+The planning commit writes the instructions/tasks. Implementation progress and verification
+are recorded per milestone under `docs/evidence/`, beginning with
+[015](evidence/015-contracts-and-baseline.md). The full runtime refactor is not yet complete.
 Read [architecture](architecture.md) and [quality](quality.md) as the normative contracts.
 
 ## Baseline and preservation
@@ -46,6 +48,9 @@ prerequisite with the accepted Skia decision and task 022 without importing resu
 Existing review statuses remain review until owner acceptance; no old task
 is marked done just because renderer selection was accepted. These dependencies are
 product acceptance prerequisites, not permission to mark missing hardware as passed.
+The owner's authorization to proceed permits local downstream preparation after technical
+checks/review, without implying acceptance of its prerequisites. Keep that work explicitly
+identified in its brief; the board's acceptance gates and `done` meaning stay unchanged.
 
 ```mermaid
 flowchart LR

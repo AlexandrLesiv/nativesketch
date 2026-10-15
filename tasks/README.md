@@ -10,8 +10,10 @@ on that separate branch; Skia is selected. Ports no longer wait for another comp
 Follow [the detailed plan](../docs/refactoring-plan.md): 015 contracts -> 016 Node/tooling
 -> 017 E2E evidence -> 018 Rust -> 021 diagnostics/recovery -> 019 macOS -> 020 Skia
 -> 022 host contracts -> individual 004/009-013 ports and 023 hardening -> 024 acceptance.
-These are future implementation tasks, not completed by this documentation change.
-015 is ready; downstream tasks wait for prerequisites and owner acceptance. Task 003 keeps
+015 is implemented and in review; its [evidence](../docs/evidence/015-contracts-and-baseline.md)
+records the tested contracts and compatibility baseline. Downstream tasks retain their
+acceptance prerequisites. Authorized local preparation is recorded in task briefs while
+board status remains waiting; it does not turn unaccepted dependencies into done. Task 003 keeps
 recorder/replay scope and 014 keeps network/account scope. Native UI/GPU jobs remain exclusive.
 Run existing scripts until task 016 proves Node parity and updates command references.
 

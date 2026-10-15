@@ -1,6 +1,9 @@
 # 016: Node automation and code quality gates
 
 Status: waiting.
+Implementation: authorized local preparation after task 015 technical verification/review;
+acceptance remains waiting on 015. Source-size/dependency gates are implemented and tested;
+Node orchestration and tool adoption are in progress. No owner acceptance is inferred.
 Owner role: build_reliability (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: scripts/; root package/tool config; apps/web build config; CI; command references.
