@@ -62,7 +62,9 @@ import XCTest
   func begin() throws {
     XCTAssertTrue(subject.isActive)
     let origin = try Self.point(canvas)
-    try pointer.begin(in: CGRect(origin: origin, size: Self.size(canvas)))
+    try pointer.begin(
+      in: CGRect(origin: origin, size: Self.size(canvas)),
+      windowBounds: CGRect(origin: Self.point(window), size: Self.size(window)))
   }
 
   func resize() throws -> CGSize {
