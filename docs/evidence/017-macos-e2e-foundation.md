@@ -88,3 +88,44 @@ The harness passed all ten preconditions; strict Swift formatting and the expand
 XCTest target build passed. The first bare CLT compile encountered cache permission/SDK
 resolution errors; explicit Xcode plus a workspace module cache resolved it. These are
 oracle regression/build results only. Native execution remains blocked and unclaimed.
+
+## First active-console attempt
+
+On clean `5aef8de8cdb65165f2f74e0b4f5876180952a457`, the real Xcode runtime enumeration
+succeeded and discovered the intended executable case. The isolated signed app launched;
+XCUI opened the native inspector, entered width 12, opened the Colors panel and selected
+RGB Sliders. The journey then failed at the hex text-field query. The exported actual AX
+hierarchy exposes that field with identifier `hex`; “Hex Color #” is a separate static
+label. The selector now uses the observed identifier. This is a test-driver correction,
+not a product behavior change. It has been compiled but not yet rerun through native UI.
+
+Attempt 1 is preserved unmodified in the native acceptance worktree under
+`artifacts/evidence/native-attempt-1/`, including runtime discovery, failed normalized
+result, execution log, `journey.xcresult`, screen recording, screenshot and AX attachments.
+App executable SHA-256:
+`043c3ec550510a2a272ec70880b5a1a5236be20646ca35a2b19e1195076b11b3`.
+Test executable SHA-256:
+`ef1a3cb2e5c2e784e5a292208b0ade5132658cc97221ff36036840b0be9af5b3`.
+No drawing/save/reopen acceptance passed. This supersedes the earlier discovery blocker,
+not the outstanding full-journey gap. The app was terminated by test teardown.
+
+The owner subsequently requested background work; further foreground UI attempts are
+paused. Native XCTest needs an active desktop and can move focus/pointer. Compiling,
+formatting and pure oracle checks continue without opening the app. Resume actual UI only
+in an agreed foreground slot or a dedicated native host; hidden/minimized/off-console
+execution cannot be substituted for this journey's visible native behavior evidence.
+
+## Background-default execution policy
+
+The owner clarified that native tests should run when verifying relevant commits or while
+developing UI tests, rather than on every background check. The CLI now defaults to
+background preparation; native discovery/input requires explicit `--interactive`. The
+`--prepare-only` alias remains; specifying both flags fails before any build or launch.
+No Git hooks or global settings were installed. Eight Node tests, including default/alias/
+interactive/conflict/retry parsing, pass with type-aware lint, formatting and type checks.
+An actual default invocation built the app and XCTest target and ran pure Swift oracles,
+then returned nonzero with empty discovery/results and no enumeration/execution artifacts,
+as intended for incomplete native acceptance. Evidence is under
+`artifacts/evidence/background-default-check/`. The hex selector correction also compiled.
+The next explicit interactive run will verify this frozen correction; prior failed attempts
+remain untouched. Native execution is authorized within this test-development scope.

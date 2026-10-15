@@ -8,7 +8,7 @@ import { logged, prepareTests, readJSON, testArguments } from './xcode.mjs';
 import { enumeratedTests, executionOutcome, testOutcomes } from './xcode-results.mjs';
 
 /** @param {string} output @param {boolean} [execute] @param {number} [attempt] */
-export async function macosJourney(output, execute = true, attempt = 1) {
+export async function macosJourney(output, execute = false, attempt = 1) {
   requireHost('darwin');
   await mkdir(output, { recursive: false });
   const source = await sourceIdentity(root);
@@ -70,7 +70,7 @@ export async function macosJourney(output, execute = true, attempt = 1) {
     );
     if (!execute)
       throw new Error(
-        'UI execution deferred: prepare-only requested; no executable discovery attempted.',
+        'UI execution deferred: background preparation only; use --interactive in a reserved foreground session. No executable discovery attempted.',
       );
     if ((await stat('/dev/console')).uid !== userInfo().uid)
       throw new Error(

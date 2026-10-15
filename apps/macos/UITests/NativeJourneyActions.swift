@@ -15,7 +15,7 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
   colors.buttons["Color Sliders"].click()
   colors.popUpButtons.firstMatch.click()
   app.menuItems["RGB Sliders"].click()
-  let hexadecimal = colors.textFields["Hex Color #"]
+  let hexadecimal = colors.textFields["hex"]
   XCTAssertTrue(hexadecimal.waitForExistence(timeout: 5))
   hexadecimal.click()
   hexadecimal.typeKey("a", modifierFlags: .command)

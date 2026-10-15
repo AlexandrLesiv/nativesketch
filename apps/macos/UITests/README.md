@@ -7,14 +7,18 @@ Native Sketch process. No app domain commands or injected Rust replay are used.
 ```text
 npm ci --ignore-scripts
 node scripts/test-e2e.mjs --platform macos
-node scripts/test-e2e.mjs --platform macos --attempt 2 --output artifacts/evidence/mac-retry
+node scripts/test-e2e.mjs --platform macos --interactive --attempt 2 --output artifacts/evidence/mac-retry
 ```
 
-Use `--prepare-only` to build/package without executable discovery or UI execution. It
+The default builds/packages in the background without executable discovery or UI execution.
+`--prepare-only` remains an explicit alias. Add `--interactive` only in an agreed foreground
+session to execute the journey; combining both flags is rejected. Preparation
 returns nonzero and writes a setup diagnostic because preparation is not an E2E pass.
 The execution user must own the active, unlocked macOS console. Full Xcode is required;
 the runner uses process-local `DEVELOPER_DIR` (default `/Applications/Xcode.app/Contents/Developer`).
 It does not change system Xcode selection, switch users or grant permissions.
+Run native UI tests for relevant commit verification or while developing UI tests, rather
+than every background check. No automatic Git hook is installed.
 Reserve the native display session exclusively; do not cover/minimize the app or use the
 pointer during execution. XCTest may require interactive system authorization.
 
@@ -46,6 +50,6 @@ the identical SHA-256 in a non-UI reproduction. Source changes create a new isol
 
 ## Oracle regressions
 
-Both normal and `--prepare-only` runs compile and execute the pure Swift pixel/endpoint
+Both background preparation and explicit `--interactive` runs compile and execute the pure Swift pixel/endpoint
 regression harness before building XCTest. A failed oracle check stops preparation and is
 recorded as blocked setup, never as native execution. Logs live in the run directory.

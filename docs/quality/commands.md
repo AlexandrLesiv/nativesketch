@@ -28,11 +28,18 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | `node scripts/lint.mjs --platform windows` | Native Windows dotnet format verification |
 | `node scripts/test-evidence.mjs --run` | Execute discovered Cargo tests and generate revision-bound HTML/JSON coverage; report success is not full coverage |
 | `node scripts/test-evidence.mjs --gate` | Require all registered acceptance rows; currently fails on documented coverage gaps |
-| `node scripts/test-e2e.mjs --platform macos` | Build isolated app/test bundles and run native XCTest journey; requires this execution user's active unlocked desktop |
+| `node scripts/test-e2e.mjs --platform macos` | Background-only app/test preparation; no executable discovery or native UI |
+| `node scripts/test-e2e.mjs --platform macos --interactive` | Run native XCTest journey in an explicitly reserved active unlocked desktop session |
 
 See [evidence runner](evidence-runner.md) for scoped acceptance gates, Node discovery,
-native imports and retained retry attempts. `test-e2e --prepare-only` builds without UI,
-writes blocked evidence and exits nonzero deliberately; it never certifies a native journey.
+native imports and retained retry attempts. Native E2E defaults to background preparation;
+`--prepare-only` is an explicit alias. Preparation writes blocked evidence and exits nonzero
+deliberately because the native journey has not executed. `--interactive` is required for
+foreground input and cannot be combined with `--prepare-only`. Normal check/build/core/bridge
+commands stay in the background; the macOS smoke path exits before NSApplication starts.
+Run native UI tests when verifying relevant commits or developing those tests, not on every
+background check. Reserve a foreground session or dedicated host for UI tests/GPU measurements. Hidden,
+minimized or off-console execution never counts as visible native acceptance.
 
 Build flags: `--profile debug|release` for macOS; `--variant simulator|device` for Apple
 family. Device builds still require owner signing/provisioning for installation. Run

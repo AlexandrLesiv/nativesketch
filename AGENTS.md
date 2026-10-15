@@ -72,7 +72,12 @@ changes; do not claim independent review unless it actually ran.
   disjoint paths. Do not run worktree creation from a worktree recursively.
 - Specialist workers report to the primary; do not delegate recursively without a
   specific independent task and available capacity.
-- Run GPU performance measurements and native UI automation exclusively on their host.
+- Run normal builds, lint, core/bridge tests and evidence processing in the background without
+  opening or focusing apps. Native UI automation and GPU measurements need an explicitly
+  reserved foreground session on their host, or a dedicated host; do not steal user focus.
+  Run native UI tests when verifying a relevant commit or developing UI tests, not on every
+  background check. Native E2E defaults to preparation only; use --interactive in that session.
+  Hidden/minimized/off-console runs cannot substitute for visible native acceptance.
 - After two unproductive repair cycles, the lead diagnoses or reduces scope before retrying.
 
 ## Completion and authority
