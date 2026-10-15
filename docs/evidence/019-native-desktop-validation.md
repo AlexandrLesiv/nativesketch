@@ -5,6 +5,16 @@ Swift 6.4, Rust 1.99.0, Node 24.22.0. These are native mouse/keyboard
 journeys, not physical pen measurements. The owner reserved the foreground desktop
 and subsequently extended it through 2026-10-15 21:30 UTC (00:30 Kyiv on October 16).
 
+## Gesture continuation after the earlier session
+
+A separate owner-approved 15-minute reservation ran from 21:33:30 to 21:48:30 UTC;
+the desktop was released at 21:47:37. Attempts 23–25 discovered 45 cases and each ran
+the two selected maintained gesture cases. All stopped before held input. Native file
+setup passed, while runner permission and test-harness defects prevented gesture acceptance.
+The [gesture repair report](019-gesture-automation-repair.md) records revisions,
+diagnosis, repairs and retained evidence. No resize/deactivation cancellation pass is claimed.
+Later repairs and checks are background-only until a new reservation is approved.
+
 ## October 15 continuation
 
 The earlier failures below remain preserved. The automation timeout was diagnosed before

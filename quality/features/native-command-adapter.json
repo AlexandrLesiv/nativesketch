@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "native-command-adapter",
-  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Forty-three cases were discovered at03cad1c; subsequently added gesture cases require fresh discovery and execution. Historical results never become current-source passes.",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound executable discovery and execution. Forty-five cases were discovered in attempts23–25; both selected gesture cases failed before held input. Historical results never become current-source passes.",
   "sourceRevision": "68e990f7551391efcf09f0024227a9cfa00cbf23",
   "cases": [
     {
@@ -244,7 +244,7 @@
       "automation": "implemented",
       "gaps": [
         {
-          "reason": "Maintained XCTest cases now prepare their own document through native Save and use CGEvent/AX for held-gesture resize/deactivation. Actual executable discovery, runner permission preflight and native execution remain pending an explicitly approved desktop session; compilation is not a pass.",
+          "reason": "Attempts23–25 discovered both maintained gesture cases and passed native drawing/Save setup, but permission preflight and a repaired fixture-path assertion stopped execution before held input. Stable runner identity and framework cleanup repairs require fresh approved native verification. Resize/deactivation cancellation remains unverified; compilation is not a pass.",
           "ownerTask": "019"
         }
       ]

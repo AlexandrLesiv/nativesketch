@@ -54,6 +54,40 @@ Test SHA-256: `cc20d121ca09eaa06416de43a82e5a7848c10fa4b4d042a149f657db101b1c33`
 
 ## Pending native acceptance
 
+### Reserved execution and follow-up diagnosis
+
+The owner reserved 21:33:30–21:48:30 UTC on October 15. The desktop was released
+at 21:47:37. Attempts 23–25 each discovered 45 tests and selected the two gesture
+cases. **Neither held gesture began; all six selected outcomes failed.**
+
+| Attempt | Clean source | Observed stopping point |
+| --- | --- | --- |
+| 23 | `5d17d45ec4c328b3cfee0377be690861441d683e` | Native drawing/Save setup passed; runner Accessibility preflight failed |
+| 24 | `5d17d45ec4c328b3cfee0377be690861441d683e` | Accessibility preflight passed; fixture URL equality rejected identical paths with different directory flags |
+| 25 | `a6a5caf85d1526e07d926f0262fe8c3359365b21` | Rebuilt tests again failed Accessibility preflight after drawing/Save setup |
+
+Each attempt retains `identity.json`, discovery, selected IDs, normalized/raw results,
+logs, attachments and fixtures under `artifacts/evidence/019-native-runtime-attempt-N/`.
+Attempt 24 also exposed an automation cleanup defect: an XCTest assertion abort bypassed
+Swift `defer`, leaving one disposable Subject running. `198e103` compares canonical
+paths; `a6a5caf` registers framework teardown and removes assertions from pointer cleanup.
+Attempt 25 confirms fixture teardown after a thrown permission error, not cleanup of an
+actually held gesture. The attempt 24 Subject was terminated by exact identity; the
+existing ordinary app instance was preserved. See attempt 25 `cleanup.json`.
+
+At the owner's request System Settings was opened. This macOS version labels the pane
+“Device Control and Data Access”; the runner switch was visibly on. No permission was
+changed by automation. A background experiment at `a6a5caf` showed that changing a nested
+test resource and re-signing the ad-hoc host changes its executable hash and designated
+requirement. Changing an external test bundle leaves the host identity unchanged. This
+supports the identity diagnosis but does not prove the OS's permission decision.
+Raw experiment: `artifacts/verification/019-runner-identity/`.
+
+The follow-up repair separates a stable host from the current test bundle, verifies
+loaded-bundle provenance, and expands framework-owned cleanup to the other vulnerable
+test fixtures. Background preparation/review and native validation are separate gates;
+successful builds or signature checks cannot establish permission continuity.
+
 After explicit desktop approval, enumerate and execute:
 
 - `NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument`
