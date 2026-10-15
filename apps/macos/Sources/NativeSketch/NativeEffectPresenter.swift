@@ -65,6 +65,32 @@ import CSketchSession
       restoreFocus(session: token.session)
     }
   }
+  func awaitWrites(_ token: SketchEffectTokenV1) {
+    guard begin(token) else { return }
+    let alert = NSAlert()
+    alert.messageText = "Finishing Save…"
+    let destination: String
+    switch owner.editor.projection.navigation {
+    case SK_V1_NAV_NEW.rawValue: destination = "creating a new drawing"
+    case SK_V1_NAV_OPEN.rawValue, SK_V1_NAV_RECOVER.rawValue:
+      destination = "opening another drawing"
+    default:
+      destination = owner.lifecycle.isTerminationPending ? "quitting" : "closing this drawing"
+    }
+    alert.informativeText =
+      "Waiting for pending saves before \(destination). Cancelling keeps this drawing open; saves already in progress will still finish."
+    let cancel = alert.addButton(withTitle: "Cancel")
+    cancel.keyEquivalent = "\u{1b}"
+    cancel.setAccessibilityIdentifier("sketch.navigation.cancel")
+    alert.window.defaultButtonCell = cancel.cell as? NSButtonCell
+    alert.window.setAccessibilityIdentifier("sketch.navigation.waiting")
+    sheet = alert.window
+    alert.beginSheetModal(for: owner.window) { [weak self] _ in
+      guard let self, finish(token) else { return }
+      owner.editor.reply(token, SK_V1_REPLY_CANCEL)
+      restoreFocus(session: token.session)
+    }
+  }
   func failure(_ outcome: SketchOutcomeV1) {
     NativeDiagnostics.failure(
       "file-result", status: outcome.failure.code,

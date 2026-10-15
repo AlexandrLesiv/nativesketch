@@ -86,14 +86,16 @@ func saveDocument(
   try navigateFilePanel(app, to: url.deletingLastPathComponent())
   XCTAssertTrue(panel.buttons["Save"].isEnabled)
   panel.buttons["Save"].click()
-  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+  // The first sheet query may immediately resolve to a legitimate failure alert.
+  // Observe the concrete save control, then let each caller verify the next effect.
+  XCTAssertTrue(name.waitForNonExistence(timeout: 5))
   guard waitForWrite else { return }
   let saved = XCTNSPredicateExpectation(
     predicate: NSPredicate { _, _ in
       FileManager.default.fileExists(atPath: url.path)
     }, object: nil)
   XCTAssertEqual(XCTWaiter.wait(for: [saved], timeout: 10), .completed)
-  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+  XCTAssertTrue(name.waitForNonExistence(timeout: 5))
 }
 
 @MainActor
@@ -106,7 +108,7 @@ func openDocument(in app: XCUIApplication, at url: URL) throws {
   let panel = nativeFilePanel(in: app)
   try navigateFilePanel(app, to: url)
   panel.buttons["Open"].click()
-  XCTAssertTrue(panel.waitForNonExistence(timeout: 5))
+  XCTAssertTrue(panel.buttons["Open"].waitForNonExistence(timeout: 5))
 }
 
 @MainActor func nativeFilePanel(in app: XCUIApplication) -> XCUIElement {

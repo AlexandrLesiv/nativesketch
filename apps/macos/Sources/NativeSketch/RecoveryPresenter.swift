@@ -34,7 +34,9 @@ import CSketchSession
       if let requestedItem { _ = owner.documents.request(.recover(requestedItem)) }
       requestedItem = nil
       inventory.dismiss()
-      owner.documents.sheets.presentPendingFailure()
+      // AppKit finishes detaching the old sheet after its completion callback.
+      // Present the retained failure on the next owner turn, once the slot is free.
+      Task { @MainActor [weak owner] in owner?.documents.sheets.presentPendingFailure() }
     }
     inventory.refresh()
   }

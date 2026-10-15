@@ -37,6 +37,7 @@ import CSketchSession
     case SK_V1_CHOOSE_DESTINATION.rawValue: sheets.chooseDestination(outcome.effect)
     case SK_V1_CHOOSE_SOURCE.rawValue: sheets.chooseSource(outcome.effect)
     case SK_V1_CONFIRM_UNSAVED.rawValue: sheets.confirmUnsaved(outcome.effect)
+    case SK_V1_AWAIT_WRITES.rawValue: sheets.awaitWrites(outcome.effect)
     case SK_V1_CLOSE_READY.rawValue:
       owner.editor.reply(outcome.effect, SK_V1_REPLY_CONFIRM_CLOSE)
     case SK_V1_CLOSE_CONFIRMED.rawValue: owner.lifecycle.closeConfirmed()

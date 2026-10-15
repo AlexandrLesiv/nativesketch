@@ -17,8 +17,9 @@ import XCTest
     try f.reached()
     f.draw(count: 2, y: 0.65)
     f.app.typeKey("n", modifierFlags: .command)
-    f.app.menuBars.menuBarItems["File"].click()
-    f.app.menuItems["Cancel File Operation"].click()
+    let cancel = f.app.buttons["sketch.navigation.cancel"]
+    XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+    cancel.click()
     f.strokes(2)
     try f.release()
     f.diskStrokes(1, at: destination)
@@ -43,8 +44,14 @@ import XCTest
     try f.reached()
     f.app.typeKey("q", modifierFlags: .command)
     XCTAssertNotEqual(f.app.state, .notRunning)
-    f.app.menuBars.menuBarItems["File"].click()
-    f.app.menuItems["Cancel File Operation"].click()
+    let cancel = f.app.buttons["sketch.navigation.cancel"]
+    XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+    f.app.typeKey(.escape, modifierFlags: [])
+    XCTAssertTrue(cancel.waitForNonExistence(timeout: 5))
+    XCTAssertNotEqual(f.app.state, .notRunning)
+    f.app.typeKey("q", modifierFlags: .command)
+    XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+    cancel.click()
     try f.release()
     f.diskStrokes(1, at: destination)
     f.wait { (f.canvas.value as? String ?? "").contains("Storage idle=true") }

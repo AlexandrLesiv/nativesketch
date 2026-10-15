@@ -11,10 +11,9 @@ import XCTest
     let f = fixture!
     try f.launch()
     f.app.typeKey("v", modifierFlags: [])
-    f.app.buttons["Style and Selection"].click()
     XCTAssertEqual(f.app.radioButtons["Select"].value as? NSNumber, NSNumber(value: true))
     f.app.radioButtons["Pen"].click()
-    f.app.buttons["Style and Selection"].click()
+    XCTAssertEqual(f.app.radioButtons["Pen"].value as? NSNumber, NSNumber(value: true))
     f.draw(count: 1)
     let original = f.document("routing-original")
     try saveDocument(in: f.app, to: original, saveAs: false)

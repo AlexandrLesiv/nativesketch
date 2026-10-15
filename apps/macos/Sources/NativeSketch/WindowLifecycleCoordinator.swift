@@ -5,6 +5,7 @@ import AppKit
   unowned let owner: EditorWindowController
   private var approved = false
   private var terminationPending = false
+  var isTerminationPending: Bool { terminationPending }
   private var poisonWarning: NSAlert?
   init(owner: EditorWindowController) { self.owner = owner }
 
