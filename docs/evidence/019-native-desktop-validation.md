@@ -126,6 +126,17 @@ Other-platform native acceptance, production Skia migration (task 020), and rema
 refactoring tasks are separate. Task 019's board status stays waiting on owner acceptance
 of dependencies 018/021; this report does not silently mark those tasks or task 019 done.
 
+### Running app handoff
+
+Foreground work ended at 21:22 UTC, before the 21:30 reservation cutoff. The disposable
+Subject's file panel was cancelled and the Subject terminated normally. No pre-existing
+ordinary instance was running. The ordinary app was launched as PID 50505, bundle
+`local.native-sketch.dev`, at `artifacts/NativeSketch.app`, source `03cad1c`;
+executable SHA-256 `c16fe7889c400bf86db1aa20aa6b06c73dec3861e6b3133f1b463f6df9054768`.
+The normal binary contains no native test-control symbols. No user document was opened
+or modified. Handoff identity is retained in
+`artifacts/verification/019-gesture-check/running-app-handoff.json`.
+
 ## Preserved runs
 
 | Attempt | Source | Actual outcome |
