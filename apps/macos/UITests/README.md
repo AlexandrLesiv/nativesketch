@@ -80,6 +80,9 @@ tests does not close their runtime acceptance. The two maintained gesture cancel
 combine XCUIAutomation Save/Undo with CGEvent held mouse input, AX native resize and a
 test-runner-owned window for deactivation. They require a strictly positive observed interaction
 before cancellation, actual size/inactivity readback, and idle before releasing the pointer.
+After undoing a fresh stroke, a second Undo must remove the original stroke and Redo restore
+its exact saved bytes, excluding a hidden cancelled-draft history entry. Cleanup restores the
+test runner's previous activation policy as well as releasing the pointer and owned window.
 They prepare their UUID document through the existing native Save helper; the retired ad-hoc
 probe failed before drawing while locating the Go To path field. That failure was file-dialog
 setup evidence, not evidence of a canvas cancellation defect. Its retained traces remain failures.

@@ -10,6 +10,7 @@ import XCTest
   private let canvas: AXUIElement
   private let originalSize: CGSize
   private var focusWindow: NSWindow?
+  private var originalActivationPolicy: NSApplication.ActivationPolicy?
 
   init(fixture: NativeSessionFixture, file: URL) throws {
     guard AXIsProcessTrusted() else {
@@ -72,6 +73,7 @@ import XCTest
 
   func deactivate() {
     let helper = NSApplication.shared
+    originalActivationPolicy = helper.activationPolicy()
     helper.setActivationPolicy(.regular)
     let owned = NSWindow(
       contentRect: NSRect(x: 40, y: 40, width: 260, height: 100),
@@ -90,6 +92,10 @@ import XCTest
     defer {
       focusWindow?.close()
       focusWindow = nil
+      if let originalActivationPolicy {
+        XCTAssertTrue(NSApplication.shared.setActivationPolicy(originalActivationPolicy))
+        self.originalActivationPolicy = nil
+      }
     }
     var failures: [String] = []
     do { try pointer.release() } catch { failures.append("mouse-up: \(error)") }

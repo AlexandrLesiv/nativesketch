@@ -60,6 +60,15 @@ import XCTest
     fixture.app.typeKey("z", modifierFlags: .command)
     fixture.strokes(1)
     try saveAndCompare(fixture, file: file, original: original)
+    // A cancelled draft must not leave a hidden no-op history entry between strokes.
+    fixture.app.typeKey("z", modifierFlags: .command)
+    fixture.strokes(0)
+    fixture.app.typeKey("s", modifierFlags: .command)
+    fixture.diskStrokes(0, at: file)
+    waitForSaved(fixture)
+    fixture.app.typeKey("z", modifierFlags: [.command, .shift])
+    fixture.strokes(1)
+    try saveAndCompare(fixture, file: file, original: original)
   }
 
   private func saveAndCompare(_ fixture: NativeSessionFixture, file: URL, original: Data) throws {
