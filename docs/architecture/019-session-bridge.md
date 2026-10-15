@@ -1,7 +1,7 @@
 # macOS typed-session integration contract
 
-Proposed implementation boundary after reviewed task021 services. This document does
-not claim new symbols or migrated native callers. The existing ABI2 and Wasm1 stay intact.
+Proposed implementation boundary after reviewed task 021 services. This document does
+not claim new symbols or migrated native callers. The existing ABI 2 and Wasm 1 stay intact.
 The initial native extraction remains a compatibility step; it must not create another
 Swift authority for brush, tool, document, history or saved revision.
 
@@ -15,7 +15,7 @@ Swift authority for brush, tool, document, history or saved revision.
   storage worker. Windows submit owned snapshots and receive correlated results. A window
   closing does not permit an active writer to be forgotten or a newer writer to overtake it.
 - New headers are cohesive (session values/commands, owned query results, services), each
-  at most200 physical lines. Keep stable integer fields and explicit lengths; no Swift,
+  at most 200 physical lines. Keep stable integer fields and explicit lengths; no Swift,
   AppKit, Rust enums, `usize` identities or borrowed asynchronous pointers cross the ABI.
 - Every fallible entry contains panics and returns a defined status. A caught mutation
   panic poisons the relevant handle; no further mutation is allowed. Resource destruction
@@ -94,7 +94,7 @@ Track one navigation intent at a time. Every `.terminateLater` response receives
 
 ## Acceptance before replacing legacy consumers
 
-- C/Rust layout and failure/capacity/ownership tests; Swift bridge tests; ABI2/Wasm1 fixtures.
+- C/Rust layout and failure/capacity/ownership tests; Swift bridge tests; ABI 2/Wasm 1 fixtures.
 - Stale session/interaction/read/completion rejection and teardown with pending work.
 - Brush controls project Rust state; drawing captures committed settings, predictions stay
   temporary, cancel preserves history and a stroke is one undo operation.
@@ -104,4 +104,4 @@ Track one navigation intent at a time. Every `.terminateLater` response receives
   copies, and bounded queue/log behavior. Keep physical pen latency pending a camera.
 
 Contract refinement must be agreed by Rust and macOS owners before parallel implementation.
-This phase does not change the temporary Core Graphics painter; production Skia follows020.
+This phase does not change the temporary Core Graphics painter; production Skia follows task 020.
