@@ -185,3 +185,20 @@ its item is exposed as **title** `sRGB IEC61966-2.1`, not label. The corrected q
 matches that exact observed title and records `.title`. The assertion still requires one
 match. Menu AX/screenshot evidence remains in `artifacts/evidence/native-attempt-5/`;
 this diagnostic failure is not converted to a pass or removed from history.
+
+## Save As route isolation after attempt 6
+
+On clean `dfb5372`, explicit sRGB selection passed the strict saved RGBA, width, identity
+transform, mouse provenance, sample-order and absolute endpoint checks. Normal Quit,
+termination/new PID, relaunch, native Open and all three restored-ink patches passed.
+The final synthetic Command-Shift-S did not expose a Save As panel. Final AX/screenshot
+show the live foreground drawing window and enabled Save As item; there is no evidence
+of app termination or window hiding. `rect(inf,inf,0,0)` logging also occurs for preceding
+successful keyboard actions and does not by itself establish a crash. Source defines the
+shortcut and force-panel action; its failure cause remains unresolved.
+
+The next bounded diagnostic uses the observed native File → Save As… menu action, with
+unchanged subsequent panel/geometry/byte assertions. This route is valid FILE-001 coverage
+but does **not** certify the Command-Shift-S shortcut. Its failure, keyboard coverage gap,
+and attempt 6 evidence remain preserved. If the menu action also fails, UI retries stop
+for product/modal-process diagnosis rather than further selector changes.

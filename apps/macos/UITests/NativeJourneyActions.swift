@@ -44,7 +44,12 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
 
 @MainActor
 func saveDocument(in app: XCUIApplication, to url: URL, saveAs: Bool) throws {
-  app.typeKey("s", modifierFlags: saveAs ? [.command, .shift] : .command)
+  if saveAs {
+    app.menuBars.menuBarItems["File"].click()
+    app.menuItems["Save As…"].click()
+  } else {
+    app.typeKey("s", modifierFlags: .command)
+  }
   let panel = app.dialogs.firstMatch
   XCTAssertTrue(panel.waitForExistence(timeout: 5))
   let name = panel.textFields["saveAsNameTextField"]
