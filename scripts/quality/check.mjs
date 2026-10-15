@@ -1,0 +1,34 @@
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { checkSourceSize } from './source-size.mjs';
+import { checkDependencies } from './dependencies.mjs';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const args = process.argv.slice(2);
+if (args.length > 1 || (args.length && args[0] !== '--final')) {
+  throw new Error('Usage: node scripts/quality/check.mjs [--final]');
+}
+/** @param {string} path */
+const json = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
+/** @param {string} executable @param {string[]} argv */
+const run = (executable, argv) => execFileSync(executable, argv, {
+  cwd: root, encoding: 'utf8', timeout: 120_000, maxBuffer: 16 * 1024 * 1024,
+});
+const paths = [...new Set(run('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'])
+  .split('\0').filter(Boolean))];
+const deleted = new Set(run('git', ['ls-files', '-z', '--deleted']).split('\0'));
+const files = paths.filter((path) => !deleted.has(path))
+  .map((path) => ({ path, text: readFileSync(resolve(root, path), 'utf8') }));
+const policy = json('quality/source-policy.json');
+const baseline = json(policy.baseline);
+const board = json('tasks/board.json');
+const size = checkSourceSize(files, baseline.entries, policy,
+  new Set(board.tasks.map(/** @param {{id: string}} task */ (task) => task.id)), args[0] === '--final');
+const metadata = JSON.parse(run('cargo', ['metadata', '--locked', '--no-deps', '--format-version', '1']));
+const failures = [...size.failures, ...checkDependencies(metadata, json('quality/dependency-policy.json'))];
+for (const entry of size.debt) console.log(`DEBT task ${entry.task}: ${entry.path} (${entry.lines} lines)`);
+for (const failure of failures) console.error(`FAIL: ${failure}`);
+if (failures.length) process.exitCode = 1;
+else console.log(`PASS: source-size migration gate and production dependency boundaries (${size.debt.length} legacy files remain)`);

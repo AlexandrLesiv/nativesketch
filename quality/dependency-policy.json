@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "sketch-core": {"allowedNormalDependencies": [], "allowedBuildDependencies": []},
+    "sketch-ffi": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
+    "sketch-wasm": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []}
+  },
+  "policy": "Production/build dependency additions require explicit architectural review. Dev-only testing dependencies are outside this boundary check; advisories/licenses are a separate tool. This does not inspect standard-library calls or prove within-crate layering."
+}

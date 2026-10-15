@@ -4,10 +4,12 @@ import { writeFileSync } from 'node:fs';
 
 const revision = process.argv[2] ?? '712059d5c4470c9770d08c42de8f1391884a66be';
 const output = process.argv[3];
+/** @param {...string} args */
 const git = (...args) => execFileSync('git', args, { maxBuffer: 16 * 1024 * 1024 });
 const resolved = git('rev-parse', '--verify', `${revision}^{commit}`).toString().trim();
 const files = git('ls-tree', '-rz', '--name-only', resolved).toString().split('\0').filter(Boolean);
 const source = /\.(rs|swift|kt|kts|cs|cpp|h|ts|js|mjs|cjs|py|sh|ps1|html|css)$/;
+/** @param {string} path */
 const extraction = (path) => {
   if (path.startsWith('scripts/')) return '016';
   if (path.startsWith('crates/')) return '018';
@@ -18,6 +20,7 @@ const extraction = (path) => {
   if (path.startsWith('apps/web/')) return '012';
   return '009';
 };
+/** @param {string} path @param {string} content */
 const classify = (path, content) => {
   if (path.endsWith('.lock') || path.endsWith('package-lock.json')) return 'lockfile';
   if (source.test(path) || (path.startsWith('scripts/') && content.startsWith('#!'))) {

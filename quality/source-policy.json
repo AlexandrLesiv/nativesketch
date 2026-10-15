@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "maximumPhysicalLines": 200,
+  "baseline": "quality/baseline/source-inventory.json",
+  "sourceExtensions": [".rs", ".swift", ".kt", ".kts", ".cs", ".cpp", ".cc", ".c", ".h", ".hpp", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".sh", ".ps1", ".html", ".css"],
+  "excludedSources": [],
+  "exclusionPolicy": "No tracked handwritten source exclusions. Generated outputs and third-party dependencies are untracked and ignored. Lockfiles and JSON fixture/configuration data are not source."
+}
