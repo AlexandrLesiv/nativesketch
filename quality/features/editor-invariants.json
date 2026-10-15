@@ -18,16 +18,12 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::cancelled_and_stale_input_never_commits",
-        "cargo:sketch-core:lib:tests::cancel_and_noop_resize_preserve_redo_and_history"
+        "cargo:sketch-core:lib:tests::input::cancelled_and_stale_input_never_commits",
+        "cargo:sketch-core:lib:tests::editing::cancel_and_noop_resize_preserve_redo_and_history",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
       ],
       "automation": "partial",
-      "gaps": [
-        {
-          "reason": "Committed bytes are not directly compared after cancellation in the baseline test.",
-          "ownerTask": "018"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "INPUT-001",
@@ -43,7 +39,8 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::corrections_and_invalid_batches_are_atomic"
+        "cargo:sketch-core:lib:tests::input::corrections_and_invalid_batches_are_atomic",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
       ],
       "automation": "partial",
       "gaps": []
@@ -62,13 +59,14 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::replay_preserves_actual_pressure_and_discards_prediction"
+        "cargo:sketch-core:lib:tests::input::replay_preserves_actual_pressure_and_discards_prediction",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo"
       ],
       "automation": "partial",
       "gaps": [
         {
-          "reason": "Baseline covers absent pressure; rebatching, adapter delivery and correction timestamp sequences need dedicated cases.",
-          "ownerTask": "018"
+          "reason": "Generated rebatching and correction identity are covered in Rust; native adapter delivery and device clock conversion need host evidence.",
+          "ownerTask": "022"
         }
       ]
     },
@@ -86,8 +84,10 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::replay_preserves_actual_pressure_and_discards_prediction",
-        "cargo:sketch-core:lib:tests::replay_named_synthetic_trace_and_save_only_actual_samples"
+        "cargo:sketch-core:lib:tests::input::replay_preserves_actual_pressure_and_discards_prediction",
+        "cargo:sketch-core:lib:tests::input::replay_named_synthetic_trace_and_save_only_actual_samples",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo",
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured"
       ],
       "automation": "partial",
       "gaps": []
@@ -105,14 +105,11 @@
           "level": "unit"
         }
       ],
-      "testIds": [],
-      "automation": "planned",
-      "gaps": [
-        {
-          "reason": "No discovered executable test proves this target invariant.",
-          "ownerTask": "018"
-        }
-      ]
+      "testIds": [
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured"
+      ],
+      "automation": "implemented",
+      "gaps": []
     },
     {
       "id": "UNDO-001",
@@ -128,15 +125,11 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::resize_is_preview_then_one_undo_step_including_width"
+        "cargo:sketch-core:lib:tests::editing::resize_is_preview_then_one_undo_step_including_width",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo"
       ],
       "automation": "partial",
-      "gaps": [
-        {
-          "reason": "Transform history covered; explicit many-sample stroke single-entry check still required.",
-          "ownerTask": "018"
-        }
-      ]
+      "gaps": []
     },
     {
       "id": "UNDO-002",
@@ -152,8 +145,9 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::cancel_and_noop_resize_preserve_redo_and_history",
-        "cargo:sketch-core:lib:tests::rejects_invalid_pressure_transform_and_gesture_conflicts"
+        "cargo:sketch-core:lib:tests::editing::cancel_and_noop_resize_preserve_redo_and_history",
+        "cargo:sketch-core:lib:tests::input::rejects_invalid_pressure_transform_and_gesture_conflicts",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
       ],
       "automation": "partial",
       "gaps": []
@@ -172,7 +166,7 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::portable_snapshot_stale_acknowledgement_and_atomic_failure"
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure"
       ],
       "automation": "partial",
       "gaps": []
@@ -191,7 +185,7 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::portable_snapshot_stale_acknowledgement_and_atomic_failure"
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure"
       ],
       "automation": "partial",
       "gaps": [
@@ -237,7 +231,7 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:tests::save_roundtrip_dirty_identity_and_failed_load_save",
+        "cargo:sketch-core:lib:tests::persistence::save_roundtrip_dirty_identity_and_failed_load_save",
         "cargo:sketch-core:lib:persistence::tests::checksum_and_version_reject_corruption"
       ],
       "automation": "partial",
@@ -453,9 +447,9 @@
         }
       ],
       "testIds": [
-        "cargo:sketch-core:lib:source_policy::tests::identity_and_immutable_revision_are_checked_before_comparison",
-        "cargo:sketch-core:lib:source_policy::tests::published_order_uses_generation_without_clock_or_parent_assumptions",
-        "cargo:sketch-core:lib:source_policy::tests::same_content_published_advance_retains_generation_against_delayed_rollback"
+        "cargo:sketch-core:lib:source_policy::tests::identity::identity_and_immutable_revision_are_checked_before_comparison",
+        "cargo:sketch-core:lib:source_policy::tests::identity::published_order_uses_generation_without_clock_or_parent_assumptions",
+        "cargo:sketch-core:lib:source_policy::tests::immutability::same_content_published_advance_retains_generation_against_delayed_rollback"
       ],
       "automation": "partial",
       "gaps": [
