@@ -5,12 +5,14 @@ mod resolution;
 mod retention;
 pub use management::DiscardProgress;
 pub use retention::RetentionReport;
+mod listing;
 mod schedule;
 mod store;
 pub use envelope::{CheckpointMetadata, RecoveryEnvelope, RecoveryId};
+pub use listing::{RecoveryListing, RecoveryUsage};
 pub use schedule::{CheckpointSchedule, ScheduledCheckpoint};
 use std::io;
-pub use store::{RecoveryCandidate, RecoveryListing, RecoveryStore};
+pub use store::{RecoveryCandidate, RecoveryStore};
 #[derive(Debug, Clone, Copy)]
 pub struct RecoveryLimits {
     pub sessions: usize,

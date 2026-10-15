@@ -1,5 +1,5 @@
 use super::inventory::{inventory, read_bounded};
-use super::{CheckpointMetadata, RecoveryEnvelope, RecoveryError, RecoveryId, RecoveryLimits};
+use super::{RecoveryEnvelope, RecoveryError, RecoveryId, RecoveryLimits};
 use crate::storage::{self, DestinationAccess, StoreHooks, StoreReport, validate_directory};
 use sketch_core::application::storage::WriteOutcome;
 use std::{
@@ -17,12 +17,6 @@ pub struct RecoveryStore {
 pub struct RecoveryCandidate {
     pub envelope: RecoveryEnvelope,
     pub rejected_generations: u32,
-}
-pub struct RecoveryListing {
-    pub candidates: Vec<CheckpointMetadata>,
-    pub rejected_sessions: usize,
-    pub invalid_resolution_markers: usize,
-    pub rejected_generations: usize,
 }
 pub(super) fn private_directory(path: &Path) -> Result<(), RecoveryError> {
     let parent = path.parent().ok_or(RecoveryError::UnsafeEntry)?;
@@ -147,48 +141,5 @@ impl RecoveryStore {
             }
         }
         Err(RecoveryError::Invalid)
-    }
-    pub fn candidates(&self) -> Result<RecoveryListing, RecoveryError> {
-        validate_directory(&self.root).map_err(|_| RecoveryError::UnsafeEntry)?;
-        let mut candidates = Vec::new();
-        let mut rejected_sessions = 0;
-        let mut invalid_resolution_markers = 0;
-        let mut rejected_generations = 0;
-        for (count, entry) in fs::read_dir(&self.root)?.enumerate() {
-            if count >= 20 {
-                rejected_sessions += 1;
-                break;
-            }
-            let entry = entry?;
-            let identity = entry
-                .file_name()
-                .to_str()
-                .and_then(|name| RecoveryId::parse(name).ok());
-            let Some(identity) = identity else {
-                rejected_sessions += 1;
-                continue;
-            };
-            match self.load(identity) {
-                Ok(candidate) => {
-                    rejected_generations += candidate.rejected_generations as usize;
-                    match super::resolution::read(&entry.path().join("resolved"), identity) {
-                        Ok(Some(marker))
-                            if marker.generation == candidate.envelope.metadata.generation => {}
-                        Err(_) => {
-                            invalid_resolution_markers += 1;
-                            candidates.push(candidate.envelope.metadata);
-                        }
-                        _ => candidates.push(candidate.envelope.metadata),
-                    }
-                }
-                Err(_) => rejected_sessions += 1,
-            }
-        }
-        Ok(RecoveryListing {
-            candidates,
-            rejected_sessions,
-            invalid_resolution_markers,
-            rejected_generations,
-        })
     }
 }

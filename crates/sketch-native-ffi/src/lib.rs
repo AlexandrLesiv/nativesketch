@@ -20,3 +20,5 @@ mod test_api;
 
 #[cfg(test)]
 mod boundary_tests;
+#[cfg(test)]
+mod recovery_tests;

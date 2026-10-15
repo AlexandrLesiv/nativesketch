@@ -117,8 +117,11 @@ pub unsafe extern "C" fn sketch_runtime_v1_recovery_copy(
                 count: inventory.items.len() as u32,
                 rejected_sessions: inventory.listing.rejected_sessions as u32,
                 invalid_markers: inventory.listing.invalid_resolution_markers as u32,
-                limit_bytes: 256 * 1024 * 1024,
-                ..Default::default()
+                capacity_blocked: u32::from(inventory.listing.capacity_blocked),
+                usage_known: u32::from(inventory.listing.usage.is_some()),
+                used_bytes: inventory.listing.usage.map_or(0, |usage| usage.bytes),
+                limit_bytes: inventory.listing.limit_bytes,
+                reserved: 0,
             });
             Ok(())
         })

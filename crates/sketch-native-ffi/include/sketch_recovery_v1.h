@@ -11,6 +11,11 @@ typedef struct {
   uint8_t display_name[256]; /* private local UI metadata, never diagnostic content */
 } SketchRecoveryItemV1;
 typedef struct {
+  /* Worker snapshot. Capacity means no identity slot or exhausted byte/reservation
+   * budget (including bounded inventory overflow), not a guarantee the next file fits.
+   * Usage includes resolved/empty identities, generations, markers and staging files.
+   * usage_known=0 means unsafe/unreadable/incomplete accounting; used_bytes is then0.
+   * A valid empty root has usage_known=1 and used_bytes=0. Refresh after maintenance. */
   uint32_t count, rejected_sessions, invalid_markers, capacity_blocked, usage_known, reserved;
   uint64_t used_bytes, limit_bytes;
 } SketchRecoveryInfoV1;
