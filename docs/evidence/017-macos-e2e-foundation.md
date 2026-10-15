@@ -159,3 +159,23 @@ the existing-file path route. Sheet dismissal and Save enablement are checked be
 proceeding. The lead verified these observations before authorizing the next attempt.
 All failed attempt 3 artifacts remain under `artifacts/evidence/native-attempt-3/`.
 No saved-file or full journey pass is inferred from its successful drawing segment.
+
+## Color profile verification after attempt 4
+
+Attempt 4 on clean `da2ccab` saved through the native panel. The independent saved-byte
+oracle then rejected green `0.14910030364990234` rather than the requested sRGB zero
+(RGBA was `[1, 0.14910030364990234, 0, 1]`; width 12). The application explicitly converts
+native color-well colors to sRGB, while an unspecified RGB-slider profile makes hex
+`FF0000` insufficient to define an sRGB red. The tolerance has not been weakened.
+
+The next driver explicitly opens the observed native `color profile` menu, records its
+AX tree and screenshot, requires exactly one actual menu item containing `sRGB`, records
+its exact label and selects it before entering the hex value. Ambiguity fails with menu
+evidence. The final numeric sRGB/style/geometry assertions remain unchanged. A bounded
+manual inspection of the disposable app did not expose the profile menu through CUA;
+that app was closed without drawing or saving. The next observation uses the already
+proven XCTest native control path. No global display or color settings are changed.
+
+README entry points use `.ts` for the coordinated automation migration. This isolated
+acceptance checkout still invokes its existing `.mjs` runner until that migration is
+integrated; this documentation change does not claim a local TypeScript runtime run.

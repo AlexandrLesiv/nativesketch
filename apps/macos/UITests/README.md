@@ -6,8 +6,8 @@ Native Sketch process. No app domain commands or injected Rust replay are used.
 
 ```text
 npm ci --ignore-scripts
-node scripts/test-e2e.mjs --platform macos
-node scripts/test-e2e.mjs --platform macos --interactive --attempt 2 --output artifacts/evidence/mac-retry
+node scripts/test-e2e.ts --platform macos
+node scripts/test-e2e.ts --platform macos --interactive --attempt 2 --output artifacts/evidence/mac-retry
 ```
 
 The default builds/packages in the background without executable discovery or UI execution.

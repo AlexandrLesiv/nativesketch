@@ -15,6 +15,19 @@ func chooseBrush(in app: XCUIApplication, width value: String, hex: String) thro
   colors.buttons["Color Sliders"].click()
   colors.popUpButtons.firstMatch.click()
   app.menuItems["RGB Sliders"].click()
+  colors.menuButtons["color profile"].click()
+  XCTContext.runActivity(named: "Native color profile menu") { activity in
+    let tree = XCTAttachment(string: app.debugDescription)
+    tree.lifetime = .keepAlways
+    activity.add(tree)
+    let screenshot = XCTAttachment(screenshot: colors.screenshot())
+    screenshot.lifetime = .keepAlways
+    activity.add(screenshot)
+  }
+  let profiles = app.menuItems.matching(NSPredicate(format: "label CONTAINS[c] %@", "sRGB"))
+  XCTAssertEqual(profiles.count, 1, "Require an unambiguous native sRGB profile")
+  print("Selected native color profile: \(profiles.element.label)")
+  profiles.element.click()
   let hexadecimal = colors.textFields["hex"]
   XCTAssertTrue(hexadecimal.waitForExistence(timeout: 5))
   hexadecimal.click()
