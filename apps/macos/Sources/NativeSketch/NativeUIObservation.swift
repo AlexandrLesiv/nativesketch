@@ -29,6 +29,7 @@ import CSketchSession
       + " | Storage idle=\(storageIdle),dirty=\(projection?.dirty == 1),session=\(projection?.session ?? 0)"
       + " | Save outstanding=\(projection?.outstanding_saves ?? 0),preparing=\(projection?.preparing_operations ?? 0)"
       + " | Renderer=Skia,presented=\(canvas?.rendering.presented ?? 0)"
+      + " rendererRecoveries=\(canvas?.rendering.recoveries ?? 0),rendererFailures=\(canvas?.rendering.failures ?? 0)"
       + " | Interaction=\(projection?.interaction ?? 0)"
   }
 }

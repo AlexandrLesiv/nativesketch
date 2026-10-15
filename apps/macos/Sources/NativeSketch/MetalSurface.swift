@@ -21,6 +21,7 @@ import QuartzCore
     layer.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
     layer.isOpaque = true
   }
+  func invalidateGeneration() { generation += 1 }
   func resize(_ size: CGSize, scale: CGFloat) {
     let pixels = CGSize(width: ceil(size.width * scale), height: ceil(size.height * scale))
     guard layer.drawableSize != pixels || layer.contentsScale != scale else { return }

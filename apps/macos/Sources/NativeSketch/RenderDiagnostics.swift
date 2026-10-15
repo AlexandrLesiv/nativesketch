@@ -9,17 +9,21 @@ import Foundation
   // NSEvent.timestamp and systemUptime are seconds since system startup.
   func input(timestamp: Double) { lastInputUptime = timestamp }
   func snapshot() -> [RenderFrameRecord] { records }
-  func reset() { records.removeAll(keepingCapacity: true) }
+  func reset(clearInput: Bool = true) {
+    records.removeAll(keepingCapacity: true)
+    if clearInput { lastInputUptime = nil }
+  }
 
   func record(
     _ stats: SketchRenderStatsV1, session: UInt64, scene: UInt64, surface: UInt64,
-    requestedAt: Double, acquisition: Double, outstanding: Int
+    requestedAt: Double, renderStartedAt: Double, acquisition: Double, outstanding: Int
   ) -> UInt64 {
     nextID += 1
     if records.count == 256 { records.removeFirst() }
     records.append(
       RenderFrameRecord(
         id: nextID, session: session, sceneGeneration: scene, surfaceGeneration: surface,
+        renderStartedAt: renderStartedAt, submittedAt: ProcessInfo.processInfo.systemUptime,
         requestedAt: requestedAt, inputAt: lastInputUptime, acquisitionSeconds: acquisition,
         outstanding: outstanding, stats: stats))
     return nextID

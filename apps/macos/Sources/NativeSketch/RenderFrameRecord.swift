@@ -5,6 +5,8 @@ struct RenderFrameRecord {
   let session: UInt64
   let sceneGeneration: UInt64
   let surfaceGeneration: UInt64
+  let renderStartedAt: Double
+  let submittedAt: Double
   let requestedAt: Double
   let inputAt: Double?
   let acquisitionSeconds: Double

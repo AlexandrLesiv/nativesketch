@@ -6,7 +6,9 @@ import AppKit
   private var surface: MetalSurface?
   private var scheduler: FrameScheduler?
   private var observers: [NSObjectProtocol] = []
-  private var failed = false
+  private var initializationAttempts = 0
+  var recoveries: UInt64 { scheduler?.recoveries ?? 0 }
+  var failures: UInt64 { scheduler?.failures ?? 0 }
   var presented: UInt64 { scheduler?.presented ?? 0 }
   init(canvas: CanvasView) { self.canvas = canvas }
 
@@ -25,7 +27,10 @@ import AppKit
       observers.append(
         NotificationCenter.default.addObserver(forName: name, object: window, queue: .main) {
           [weak self] _ in
-          MainActor.assumeIsolated { self?.invalidate() }
+          MainActor.assumeIsolated {
+            guard let self else { return }
+            if self.surface == nil { self.attach() } else { self.invalidate() }
+          }
         })
     }
     observers.append(
@@ -34,7 +39,8 @@ import AppKit
       ) { [weak self] _ in
         MainActor.assumeIsolated { self?.close() }
       })
-    if surface == nil && !failed {
+    if surface == nil && initializationAttempts < 2 {
+      initializationAttempts += 1
       do {
         let surface = try MetalSurface()
         scheduler = try FrameScheduler(canvas: canvas, surface: surface)
@@ -42,10 +48,8 @@ import AppKit
         canvas.layer = surface.layer
         canvas.wantsLayer = true
       } catch let error as NativeBridgeError {
-        failed = true
         NativeDiagnostics.failure(error.operation, status: error.status)
       } catch {
-        failed = true
         NativeDiagnostics.failure("renderer-initialize", status: 9)
       }
     }

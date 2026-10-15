@@ -16,6 +16,7 @@ let package = Package(
   platforms: [.macOS(.v14)],
   products: [.executable(name: "NativeSketch", targets: ["NativeSketch"])],
   targets: [
+    .testTarget(name: "NativeSketchTests", dependencies: ["NativeSketch"]),
     .systemLibrary(name: "CSketchSession", path: "Sources/CSketchSession"),
     .systemLibrary(name: "CSketchSessionTest", path: "Sources/CSketchSessionTest"),
     .executableTarget(

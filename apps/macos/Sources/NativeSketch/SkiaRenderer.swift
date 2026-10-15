@@ -12,6 +12,12 @@ import Metal
       throw NativeBridgeError(operation: "renderer-create", status: status)
     }
   }
+  func reset() throws {
+    let status = sketch_renderer_v1_reset(handle)
+    guard status == SK_V1_OK.rawValue else {
+      throw NativeBridgeError(operation: "renderer-reset", status: status)
+    }
+  }
   func close() {
     let status = sketch_renderer_v1_free(&handle)
     if status != SK_V1_OK.rawValue { NativeDiagnostics.failure("renderer-free", status: status) }

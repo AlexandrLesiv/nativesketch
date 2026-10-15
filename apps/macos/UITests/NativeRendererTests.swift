@@ -30,6 +30,23 @@ import XCTest
     try assertInk(fixture.canvas, present: true, name: "skia-reveal")
   }
 
+  func testInjectedBackendFailureRecoversWithoutEditing() throws {
+    continueAfterFailure = false
+    let fixture = try NativeSessionFixture()
+    fixture.registerTeardown(in: self)
+    try fixture.launch(extraArguments: ["--test-renderer-failure-once"])
+    fixture.wait { self.presented(fixture.canvas) > 0 }
+    fixture.strokes(0)
+    let value = fixture.canvas.value as? String ?? ""
+    XCTAssertTrue(value.contains("rendererRecoveries=1,rendererFailures=1"))
+    try chooseBrush(in: fixture.app, width: "12", hex: "FF0000")
+    fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.4)).click(
+      forDuration: 0.1,
+      thenDragTo: fixture.canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.6)))
+    fixture.strokes(1)
+    try assertInk(fixture.canvas, present: true, name: "skia-recovered-injected-failure")
+  }
+
   private func presented(_ canvas: XCUIElement) -> UInt64 {
     let value = canvas.value as? String ?? ""
     guard let range = value.range(of: "Renderer=Skia,presented=") else { return 0 }
