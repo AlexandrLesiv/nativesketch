@@ -29,7 +29,7 @@ import XCTest
       try native.cleanup()
     }
     record(
-      "XCUIAutomation native Save/Undo; CGEvent.postToPid held mouse; AX resize; own runner window activation. No physical pen or direct editor commands.",
+      "XCUIAutomation native Save/Undo; canvas-verified CGEvent session-tap held mouse; AX resize; own runner window activation. No physical pen or direct editor commands.",
       name: "gesture-input-provenance")
     try native.begin()
     fixture.wait { (native.interaction ?? 0) > 0 }

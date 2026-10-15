@@ -16,6 +16,6 @@ export function selectionArguments(selected: string[]) {
 
 export function nativeInputRoute(id: string) {
   return id.includes(':NativeGestureCancellationTests/')
-    ? 'XCUIAutomation setup/save; PID-bound CGEvent held pointer and AX window control; no physical pen'
+    ? 'XCUIAutomation setup/save; canvas-verified session-tap CGEvent held pointer and AX window control; no physical pen'
     : 'XCUIAutomation mouse/keyboard, no physical pen';
 }
