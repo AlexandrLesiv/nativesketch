@@ -107,8 +107,10 @@ FFI acceptance. Nine runtime acceptance rows map to discovered host executables 
 raw evidence until dedicated discovery lanes are modeled. The 20 compiled native cases preserve the
 five existing journeys and add asynchronous save, navigation, failure and recovery coverage.
 Preparation and headless checks do not constitute executable XCTest discovery or execution.
-The subsequent reserved session enumerated and ran all 20 cases; attempt 15 has 11 raw
-passes and 9 failures, documented separately above. Broader designer inspection, accessibility,
+The subsequent reserved session enumerated and ran all 20 cases; attempt 16 has 17 raw
+passes and 3 failures. Final candidate `1a5b648` repairs those cases and passes background
+integration/fresh review, but attempt 18 timed out enabling XCTest automation before discovery.
+Final native acceptance remains pending; see the desktop validation evidence. Broader inspection, accessibility,
 physical pen latency and other platform hosts remain separate, explicit evidence gaps.
 
 All new/extracted source remains subject to the 200-line gate. Five other-platform source

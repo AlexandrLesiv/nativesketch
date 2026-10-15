@@ -9,11 +9,13 @@ adoption (019B–E) are integrated locally, with native acceptance still pending
 [native interface v1](../docs/architecture/019bc-native-interface.md), frozen at `106abfe`
 and integrated as `c0b63da`. Twelve new native acceptance rows map to discovered executables
 in `quality/features/native-command-adapter.json`, with uncovered subcases retained. Twenty
-cases now execute: attempt 15 at `1fc0174` has 11 raw passes and 9 failures, so native
-acceptance remains pending. The designer reproduced the original ordinary Quit hang,
-which attempt 15 confirms repaired;
-first-launch private-root provisioning and pending-navigation presentation need the next
-native candidate. See [desktop validation](../docs/evidence/019-native-desktop-validation.md)
+cases now execute: attempt 16 at `dd3efaf` has 17 raw passes and 3 failures. The final
+candidate `1a5b648` repairs those three cases and passes full background integration and
+fresh review, but attempt 18's XCTest automation initialization timed out before discovery.
+Focused native verification and a complete final-revision run therefore remain pending.
+The designer reproduced the original ordinary Quit hang, which attempt 15 confirms repaired;
+attempt 16 also verifies fresh recovery-root provisioning. See
+[desktop validation](../docs/evidence/019-native-desktop-validation.md)
 for exact revisions, reviews and preserved failures. Background integration and Wasm checks
 pass; remaining coverage limits are recorded explicitly.
 See [runtime evidence](../docs/evidence/019bc-native-runtime.md).
