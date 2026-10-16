@@ -1,5 +1,6 @@
 mod actions;
 mod dispatch;
+mod document_bounds;
 mod guard;
 mod projections;
 mod routing;

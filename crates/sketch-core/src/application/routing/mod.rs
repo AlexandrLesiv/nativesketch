@@ -3,7 +3,9 @@ mod files;
 mod navigation;
 mod replacement;
 mod replies;
+mod save_policy;
 mod scene;
+pub use save_policy::SaveDestinationPolicy;
 mod types;
 mod viewer;
 use super::{storage::*, *};
@@ -57,6 +59,7 @@ pub struct ApplicationSession {
     navigation: Option<Navigation>,
     saves: Vec<SaveToken>,
     view_source_generation: u64,
+    save_policy: SaveDestinationPolicy,
 }
 impl ApplicationSession {
     pub fn new(
@@ -65,12 +68,28 @@ impl ApplicationSession {
         brush: BrushSettings,
         initial: Option<ValidatedDocument>,
     ) -> Result<Self, EditorError> {
+        Self::new_with_save_policy(
+            capabilities,
+            tool,
+            brush,
+            initial,
+            SaveDestinationPolicy::ReuseBinding,
+        )
+    }
+    pub fn new_with_save_policy(
+        capabilities: Capabilities,
+        tool: ToolId,
+        brush: BrushSettings,
+        initial: Option<ValidatedDocument>,
+        save_policy: SaveDestinationPolicy,
+    ) -> Result<Self, EditorError> {
         Ok(Self {
             editor: EditorSession::new(capabilities, tool, brush, initial)?,
             pending: None,
             navigation: None,
             saves: Vec::with_capacity(1024),
             view_source_generation: 0,
+            save_policy,
         })
     }
     pub fn projection(&self) -> ApplicationProjection {

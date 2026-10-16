@@ -25,6 +25,7 @@ impl EditorSession {
         Ok(match query {
             EditorQuery::ViewState => QueryResult::ViewState(state),
             EditorQuery::SelectedBounds => QueryResult::SelectedBounds(self.editor.state().bounds),
+            EditorQuery::DocumentBounds => QueryResult::DocumentBounds(self.document_bounds()),
             EditorQuery::Scene => QueryResult::Scene(SceneSnapshot {
                 key: SceneKey {
                     session: state.session,

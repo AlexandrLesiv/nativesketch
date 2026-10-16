@@ -45,6 +45,8 @@ pub struct CommandOutcome {
 pub enum EditorQuery {
     ViewState,
     SelectedBounds,
+    /// Whole committed document, independent of selection, viewport and temporary ink.
+    DocumentBounds,
     Scene,
     CommittedSnapshot,
 }
@@ -63,6 +65,7 @@ pub struct SceneSnapshot {
 pub enum QueryResult {
     ViewState(EditorViewState),
     SelectedBounds(Bounds),
+    DocumentBounds(Option<Bounds>),
     Scene(SceneSnapshot),
     Document(DocumentSnapshot),
 }

@@ -34,3 +34,5 @@ pub use work::{RetiredState, WorkInfo, WorkItem, WorkKind, WorkResult};
 pub use write_work::{EncodedWrite, ProviderWrite};
 #[cfg(test)]
 mod tests;
+
+pub use sketch_core::application::routing::SaveDestinationPolicy;

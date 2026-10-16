@@ -170,3 +170,7 @@ fn retire(app: &mut PortableApp) {
     }
 }
 mod classification;
+
+mod document_bounds;
+mod save_policy;
+mod save_policy_failures;

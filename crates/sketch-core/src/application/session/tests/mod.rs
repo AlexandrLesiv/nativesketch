@@ -90,3 +90,5 @@ fn scene(session: &EditorSession) -> Vec<[u64; 12]> {
 }
 
 mod projections;
+
+mod document_bounds;

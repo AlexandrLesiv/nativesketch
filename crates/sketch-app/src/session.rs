@@ -6,12 +6,25 @@ use crate::{
 };
 impl PortableApp {
     pub fn create_session(&mut self, config: SessionConfig) -> Result<SessionHandle, AppError> {
+        self.create_session_with_save_policy(config, SaveDestinationPolicy::ReuseBinding)
+    }
+    pub fn create_session_with_save_policy(
+        &mut self,
+        config: SessionConfig,
+        policy: SaveDestinationPolicy,
+    ) -> Result<SessionHandle, AppError> {
         if self.sessions.len() >= self.limits.sessions {
             return Err(AppError::Capacity);
         }
         let handle = SessionHandle(crate::ids::reserve(&mut self.next_session)?, self.identity);
         let pristine = true;
-        let app = ApplicationSession::new(config.capabilities, config.tool, config.brush, None)?;
+        let app = ApplicationSession::new_with_save_policy(
+            config.capabilities,
+            config.tool,
+            config.brush,
+            None,
+            policy,
+        )?;
         self.sessions.push(Slot {
             handle,
             app,
@@ -41,6 +54,19 @@ impl PortableApp {
         let QueryResult::SelectedBounds(bounds) = self.sessions[self.attached(handle)?]
             .app
             .query(EditorQuery::SelectedBounds)?
+        else {
+            unreachable!("query variant")
+        };
+        Ok(bounds)
+    }
+    /// Full committed outlines, including offscreen content. Explicit O(sample count) query.
+    pub fn document_bounds(
+        &self,
+        handle: SessionHandle,
+    ) -> Result<Option<sketch_core::Bounds>, AppError> {
+        let QueryResult::DocumentBounds(bounds) = self.sessions[self.attached(handle)?]
+            .app
+            .query(EditorQuery::DocumentBounds)?
         else {
             unreachable!("query variant")
         };

@@ -14,9 +14,8 @@ impl ApplicationSession {
         if !allowed {
             return Err(ApplicationFailure::CapabilityDenied);
         }
-        // A queued Save As is not an active chooser. Ordinary Save still uses the old binding.
-        let bound_save =
-            intent == FileIntent::Save && self.editor.save_state().destination().is_some();
+        // Only the reuse policy permits a bound Save alongside another pending dialog.
+        let bound_save = intent == FileIntent::Save && self.reusable_save_destination().is_some();
         if self.pending.is_some() && !bound_save {
             return Err(ApplicationFailure::Busy);
         }
@@ -39,8 +38,7 @@ impl ApplicationSession {
         intent: FileIntent,
     ) -> Result<ApplicationEffect, ApplicationFailure> {
         self.file_availability(intent)?;
-        let bound_save =
-            intent == FileIntent::Save && self.editor.save_state().destination().is_some();
+        let bound_save = intent == FileIntent::Save && self.reusable_save_destination().is_some();
         let token = self.issue(context.request)?;
         // Only accepted explicit file intents cancel temporary interaction; checkpoints defer.
         self.cancel_interaction(context)?;
@@ -92,7 +90,7 @@ impl ApplicationSession {
         queue: &mut SaveCoordinator,
         token: EffectToken,
     ) -> ApplicationEffect {
-        if let Some(destination) = self.editor.save_state().destination() {
+        if let Some(destination) = self.reusable_save_destination() {
             let effect = self.admit(queue, token.request, SavePurpose::Save, destination);
             self.wait_for_save(token, &effect);
             effect
