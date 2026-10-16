@@ -10,6 +10,7 @@ Roles: rust_engine, ui_ux_designer, macos_ui, windows_ui, build_reliability, rev
 ## Outcome
 
 Shared host contracts and scoped extraction plans for every existing platform.
+Progress, exact checks and retained gaps: [adapter evidence](../docs/evidence/022-adapters.md).
 The lead-approved phased [adapter design](../docs/architecture/022-portable-adapters.md)
 freezes action semantics and provider ownership; concrete transport layouts freeze after
 typed ownership tests. Local downstream preparation proceeds under the owner's explicit
