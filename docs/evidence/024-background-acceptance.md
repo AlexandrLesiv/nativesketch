@@ -41,6 +41,13 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Workbench CanvasKit preview | `9124ec5` | 17 service and 14 headless journeys passed, including actual production drawing preview; native Zed and speech acceptance pending |
 | Shared native/portable viewport preparation | `760a286` | Full background gate passed; 12 focused Rust tests plus actual C/Wasm conformance map to seven passing rows; native CPU precision retained |
 | Browser prepared large geometry | `ea0ab9e` | Full background gate passed; 29 classified direct checks and 17 headless journeys passed; 33 mapped rows passed; actual giant strokes replace the temporary precision rejection |
+| Shared top-left scale prerequisite | `df156a7` | Full background gate passed; six focused Rust cases plus actual C/Wasm consumers produced four passing mapped rows, with no mapping issues; Android UI adoption remains pending |
+
+The top-left packet is `artifacts/evidence/022-top-left-df156a7/coverage.html`, with raw
+discovery/execution, test binary identities and copied C/Wasm artifacts alongside it.
+`integration-top-left-df156a7.log` retains the initial sandbox-denied loopback test-server
+attempt; `integration-top-left-df156a7-retry1.log` records the complete passing rerun with
+background local-server access. Neither run used Finder or desktop automation.
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load
