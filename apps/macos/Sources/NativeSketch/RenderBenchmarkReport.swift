@@ -73,6 +73,8 @@ struct RenderBenchmarkFrame: Encodable {
   let inputAt: Double?
   let completedAt: Double?
   let presentedAt: Double?
+  let reportedPresentationTime: Double?
+  let presentationStatus: String
   let queueSeconds: Double
   let sampleAgeSeconds: Double?
   let requestToPresentationSeconds: Double?
@@ -100,6 +102,8 @@ struct RenderBenchmarkFrame: Encodable {
     inputAt = frame.inputAt
     completedAt = frame.completedAt
     presentedAt = frame.presentedAt
+    reportedPresentationTime = frame.reportedPresentationTime
+    presentationStatus = frame.presentationStatus
     queueSeconds = frame.renderStartedAt - frame.requestedAt
     sampleAgeSeconds = frame.inputAt.map { frame.renderStartedAt - $0 }
     requestToPresentationSeconds = frame.presentedAt.map { $0 - frame.requestedAt }

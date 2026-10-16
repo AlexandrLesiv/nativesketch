@@ -20,5 +20,13 @@ struct RenderFrameRecord {
   let stats: SketchRenderStatsV1
   var completedAt: Double?
   var presentedAt: Double?
+  var reportedPresentationTime: Double?
+  var presentationStatus = "awaiting-callback"
   var failed = false
+
+  mutating func observePresentation(_ observation: RenderPresentationTime) {
+    reportedPresentationTime = observation.reportedTime
+    presentationStatus = observation.status
+    presentedAt = observation.acceptedTime
+  }
 }

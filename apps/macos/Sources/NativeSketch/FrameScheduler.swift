@@ -10,6 +10,7 @@ import Metal
   private var requestedAt = 0.0
   private var scheduled = false
   private var drawableRetryScheduled = false
+  private var presentationRetryScheduled = false
   private(set) var recoveries: UInt64 = 0
   private(set) var failures: UInt64 = 0
   private var injectedFailure = false
@@ -102,19 +103,26 @@ import Metal
       let scene = canvas.editor.projection.scene_generation
       let surfaceGeneration = surface.generation
       let key = presentationKey
+      let submittedAt = ProcessInfo.processInfo.systemUptime
       let frame = canvas.renderDiagnostics.record(
         stats, session: session, scene: scene, surface: surfaceGeneration,
-        requestedAt: requestedAt, renderStartedAt: acquired, acquisition: acquisition,
+        requestedAt: requestedAt, submittedAt: submittedAt,
+        renderStartedAt: acquired, acquisition: acquisition,
         outstanding: state.outstanding + 1)
       state.submitted()
       drawable.addPresentedHandler { [weak self] drawable in
-        let time = drawable.presentedTime
+        let observation = RenderPresentationTime(
+          reported: drawable.presentedTime, submittedAt: submittedAt)
         Task { @MainActor [weak self] in
           guard let self else { return }
-          self.canvas.renderDiagnostics.presented(frame, time: time)
+          self.canvas.renderDiagnostics.presented(frame, observation: observation)
           if !self.state.closed && self.presentationKey == key {
-            self.presented += 1
-            self.lastPresentation = key
+            if observation.acceptedTime != nil {
+              self.presented += 1
+              self.lastPresentation = key
+            } else {
+              self.retryPresentation(key)
+            }
           }
         }
       }
@@ -153,6 +161,21 @@ import Metal
     canvas.renderDiagnostics.acquisitionFailed(startedAt: startedAt, reason: reason)
     state.deferDrawable()
     retryDrawable()
+  }
+  private func retryPresentation(_ key: RenderPresentationKey) {
+    guard lastPresentation != key, !presentationRetryScheduled,
+      state.reservePresentationRetry()
+    else { return }
+    presentationRetryScheduled = true
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(16)) { [weak self] in
+      guard let self else { return }
+      self.presentationRetryScheduled = false
+      guard !self.state.closed, self.presentationKey == key, self.lastPresentation != key else {
+        return
+      }
+      self.state.deferDrawable()
+      self.schedule()
+    }
   }
   private func retryDrawable() {
     guard !drawableRetryScheduled, state.reserveDrawableRetry() else { return }

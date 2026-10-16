@@ -28,14 +28,15 @@ import Foundation
 
   func record(
     _ stats: SketchRenderStatsV1, session: UInt64, scene: UInt64, surface: UInt64,
-    requestedAt: Double, renderStartedAt: Double, acquisition: Double, outstanding: Int
+    requestedAt: Double, submittedAt: Double, renderStartedAt: Double,
+    acquisition: Double, outstanding: Int
   ) -> UInt64 {
     nextID += 1
     if records.count == 256 { records.removeFirst() }
     records.append(
       RenderFrameRecord(
         id: nextID, session: session, sceneGeneration: scene, surfaceGeneration: surface,
-        renderStartedAt: renderStartedAt, submittedAt: ProcessInfo.processInfo.systemUptime,
+        renderStartedAt: renderStartedAt, submittedAt: submittedAt,
         requestedAt: requestedAt, inputAt: lastInputUptime, acquisitionSeconds: acquisition,
         outstanding: outstanding, stats: stats))
     return nextID
@@ -48,8 +49,8 @@ import Foundation
   }
 
   // Metal reports actual presentation host time, not physical pen-to-screen latency.
-  func presented(_ id: UInt64, time: Double) {
+  func presented(_ id: UInt64, observation: RenderPresentationTime) {
     guard let index = records.firstIndex(where: { $0.id == id }) else { return }
-    records[index].presentedAt = time
+    records[index].observePresentation(observation)
   }
 }
