@@ -40,8 +40,8 @@ test('WEB-SURFACE-001 injected initial GL refusal uses real Skia raster and pres
       .locator('#canvas')
       .evaluate((canvas) =>
         (
-          window as Window & { sketchOriginalCanvas: (element: Element) => boolean }
-        ).sketchOriginalCanvas(canvas),
+          window as Window & { sketchOriginalCanvas?: (element: Element) => boolean }
+        ).sketchOriginalCanvas?.(canvas),
       );
   expect(await originalRetained()).toBe(true);
   await stroke(page);
