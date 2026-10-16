@@ -15,7 +15,7 @@ listing/check output from an unrelated working directory; use `node scripts/boar
 | `node scripts/check.ts [--core]` | Board, JS formatting/type/lint, tooling negative tests, source/dependency gates, Rust; macOS link/smoke and GPU-free Swift scheduling policy tests unless core |
 | `node scripts/check.ts --platform wasm` | Real Wasm/native document equivalence and protocol-v1 fixtures |
 | `node scripts/check.ts --platform web` | Wasm, TypeScript, Vite, actual Wasm adapter and precache/subpath checks |
-| `node scripts/test-web-adapter.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Production portable Wasm with direct TypeScript consumers; source/build/test-bound bridge evidence, including explicitly injected failure cases; no browser UI |
+| `node scripts/test-web-adapter.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Production portable Wasm bridge checks, actual CanvasKit CPU rendering and separate compiler fixtures; source/build/test-bound classified evidence; no browser UI |
 | `node scripts/test-web-e2e.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Real production Wasm journeys in headless Chromium; requires explicit `SKETCH_BROWSER_EXECUTABLE`; no desktop windows |
 | `npm run workbench:build` / `npm run workbench` | Build/start local project GUI; prints loopback URL without opening apps; foreground actions disabled |
 | `node scripts/workbench.ts snapshot\|export --output NEW_FILE` | Revision-bound JSON snapshot or self-contained read-only HTML; refuses overwrite |
@@ -66,14 +66,16 @@ npm package metadata checked 2026-10-15; their Node engine ranges include 24.22.
 Playwright Test 1.64.1 is pinned for the real-browser lane (official npm metadata
 checked 2026-10-16; Node >=20). Seven production Wasm journeys were executed at `323a3bc`,
 with a retained initial resize synchronization failure and subsequent passing attempts.
-The lane covers existing Canvas2D browser behavior, not the pending CanvasKit adapter.
+The later [CanvasKit packet](../evidence/020-web-canvaskit.md) records 16 production Skia
+journeys, with explicit software WebGL/CPU backend identity and separate precision limits.
 Browser binaries stay in project `.build-cache/playwright`; the lane uses Chromium headless,
 without opening or focusing a desktop app. Runner timeout/cancellation/finalization errors
 invalidate normalized results even when Playwright already wrote a passing JSON report.
 Browser E2E source types/lint/format and runner negative tests are in the normal tooling gate;
 running the actual browser journeys remains a separate explicit command.
 Vite 8 uses Rolldown/Oxc. The built web app preserves separate main/engine ESM files,
-relative URLs and standard service-worker cache behavior. No renderer runtime changes.
+relative URLs and standard service-worker cache behavior. The later full CanvasKit runtime
+is locally packaged and precached with its JavaScript, Wasm and license notice.
 The old apps/web compiler package/lockfile and web/Wasm shell entry points were removed
 after Node build/check/cache/loopback-server parity. Install tools only at repository root.
 

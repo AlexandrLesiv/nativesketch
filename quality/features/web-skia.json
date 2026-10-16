@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "web-skia",
+  "description": "Actual Rust/Wasm scenes rendered by CanvasKit CPU raster and separate TypeScript compiler fixtures. No GPU or physical latency claims.",
+  "sourceRevision": "333f9ff",
+  "cases": [
+    {
+      "id": "WEB-SKIA-RASTER-001",
+      "expected": "Cached and fresh complete CanvasKit paths paint the same actual portable scene; obsolete paths retire.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-raster.test.ts:actual CanvasKit raster draws actual portable scene and matches uncached complete paths"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-CAPACITY-001",
+      "expected": "Bounded staged path rejection preserves prior raster pixels and disposes temporary wrappers.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-raster.test.ts:actual CanvasKit capacity rejection retains prior pixels and disposes bounded staged paths"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-ORIGIN-001",
+      "expected": "Small geometry at signed billion-unit origins produces identical raster pixels under fractional transforms.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-precision.test.ts:actual CanvasKit preserves small portable geometry at signed billion-unit origins with fractional transforms"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-WINDING-001",
+      "expected": "Complete paged translucent geometry fills once and selected preview replaces the original.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-precision.test.ts:actual CanvasKit fills complete paged translucent portable geometry once and suppresses preview originals"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-GUARD-001",
+      "expected": "Unsupported huge-span precision fails before replacing prior raster pixels; this is rejection evidence, not successful huge-stroke rendering.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-precision.test.ts:actual portable huge-span scene reports unsupported precision before replacing prior raster pixels"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-TYPES-001",
+      "expected": "CanvasKit and WebGPU signatures accept valid fixtures and reject both incorrect argument types.",
+      "invariants": ["FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "tooling",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-types.test.ts:CanvasKit published API and built-in WebGPU remain checked with legacy globals deduplicated"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

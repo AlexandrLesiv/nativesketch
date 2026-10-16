@@ -2,7 +2,8 @@
 
 Implementation handoff for the authorized Skia migration, following
 [the portable browser adapter](022-web-portable-adoption.md). This is a design and API
-probe, not completed browser renderer acceptance. Keep the existing semantic HTML controls,
+probe, with the first production implementation and scoped checks now recorded in
+[browser Skia evidence](../evidence/020-web-canvaskit.md). Keep the existing semantic HTML controls,
 Rust commands, document format and input behavior. No new drawing feature is introduced.
 
 ## Dependency and layer boundary
@@ -120,7 +121,8 @@ dimensions, keyboard reachability and one-operation gestures; `WEB-CONTEXT-001` 
 single cancellation, retained history and latest-frame recovery; `WEB-RENDER-ERROR-001`
 covers failed recovery with a healthy downloadable document. Existing `WEB-CANCEL-001`
 continues to cover resize-before-remap. Synthetic context loss is not physical GPU failure.
-These IDs are planned until implementation, executable mapping and actual results exist.
+These IDs now have executable mappings and a passing frozen worker browser run. Their
+coverage remains synthetic/headless; the evidence packet identifies the remaining gaps.
 
 The rendering specialist reviewed the pinned API and wire at `233b79a`. The published
 `getResourceCacheUsageBytes`/`getResourceCacheLimitBytes` JavaScript wrappers omit return

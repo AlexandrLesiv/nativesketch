@@ -79,8 +79,11 @@ The later [portable browser packet](022-adapters.md#browser-portable-v2-adoption
 the production legacy Wasm consumer with the shared application dispatcher, issued file
 work and leased scenes. It records receipt-ownership and HTML width-validation repairs,
 the separate pixel-placement regression, exact Wasm identities and all failed attempts.
-CanvasKit integration and a dedicated engine Worker remain distinct follow-ups; Node bridge
-results do not certify browser UI, and headless UI does not certify native GPU/pen latency.
+The [CanvasKit packet](020-web-canvaskit.md) records the subsequent production renderer,
+16 headless journeys and 20 classified direct checks at frozen worker `d4b5b68`.
+Shared viewport preparation and a dedicated engine Worker remain distinct follow-ups;
+Node bridge results do not certify browser UI, and headless UI does not certify native
+GPU/pen latency.
 
 ## Safety tooling and invalidated evidence
 
