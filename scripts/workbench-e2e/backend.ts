@@ -4,6 +4,7 @@ import { controller } from '../lib/context.ts';
 import { executeNode } from '../evidence/node.ts';
 import { sourceIdentity } from '../evidence/identity.ts';
 import { validateDiscovery, validateExecution } from '../evidence/validate.ts';
+import { persistExecution } from '../evidence/finalize.ts';
 import type { Source, Discovery, Execution } from '../evidence/types.ts';
 
 /** Host integration evidence stays separate from browser and portable unit acceptance. */
@@ -48,16 +49,7 @@ export async function backendEvidence(
   validateExecution(execution);
   await writeFile(join(output, 'backend-discovery.json'), JSON.stringify(discovery, null, 2));
   signal.throwIfAborted();
-  await writeFile(join(output, 'backend-results.json'), JSON.stringify(execution, null, 2));
-  if (signal.aborted) {
-    for (const item of execution.results)
-      item.environment = {
-        valid: false,
-        reasons: [...item.environment.reasons, 'Backend evidence cancelled during finalization'],
-      };
-    await writeFile(join(output, 'backend-results.json'), JSON.stringify(execution, null, 2));
-    signal.throwIfAborted();
-  }
+  await persistExecution(execution, signal, join(output, 'backend-results.json'));
   if (
     !execution.results.length ||
     execution.results.some((item) => item.status !== 'passed' || !item.environment.valid)

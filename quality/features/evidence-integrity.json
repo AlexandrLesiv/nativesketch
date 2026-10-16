@@ -81,6 +81,24 @@
       ],
       "automation": "implemented",
       "gaps": []
+    },
+    {
+      "id": "EVIDENCE-PUBLISH-001",
+      "expected": "Cancellation or staging failure publishes no certified execution; completed publication is atomic and cannot overwrite an earlier attempt.",
+      "invariants": [],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/tests/evidence-finalization.test.ts:cancellation before or during staging publishes no certified execution",
+        "node:scripts/tests/evidence-finalization.test.ts:atomic publication preserves outcomes and refuses to replace an earlier attempt"
+      ],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }

@@ -8,6 +8,7 @@ import { root } from '../lib/context.ts';
 import { run } from '../lib/process.ts';
 import { serve } from '../lib/server.ts';
 import { sourceIdentity } from '../evidence/identity.ts';
+import { persistExecution } from '../evidence/finalize.ts';
 import { prepareOutput } from './output.ts';
 import { browserIdentity, treeHash } from './identity.ts';
 import { browserSpecs, browserTestId } from './results.ts';
@@ -62,6 +63,7 @@ export async function browserJourney(options: { output: string; attempt: number 
       cwd: root,
       capture: true,
       timeout: 10_000,
+      signal: controller.signal,
     });
     const served = join(output, 'served', 'nativesketch');
     await cp(join(root, 'artifacts/web'), served, { recursive: true });
@@ -131,6 +133,7 @@ export async function browserJourney(options: { output: string; attempt: number 
       JSON.stringify(await browserIdentity(executable)) !== JSON.stringify(identity) ||
       (await treeHash(served)) !== identity.binarySha256;
     const reasons = executionReasons(completion, executed);
+    if (controller.signal.aborted) reasons.push('Browser journey cancelled');
     if (changed) reasons.push('Source, browser, tests or served assets changed during execution');
     const execution: Execution = {
       schemaVersion: 1,
@@ -163,7 +166,7 @@ export async function browserJourney(options: { output: string; attempt: number 
       }),
     };
     validateExecution(execution);
-    await save('execution.json', execution);
+    await persistExecution(execution, controller.signal, join(output, 'execution.json'));
     if (
       !processSucceeded(completion) ||
       execution.results.some((result) => result.status !== 'passed')

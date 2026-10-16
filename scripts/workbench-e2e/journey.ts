@@ -7,6 +7,7 @@ import { validateDiscovery, validateExecution } from '../evidence/validate.ts';
 import { root } from '../lib/context.ts';
 import { run } from '../lib/process.ts';
 import { sourceIdentity } from '../evidence/identity.ts';
+import { persistExecution } from '../evidence/finalize.ts';
 import { prepareOutput } from '../browser-e2e/output.ts';
 import { browserSpecs } from '../browser-e2e/results.ts';
 import { identity, testId } from './identity.ts';
@@ -155,16 +156,7 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
       }),
     };
     validateExecution(execution);
-    await save('results.json', execution);
-    if (controller.signal.aborted) {
-      for (const item of execution.results)
-        item.environment = {
-          valid: false,
-          reasons: [...item.environment.reasons, 'Workbench journey cancelled during finalization'],
-        };
-      await save('results.json', execution);
-      controller.signal.throwIfAborted();
-    }
+    await persistExecution(execution, controller.signal, join(output, 'results.json'));
     if (!processSucceeded(completion) || execution.results.some((r) => r.status !== 'passed'))
       throw new Error('Workbench acceptance did not pass; see results.json');
     controller.signal.throwIfAborted();
