@@ -289,3 +289,14 @@ The existing browser journeys checked saved geometry and ink presence, not exact
 placement. Therefore the passing packet above does not certify pixel placement. A separate
 correction and coordinate-specific browser regression precede the CanvasKit replacement;
 its later result must remain distinct from this original packet.
+
+That correction is integrated as `3c97e42`, with the test-only focus clarification at
+`79ddcaa`. Fresh review verified absolute wire coordinates against an actual Wasm fixture:
+the old painter shifted bounds `[98,98,262,162]` to `[196,196,360,260]`. The regression now
+checks actual composited stroke bounds, decoding a screenshot independently of the canvas
+backend. Its first run at `3266ba8` retained 12 passes and one failure because the screenshot
+also included the native blue focus outline. Moving focus to the existing width field after
+the stroke commits removes that decoration; no pixel thresholds or production styles changed.
+The reviewer cleared this correction. Exact primary `79ddcaa` passed all 13 browser journeys
+in `artifacts/evidence/022-web-position-final`; the failed packet remains at
+`022-web-position-3266ba8`. The lead also inspected the passing stroke-position capture.
