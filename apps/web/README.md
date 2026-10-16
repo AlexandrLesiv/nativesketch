@@ -21,7 +21,7 @@ exports bytes but deliberately **does not clear Unsaved**: browser download init
 cannot prove the file was written. New/Open offer Cancel, Download, or explicit Discard.
 There is no automatic recovery of unsaved drawings after a tab/process closes.
 
-Canvas2D is disposable presentation, not a production renderer decision. Physical pen
+Canvas2D is interim presentation; Skia/CanvasKit is selected but not yet integrated here. Physical pen
 feel and browser accessibility speech need device testing; Wasm adapter checks alone
 are not UI evidence.
 
@@ -29,7 +29,7 @@ are not UI evidence.
 
 The public browser app is deployed to https://alexandrlesiv.github.io/nativesketch/.
 This is the current interaction prototype: Rust/Wasm owns editing, Canvas2D paints it;
-renderer task 002 remains open. Serving the app does not upload drawings or add cloud
+the selected Skia/CanvasKit consumer migration remains pending. Serving the app does not upload drawings or add cloud
 storage. Unsaved drawings still need an explicit download before closing the tab.
 
 `.github/workflows/pages.yml` pins the build toolchain and official Actions. It runs
@@ -49,3 +49,37 @@ The worker caches the app for offline reload after a successful first visit. Clo
 app tabs and reopen to activate an updated worker. This is asset caching, not drawing
 recovery. GitHub Pages supplies HTTPS and Wasm MIME delivery; verify these on the live
 URL after deployment. Build failures leave the previous deployment in place.
+
+## Adapter composition and quality boundary
+
+`main.ts` only assembles the host. `host.ts` owns browser presentation/capture state and
+binds callbacks; `presentation.ts` handles availability, status and failure UI;
+`canvas-painter.ts` retains Canvas2D rendering. `controls.ts` and `keyboard.ts` retain
+semantic control and native text-field behavior. Pointer down/move/finish and coalesced
+sampling have separate input modules; `viewport.ts` owns wheel/blur/resize wiring.
+`files.ts` preserves asynchronous replacement guards and download-does-not-acknowledge-save.
+`startup.ts` loads the existing Wasm protocol 1 engine and worker. `engine.ts` retains
+its existing ownership, 64-bit identity and copy-before-next-command behavior.
+
+This is mechanical decomposition. Rust portable protocol v2, CanvasKit, a Worker-owned
+engine and the full shared application-command migration remain separate task 022 slices.
+No control, layout, file semantics or service-worker activation policy was added here.
+
+The supported Node build (`node scripts/build.ts --platform web`) uses root TypeScript 7
+strict/erasable types and Vite. The retained nested TypeScript/Prettier setup remains for
+legacy parity work. Root Oxfmt formats all new sources; files stay <=200 physical lines.
+The explicit `.ts` imports are rewritten to `.js` by the nested compiler as well.
+
+Vite emits `module-inventory.json` with every output and transitive import. The build rejects
+missing, unexpected or unsafe output paths and unknown imports. Every emitted payload,
+including the inventory, contributes to the service-worker version and precache. The worker
+and `.nojekyll` are generated deployment metadata, not exclusions for application modules.
+A new helper module therefore cannot silently work online while failing on offline reload.
+
+`checkWeb` runs the actual Rust/Wasm adapter probe and four production asset checks: all
+modules/subpath URLs precached, transitive-content cache invalidation, incomplete graph
+rejection, and failed cache installation preserving the previous cache. `checkWasm` adds
+real native-byte conformance and the 20-pair protocol-v1 fixture. These support INPUT-001,
+CANCEL-001, UNDO-001, LOAD-001, SAVE-001 and FFI-001; Node worker simulation is not real-browser
+UI/offline acceptance. A separate browser lane must still verify focus, drawing, controls,
+service-worker lifecycle, offline reload and downloads using the emitted build.

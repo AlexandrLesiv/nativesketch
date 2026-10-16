@@ -1,5 +1,5 @@
 import { mkdir, copyFile, readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
+import { webAssetManifest } from '../../apps/web/asset-manifest.ts';
 import { join } from 'node:path';
 import { command, root } from '../lib/context.ts';
 export async function buildWasm() {
@@ -36,13 +36,10 @@ export async function buildWeb() {
   const output = join(root, 'artifacts/web');
   for (const file of ['index.html', 'style.css'])
     await copyFile(join(root, 'apps/web', file), join(output, file));
-  const hash = createHash('sha256');
-  for (const file of ['index.html', 'style.css', 'main.js', 'engine.js', 'sketch_wasm.wasm'])
-    hash.update(await readFile(join(output, file)));
-  const worker = (await readFile(join(root, 'apps/web/sw.js'), 'utf8')).replace(
-    '__CACHE_VERSION__',
-    hash.digest('hex').slice(0, 16),
-  );
+  const manifest = await webAssetManifest(output);
+  const worker = (await readFile(join(root, 'apps/web/sw.js'), 'utf8'))
+    .replace('__CACHE_VERSION__', manifest.version)
+    .replace('__PRECACHE_ASSETS__', JSON.stringify(manifest.assets));
   await writeFile(join(output, 'sw.js'), worker);
   await writeFile(join(output, '.nojekyll'), '');
 }
@@ -79,5 +76,9 @@ export async function checkWasm() {
 export async function checkWeb() {
   await buildWeb();
   await command(process.execPath, ['apps/web/tests/adapter.ts']);
-  await command(process.execPath, ['--test', 'scripts/web-tests/output.test.ts']);
+  await command(process.execPath, [
+    '--test',
+    'scripts/web-tests/output.test.ts',
+    'scripts/web-tests/asset-manifest.test.ts',
+  ]);
 }

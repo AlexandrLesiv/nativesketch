@@ -3,53 +3,36 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import vm from 'node:vm';
 import { root } from '../lib/context.ts';
-await test('production assets resolve under Pages subpath and are all precached', async () => {
+import { workerHarness } from './worker-harness.ts';
+import { webAssetManifest } from '../../apps/web/asset-manifest.ts';
+
+await test('every emitted dependency is hashed and precached beneath the Pages subpath', async () => {
   const directory = join(root, 'artifacts/web');
-  const worker = await readFile(join(directory, 'sw.js'), 'utf8');
-
-  const listeners: Record<string, Function> = {};
-
-  let assets: string[] = [];
-  let cacheName = '';
-  vm.runInNewContext(worker, {
-    self: {
-      addEventListener: (name: string, callback: Function) => {
-        listeners[name] = callback;
-      },
-    },
-    caches: {
-      open: async (name: string) => {
-        cacheName = name;
-        return {
-          addAll: async (paths: string[]) => {
-            assets = paths;
-          },
-        };
-      },
-    },
-  });
-
-  let installed: Promise<unknown> | undefined;
-  listeners.install({
-    waitUntil: (promise: Promise<unknown>) => {
-      installed = promise;
-    },
-  });
-  await installed;
+  const worker = workerHarness(await readFile(join(directory, 'sw.js'), 'utf8'));
+  await worker.install();
+  const manifest = await webAssetManifest(directory);
+  assert.deepEqual(worker.state.assets, manifest.assets);
   const base = new URL('https://example.test/nativesketch/');
-  for (const asset of assets) {
+  for (const asset of worker.state.assets) {
     const url = new URL(asset, base);
     assert.ok(url.pathname.startsWith('/nativesketch/'));
     await readFile(join(directory, asset === './' ? 'index.html' : asset));
   }
-  for (const file of ['main.js', 'engine.js']) {
+  const modules = manifest.files.filter((file) => file.endsWith('.js'));
+  assert.ok(
+    modules.length > 2,
+    'extraction must emit transitive modules, not only two old entries',
+  );
+  for (const file of modules) {
     const source = await readFile(join(directory, file), 'utf8');
     for (const match of source.matchAll(/(?:from|import)\s*["']([^"']+)["']/g)) {
+      const resolved = new URL(match[1], new URL(file, base));
+      assert.equal(resolved.origin, base.origin);
+      assert.ok(resolved.pathname.startsWith(base.pathname));
       assert.ok(
-        assets.includes(`./${match[1].replace(/^\.\//, '')}`),
-        `Uncached module ${match[1]}`,
+        worker.state.assets.includes(`./${resolved.pathname.slice(base.pathname.length)}`),
+        `Uncached module ${match[1]} from ${file}`,
       );
     }
   }
@@ -57,7 +40,18 @@ await test('production assets resolve under Pages subpath and are all precached'
   assert.match(html, /src="main.js"/);
   assert.match(html, /href="style.css"/);
   const hash = createHash('sha256');
-  for (const file of ['index.html', 'style.css', 'main.js', 'engine.js', 'sketch_wasm.wasm'])
-    hash.update(await readFile(join(directory, file)));
-  assert.equal(cacheName, `native-sketch-${hash.digest('hex').slice(0, 16)}`);
+  for (const file of manifest.files) {
+    const bytes = await readFile(join(directory, file));
+    hash.update(JSON.stringify([file, bytes.length])).update(bytes);
+  }
+  assert.equal(worker.state.cacheName, `native-sketch-${hash.digest('hex').slice(0, 16)}`);
+});
+
+await test('failed cache population rejects installation without deleting the previous cache', async () => {
+  const worker = workerHarness(
+    await readFile(join(root, 'artifacts/web/sw.js'), 'utf8'),
+    new Error('missing emitted module'),
+  );
+  await assert.rejects(worker.install(), /missing emitted module/);
+  assert.deepEqual(worker.state.deleted, []);
 });

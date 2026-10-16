@@ -1,13 +1,6 @@
 // Runtime is wholly local after first successful cache installation.
 const CACHE = "native-sketch-__CACHE_VERSION__";
-const ASSETS = [
-    "./",
-    "./index.html",
-    "./style.css",
-    "./main.js",
-    "./engine.js",
-    "./sketch_wasm.wasm",
-];
+const ASSETS = __PRECACHE_ASSETS__;
 self.addEventListener("install", (e) =>
     e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS))),
 );
