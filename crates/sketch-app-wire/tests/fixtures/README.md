@@ -1,0 +1,1 @@
+Exact v2.0 little-endian fixtures. Request correlation is 0xfedcba9876543210; synthetic IDs exercise values above u32. `tag.*` and `failure.*` are individual encoding units, not requests. Golden data is hand-specified from the frozen contract; tests must not regenerate it from production codecs.
