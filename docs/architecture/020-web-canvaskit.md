@@ -67,6 +67,10 @@ On context loss, stop publishing that generation, retain the Rust document and i
 GPU resources. Recreate a bounded surface and repaint the latest coherent scene on recovery.
 If recovery fails, present an honest rendering error; never acknowledge a blank frame as
 successful rendering. Distinguish WebGL and Skia raster in diagnostics and evidence.
+Renderer failure is separate from Rust engine failure: keep healthy document/file controls
+usable so retained content can still be downloaded. Retire local pointer/contact/navigation
+state with the interrupted Rust interaction. Async recovery must not steal focus from a
+native field or dialog; preserve the same DOM canvas whenever possible.
 Headless software rendering cannot certify GPU speed or native presentation.
 
 ## Packaging and offline behavior
@@ -98,3 +102,10 @@ server transfer measurement, memory result or performance comparison.
 5. Keep GPU/physical latency, Safari/device combinations and the later engine Worker migration
    explicitly pending until their required environments are available. Do not infer them from
    this CPU probe, compilation, headless UI or successful `flush()` calls.
+
+Designer-reviewed acceptance intent: `WEB-SURFACE-001` covers fallback labels, listeners,
+dimensions, keyboard reachability and one-operation gestures; `WEB-CONTEXT-001` covers
+single cancellation, retained history and latest-frame recovery; `WEB-RENDER-ERROR-001`
+covers failed recovery with a healthy downloadable document. Existing `WEB-CANCEL-001`
+continues to cover resize-before-remap. Synthetic context loss is not physical GPU failure.
+These IDs are planned until implementation, executable mapping and actual results exist.

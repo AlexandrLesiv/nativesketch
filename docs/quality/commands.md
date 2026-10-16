@@ -15,6 +15,7 @@ listing/check output from an unrelated working directory; use `node scripts/boar
 | `node scripts/check.ts [--core]` | Board, JS formatting/type/lint, tooling negative tests, source/dependency gates, Rust; macOS link/smoke and GPU-free Swift scheduling policy tests unless core |
 | `node scripts/check.ts --platform wasm` | Real Wasm/native document equivalence and protocol-v1 fixtures |
 | `node scripts/check.ts --platform web` | Wasm, TypeScript, Vite, actual Wasm adapter and precache/subpath checks |
+| `node scripts/test-web-adapter.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Production portable Wasm with direct TypeScript consumers; source/build/test-bound bridge evidence, including explicitly injected failure cases; no browser UI |
 | `node scripts/test-web-e2e.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Real production Wasm journeys in headless Chromium; requires explicit `SKETCH_BROWSER_EXECUTABLE`; no desktop windows |
 | `npm run workbench:build` / `npm run workbench` | Build/start local project GUI; prints loopback URL without opening apps; foreground actions disabled |
 | `node scripts/workbench.ts snapshot\|export --output NEW_FILE` | Revision-bound JSON snapshot or self-contained read-only HTML; refuses overwrite |
@@ -130,6 +131,9 @@ these do not replace browser UI/offline E2E.
 Run exact-source browser evidence separately from the full quality gate. Its negative
 source tests temporarily add invalid untracked files to the checkout to prove real CLI
 rejection; overlapping snapshot/build evidence can correctly report dirty or changed source.
+Stop the persistent workbench service before its actual-service E2E lane: the singleton
+lock deliberately prevents a second service from owning the same checkout. Run adapter
+evidence separately from web builds so its production Wasm asset cannot change mid-test.
 
 References: [Vite 8](https://vite.dev/blog/announcing-vite8),
 [Oxlint type-aware checks](https://oxc.rs/docs/guide/usage/linter/type-aware.html),

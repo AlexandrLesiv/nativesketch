@@ -20,8 +20,9 @@ Zed integration consists of supported project tasks, not an invented custom-pane
 | Integrated `6b46fb4` | Full background gate passed: 125 tooling tests, Rust checks/consumer tests, strict 133-file Swift lint, macOS build/pre-AppKit smoke and 17 GPU-free Swift tests | No native UI, desktop interaction or GPU benchmark |
 | Integrated `0aa3e00` | Full background gate passed: 135 tooling tests, Rust workspace/C/Wasm consumers, strict 133-file Swift lint, macOS build/pre-AppKit smoke and 17 GPU-free Swift tests | Includes nested automation ownership; no desktop interaction |
 | Integrated `0aa3e00`, serial packet | 17 service and 14 browser journeys passed; clean source throughout | Actual project export, isolated production Wasm drawing and all seven workbench views |
+| Integrated `8e70cde`, exclusive-service packet | 17 service and 14 browser journeys passed | Also exercises atomic evidence publication after the cancellation review repair |
 
-The latest browser packet is `artifacts/evidence/025-workbench-0aa3e00-serial`, with separate
+The latest browser packet is `artifacts/evidence/025-workbench-8e70cde-unlocked`, with separate
 backend discovery/results, browser discovery/results, raw Playwright report, process outcome,
 identity, screenshots and an actual offline project report. At `0aa3e00`, workbench assets
 SHA-256 are `5c5bf709447f2c0c13db652dea462f793579cc69c426c00d64abfbec139e3a06`;
@@ -31,7 +32,7 @@ The raw Playwright attachment retains the isolated drawing build's source/hash a
 job identity. That preview uses the current Canvas2D/Wasm baseline, not CanvasKit.
 
 The 14 DX acceptance IDs are registered in `quality/features/workbench.json`. The scoped
-report at `0aa3e00` has 23 platform/level rows: 21 passed, native Zed interaction and
+report at `8e70cde` has 23 platform/level rows: 21 passed, native Zed interaction and
 screen-reader speech missing, and no mapping issues. This is scoped workbench evidence,
 not all drawing-app functionality or line coverage. Later changes require refreshed evidence.
 
@@ -73,6 +74,20 @@ Preview navigation consequently timed out. That packet remains at
 `025-workbench-0aa3e00`; it is not final acceptance. The separate serial packet passed all
 14 journeys with clean source, including the actual exported snapshot. Exact-source browser
 evidence must run separately from negative gates that intentionally mutate the checkout.
+
+The initial `025-workbench-8e70cde` attempt retained 17 service passes and 12 fixture-browser
+passes, but two actual-service journeys failed because the persistent dashboard already
+owned the checkout's singleton lock. After stopping that known service, the separate
+`025-workbench-8e70cde-unlocked` packet passed all journeys. The failed attempt remains;
+the exclusive service check must not overlap a persistent dashboard process.
+
+Review of evidence publication found a cancellation race: writing a valid file and then
+rewriting it as invalid could leave valid evidence behind if the second write failed.
+Repair `b620508` stages a complete result, checks cancellation, then publishes through one
+exclusive synchronous filesystem link. Failed or cancelled staging publishes no execution
+file and cannot overwrite another attempt. Raw observations and failure diagnostics remain.
+The fresh reviewer ran 13 focused cases plus strict TypeScript and found no remaining issue.
+The `8e70cde` service/browser packet above exercises the repaired publisher end to end.
 
 ## Remaining acceptance and scope
 

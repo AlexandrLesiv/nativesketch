@@ -78,6 +78,13 @@ candidate on stale completion; if opening that immutable File is still intended,
 a fresh shared navigation/confirmation flow. Never manufacture a new ticket or cancel
 newer input merely to force installation. Obsolete error messages must not steal focus.
 
+The current shared navigation contract returns Busy while an import is in flight. Preserve
+that rejection: the adapter must not secretly cancel the read and then request New/Open,
+because those two commands cannot promise atomic admission. An explicit cancellation can
+precede a new request, retaining the old issued work through actual completion and candidate
+retirement. Atomic superseding navigation needs a future shared Rust command; it is not a
+host policy to implement incidentally during this migration.
+
 Keep resource handles through actual work completion. Bound retained File objects, bytes,
 object URLs and issued operations. Release exactly once on success, failure and cancellation.
 Drain outstanding work/results/releases during controlled shutdown; page termination alone
