@@ -27,7 +27,7 @@
           "coverage": {
             "automation": "partial",
             "testIds": [
-              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal"
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore"
             ],
             "gaps": [
               {
@@ -136,7 +136,7 @@
           "coverage": {
             "automation": "partial",
             "testIds": [
-              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
               "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
             ],
             "gaps": [
@@ -192,7 +192,7 @@
           "coverage": {
             "automation": "partial",
             "testIds": [
-              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
               "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
               "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
             ],
@@ -293,7 +293,7 @@
           "coverage": {
             "automation": "partial",
             "testIds": [
-              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
               "xctest:NativeSketchUITests:NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing",
               "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
             ],
