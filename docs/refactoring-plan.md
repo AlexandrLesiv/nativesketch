@@ -1,5 +1,7 @@
 # Architecture and quality refactoring plan
 
+Current execution handoff: [resume instructions and exact stopping point](RESUME.md).
+
 Date: 2026-10-15. Planning branch: `codex/architecture-quality-plan`.
 Required starting point: `codex/github-pages`, `712059d5c4470c9770d08c42de8f1391884a66be`.
 The owner explicitly excluded `codex/renderer-results` from new implementation ancestry.
