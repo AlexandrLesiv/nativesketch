@@ -6,6 +6,9 @@ test('WEB-POSITION-001 stroke pixels stay at the actual input coordinates', asyn
 }, info) => {
   await ready(page);
   await stroke(page);
+  // Native focus decoration is not stroke ink; keep the production outline intact.
+  await page.locator('#width').focus();
+  await expect(page.locator('#width')).toBeFocused();
   const ink = await screenshotInk(page);
   expect(ink.count).toBeGreaterThan(100);
   expect(ink.left).toBeGreaterThanOrEqual(96);
