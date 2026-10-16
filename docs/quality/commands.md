@@ -16,6 +16,9 @@ listing/check output from an unrelated working directory; use `node scripts/boar
 | `node scripts/check.ts --platform wasm` | Real Wasm/native document equivalence and protocol-v1 fixtures |
 | `node scripts/check.ts --platform web` | Wasm, TypeScript, Vite, actual Wasm adapter and precache/subpath checks |
 | `node scripts/test-web-e2e.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Real production Wasm journeys in headless Chromium; requires explicit `SKETCH_BROWSER_EXECUTABLE`; no desktop windows |
+| `npm run workbench:build` / `npm run workbench` | Build/start local project GUI; prints loopback URL without opening apps; foreground actions disabled |
+| `node scripts/workbench.ts snapshot\|export --output NEW_FILE` | Revision-bound JSON snapshot or self-contained read-only HTML; refuses overwrite |
+| `node scripts/test-workbench.ts --output artifacts/NEW_DIRECTORY [--attempt N]` | Host service checks plus fixture/real-service headless journeys; explicit `SKETCH_BROWSER_EXECUTABLE`; preserves separate evidence |
 | `node scripts/check.ts --platform apple-viewers` | Swift/Rust host viewer/source replays |
 | `node scripts/check.ts --platform linux` | GTK Cargo format/Clippy/tests/build |
 | `node scripts/check.ts --platform windows` | Native Windows Rust/WinUI build and interop runner |

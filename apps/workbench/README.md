@@ -1,39 +1,67 @@
-# Project workbench interface
+# Native Sketch project workbench
 
-Seven semantic HTML views share one browser bundle and styles between the loopback service
-and self-contained offline exports. Foreground actions remain disabled. This interface does
-not change task acceptance or turn stale execution evidence into a current-source pass.
+A local GUI for the repository's tasks, documents, dependencies, feature verification,
+background build/check jobs and qualified metrics. The same view modules produce a
+single-file offline report. This is a development tool, separate from the drawing app.
 
-Build from repository root with the pinned Node runtime:
+## Start
 
-```text
-node node_modules/vite/bin/vite.js build --config apps/workbench/vite.config.ts
-node node_modules/typescript/bin/tsc --project apps/workbench/tsconfig.json
-node node_modules/typescript/bin/tsc --project apps/workbench/e2e/tsconfig.json
-node node_modules/oxlint/bin/oxlint --type-aware apps/workbench
-node node_modules/oxfmt/bin/oxfmt --check apps/workbench
-node node_modules/@playwright/test/cli.js test --config apps/workbench/e2e/playwright.config.ts
+Use the repository's pinned Node 24.22.0 and installed root dependencies:
+
+```sh
+npm run workbench:build
+npm run workbench
 ```
 
-The runner is headless only. Set `SKETCH_BROWSER_EXECUTABLE` to the provisioned Chromium
-headless shell when it is outside Playwright's default cache. Test discovery uses the same
-command with `--list`. No browser, IDE, native app or simulator is opened automatically.
+The service prints its loopback URL. Open that URL in your browser when convenient;
+the command does not open a browser, Finder, IDE or native app. Stop with Ctrl+C.
+An optional fixed port is available through `node scripts/workbench.ts serve --port 8085`.
+Only one service may own a checkout. Do not remove an active service's ownership lock.
 
-Build output: `dist/index.html`, `dist/assets/workbench.js` (one IIFE), and
-`dist/assets/workbench.css`. The service supplies `script#workbench-bootstrap` containing
-frozen Bootstrap JSON; `#workbench-root` is the mount. Static mode never fetches a session,
-polls jobs, refreshes or executes actions. Service capabilities stay in memory and headers.
+In Zed's task picker, use **Native Sketch: build project workbench**, then
+**Native Sketch: start project workbench (prints URL)**. Background check and web-build
+tasks are also provided in `.zed/tasks.json`. Tasks do not automatically reveal a terminal
+or save edited files. Their Node executable must resolve to the pinned version in Zed's
+environment. Actual interaction with the installed Zed app remains unverified.
+This is project-task integration, not a custom Zed extension panel.
 
-Browser tests use the real built bundle. `offline.spec.ts`, `invalid.spec.ts` and
-`large-document.spec.ts` use explicit synthetic snapshots in disposable files;
-`live.spec.ts` uses a disposable HTTP protocol fixture and never starts a child command.
-These verify interface behavior, not service process cleanup or repository adapter correctness.
-The root integration lane verifies the actual service and export producer separately.
-Retain each runner JSON, failure trace and screenshot before rerunning; output is ignored.
+## Export and evidence
 
-Acceptance coverage includes DX-NAV-001, DX-SOURCE-001, DX-TASK-001, DX-DOC-001,
-DX-COVERAGE-001, DX-EXPORT-001, DX-ACCESS-001 and the interface portion of DX-JOB-001.
-Dependency and metric tables preserve provenance/missing states; security, real action process
-ownership, actual Wasm preview and Zed launch require their separate integration evidence.
-Native host acceptance, screen-reader speech and physical pen latency are not established by
-these headless browser tests. Screenshot fixtures visibly identify their fixture revision.
+```sh
+node scripts/workbench.ts snapshot --output artifacts/workbench/snapshot-NEW.json
+node scripts/workbench.ts export --output artifacts/workbench/report-NEW.html
+node scripts/test-workbench.ts --output artifacts/evidence/workbench-NEW
+```
+
+Choose a new output filename/directory each time; existing reports are never overwritten.
+The test command requires `SKETCH_BROWSER_EXECUTABLE` pointing to an installed headless
+Chromium executable. It does not download or launch a desktop browser. Tests preserve
+discovery, exact source/assets/browser identity, backend results, browser attempts and
+screenshots. Real-service tests disable network traces to avoid recording session tokens.
+Fixture response tests, real background jobs and actual Wasm drawing are separately named.
+
+The GUI reads current `artifacts/evidence/discovery.json` and `results.json`, preserving
+their recorded source and all attempts. It does not search historical folders for a
+favorable result. Other retained evidence is reachable through the repository's evidence
+documents; it is not automatically promoted into the current coverage matrix.
+
+## Deliberate limits
+
+- All foreground actions are disabled in both the service and interface. No app launch,
+  native UI test, GPU benchmark, IDE-opening or permission-grant action is enabled.
+- Fixed background commands run one at a time, with bounded queues, logs and duration.
+  Process exit success is a job result, not proof that a platform's acceptance passed.
+- Builds use existing installed toolchains. Inventory refresh never installs a Rust toolchain.
+  A visible action can still fail if its SDK or other detailed prerequisite is absent.
+- Jobs are local to this service instance; retained artifacts outlive its bounded job list.
+  Windows execution is disabled until native process-tree cleanup is verified.
+- The isolated drawing preview currently uses the existing Canvas2D/Wasm app. CanvasKit
+  migration is pending; the workbench itself uses semantic HTML and does not need Skia.
+- Markdown code fences, including Mermaid, remain readable source; unsupported embedded
+  content is not executed. Package metadata is inventory, not an advisory/license audit.
+- Native Zed launch, screen-reader speech and other OS/browser combinations are pending.
+  No CI producer, hosting, release publication or task-status editing is implemented.
+
+See the [plan](../../docs/development-workbench-plan.md),
+[contract](../../docs/architecture/025-workbench-contract.md) and
+[acceptance registry](../../quality/features/workbench.json).

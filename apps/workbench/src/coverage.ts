@@ -82,6 +82,15 @@ export function coverageView(snapshot: ProjectSnapshot): HTMLElement {
         ),
       );
   }
-  if (!rows.length) root.append(notice('No requirements match these filters.'));
+  if (!rows.length)
+    root.append(
+      notice(
+        snapshot.coverage.state === 'invalid'
+          ? 'Requirements unavailable because coverage validation failed.'
+          : snapshot.coverage.state === 'missing' && !data.rows.length
+            ? 'Requirements unavailable because coverage data is missing.'
+            : 'No requirements match these filters.',
+      ),
+    );
   return root;
 }

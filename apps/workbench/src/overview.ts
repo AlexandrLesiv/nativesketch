@@ -11,16 +11,29 @@ export function overviewView(snapshot: ProjectSnapshot): HTMLElement {
     ),
   );
   const cards = el('div', '', 'cards');
-  for (const [title, count, target] of [
-    ['Board tasks', snapshot.tasks.data.length, 'tasks'],
-    ['Indexed documents', snapshot.documents.data.length, 'docs'],
-    ['Registered requirements loaded', snapshot.coverage.data.rows.length, 'coverage'],
-    ['Qualified metric records', snapshot.metrics.data.length, 'metrics'],
+  for (const [title, count, target, state] of [
+    ['Board tasks', snapshot.tasks.data.length, 'tasks', snapshot.tasks.state],
+    ['Indexed documents', snapshot.documents.data.length, 'docs', snapshot.documents.state],
+    [
+      'Registered requirements loaded',
+      snapshot.coverage.data.rows.length,
+      'coverage',
+      snapshot.coverage.state,
+    ],
+    ['Qualified metric records', snapshot.metrics.data.length, 'metrics', snapshot.metrics.state],
   ] as const) {
     const card = el('section', '', 'card');
     card.append(
       el('h3', title),
-      el('p', String(count), 'count'),
+      el(
+        'p',
+        state === 'invalid'
+          ? 'Unavailable — validation failed'
+          : state === 'missing' && count === 0
+            ? 'Unavailable — data missing'
+            : String(count),
+        state === 'invalid' || (state === 'missing' && count === 0) ? '' : 'count',
+      ),
       link(`View ${title.toLowerCase()}`, target),
     );
     cards.append(card);

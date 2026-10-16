@@ -23,7 +23,7 @@ export function dependenciesView(snapshot: ProjectSnapshot): HTMLElement {
         'Scope',
         'License',
         'Provenance',
-        'Resolved dependency IDs',
+        'Dependencies',
       ],
       data
         .filter((row) => matches(`${row.id} ${row.name}`) && filtered('ecosystem', row.ecosystem))
@@ -34,7 +34,9 @@ export function dependenciesView(snapshot: ProjectSnapshot): HTMLElement {
           row.scope,
           row.license ?? 'Unknown',
           row.provenance,
-          row.dependencies.join(', ') || 'None recorded',
+          row.dependencies.length
+            ? `${row.dependencies.length} resolved; select package for details`
+            : 'None recorded',
         ]),
     ),
   );
@@ -42,6 +44,7 @@ export function dependenciesView(snapshot: ProjectSnapshot): HTMLElement {
   if (selected)
     root.append(
       selectedHeading(selected.name),
+      el('p', `Package ID: ${selected.id}. Provenance: ${selected.provenance}.`),
       el(
         'p',
         `Resolved relationships: ${selected.dependencies.join(', ') || 'None recorded'}. These do not define allowed architectural boundaries.`,

@@ -67,18 +67,27 @@ ignored under `artifacts/`, `target/`, and platform build directories.
 See [Node commands and verification gaps](docs/quality/commands.md). The legacy platform
 commands above remain available until their native-host replacements have verified parity.
 
+The [project workbench](apps/workbench/README.md) provides a local GUI for documentation,
+tasks/dependencies, feature verification, background builds/checks and the Wasm preview.
+Run `npm run workbench:build`, then `npm run workbench` for its URL. It also exports
+self-contained offline reports and has project tasks for Zed. Foreground actions remain
+disabled; starting the service does not open or control any desktop app.
+
 ## Limits and approval
 
 Single-document editing, single-stroke selection and uniform scale. No layers UI,
-image import, autosave/crash recovery, production GPU renderer or release packaging.
-File operations and full-scene path painting are synchronous; large-document
-responsiveness is unmeasured. Browser downloads cannot confirm a completed filesystem
+image import or configured release distribution. The macOS architecture now uses shared
+Rust commands, asynchronous file services and Skia/Metal; portable hosts retain migration
+gaps documented in the [current acceptance packet](docs/evidence/024-background-acceptance.md).
+Current native presentation checks and large-document acceptance remain incomplete.
+Browser downloads cannot confirm a completed filesystem
 write, so Download copy keeps the unsaved indicator and never implies durable saving.
 Physical tablets, screen-reader speech and unavailable OS hosts need separate checks.
 
 Local task branch changes are ready for owner review only after the evidence report's
 checks. The owner approves merging and distribution; agents do not merge into main.
-No remote repository, CI service, license or release identity is configured.
+GitHub Pages configuration exists for the browser prototype; native distribution identity,
+signing and final packaging acceptance remain undecided.
 
 - [Native platform evidence](docs/evidence/005-native-platforms.md)
 - [Original macOS milestone evidence](docs/evidence/001-first-stroke.md)

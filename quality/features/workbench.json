@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "id": "project-workbench",
+  "description": "Local project GUI and read-only offline export. Workbench browser checks are separate from drawing-app native acceptance; native Zed and speech checks remain pending.",
+  "sourceRevision": "3d3e638b1191a84b656fd279263709205f83e74f",
+  "cases": [
+    {
+      "id": "DX-NAV-001",
+      "expected": "Seven destinations, filters, selection and Back preserve meaningful navigation.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [{ "platform": "workbench", "level": "browser-e2e" }],
+      "testIds": ["playwright:workbench:offline.spec.ts:DX-NAV-001"],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-SOURCE-001",
+      "expected": "Exact source and stale refresh remain visible; failed refresh retains the previous snapshot.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "workbench", "level": "browser-e2e" },
+        { "platform": "macos", "level": "integration" }
+      ],
+      "testIds": [
+        "playwright:workbench:live.spec.ts:DX-SOURCE-001",
+        "node:scripts/workbench/tests/bounds.test.ts:workbench failed refresh retains previous snapshot as stale",
+        "node:scripts/workbench/tests/adapters.test.ts:workbench bounds identity reads and rejects symlink escapes"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-TASK-001",
+      "expected": "Board validation, graph and table preserve task state; cycles remain readable without fabricated ordering.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "workbench", "level": "browser-e2e" },
+        { "platform": "macos", "level": "integration" }
+      ],
+      "testIds": [
+        "playwright:workbench:invalid.spec.ts:DX-TASK-001",
+        "playwright:workbench:offline.spec.ts:DX-ACCESS-001",
+        "node:scripts/workbench/tests/adapters.test.ts:bounded supplied board validation matches ordinary malformed and cycle validation"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-DOC-001",
+      "expected": "Offline document navigation renders hostile text inertly and keeps large documents bounded.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [{ "platform": "workbench", "level": "browser-e2e" }],
+      "testIds": [
+        "playwright:workbench:offline.spec.ts:DX-DOC-001",
+        "playwright:workbench:large-document.spec.ts:DX-DOC-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-DEP-001",
+      "expected": "Dependency refresh never installs tools; the concise inventory retains resolved relationships and provenance in details.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "workbench", "level": "browser-e2e" },
+        { "platform": "macos", "level": "integration" }
+      ],
+      "testIds": [
+        "playwright:workbench:diagnostics.spec.ts:DX-DEP-001",
+        "node:scripts/workbench/tests/bounds.test.ts:workbench dependency refresh disables toolchain auto-install"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-COVERAGE-001",
+      "expected": "Missing, invalid, stale and retry evidence stay distinct; invalid requirements are unavailable, never zero or passing.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "workbench", "level": "browser-e2e" },
+        { "platform": "macos", "level": "integration" }
+      ],
+      "testIds": [
+        "playwright:workbench:offline.spec.ts:DX-COVERAGE-001",
+        "playwright:workbench:diagnostics.spec.ts:DX-COVERAGE-001",
+        "node:scripts/workbench/tests/coverage-envelope.test.ts:workbench aggregate producer envelopes preserve failed retries and stale attempts",
+        "node:scripts/workbench/tests/adapters.test.ts:invalid board retains readable rows while malformed evidence is invalid",
+        "node:scripts/workbench/tests/bounds.test.ts:workbench rejects aggregate feature bounds and malformed partial evidence pairs"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-ACTION-001",
+      "expected": "Only fixed background actions run; origin, capability, argument and checkout ownership violations are rejected.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "macos", "level": "integration" },
+        { "platform": "workbench", "level": "browser-e2e" }
+      ],
+      "testIds": [
+        "node:scripts/workbench/tests/service.test.ts:workbench service rejects foreign origins capabilities foreground and second owners",
+        "playwright:workbench:integration.spec.ts:DX-EXPORT-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-FOREGROUND-001",
+      "expected": "Version 1 disables foreground actions in both GUI and service; no reservation or permission dialog can enable them.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "macos", "level": "integration" },
+        { "platform": "workbench", "level": "browser-e2e" }
+      ],
+      "testIds": [
+        "node:scripts/workbench/tests/service.test.ts:workbench service rejects foreign origins capabilities foreground and second owners",
+        "playwright:workbench:live.spec.ts:DX-SOURCE-001",
+        "playwright:workbench:integration.spec.ts:DX-EXPORT-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-JOB-001",
+      "expected": "Queue admission, cancellation, failure, timeout and output limits preserve truthful bounded job history.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "macos", "level": "integration" },
+        { "platform": "workbench", "level": "browser-e2e" }
+      ],
+      "testIds": [
+        "node:scripts/workbench/tests/service.test.ts:workbench queue limits simultaneous admissions and cancellation before spawn",
+        "node:scripts/workbench/tests/service.test.ts:workbench real failed job stays failed with retained safe output",
+        "node:scripts/workbench/tests/completion.test.ts:workbench completion remains running and cancellation cannot become passed",
+        "node:scripts/workbench/tests/process.test.ts:owned workbench child preserves failure and terminates output floods",
+        "node:scripts/workbench/tests/process.test.ts:owned workbench cancellation waits for child cleanup",
+        "node:scripts/workbench/tests/process.test.ts:owned workbench timeout is not reported as success",
+        "playwright:workbench:live.spec.ts:DX-JOB-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-PREVIEW-001",
+      "expected": "An actual Wasm build draws on an isolated origin; immutable preview identity survives failed publication and never exposes admin capability.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        { "platform": "macos", "level": "integration" },
+        { "platform": "workbench", "level": "browser-e2e" }
+      ],
+      "testIds": [
+        "node:scripts/workbench/tests/completion.test.ts:workbench previews serve frozen bytes and preserve old preview after failed publication",
+        "playwright:workbench:integration.spec.ts:DX-PREVIEW-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-METRIC-001",
+      "expected": "Missing metrics appear unavailable with scope and units, never a fabricated zero or quality ranking.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [{ "platform": "workbench", "level": "browser-e2e" }],
+      "testIds": ["playwright:workbench:offline.spec.ts:DX-COVERAGE-001"],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-EXPORT-001",
+      "expected": "The real project exports through a background job and opens offline with the same UI and disabled execution, without session capabilities.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [{ "platform": "workbench", "level": "browser-e2e" }],
+      "testIds": [
+        "playwright:workbench:offline.spec.ts:DX-EXPORT-001",
+        "playwright:workbench:integration.spec.ts:DX-EXPORT-001"
+      ],
+      "automation": "implemented", "gaps": []
+    },
+    {
+      "id": "DX-ZED-001",
+      "expected": "The installed Zed project task starts the service, exposes its URL and stops it cleanly.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [{ "platform": "macos", "level": "native-ide" }],
+      "testIds": [], "automation": "planned",
+      "gaps": [{ "reason": "Project task definitions exist, but actual Zed launch is pending the owner's permission-free desktop window.", "ownerTask": "025" }]
+    },
+    {
+      "id": "DX-ACCESS-001",
+      "expected": "Keyboard selection, focus, narrow layouts and contrast remain usable; spoken accessibility requires its own native check.",
+      "invariants": [], "ownerTask": "025",
+      "requirements": [
+        {
+          "platform": "workbench", "level": "browser-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": ["playwright:workbench:offline.spec.ts:DX-ACCESS-001", "playwright:workbench:screenshots.spec.ts:DX-ACCESS-001"],
+            "gaps": []
+          }
+        },
+        { "platform": "macos", "level": "screen-reader" }
+      ],
+      "testIds": [], "automation": "planned",
+      "gaps": [{ "reason": "Headless keyboard and layout checks do not establish screen-reader speech quality.", "ownerTask": "025" }]
+    }
+  ]
+}
