@@ -19,6 +19,8 @@ impl IoState {
     ) -> Result<PreparedReplacement, ReplacementFailure> {
         let document = catch_unwind(AssertUnwindSafe(|| match ticket.source() {
             ReplacementSource::New => Ok(None),
+            // Portable providers own viewer sources; local native v1 has no such route.
+            ReplacementSource::ViewSource(_) => Err(NativeFailure::Unsupported),
             ReplacementSource::Document(id) => {
                 let entry = self
                     .destinations

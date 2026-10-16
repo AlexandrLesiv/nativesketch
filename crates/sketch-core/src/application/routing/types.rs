@@ -59,6 +59,11 @@ pub struct EffectReply {
 pub enum ApplicationCommand<'a> {
     Edit(EditorCommand),
     Action(EditorAction),
+    /// Read-only source replacement. Generation must increase across installs/cancellation.
+    ViewSource {
+        source: DestinationId,
+        generation: u64,
+    },
     Input(SampleBatch<'a>),
     File(FileIntent),
     ResolveEffect(EffectReply),

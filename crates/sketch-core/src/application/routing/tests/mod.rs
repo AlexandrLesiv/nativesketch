@@ -4,6 +4,8 @@ mod effects;
 mod navigation;
 mod replacement;
 mod saves;
+mod viewer;
+mod viewer_capabilities;
 const FIXTURE: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/tests/fixtures/portable-v1.nsketch"

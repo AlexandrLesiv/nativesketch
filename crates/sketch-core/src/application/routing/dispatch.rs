@@ -56,6 +56,10 @@ impl ApplicationSession {
                 outcome = self.outcome(before, result.invalidation, None);
                 outcome.changes = result.changes;
             }
+            ApplicationCommand::ViewSource { source, generation } => {
+                let effect = self.view_source(context, source, generation)?;
+                outcome = self.outcome(before, RenderInvalidation::None, Some(effect));
+            }
             ApplicationCommand::File(intent) => {
                 let effect = self.file(queue, context, intent)?;
                 outcome = self.outcome(before, RenderInvalidation::Full, Some(effect));

@@ -3,6 +3,8 @@ use super::*;
 pub enum ReplacementSource {
     New,
     Document(DestinationId),
+    /// Opaque source identity, deliberately never bound as a save destination.
+    ViewSource(DestinationId),
     Recovery(RecoverySourceId),
 }
 /// Issued immutable worker input; non-Clone and contains no live editor borrow.

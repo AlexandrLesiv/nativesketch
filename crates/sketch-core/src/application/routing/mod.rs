@@ -5,6 +5,7 @@ mod replacement;
 mod replies;
 mod scene;
 mod types;
+mod viewer;
 use super::{storage::*, *};
 pub use replacement::{
     PreparedReplacement, ReplacementFailure, ReplacementSource, ReplacementTicket,
@@ -55,6 +56,7 @@ pub struct ApplicationSession {
     pending: Option<Pending>,
     navigation: Option<Navigation>,
     saves: Vec<SaveToken>,
+    view_source_generation: u64,
 }
 impl ApplicationSession {
     pub fn new(
@@ -68,6 +70,7 @@ impl ApplicationSession {
             pending: None,
             navigation: None,
             saves: Vec::with_capacity(1024),
+            view_source_generation: 0,
         })
     }
     pub fn projection(&self) -> ApplicationProjection {
