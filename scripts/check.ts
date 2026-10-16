@@ -10,6 +10,7 @@ import { checkWeb, checkWasm } from './platforms/web.ts';
 import { checkLinux, checkWindows } from './platforms/desktop.ts';
 import { checkAndroid } from './platforms/android.ts';
 import { checkAppleViewers } from './platforms/apple-viewers.ts';
+import { checkSwift } from './quality/swift.ts';
 await main(async () => {
   const args = options(process.argv.slice(2));
   const routes = {
@@ -41,6 +42,7 @@ await main(async () => {
   ]);
   await command('cargo', ['test', '--workspace', '--locked']);
   if (!args.core && process.platform === 'darwin') {
+    await checkSwift();
     await checkLegacyFfi();
     await checkNativeFfi();
     const app = await buildMacos();

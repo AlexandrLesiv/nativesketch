@@ -1,7 +1,7 @@
-import { command, main, root, requireHost } from './lib/context.ts';
+import { command, main, requireHost } from './lib/context.ts';
 import { options } from './lib/options.ts';
 import { checkTooling } from './lib/tooling.ts';
-import { join } from 'node:path';
+import { checkSwift } from './quality/swift.ts';
 await main(async () => {
   const args = options(process.argv.slice(2));
   switch (args.platform) {
@@ -27,16 +27,7 @@ await main(async () => {
       ]);
       break;
     case 'swift':
-      requireHost('darwin');
-      await command('xcrun', [
-        'swift-format',
-        'lint',
-        '--strict',
-        '--recursive',
-        ...['macos/Sources', 'ios/Sources', 'apple-sources', 'apple-viewer', 'tvos', 'watchos'].map(
-          (p) => join(root, 'apps', p),
-        ),
-      ]);
+      await checkSwift();
       break;
     case 'windows':
       requireHost('win32');

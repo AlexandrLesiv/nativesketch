@@ -34,7 +34,7 @@ let package = Package(
         .linkedFramework("CoreText"),
         .unsafeFlags([
           repoRoot.appendingPathComponent("target/\(rustProfile)/libsketch_native_ffi.a").path
-        ])
+        ]),
       ]
     ),
   ]
