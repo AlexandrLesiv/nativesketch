@@ -20,7 +20,10 @@ The policy survives New/import because it belongs to ApplicationSession.
 | Bound Save during another dialog | Existing exception remains | Busy; preserve draft/dialog |
 | SaveAs / ExportCopy / Checkpoint | Existing semantics | Existing semantics |
 
-One helper chooses the reusable destination for both direct and guarded Save. Hosts
+The read-only advisory query `reusable_save_destination()` chooses the destination for
+both direct and guarded Save, including facade resource preflight. An imported READ-only
+grant cannot block AlwaysChoose; ReuseBinding still requires a confirmed writable binding.
+Dispatch remains authoritative after this preflight. Hosts
 translate the same typed intent; they do not fake SaveAs acknowledgments or reproduce
 navigation logic. This restores the chooser behavior required by the existing Linux
 and Android adapters; host adoption is separate.

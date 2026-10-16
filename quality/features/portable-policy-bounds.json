@@ -19,7 +19,8 @@
         "cargo:sketch-app:lib:tests::save_policy::bound_direct_and_guarded_saves_choose_again_and_cancel_without_issuing_writes",
         "cargo:sketch-app:lib:tests::save_policy::chosen_destination_only_advances_navigation_after_matching_confirmed_write",
         "cargo:sketch-core:lib:application::routing::tests::save_policy::only_reuse_binding_can_save_alongside_pending_source_without_losing_rejected_draft",
-        "cargo:sketch-core:lib:application::routing::tests::save_policy::always_choose_rejects_second_chooser_and_stale_reply_before_cancelling_draft"
+        "cargo:sketch-core:lib:application::routing::tests::save_policy::always_choose_rejects_second_chooser_and_stale_reply_before_cancelling_draft",
+        "cargo:sketch-app:lib:tests::save_policy_import::imported_read_only_binding_uses_policy_for_direct_and_guarded_save_preflight"
       ],
       "automation": "implemented",
       "gaps": []

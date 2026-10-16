@@ -70,9 +70,7 @@ impl PortableApp {
             FileIntent::Save => {
                 if self.sessions[index]
                     .app
-                    .projection()
-                    .save
-                    .destination()
+                    .reusable_save_destination()
                     .is_some()
                 {
                     self.bound_write_resource(index)?;

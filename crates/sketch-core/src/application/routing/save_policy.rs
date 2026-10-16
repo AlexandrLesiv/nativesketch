@@ -9,7 +9,8 @@ pub enum SaveDestinationPolicy {
     AlwaysChoose,
 }
 impl ApplicationSession {
-    pub(super) fn reusable_save_destination(&self) -> Option<DestinationId> {
+    /// Advisory resource preflight for direct/guarded Save; dispatch remains authoritative.
+    pub fn reusable_save_destination(&self) -> Option<DestinationId> {
         match self.save_policy {
             SaveDestinationPolicy::ReuseBinding => self.editor.save_state().destination(),
             SaveDestinationPolicy::AlwaysChoose => None,
