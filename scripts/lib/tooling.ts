@@ -37,6 +37,7 @@ export async function checkTooling() {
     'scripts/tests',
     'scripts/quality',
     'scripts/browser-e2e',
+    'scripts/web-evidence',
     'scripts/reliability',
     'scripts/workbench/tests',
   ]) {

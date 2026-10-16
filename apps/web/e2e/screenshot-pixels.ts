@@ -35,15 +35,13 @@ export async function screenshotInk(page: Page, inset = 0) {
     },
     { bytes: [...screenshot], inset },
   );
-  await test
-    .info()
-    .attach('pixel-measurement', {
-      body: JSON.stringify({
-        ...result,
-        inset,
-        mask: '#hint visibility:hidden (empty-document overlay excluded)',
-      }),
-      contentType: 'application/json',
-    });
+  await test.info().attach('pixel-measurement', {
+    body: JSON.stringify({
+      ...result,
+      inset,
+      mask: '#hint visibility:hidden (empty-document overlay excluded)',
+    }),
+    contentType: 'application/json',
+  });
   return result;
 }
