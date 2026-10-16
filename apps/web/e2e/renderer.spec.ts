@@ -16,7 +16,11 @@ test('WEB-SURFACE-001 injected initial GL refusal uses real Skia raster and pres
   page,
 }, info) => {
   await page.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
+    const original: unknown = Object.getOwnPropertyDescriptor(
+      HTMLCanvasElement.prototype,
+      'getContext',
+    )?.value;
+    if (typeof original !== 'function') throw Error('Canvas context factory unavailable');
     const originalCanvases = new WeakSet<HTMLCanvasElement>();
     let captured = false;
     Object.defineProperty(window, 'sketchOriginalCanvas', {
