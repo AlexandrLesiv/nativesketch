@@ -40,12 +40,11 @@ export async function coverage(
         (await boundedRead(root, 'artifacts/evidence/discovery.json', 8 * 1024 * 1024)).toString(),
       );
       validateDiscovery(discovery);
-      executions = [
-        JSON.parse(
-          (await boundedRead(root, 'artifacts/evidence/results.json', 8 * 1024 * 1024)).toString(),
-        ),
-      ];
-      validateExecution(executions[0]);
+      const execution: Execution = JSON.parse(
+        (await boundedRead(root, 'artifacts/evidence/results.json', 8 * 1024 * 1024)).toString(),
+      );
+      validateExecution(execution);
+      executions = [execution];
       data.discoverySource = discovery.source;
       data.freshness =
         JSON.stringify(source) === JSON.stringify(discovery.source) ? 'current' : 'stale';
@@ -68,7 +67,13 @@ export async function coverage(
       const item = features
         .find((f) => f.id === row.feature)
         ?.cases.find((c) => c.id === row.caseId);
-      return { ...row, ownerTask: item?.ownerTask ?? '', invariants: item?.invariants ?? [] };
+      const { pointerWidth, ...fields } = row;
+      return {
+        ...fields,
+        ...(pointerWidth === undefined ? {} : { pointerWidth }),
+        ownerTask: item?.ownerTask ?? '',
+        invariants: item?.invariants ?? [],
+      };
     });
     if (data.issues.length) result.state = 'partial';
   } catch {

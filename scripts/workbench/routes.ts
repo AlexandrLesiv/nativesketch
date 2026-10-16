@@ -85,7 +85,7 @@ export async function route(
       return;
     }
     const cancel = path.match(/^\/api\/jobs\/([a-f0-9-]{36})\/cancel$/);
-    if (request.method === 'POST' && cancel) {
+    if (request.method === 'POST' && cancel?.[1]) {
       await body(request, []);
       send({ job: context.jobs.cancel(cancel[1]) });
       return;

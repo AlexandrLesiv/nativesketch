@@ -21,6 +21,8 @@ export async function lintTypeScript() {
     ],
     ['apps/web/tsconfig.json', ['apps/web/src']],
     ['apps/web/e2e/tsconfig.json', ['apps/web/e2e']],
+    ['apps/workbench/tsconfig.json', ['apps/workbench/src']],
+    ['apps/workbench/e2e/tsconfig.json', ['apps/workbench/e2e', 'apps/workbench/vite.config.ts']],
   ] as const) {
     await command(process.execPath, [
       'node_modules/oxlint/bin/oxlint',

@@ -25,6 +25,16 @@ await test('launch failure cannot be reported as functional acceptance', () => {
   assert.equal(browserOutcome(item).status, 'blocked');
   assert.equal(browserOutcome(item).environment.valid, false);
 });
+await test('custom browser IDs retain duplicate and project validation without changing web IDs', () => {
+  const item = spec();
+  item.title = 'DX-NAV-001 project navigation';
+  assert.throws(() => browserSpecs(report([item])), /stable acceptance ID/);
+  const identify = (value: JSONReportSpec) => `workbench:${value.title}`;
+  assert.equal(browserSpecs(report([item]), identify).length, 1);
+  assert.throws(() => browserSpecs(report([item, item]), identify), /duplicate/);
+  item.tests[0].projectName = 'unverified-browser';
+  assert.throws(() => browserSpecs(report([item]), identify), /Unexpected browser project/);
+});
 await test('missing status, empty result and hidden retries fail closed', () => {
   const item = spec();
   item.tests[0].results[0].status = undefined;

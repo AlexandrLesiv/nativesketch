@@ -1,5 +1,8 @@
 import type { JSONReport, JSONReportSpec, JSONReportSuite } from 'playwright/types/testReporter';
-export function browserSpecs(report: Pick<JSONReport, 'suites' | 'errors'>) {
+export function browserSpecs(
+  report: Pick<JSONReport, 'suites' | 'errors'>,
+  identify: (spec: JSONReportSpec) => string = browserTestId,
+) {
   if (!Array.isArray(report.suites) || !Array.isArray(report.errors) || report.errors.length)
     throw new Error('Playwright discovery/report has global errors');
   const specs: JSONReportSpec[] = [];
@@ -11,7 +14,7 @@ export function browserSpecs(report: Pick<JSONReport, 'suites' | 'errors'>) {
     }
   };
   walk(report.suites);
-  const ids = specs.map(browserTestId);
+  const ids = specs.map(identify);
   if (!ids.length || new Set(ids).size !== ids.length)
     throw new Error('Empty or duplicate browser discovery');
   for (const spec of specs) {

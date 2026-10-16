@@ -6,8 +6,18 @@ export default defineConfig({
   fullyParallel: false,
   timeout: 30_000,
   retries: 0,
-  outputDir: '../test-results',
-  reporter: [['list'], ['json', { outputFile: '../test-results/results.json' }]],
+  forbidOnly: true,
+  outputDir: process.env.SKETCH_WORKBENCH_OUTPUT ?? '../test-results',
+  reporter: [
+    ['list'],
+    [
+      'json',
+      {
+        outputFile: process.env.SKETCH_WORKBENCH_REPORT ?? '../test-results/results.json',
+      },
+    ],
+  ],
+  projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
   use: {
     headless: true,
     viewport: { width: 1280, height: 900 },

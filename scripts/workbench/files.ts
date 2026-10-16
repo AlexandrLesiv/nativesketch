@@ -7,9 +7,10 @@ import { createHash } from 'node:crypto';
 export const hash = (value: string | Uint8Array) =>
   createHash('sha256').update(value).digest('hex');
 export function safeText(value: string) {
-  return [...stripVTControlCharacters(value)]
-    .filter((character) => character.charCodeAt(0) >= 32 || '\t\n\r'.includes(character))
-    .join('')
+  let printable = '';
+  for (const character of stripVTControlCharacters(value))
+    if (character.charCodeAt(0) >= 32 || '\t\n\r'.includes(character)) printable += character;
+  return printable
     .replace(/\/(?:Users|home)\/[^\s"'<>),]+/g, '[private-path]')
     .replace(/[A-Za-z]:[\\/](?:Users|home)[\\/][^\s"'<>),]+/gi, '[private-path]')
     .replace(/\b(?:gh[pousr]_|sk-)[A-Za-z0-9_-]{12,}/g, '[redacted-token]');

@@ -18,7 +18,9 @@
     "check": "node scripts/check.ts",
     "typecheck": "tsc --project tsconfig.scripts.json",
     "lint": "node scripts/lint-typescript.ts",
-    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts apps/web/e2e/*.ts crates/sketch-wasm/tests/*.ts crates/sketch-app-ffi/tests/*.ts crates/sketch-app-wasm/tests/*.ts",
-    "test:tooling": "node --test scripts/tests/*.test.ts scripts/quality/*.test.ts scripts/browser-e2e/*.test.ts scripts/reliability/*.test.ts"
+    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts apps/web/e2e/*.ts crates/sketch-wasm/tests/*.ts crates/sketch-app-ffi/tests/*.ts crates/sketch-app-wasm/tests/*.ts apps/workbench/**/*.ts apps/workbench/**/*.css",
+    "test:tooling": "node --test scripts/tests/*.test.ts scripts/quality/*.test.ts scripts/browser-e2e/*.test.ts scripts/reliability/*.test.ts scripts/workbench/tests/*.test.ts",
+    "workbench:build": "node node_modules/vite/bin/vite.js build --config apps/workbench/vite.config.ts",
+    "workbench": "node scripts/workbench.ts serve"
   }
 }
