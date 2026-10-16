@@ -1,145 +1,133 @@
 use crate::{controls::Controls, presenter::Ui};
 use adw::prelude::*;
 use gtk::glib;
-use std::rc::Rc;
-
+use sketch_app::{AppError, Intent};
+use sketch_core::application::{routing::*, *};
 pub(crate) fn connect(ui: &Ui, controls: &Controls) {
-    let model = ui.model.clone();
-    let window = ui.window.clone();
-    let Controls {
-        new,
-        open,
-        save,
-        undo,
-        redo,
-        pen,
-        select,
-        color,
-        width,
-        previous,
-        next,
-        scale,
-        apply,
-        delete,
-        out,
-        reset,
-        zoom_in,
-    } = controls.clone();
-    for (b, op) in [
-        (undo, 0),
-        (redo, 1),
-        (previous, 2),
-        (next, 3),
-        (delete, 4),
-        (out, 5),
-        (reset, 6),
-        (zoom_in, 7),
+    for (button, action) in [
+        (&controls.undo, EditorAction::Undo),
+        (&controls.redo, EditorAction::Redo),
+        (
+            &controls.previous,
+            EditorAction::CycleSelection(CycleDirection::Previous),
+        ),
+        (
+            &controls.next,
+            EditorAction::CycleSelection(CycleDirection::Next),
+        ),
+        (&controls.delete, EditorAction::DeleteSelection),
     ] {
-        let u = ui.clone();
-        let select = select.clone();
-        b.connect_clicked(move |_| {
-            if op == 2 || op == 3 {
-                select.set_active(true);
-            }
-            u.action(|m| {
-                match op {
-                    0 => m.editor.undo()?,
-                    1 => m.editor.redo()?,
-                    2 => m.editor.select_cycle(-1)?,
-                    3 => m.editor.select_cycle(1)?,
-                    4 => m.editor.delete_selected()?,
-                    5 => m.zoom_to(m.zoom / 1.25),
-                    6 => m.zoom_to(1.0),
-                    7 => m.zoom_to(m.zoom * 1.25),
-                    _ => {}
-                }
+        let ui = ui.clone();
+        button.connect_clicked(move |_| {
+            ui.action(|model| model.owner.dispatch(Intent::Action(action)))
+        });
+    }
+    for (button, factor) in [
+        (&controls.out, Some(0.8)),
+        (&controls.reset, None),
+        (&controls.zoom_in, Some(1.25)),
+    ] {
+        let ui = ui.clone();
+        button.connect_clicked(move |_| {
+            ui.action(|model| {
+                model.zoom_to(factor.map_or(1.0, |factor| model.zoom * factor));
                 Ok(())
             })
         });
     }
-    {
-        let u = ui.clone();
-        apply.connect_clicked(move |_| {
-            u.action(|m| {
-                let b = m.editor.state().bounds;
-                m.editor.resize_begin()?;
-                m.editor.resize_update(
-                    scale.value() / 100.0,
-                    b.x + b.width / 2.0,
-                    b.y + b.height / 2.0,
-                )?;
-                m.editor.resize_commit()
-            })
-        });
-    }
-    {
-        let u = ui.clone();
-        pen.connect_toggled(move |p| {
-            if p.is_active() {
-                u.action(|m| {
-                    m.select = false;
-                    m.editor.select_clear()
+    let ui_scale = ui.clone();
+    let scale = controls.scale.clone();
+    controls.apply.connect_clicked(move |_| {
+        ui_scale.action(|model| {
+            let factor =
+                ScaleFactor::try_from(scale.value() / 100.0).map_err(|_| AppError::Invalid)?;
+            model
+                .owner
+                .dispatch(Intent::Action(EditorAction::ScaleSelection {
+                    factor,
+                    anchor: ScaleAnchor::SelectionCenter,
+                }))
+        })
+    });
+    for (button, tool) in [
+        (&controls.pen, ToolId::Pen),
+        (&controls.select, ToolId::Select),
+    ] {
+        let ui = ui.clone();
+        button.connect_toggled(move |button| {
+            if button.is_active()
+                && ui
+                    .model
+                    .borrow()
+                    .owner
+                    .app
+                    .projection(ui.model.borrow().owner.session)
+                    .is_ok_and(|p| p.editor.tool != tool)
+            {
+                ui.action(|model| {
+                    model
+                        .owner
+                        .dispatch(Intent::Action(EditorAction::ChooseTool(tool)))
                 });
             }
         });
     }
-    {
-        let u = ui.clone();
-        select.connect_toggled(move |p| {
-            if p.is_active() {
-                u.action(|m| {
-                    m.select = true;
-                    Ok(())
-                });
-            }
-        });
-    }
-    {
-        let m = model.clone();
-        color.connect_rgba_notify(move |c| {
-            let c = c.rgba();
-            m.borrow_mut().brush.rgba = [
-                c.red() as f64,
-                c.green() as f64,
-                c.blue() as f64,
-                c.alpha() as f64,
+    let ui_color = ui.clone();
+    controls.color.connect_rgba_notify(move |color| {
+        ui_color.action(|model| {
+            let mut brush = model
+                .owner
+                .app
+                .projection(model.owner.session)?
+                .editor
+                .brush
+                .brush();
+            let color = color.rgba();
+            brush.rgba = [
+                color.red() as f64,
+                color.green() as f64,
+                color.blue() as f64,
+                color.alpha() as f64,
             ];
-        });
+            model.owner.dispatch(Intent::Edit(EditorCommand::SetBrush(
+                brush.try_into().map_err(|_| AppError::Invalid)?,
+            )))
+        })
+    });
+    let ui_width = ui.clone();
+    controls.width.connect_value_changed(move |width| {
+        ui_width.action(|model| {
+            let mut brush = model
+                .owner
+                .app
+                .projection(model.owner.session)?
+                .editor
+                .brush
+                .brush();
+            brush.width = width.value();
+            model.owner.dispatch(Intent::Edit(EditorCommand::SetBrush(
+                brush.try_into().map_err(|_| AppError::Invalid)?,
+            )))
+        })
+    });
+    for (button, intent) in [
+        (&controls.save, FileIntent::SaveAs),
+        (&controls.open, FileIntent::Navigate(NavigationIntent::Open)),
+        (&controls.new, FileIntent::Navigate(NavigationIntent::New)),
+    ] {
+        let ui = ui.clone();
+        button.connect_clicked(move |_| ui.file(intent));
     }
-    {
-        let m = model.clone();
-        width.connect_value_changed(move |w| m.borrow_mut().brush.width = w.value());
-    }
-    {
-        let u = ui.clone();
-        save.connect_clicked(move |_| u.save(None));
-    }
-    {
-        let u = ui.clone();
-        open.connect_clicked(move |_| u.open());
-    }
-    {
-        let u = ui.clone();
-        new.connect_clicked(move |_| {
-            let c = u.clone();
-            u.guard(Rc::new(move || c.action(|m| m.editor.clear())));
-        });
-    }
-    {
-        let u = ui.clone();
-        window.connect_close_request(move |_| {
-            let w = u.window.clone();
-            u.guard(Rc::new(move || w.destroy()));
-            glib::Propagation::Stop
-        });
-    }
-    {
-        let u = ui.clone();
-        window.connect_is_active_notify(move |w| {
-            if !w.is_active() {
-                u.model.borrow_mut().cancel();
-                u.refresh();
-            }
-        });
-    }
+    let close = ui.clone();
+    ui.window.connect_close_request(move |_| {
+        close.file(FileIntent::Navigate(NavigationIntent::Close));
+        glib::Propagation::Stop
+    });
+    let inactive = ui.clone();
+    ui.window.connect_is_active_notify(move |window| {
+        if !window.is_active() {
+            inactive.model.borrow_mut().cancel();
+            inactive.refresh();
+        }
+    });
 }

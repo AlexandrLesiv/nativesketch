@@ -2,7 +2,7 @@ use crate::{controls::Controls, model::Model, presenter::Ui};
 use adw::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
-pub(crate) fn build(app: &adw::Application) {
+pub(crate) fn build(app: &adw::Application) -> Ui {
     let model = Rc::new(RefCell::new(Model::new()));
     let window = adw::ApplicationWindow::builder()
         .application(app)
@@ -27,9 +27,14 @@ pub(crate) fn build(app: &adw::Application) {
     window.set_content(Some(&root));
     let ui = Ui {
         model: model.clone(),
+        provider: Rc::new(RefCell::new(crate::provider::Provider::new())),
+        closing: Rc::new(std::cell::Cell::new(false)),
+        awaiting: Rc::new(std::cell::Cell::new(None)),
         window: window.clone(),
         canvas: canvas.clone(),
         status,
+        pen: controls.pen.clone(),
+        select: controls.select.clone(),
         undo: controls.undo.clone(),
         redo: controls.redo.clone(),
         selected: vec![
@@ -47,6 +52,8 @@ pub(crate) fn build(app: &adw::Application) {
     crate::stylus_input::connect(&ui);
     crate::navigation_input::connect(&ui);
     crate::keyboard_input::connect(&ui, &controls);
+    crate::runtime::connect(&ui, app);
     ui.refresh();
     window.present();
+    ui
 }

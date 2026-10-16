@@ -449,7 +449,9 @@ version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
+ "sketch-app",
  "sketch-core",
+ "sketch-services",
 ]
 
 [[package]]
@@ -559,8 +561,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "sketch-app"
+version = "0.1.0"
+dependencies = [
+ "sketch-core",
+]
+
+[[package]]
 name = "sketch-core"
 version = "0.1.0"
+
+[[package]]
+name = "sketch-services"
+version = "0.1.0"
+dependencies = [
+ "sketch-core",
+]
 
 [[package]]
 name = "slab"

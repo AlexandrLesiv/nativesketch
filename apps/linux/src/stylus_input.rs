@@ -27,6 +27,7 @@ pub(crate) fn connect(ui: &Ui) {
                 .borrow_mut()
                 .down(x, y, pressure, g.current_event_time(), device);
             if let Err(e) = result {
+                crate::diagnostics::record(format_args!("event=input_begin_rejected error={e:?}"));
                 u.error(&format!("Input failed: {e:?}"));
                 u.model.borrow_mut().cancel();
             }
@@ -65,7 +66,8 @@ pub(crate) fn connect(ui: &Ui) {
                 }
                 m.motion(x, y, g.axis(gdk::AxisUse::Pressure), g.current_event_time())
             })();
-            if result.is_err() {
+            if let Err(error) = result {
+                crate::diagnostics::record(format_args!("event=input_rejected error={error:?}"));
                 u.model.borrow_mut().cancel();
             }
             u.refresh();
@@ -79,7 +81,8 @@ pub(crate) fn connect(ui: &Ui) {
                 m.motion(x, y, g.axis(gdk::AxisUse::Pressure), g.current_event_time())
                     .and_then(|_| m.up())
             };
-            if result.is_err() {
+            if let Err(error) = result {
+                crate::diagnostics::record(format_args!("event=input_rejected error={error:?}"));
                 u.model.borrow_mut().cancel();
             }
             u.refresh();

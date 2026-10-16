@@ -1,56 +1,98 @@
 use crate::presenter::Ui;
 use adw::prelude::*;
-use gtk::{gio, glib};
-use std::rc::Rc;
-
+use sketch_app::{HostEffect, Intent};
+use sketch_core::application::{CommandContext, routing::*};
 impl Ui {
-    pub(crate) fn save(&self, then: Option<Rc<dyn Fn()>>) {
-        self.model.borrow_mut().cancel();
-        let dialog = gtk::FileDialog::builder()
-            .title("Save Drawing")
-            .initial_name("Drawing.nsketch")
-            .build();
-        let ui = self.clone();
-        dialog.save(
-            Some(&self.window),
-            None::<&gio::Cancellable>,
-            move |result| {
-                let file = match result {
-                    Ok(file) => file,
-                    Err(error) => {
-                        if !file_dialog_cancelled(&error) {
-                            ui.error(&format!("File chooser failed: {error}"));
-                        }
-                        return;
-                    }
-                };
-                {
-                    if let Some(path) = file.path() {
-                        let result = ui.model.borrow_mut().editor.save(&path);
-                        match result {
-                            Ok(()) => {
-                                ui.refresh();
-                                if let Some(f) = then {
-                                    f();
-                                }
-                            }
-                            Err(e) => ui.error(&format!(
-                                "Save failed: {e:?}. The drawing remains unsaved."
-                            )),
-                        }
-                    } else {
-                        ui.error("This location is not a local file. Choose a local folder.");
-                    }
-                }
-            },
-        );
-    }
-    pub(crate) fn guard(&self, then: Rc<dyn Fn()>) {
-        self.model.borrow_mut().cancel();
-        if !self.model.borrow().editor.state().dirty {
-            then();
+    pub(crate) fn file(&self, intent: FileIntent) {
+        if self.closing.get() {
             return;
         }
+        let result = {
+            let mut model = self.model.borrow_mut();
+            let result = model.owner.dispatch(Intent::File(intent));
+            if result.is_ok() {
+                model.gesture = crate::model::Gesture::Idle;
+            }
+            result
+        };
+        if let Err(error) = result {
+            crate::diagnostics::record(format_args!("event=file_intent_rejected error={error:?}"));
+            self.error(&format!(
+                "The operation failed: {error:?}. Your drawing was not replaced."
+            ));
+        }
+        self.process_effects();
+        self.refresh();
+    }
+    pub(crate) fn reply(
+        &self,
+        context: CommandContext,
+        token: EffectToken,
+        decision: EffectDecision,
+    ) {
+        let result = self
+            .model
+            .borrow_mut()
+            .owner
+            .reply(context, token, decision);
+        if let Err(error) = result {
+            crate::diagnostics::record(format_args!("event=dialog_reply_rejected error={error:?}"));
+        }
+        self.process_effects();
+        self.refresh();
+    }
+    pub(crate) fn process_effects(&self) {
+        loop {
+            let effect = self.model.borrow_mut().owner.effects.pop_front();
+            let Some(effect) = effect else {
+                break;
+            };
+            match effect {
+                HostEffect::ChooseDestination { token, .. } => self.choose_file(token, true),
+                HostEffect::ChooseSource(token) => self.choose_file(token, false),
+                HostEffect::ConfirmUnsaved { token, .. } => self.confirm_unsaved(token),
+                HostEffect::NavigationReady(token) => {
+                    let context = self.effect_context(token);
+                    if let Ok(context) = context {
+                        self.reply(context, token, EffectDecision::ConfirmClose);
+                    }
+                }
+                HostEffect::CloseConfirmed => {
+                    let result = {
+                        let mut model = self.model.borrow_mut();
+                        let session = model.owner.session;
+                        model.owner.app.detach_session(session)
+                    };
+                    if result.is_ok() {
+                        self.closing.set(true);
+                        self.window.set_visible(false);
+                    } else {
+                        self.error("Could not close while document work is pending.");
+                    }
+                }
+                HostEffect::AwaitWrites(token) => self.awaiting.set(Some(token)),
+                HostEffect::Failure(error) => self.error(&format!(
+                    "The operation failed: {error:?}. Your drawing was not replaced."
+                )),
+                HostEffect::WorkQueued(_) | HostEffect::Cancelled => {}
+            }
+        }
+    }
+    pub(crate) fn effect_context(
+        &self,
+        token: EffectToken,
+    ) -> Result<CommandContext, sketch_app::AppError> {
+        let mut model = self.model.borrow_mut();
+        let mut context = model.owner.context()?;
+        // Preserve the issued session/request; never retarget a late dialog to a new document.
+        context.session = token.session();
+        context.request = token.request();
+        Ok(context)
+    }
+    fn confirm_unsaved(&self, token: EffectToken) {
+        let Ok(context) = self.effect_context(token) else {
+            return;
+        };
         let dialog = adw::AlertDialog::builder()
             .heading("Save changes?")
             .body("Save your drawing before continuing, or discard the unsaved changes.")
@@ -64,41 +106,14 @@ impl Ui {
         dialog.set_close_response("cancel");
         dialog.set_response_appearance("discard", adw::ResponseAppearance::Destructive);
         let ui = self.clone();
-        dialog.connect_response(None, move |_, response| match response {
-            "discard" => then(),
-            "save" => ui.save(Some(then.clone())),
-            _ => {}
+        dialog.connect_response(None, move |_, response| {
+            let choice = match response {
+                "discard" => UnsavedChoice::Discard,
+                "save" => UnsavedChoice::Save,
+                _ => UnsavedChoice::Cancel,
+            };
+            ui.reply(context, token, EffectDecision::Unsaved(choice));
         });
         dialog.present(Some(&self.window));
     }
-    pub(crate) fn open(&self) {
-        let ui = self.clone();
-        self.guard(Rc::new(move || {
-            let dialog = gtk::FileDialog::builder().title("Open Drawing").build();
-            let inner = ui.clone();
-            dialog.open(Some(&ui.window), None::<&gio::Cancellable>, move |result| {
-                let file = match result {
-                    Ok(file) => file,
-                    Err(error) => {
-                        if !file_dialog_cancelled(&error) {
-                            inner.error(&format!("File chooser failed: {error}"));
-                        }
-                        return;
-                    }
-                };
-                {
-                    if let Some(path) = file.path() {
-                        inner.action(|m| m.editor.load(&path));
-                    } else {
-                        inner.error("This location is not a local file. Choose a local drawing.");
-                    }
-                }
-            });
-        }));
-    }
-}
-fn file_dialog_cancelled(error: &glib::Error) -> bool {
-    error.matches(gtk::DialogError::Dismissed)
-        || error.matches(gtk::DialogError::Cancelled)
-        || error.matches(gio::IOErrorEnum::Cancelled)
 }

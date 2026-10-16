@@ -70,6 +70,7 @@ pub(crate) fn connect(ui: &Ui) {
         let u = ui.clone();
         wheel.connect_scroll(move |g, x, y| {
             u.action(|m| {
+                m.cancel();
                 if g.current_event_state()
                     .contains(gdk::ModifierType::CONTROL_MASK)
                 {
