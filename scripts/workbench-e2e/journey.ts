@@ -51,6 +51,7 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
     }
   };
   try {
+    controller.signal.throwIfAborted();
     const source = await sourceIdentity(root);
     const build = await logged('build.log', [
       'node_modules/vite/bin/vite.js',
@@ -66,6 +67,7 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
       cwd: root,
       capture: true,
       timeout: 10_000,
+      signal: controller.signal,
     });
     await save('identity.json', {
       ...before,
@@ -73,7 +75,8 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
       node: process.version,
       os: `${platform()} ${release()} ${arch()}`,
     });
-    await backendEvidence(root, output, source, attempt);
+    await backendEvidence(root, output, source, attempt, controller.signal);
+    controller.signal.throwIfAborted();
     const cli = [
       'node_modules/@playwright/test/cli.js',
       'test',
@@ -120,6 +123,7 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
     if (JSON.stringify(executed.map(testId).sort()) !== JSON.stringify(specs.map(testId).sort()))
       throw new Error('Discovery/execution mismatch');
     const reasons = executionReasons(completion, executed);
+    if (controller.signal.aborted) reasons.push('Workbench journey cancelled');
     if (JSON.stringify(await identity(executable)) !== JSON.stringify(before))
       reasons.push('Source, browser, test code or assets changed during execution');
     const execution: Execution = {
@@ -152,8 +156,18 @@ export async function workbenchJourney(options: { output: string; attempt: numbe
     };
     validateExecution(execution);
     await save('results.json', execution);
+    if (controller.signal.aborted) {
+      for (const item of execution.results)
+        item.environment = {
+          valid: false,
+          reasons: [...item.environment.reasons, 'Workbench journey cancelled during finalization'],
+        };
+      await save('results.json', execution);
+      controller.signal.throwIfAborted();
+    }
     if (!processSucceeded(completion) || execution.results.some((r) => r.status !== 'passed'))
       throw new Error('Workbench acceptance did not pass; see results.json');
+    controller.signal.throwIfAborted();
     console.log(`Passed ${execution.results.length} workbench browser journeys: ${output}`);
   } catch (error) {
     await save('failure.json', { timestamp: new Date().toISOString(), error: String(error) });

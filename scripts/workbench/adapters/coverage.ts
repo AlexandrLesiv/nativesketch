@@ -40,11 +40,11 @@ export async function coverage(
         (await boundedRead(root, 'artifacts/evidence/discovery.json', 8 * 1024 * 1024)).toString(),
       );
       validateDiscovery(discovery);
-      const execution: Execution = JSON.parse(
+      const envelope: Execution | Execution[] = JSON.parse(
         (await boundedRead(root, 'artifacts/evidence/results.json', 8 * 1024 * 1024)).toString(),
       );
-      validateExecution(execution);
-      executions = [execution];
+      executions = Array.isArray(envelope) ? envelope : [envelope];
+      for (const execution of executions) validateExecution(execution);
       data.discoverySource = discovery.source;
       data.freshness =
         JSON.stringify(source) === JSON.stringify(discovery.source) ? 'current' : 'stale';

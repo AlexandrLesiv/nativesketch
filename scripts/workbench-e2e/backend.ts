@@ -1,5 +1,6 @@
 import { readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { controller } from '../lib/context.ts';
 import { executeNode } from '../evidence/node.ts';
 import { sourceIdentity } from '../evidence/identity.ts';
 import { validateDiscovery, validateExecution } from '../evidence/validate.ts';
@@ -11,12 +12,14 @@ export async function backendEvidence(
   output: string,
   source: Source,
   attempt: number,
+  signal: AbortSignal = controller.signal,
 ) {
+  signal.throwIfAborted();
   const files = (await readdir(join(root, 'scripts/workbench/tests')))
     .filter((name) => name.endsWith('.test.ts'))
     .sort()
     .map((name) => `scripts/workbench/tests/${name}`);
-  const observed = await executeNode(root, files);
+  const observed = await executeNode(root, files, signal);
   const platform = process.platform === 'darwin' ? 'macos' : process.platform;
   const unchanged = JSON.stringify(source) === JSON.stringify(await sourceIdentity(root));
   const discovery: Discovery = {
@@ -40,14 +43,26 @@ export async function backendEvidence(
           },
     })),
   };
+  signal.throwIfAborted();
   validateDiscovery(discovery);
   validateExecution(execution);
   await writeFile(join(output, 'backend-discovery.json'), JSON.stringify(discovery, null, 2));
+  signal.throwIfAborted();
   await writeFile(join(output, 'backend-results.json'), JSON.stringify(execution, null, 2));
+  if (signal.aborted) {
+    for (const item of execution.results)
+      item.environment = {
+        valid: false,
+        reasons: [...item.environment.reasons, 'Backend evidence cancelled during finalization'],
+      };
+    await writeFile(join(output, 'backend-results.json'), JSON.stringify(execution, null, 2));
+    signal.throwIfAborted();
+  }
   if (
     !execution.results.length ||
     execution.results.some((item) => item.status !== 'passed' || !item.environment.valid)
   )
     throw new Error('Workbench service checks did not pass; see backend-results.json');
+  signal.throwIfAborted();
   console.log(`Passed ${execution.results.length} workbench service checks on ${platform}`);
 }

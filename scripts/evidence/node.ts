@@ -1,35 +1,17 @@
 import type { DiscoveredTest, Result } from './types.ts';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { nodeProcess } from './node-process.ts';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fileHash } from './identity.ts';
 /** Node discovery is combined with execution, using isolated structured runner events. */
-export async function executeNode(root: string, files: string[]) {
+export async function executeNode(root: string, files: string[], signal?: AbortSignal) {
   const reporter = fileURLToPath(new URL('./node-reporter.ts', import.meta.url));
-  let output = '';
-  let exitFailed = false;
-  try {
-    const result = await promisify(execFile)(
-      process.execPath,
-      ['--test', `--test-reporter=${reporter}`, ...files],
-      {
-        cwd: root,
-        env: { ...process.env, NODE_TEST_CONTEXT: undefined },
-        timeout: 600000,
-        maxBuffer: 4000000,
-      },
-    );
-    output = result.stdout;
-  } catch (error) {
-    const failure = error as Error & {
-      code?: number;
-      stdout?: string;
-    };
-    if (failure.code !== 1 || !failure.stdout) throw error;
-    output = failure.stdout;
-    exitFailed = true;
-  }
+  const { output, exitFailed } = await nodeProcess(
+    root,
+    ['--test', `--test-reporter=${reporter}`, ...files],
+    signal,
+  );
+  signal?.throwIfAborted();
 
   const tests: DiscoveredTest[] = [];
 
@@ -80,5 +62,6 @@ export async function executeNode(root: string, files: string[]) {
         valid: false,
         reasons: ['Node suite or hook failed; leaf result does not certify suite completion'],
       };
+  signal?.throwIfAborted();
   return { tests, results };
 }
