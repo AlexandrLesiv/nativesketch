@@ -10,7 +10,7 @@ import Metal
   private var requestedAt = 0.0
   private var scheduled = false
   private var drawableRetryScheduled = false
-  private var presentationRetryScheduled = false
+  private var presentationRetry = RenderPendingRetry<RenderPresentationKey>()
   private(set) var recoveries: UInt64 = 0
   private(set) var failures: UInt64 = 0
   private var injectedFailure = false
@@ -163,16 +163,15 @@ import Metal
     retryDrawable()
   }
   private func retryPresentation(_ key: RenderPresentationKey) {
-    guard lastPresentation != key, !presentationRetryScheduled,
+    guard lastPresentation != key, presentationRetry.key != key,
       state.reservePresentationRetry()
     else { return }
-    presentationRetryScheduled = true
+    guard presentationRetry.enqueue(key) else { return }
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(16)) { [weak self] in
       guard let self else { return }
-      self.presentationRetryScheduled = false
-      guard !self.state.closed, self.presentationKey == key, self.lastPresentation != key else {
-        return
-      }
+      guard let key = self.presentationRetry.take(matching: self.presentationKey),
+        !self.state.closed, self.lastPresentation != key
+      else { return }
       self.state.deferDrawable()
       self.schedule()
     }
