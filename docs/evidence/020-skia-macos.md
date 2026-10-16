@@ -48,6 +48,7 @@ painter remains unused reference code, without automatic production fallback.
 | `244fa4e` | Complete `node scripts/check.ts` | Passed: 71 Node tests, format/type/lint, source/dependency gates, Rust workspace tests, actual C consumers, Swift/Rust headless integration and six GPU-free Swift policy tests |
 | `aaa83b4` | Native test app/bundle preparation | Build passed; execution intentionally blocked without desktop reservation; no test discovery or runtime pass claimed |
 | `aaa83b4` | Release macOS application build/sign | Passed; no launch/GPU context |
+| `24cf21a` | Complete background integration after timestamp/retry repairs | Passed, including 14 GPU-free Swift tests; [log](../../artifacts/evidence/020-background/integration-24cf21a.log) |
 
 The source-size gate retains five earlier legacy debts; new handwritten sources comply
 with 200 physical lines. Two Rust subprocess-helper tests are marked ignored by libtest;

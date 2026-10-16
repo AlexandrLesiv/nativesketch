@@ -362,6 +362,20 @@
         "ui_ux_designer",
         "reviewer"
       ]
+    },
+    {
+      "id": "025",
+      "title": "Project development workbench and Zed integration",
+      "status": "waiting",
+      "depends_on": [
+        "024"
+      ],
+      "brief": "tasks/025-project-workbench.md",
+      "roles": [
+        "build_reliability",
+        "ui_ux_designer",
+        "reviewer"
+      ]
     }
   ]
 }
