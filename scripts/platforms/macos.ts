@@ -42,14 +42,18 @@ export async function buildMacos(profile: string = 'debug') {
 // GPU-free renderer policy and real Swift/Rust compound-action contracts.
 export async function checkMacosRenderPolicy() {
   requireHost('darwin');
-  await command('swift', ['test', ...swiftFlags('debug'), '--filter', '(Render.*Tests|SessionActionTests)'], {
-    env: {
-      SKETCH_RUST_PROFILE: 'debug',
-      DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer',
-      CLANG_MODULE_CACHE_PATH: join(root, '.build-cache/clang'),
-      SWIFTPM_MODULECACHE_OVERRIDE: join(root, '.build-cache/swift-modules'),
+  await command(
+    'swift',
+    ['test', ...swiftFlags('debug'), '--filter', '(Render.*Tests|SessionActionTests)'],
+    {
+      env: {
+        SKETCH_RUST_PROFILE: 'debug',
+        DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer',
+        CLANG_MODULE_CACHE_PATH: join(root, '.build-cache/clang'),
+        SWIFTPM_MODULECACHE_OVERRIDE: join(root, '.build-cache/swift-modules'),
+      },
     },
-  });
+  );
 }
 
 function swiftFlags(profile: string) {
