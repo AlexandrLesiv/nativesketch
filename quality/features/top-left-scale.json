@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "top-left-scale",
+  "description": "Shared command and real native/Wasm contract evidence; does not certify Android UI adoption or input delivery.",
+  "sourceRevision": "d71032689a0cc5de3aa4b8e3e9b08a2d13755713",
+  "cases": [
+    {
+      "id": "SCALE-TOPLEFT-CORE-001",
+      "expected": "Committed transformed top-left stays fixed; preview cancellation, identity/repeated scale and one-operation undo preserve shared semantics.",
+      "invariants": ["INPUT-001", "CANCEL-001", "UNDO-001", "FFI-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::top_left_scale::top_left_of_transformed_commit_stays_fixed_with_preview_and_one_undo",
+        "cargo:sketch-core:lib:application::session::tests::top_left_scale::identity_and_repeated_relative_scale_have_defined_history",
+        "cargo:sketch-core:lib:application::session::tests::top_left_scale::capacity_and_composed_bounds_rejection_preserve_preview",
+        "cargo:sketch-core:lib:application::session::tests::top_left_scale::top_left_availability_preserves_readonly_and_missing_selection_rules"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "SCALE-TOPLEFT-WIRE-001",
+      "expected": "Additive anchor tag2 has exact bytes; center remains unchanged, malformed payloads preserve previews and availability recognizes the new anchor.",
+      "invariants": ["INPUT-001", "CANCEL-001", "UNDO-001", "FFI-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::top_left_scale::exact_top_left_request_preserves_center_and_rejects_malformed_payloads",
+        "cargo:sketch-app-wire:lib:tests::top_left_scale::malformed_scale_does_not_cancel_preview_and_availability_uses_new_anchor"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "SCALE-TOPLEFT-C-001",
+      "expected": "Actual C consumer exercises the additive top-left command without changing old native layout or center behavior.",
+      "invariants": ["INPUT-001", "CANCEL-001", "UNDO-001", "FFI-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "bridge"
+        }
+      ],
+      "testIds": ["native-c:portable-v2-consumer"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "SCALE-TOPLEFT-WASM-001",
+      "expected": "Actual Wasm consumer exercises the additive top-left command, exact source fixture and matching projection.",
+      "invariants": ["INPUT-001", "CANCEL-001", "UNDO-001", "FFI-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge"
+        }
+      ],
+      "testIds": ["wasm-js:portable-v2-conformance"],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

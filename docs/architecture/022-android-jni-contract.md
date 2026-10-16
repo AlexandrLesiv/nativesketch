@@ -35,6 +35,25 @@ flags and count, retains all original caller ownership, and publishes the existi
 and available packet correlation. Zero rejection fields never mean consumed handles.
 Kotlin `Long` preserves all opaque u64 bit patterns; no Double conversion is allowed.
 
+The agreed JVM class is file-private `dev.nativesketch.portable.PortableJniV1`, with instance
+native methods implementing an internal `NativeCalls` interface. No companion natives,
+`@JvmStatic`, overloaded native names or internal-method name mangling. The native receiver
+is an instance, not a class. Buffer parameters are nullable `ByteBuffer?` to permit real
+null-preflight tests; production wrappers always pass their own private buffers. Explicit
+lengths/offsets/capacities are Kotlin `Long`, validated before conversion to Rust sizes.
+
+With `B` expanded to `Ljava/nio/ByteBuffer;`, verify these descriptors against actual
+`javap -p -s` output before accepting the exports:
+
+| Method | JVM descriptor shorthand |
+| --- | --- |
+| apiVersion | `()I` |
+| appNew | `(BJB)I` |
+| appCall, appTakeWork, workCopyInput | `(JBJB)I` |
+| workCall, appComplete | `(JBJJB)I` |
+| bufferLength, bufferFree, inputFree, appFree, resultRetireStopped | `(JB)I` |
+| bufferCopy | `(JJBJB)I` |
+
 ## Calls and successful publication
 
 Each row lists arguments before the receipt and fields populated on success. All fields
@@ -108,6 +127,8 @@ using `action-scale-top-left.bin` (ANDROID-SCALE-001, INK-001, UNDO-001/002, VIE
 FFI-001). These tests establish the shared boundary, not Android UI acceptance.
 Freeze and independently review this small shared-semantic change before Android consumes
 the new tag. Include exact packet fixtures and actual C/Wasm consumers; preserve old fixtures.
+Checkpoint `d710326` is independently reviewed and integrated as `3f89a49`; the host has
+not yet adopted it. Copy-import/nonbinding-save policy remains a separate prerequisite.
 
 ## Implementation ownership and acceptance
 
