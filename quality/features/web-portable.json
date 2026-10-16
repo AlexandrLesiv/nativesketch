@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "web-portable",
+  "description": "Direct TypeScript consumer tests of portable production Rust/Wasm. Fault injection is explicit; this is bridge evidence, not browser/native UI, physical pen or latency acceptance.",
+  "sourceRevision": "66abe03",
+  "cases": [
+    {
+      "id": "WEB-BRIDGE-ACTIONS-001",
+      "expected": "Rejected actions preserve drafts; accepted Undo cancels once and leased transform scenes suppress the original.",
+      "invariants": [
+        "CANCEL-001",
+        "UNDO-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/editor.test.ts:portable Wasm actions preserve rejected drafts and cancel accepted Undo once",
+        "node:apps/web/tests/editor.test.ts:portable Wasm leased scenes reuse unchanged geometry and suppress preview original"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRIDGE-FILES-001",
+      "expected": "Issued export, read, cancellation and stale-result lifecycle preserve clean/dirty state and newer documents; rejected New retains an active import.",
+      "invariants": [
+        "SAVE-001",
+        "LOAD-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/files.test.ts:portable Wasm issued exports preserve dirty and clean reopened state",
+        "node:apps/web/tests/files.test.ts:portable Wasm delayed reads retire after intervening draft without overwriting input",
+        "node:apps/web/tests/files.test.ts:portable Wasm corrupt and oversized read failures retain the document",
+        "node:apps/web/tests/files.test.ts:portable Wasm rejected New preserves pending read; explicit cancellation retires after later New"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRIDGE-OWNERSHIP-001",
+      "expected": "Actual Wasm memory growth, output exhaustion and rejected work transfer preserve caller ownership.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/transport.test.ts:portable Wasm memory growth reacquires views and output exhaustion preserves owner",
+        "node:apps/web/tests/transport.test.ts:portable Wasm rejected work transfer retains ownership for valid completion"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRIDGE-SCENES-001",
+      "expected": "Paged geometry remains complete; bounded admission retains a coherent old frame; live changes reuse unchanged committed descriptors.",
+      "invariants": [
+        "CACHE-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/scenes.test.ts:portable Wasm scene pages beyond descriptor and geometry caps remain complete",
+        "node:apps/web/tests/scenes.test.ts:portable Wasm bounded geometry admission retains previous coherent frame at capacity",
+        "node:apps/web/tests/scenes.test.ts:portable Wasm live scene generations reuse unchanged committed root descriptors"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRIDGE-FAILURES-001",
+      "expected": "Injected transport and scene failures retain coherent state or quarantine traps; a consumed Finish result survives subsequent admission failure until shutdown.",
+      "invariants": [
+        "FFI-001",
+        "CACHE-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/injected-failures.test.ts:injected scene page failure retains coherent previous frame and retires staging lease",
+        "node:apps/web/tests/injected-failures.test.ts:injected genuine Wasm trap quarantines transport and does not call cleanup exports",
+        "node:apps/web/tests/injected-failures.test.ts:injected capacity rejection after actual Finish retains result until controlled shutdown"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

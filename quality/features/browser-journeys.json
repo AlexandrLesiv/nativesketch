@@ -137,6 +137,106 @@
       ],
       "automation": "implemented",
       "gaps": []
+    },
+    {
+      "id": "WEB-ACTION-001",
+      "expected": "Unavailable Undo preserves a held draft; native width-field Undo retains field focus and committed content.",
+      "invariants": [
+        "CANCEL-001",
+        "UNDO-001",
+        "FOCUS-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-ACTION-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-EXPORT-001",
+      "expected": "Guard Download stays in the document and preserves dirty state; downloading a clean reopened document keeps it clean.",
+      "invariants": [
+        "SAVE-001",
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-EXPORT-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PICKER-001",
+      "expected": "Open and keyboard routes request an actual browser chooser; injected browser cancellation events restore canvas focus and permit another request.",
+      "invariants": [
+        "FOCUS-001",
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-PICKER-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-STALE-001",
+      "expected": "A controlled delayed File read cannot replace newer committed drawing or display an obsolete error.",
+      "invariants": [
+        "ASYNC-001",
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-STALE-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRUSH-002",
+      "expected": "Color at the existing default width and ordinary integer-width edits reach saved stroke data without unintended HTML step rejection.",
+      "invariants": [
+        "INPUT-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-BRUSH-002"
+      ],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }
