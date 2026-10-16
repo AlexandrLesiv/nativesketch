@@ -165,7 +165,7 @@ the size-inventory debt, not provider migration, native testing or task 024 acce
 
 The retained shell builder did not substitute the new precache asset template, producing
 a service worker that failed installation. The supported Node builder passed primary
-web checks at `36fa8c0`, followed by actual loopback GET/HEAD-compatible asset delivery,
+web checks at `36fa8c0`, followed by actual loopback GET asset delivery,
 Wasm/JS/HTML MIME checks and POST rejection. The first server attempt was sandbox-blocked;
 the authorized background retry passed without opening a browser. The obsolete five
 web/Wasm shell entry points and nested TypeScript/Prettier manifests were then removed,
@@ -177,6 +177,9 @@ an attempted literal glob caused a type-engine diagnostic and was repaired by en
 tooling files. The full core integration passed after that repair. Failed attempts and
 server/build logs are retained in `artifacts/evidence/022-web-retirement`. Real browser
 offline lifecycle acceptance is still pending.
+Fresh independent review of cleanup `8e3dd13` confirmed the obsolete-path defect is
+resolved, active callers are updated, both type-aware lint projects and TypeScript pass,
+and all four cache tests pass. It found no additional actionable issue in that repair.
 
 ## Typed portable application facade
 
