@@ -93,8 +93,11 @@ ran. Portable facade adoption and Skia rendering are separate remaining changes.
 
 Formatter checks passed, but the integrated broad Swift lint at `de54fe0` found one
 `ReplaceForEachWithForLoop` violation in the extracted iOS scene entry. That repair is pending;
-do not treat formatting as proof that every semantic lint rule passed. Independent review
-of the extraction is in progress.
+do not treat formatting as proof that every semantic lint rule passed. The fresh reviewer
+found no extraction defect in ownership, selector/delegate identity, source ordering or
+module-map resolution; the quoted Swift literal set was unchanged. The reviewer independently
+reran the host replay binary with the recorded hash and it passed. This does not add native
+simulator/device acceptance.
 
 ## Baseline and outstanding hosts
 

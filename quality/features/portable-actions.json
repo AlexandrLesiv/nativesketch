@@ -14,7 +14,8 @@
       "testIds": [
         "cargo:sketch-core:lib:application::session::tests::action_failures::unavailable_history_selection_and_stale_context_preserve_draft",
         "cargo:sketch-core:lib:application::session::tests::action_failures::invalid_scale_and_composed_overflow_preserve_active_transform",
-        "cargo:sketch-core:lib:application::session::tests::action_failures::exhausted_generation_does_not_cancel_or_change_settings"
+        "cargo:sketch-core:lib:application::session::tests::action_failures::exhausted_generation_does_not_cancel_or_change_settings",
+        "cargo:sketch-core:lib:application::session::tests::action_failures::empty_cycle_in_both_directions_preserves_draft_and_predictions"
       ],
       "ownerTask": "022",
       "requirements": [
