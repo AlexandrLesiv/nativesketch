@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { JSONReportSpec } from 'playwright/types/testReporter';
-import { browserSpecs, browserOutcome } from './results.ts';
+import { browserSpecs, browserOutcome, browserTestId } from './results.ts';
 import { browserOptions } from './options.ts';
 import { spec } from './spec-fixture.ts';
 function report(specs: JSONReportSpec[]) {
@@ -10,6 +10,21 @@ function report(specs: JSONReportSpec[]) {
     suites: [{ title: 'editing', file: 'editing.spec.ts', line: 1, column: 1, specs }],
   };
 }
+await test('browser IDs accept multiple named components without truncating malformed suffixes', () => {
+  const item = spec();
+  item.title = 'WEB-RENDER-ERROR-001 retained document after renderer failure';
+  assert.equal(browserTestId(item), 'playwright:chromium:WEB-RENDER-ERROR-001');
+  for (const title of [
+    'WEB-RENDER-ERROR-001-extra',
+    'WEB-RENDER-ERROR-001A',
+    'WEB--001',
+    'WEB-error-001',
+    'WEB-ERROR-0001',
+  ]) {
+    item.title = title;
+    assert.throws(() => browserTestId(item), /stable acceptance ID/);
+  }
+});
 await test('enumeration refuses empty, duplicate and expected-failure test sets', () => {
   assert.throws(() => browserSpecs(report([])), /Empty/);
   assert.throws(() => browserSpecs(report([spec(), spec()])), /duplicate/);

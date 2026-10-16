@@ -28,7 +28,7 @@ export function browserSpecs(
   return specs;
 }
 export function browserTestId(spec: JSONReportSpec) {
-  const id = /^WEB-[A-Z]+-\d{3}\b/.exec(spec.title)?.[0];
+  const id = /^WEB-(?:[A-Z]+-)+\d{3}(?=\s|$)/.exec(spec.title)?.[0];
   if (!id) throw new Error('Browser test needs a stable acceptance ID');
   return `playwright:chromium:${id}`;
 }
