@@ -1,4 +1,4 @@
-use super::Event;
+use super::{Event, EventCode};
 use std::collections::VecDeque;
 use std::io;
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -12,7 +12,7 @@ pub struct DiagnosticRing {
     capacity: usize,
     per_second: u32,
     window_ms: u64,
-    repetitions: [u32; 12],
+    repetitions: [u32; EventCode::COUNTERS],
     stats: DiagnosticStats,
 }
 impl DiagnosticRing {
@@ -25,7 +25,7 @@ impl DiagnosticRing {
             capacity,
             per_second,
             window_ms: 0,
-            repetitions: [0; 12],
+            repetitions: [0; EventCode::COUNTERS],
             stats: DiagnosticStats::default(),
         })
     }
@@ -33,9 +33,9 @@ impl DiagnosticRing {
     pub fn record(&mut self, event: Event, now_ms: u64) {
         if now_ms.saturating_sub(self.window_ms) >= 1000 {
             self.window_ms = now_ms;
-            self.repetitions = [0; 12];
+            self.repetitions = [0; EventCode::COUNTERS];
         }
-        let count = &mut self.repetitions[event.code as usize];
+        let count = &mut self.repetitions[event.code.counter()];
         if *count >= self.per_second {
             self.stats.rate_limited = self.stats.rate_limited.saturating_add(1);
             return;

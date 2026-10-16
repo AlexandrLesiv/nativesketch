@@ -60,24 +60,8 @@ impl NativeRuntime {
             self.operations.remove(index);
             return Ok(());
         }
-        let value = if let WorkerValue::Write(mut receipt) = result.value {
-            let token = match self.operations[index].kind {
-                OperationKind::Save(token) => token,
-                _ => return Err(RuntimeError::Invalid),
-            };
-            if let Err(rejected) = self.coordinator.finish(receipt.write) {
-                receipt.write = rejected.into_receipt();
-                self.operations[index].state =
-                    OperationState::Ready(Box::new(WorkerValue::Write(receipt)));
-                // FFI catches this invariant breach and poisons the owner; retain the
-                // issued receipt until explicit terminal cleanup, never fabricate success.
-                panic!("native receipt violated the coordinator contract");
-            }
-            let completion = self
-                .coordinator
-                .take_completion(token)
-                .map_err(|_| RuntimeError::Invalid)?;
-            WorkerValue::Completed(Some(completion), receipt.report)
+        let value = if let WorkerValue::Write(receipt) = result.value {
+            self.receive_write(index, receipt)
         } else {
             result.value
         };
@@ -147,19 +131,25 @@ impl NativeRuntime {
         }) else {
             return Ok(());
         };
+        // Probe before consuming WaitingWrite: an active predecessor cannot destroy
+        // the queued successor's ownership or leave it falsely marked Running.
+        if let OperationState::WaitingWrite(token) = self.operations[index].state {
+            match self.coordinator.next_write() {
+                None => return Ok(()),
+                Some(next) if next != token => return Err(RuntimeError::Invalid),
+                Some(_) => {}
+            }
+        }
         let state = std::mem::replace(&mut self.operations[index].state, OperationState::Running);
         let work = match state {
             OperationState::Queued(work) => *work,
-            OperationState::WaitingWrite(token) => {
-                let job = self.coordinator.start_next().ok_or(RuntimeError::Invalid)?;
-                if job.token() != token {
-                    return Err(RuntimeError::Invalid);
-                }
-                Work::Write {
-                    job,
-                    checkpoint: self.operations[index].checkpoint.clone(),
-                }
-            }
+            OperationState::WaitingWrite(_) => Work::Write {
+                job: self
+                    .coordinator
+                    .start_next()
+                    .expect("preflighted write on exclusive owner"),
+                checkpoint: self.operations[index].checkpoint.clone(),
+            },
             _ => unreachable!(),
         };
         let op = &self.operations[index];

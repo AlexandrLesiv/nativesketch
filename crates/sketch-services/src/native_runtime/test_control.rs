@@ -18,7 +18,7 @@ pub struct TestControl {
 }
 impl TestControl {
     pub fn new(root: PathBuf, stage: u32, mode: u32) -> Result<Self, NativeFailure> {
-        if !root.is_absolute() || !(1..=8).contains(&stage) || !(1..=2).contains(&mode) {
+        if !root.is_absolute() || !(1..=9).contains(&stage) || !(1..=2).contains(&mode) {
             return Err(NativeFailure::Unsupported);
         }
         Ok(Self {
@@ -111,6 +111,21 @@ pub(super) struct ControlledHooks<'a> {
     stop: &'a AtomicBool,
 }
 impl StoreHooks for ControlledHooks<'_> {
+    fn completed(
+        &self,
+        outcome: sketch_core::application::storage::WriteOutcome,
+    ) -> sketch_core::application::storage::WriteOutcome {
+        let corrupt = self
+            .controls
+            .control
+            .lock()
+            .is_ok_and(|control| control.as_ref().is_some_and(|c| c.stage == 9));
+        if corrupt && self.controls.reach(9, self.stop).is_ok() {
+            sketch_core::application::storage::WriteOutcome::DispatchedUnconfirmed
+        } else {
+            outcome
+        }
+    }
     fn at(&self, stage: Stage) -> io::Result<()> {
         let stage = match stage {
             Stage::BeforeCreate => 2,

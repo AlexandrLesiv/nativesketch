@@ -71,6 +71,11 @@ pub(crate) fn perform(
         directory_sync_failed: false,
         failed_stage: None,
     });
+    #[cfg(feature = "native-test-controls")]
+    let report = StoreReport {
+        outcome: hooks.completed(report.outcome),
+        ..report
+    };
     let code = match report.outcome {
         WriteOutcome::Written(_) if token.purpose() == SavePurpose::Checkpoint => {
             EventCode::CheckpointPublished

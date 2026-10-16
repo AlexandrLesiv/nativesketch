@@ -35,6 +35,9 @@ pub struct WriteReceipt {
     pub(super) outcome: WriteOutcome,
 }
 impl WriteReceipt {
+    pub fn token(&self) -> SaveToken {
+        self.token
+    }
     /// Correct a rejected provider report using the actual observed I/O outcome.
     /// The issued token is immutable; this cannot authorize a different job.
     pub fn revise_outcome(&mut self, outcome: WriteOutcome) -> Result<(), StorageError> {

@@ -112,3 +112,42 @@ fn worker_emits_correlated_redacted_stage_failure_and_durability_codes() {
         assert!(!logged.encode().contains("Private-document-name"));
     }
 }
+
+// DIAG-001: every code has an independent bounded counter, including the newest.
+#[test]
+fn all_event_codes_have_independent_rate_limits_and_reset() {
+    use EventCode::*;
+    let codes = [
+        SaveStarted,
+        SaveWritten,
+        SaveFailed,
+        SaveUncertain,
+        CleanupFailed,
+        RecoveryReadFailed,
+        CheckpointPublished,
+        RecoveryCapacity,
+        SinkFailed,
+        NativeStarted,
+        NativeCompleted,
+        NativeFailed,
+        ExportDispatched,
+    ];
+    let mut ring = DiagnosticRing::new(codes.len(), 1).unwrap();
+    for code in codes {
+        ring.record(Event { code, ..event() }, 0);
+        ring.record(Event { code, ..event() }, 0);
+    }
+    assert_eq!(ring.len(), codes.len());
+    assert_eq!(ring.stats().rate_limited, codes.len() as u64);
+    let mut received = Vec::new();
+    ring.drain_to(|event| {
+        received.push(event.code);
+        Ok(())
+    });
+    assert_eq!(received, codes);
+    for code in codes {
+        ring.record(Event { code, ..event() }, 1000);
+    }
+    assert_eq!(ring.len(), codes.len());
+    assert_eq!(ring.stats().rate_limited, codes.len() as u64);
+}

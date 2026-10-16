@@ -39,6 +39,25 @@ impl SaveCoordinator {
             reserved_bytes: 0,
         })
     }
+    /// Read-only admission probe; caller must still use the same exclusive owner.
+    pub fn next_write(&self) -> Option<SaveToken> {
+        if self
+            .entries
+            .iter()
+            .any(|entry| matches!(entry.phase, Phase::Active { .. }))
+        {
+            return None;
+        }
+        self.entries
+            .iter()
+            .find(|entry| matches!(entry.phase, Phase::Queued(_)))
+            .map(|entry| entry.token)
+    }
+    pub fn is_active(&self, token: SaveToken) -> bool {
+        self.entries
+            .iter()
+            .any(|entry| entry.token == token && matches!(entry.phase, Phase::Active { .. }))
+    }
     pub fn outstanding(&self) -> usize {
         self.entries.len()
     }

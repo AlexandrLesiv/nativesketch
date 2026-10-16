@@ -13,6 +13,13 @@ impl NativeRuntime {
             let Some(index) = next else {
                 break;
             };
+            if matches!(self.operations[index].state, OperationState::Ready(ref value)
+                if matches!(value.as_ref(), WorkerValue::Write(_)))
+            {
+                // Unknown/phase-invalid receipts cannot be settled by guessing. Retain
+                // their proof and lease; fail shutdown explicitly rather than drop them.
+                return Err(RuntimeError::Invalid);
+            }
             let op = self.operations.remove(index).expect("checked operation");
             if self.barrier == Some(op.id) {
                 self.barrier = None;

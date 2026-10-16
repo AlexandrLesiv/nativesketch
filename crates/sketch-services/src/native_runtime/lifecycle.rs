@@ -71,7 +71,8 @@ impl NativeRuntime {
             && self.operations.is_empty()
             && self.events.is_empty()
             && self.delivered.is_empty()
-            && self.leases.is_empty())
+            && self.leases.is_empty()
+            && self.coordinator.outstanding() == 0)
     }
     pub fn effect_token(
         &self,

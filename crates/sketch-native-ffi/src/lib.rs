@@ -34,3 +34,9 @@ mod renderer_unsupported;
 
 #[cfg(target_os = "macos")]
 mod renderer_selection;
+
+#[cfg(all(test, feature = "native-test-controls"))]
+mod receipt_recovery_tests;
+
+#[cfg(all(test, feature = "native-test-controls"))]
+mod receipt_test_support;

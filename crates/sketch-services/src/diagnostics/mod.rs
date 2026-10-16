@@ -20,6 +20,27 @@ pub enum EventCode {
     NativeFailed = 11,
     ExportDispatched = 12,
 }
+impl EventCode {
+    // Keep this exhaustive: a new variant requires an explicit counter slot.
+    pub(super) const fn counter(self) -> usize {
+        match self {
+            Self::SaveStarted => 0,
+            Self::SaveWritten => 1,
+            Self::SaveFailed => 2,
+            Self::SaveUncertain => 3,
+            Self::CleanupFailed => 4,
+            Self::RecoveryReadFailed => 5,
+            Self::CheckpointPublished => 6,
+            Self::RecoveryCapacity => 7,
+            Self::SinkFailed => 8,
+            Self::NativeStarted => 9,
+            Self::NativeCompleted => 10,
+            Self::NativeFailed => 11,
+            Self::ExportDispatched => 12,
+        }
+    }
+    pub(super) const COUNTERS: usize = Self::ExportDispatched.counter() + 1;
+}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Subsystem {

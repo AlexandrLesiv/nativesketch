@@ -26,6 +26,7 @@ mod grants;
 mod lifecycle;
 mod locations;
 mod poll;
+mod receipt;
 mod recovery_owner;
 mod recovery_results;
 mod release;
@@ -44,3 +45,6 @@ mod operation;
 mod recovery_retry;
 
 mod private_root;
+
+#[cfg(test)]
+mod poll_tests;

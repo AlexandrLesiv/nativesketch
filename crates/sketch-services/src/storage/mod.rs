@@ -20,6 +20,10 @@ pub enum Stage {
 /// Fault/process-kill hooks receive no content or private path.
 pub trait StoreHooks: Send + Sync {
     fn at(&self, stage: Stage) -> io::Result<()>;
+    #[cfg(feature = "native-test-controls")]
+    fn completed(&self, outcome: WriteOutcome) -> WriteOutcome {
+        outcome
+    }
 }
 pub struct NoFaults;
 impl StoreHooks for NoFaults {
