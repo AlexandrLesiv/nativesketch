@@ -69,12 +69,14 @@ impl Reader<'_> {
             4 => EditorAction::Undo,
             5 => EditorAction::Redo,
             6 => {
-                if self.u32()? != 1 {
-                    return Err(WireError::malformed());
-                }
+                let anchor = match self.u32()? {
+                    1 => ScaleAnchor::SelectionCenter,
+                    2 => ScaleAnchor::SelectionTopLeft,
+                    _ => return Err(WireError::malformed()),
+                };
                 self.zero()?;
                 EditorAction::ScaleSelection {
-                    anchor: ScaleAnchor::SelectionCenter,
+                    anchor,
                     factor: self.f64()?.try_into().map_err(|_| WireError::malformed())?,
                 }
             }

@@ -1,4 +1,4 @@
-use super::{CycleDirection, Editor, EditorAction, FailureKind, ToolId};
+use super::{CycleDirection, Editor, EditorAction, FailureKind, ScaleAnchor, ToolId};
 use crate::{geometry::bounds, history::Change, interaction::TransformSession};
 
 /// Private, short-lived proof: all recoverable failures are checked before cancellation.
@@ -40,20 +40,22 @@ impl Editor {
                 }
                 PreparedAction::Redo
             }
-            EditorAction::ScaleSelection { factor, .. } => {
+            EditorAction::ScaleSelection { factor, anchor } => {
                 let index = self
                     .selection
                     .index(&self.document)
                     .ok_or(FailureKind::InvalidTransition)?;
                 let stroke = &self.document.strokes[index];
                 let bounds = bounds(stroke, stroke.transform);
+                let (x, y) = match anchor {
+                    ScaleAnchor::SelectionCenter => (
+                        bounds.x + bounds.width / 2.0,
+                        bounds.y + bounds.height / 2.0,
+                    ),
+                    ScaleAnchor::SelectionTopLeft => (bounds.x, bounds.y),
+                };
                 let mut prepared = TransformSession::new(index, stroke.transform);
-                prepared.update(
-                    &self.document,
-                    factor.get(),
-                    bounds.x + bounds.width / 2.0,
-                    bounds.y + bounds.height / 2.0,
-                )?;
+                prepared.update(&self.document, factor.get(), x, y)?;
                 if prepared.preview != stroke.transform {
                     self.check_revision_capacity()
                         .map_err(|_| FailureKind::ResourceLimit)?;

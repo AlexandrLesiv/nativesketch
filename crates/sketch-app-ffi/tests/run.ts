@@ -19,7 +19,7 @@ await command('clang', [
   '-Werror',
   '-I',
   join(root, 'crates/sketch-app-ffi/include'),
-  ...['consumer.c', 'support.c', 'worker.c', 'policy.c', 'viewport.c'].map((name) =>
+  ...['consumer.c', 'support.c', 'worker.c', 'policy.c', 'viewport.c', 'scale.c'].map((name) =>
     join(root, 'crates/sketch-app-ffi/tests', name),
   ),
   join(root, 'target/release/libsketch_app_ffi.a'),
@@ -31,7 +31,12 @@ await report.record(
   'native-c:portable-v2-consumer',
   process.platform === 'darwin' ? 'macos' : 'linux',
   native,
-  () => command(native, [], { timeout: 30_000, capture: true }),
+  () =>
+    command(
+      native,
+      [join(root, 'crates/sketch-app-wire/tests/fixtures/action-scale-top-left.bin')],
+      { timeout: 30_000, capture: true },
+    ),
 );
 await command('cargo', [
   'build',

@@ -21,3 +21,4 @@ void check_bounds(TestApp);
 void check_bound_chooser(TestApp);
 
 void check_viewport(void);
+void check_scale(const char *fixture_path);

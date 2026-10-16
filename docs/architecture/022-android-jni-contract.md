@@ -95,13 +95,17 @@ JVM OOM or process termination is never reported as successful cleanup.
 
 ## Shared scale prerequisite
 
-Add `ScaleAnchor::SelectionTopLeft` and portable anchor tag 2. Center remains tag 1 and the
+The shared prerequisite adds `ScaleAnchor::SelectionTopLeft` and portable anchor tag 2.
+Center remains tag 1 and the
 existing action tag 6/payload size remain unchanged. The native-v1/macOS DTO remains center
 only. Resolve the top-left from the committed stroke's transformed bounds, including when
 a preview is active. Validate capability, factor, composed geometry and revision/history
 capacity before cancelling. Identity scale adds no history; changed scale adds one undo;
 repeated relative scale applies again. Request correlation does not imply deduplication.
 
+The shared checkpoint has Rust behavior/validation tests and actual C/Wasm consumers
+using `action-scale-top-left.bin` (ANDROID-SCALE-001, INK-001, UNDO-001/002, VIEW-001,
+FFI-001). These tests establish the shared boundary, not Android UI acceptance.
 Freeze and independently review this small shared-semantic change before Android consumes
 the new tag. Include exact packet fixtures and actual C/Wasm consumers; preserve old fixtures.
 

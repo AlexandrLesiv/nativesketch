@@ -110,7 +110,11 @@ Edit/Action prefix: tag:u32,reserved:u32. Exact variant payload follows:
 | CommitTransform10,CancelInteraction11,Delete12,Undo13,Redo14 | empty |
 
 Actions: ChooseTool1(tool:u32,reserved:u32), Cycle2(direction:u32,reserved:u32),
-Delete3/Undo4/Redo5(empty), Scale6(anchor:u32=1,reserved:u32,factor:f64).
+Delete3/Undo4/Redo5(empty), Scale6(anchor:u32,reserved:u32,factor:f64). Anchor 1 is the committed selection
+center; additive anchor 2 is its committed transformed top-left. Both action execution
+and availability accept these tags; other tags and nonzero reserved fields are rejected.
+The 24-byte action body and opcode 11 remain unchanged. The literal
+`action-scale-top-left.bin` fixture adds tag 2 without changing existing fixtures.
 Tool Pen1/Select2; cycle Previous1/Next2; device Mouse1/Pen2/Touch3.
 Sample: kind:u32,flags:u32,id:u64,x,y,timestamp,pressure:f64 (48 bytes).
 Kinds Actual0/Predicted1/Correction2. Flag1 means pressure present, otherwise pressure zero.

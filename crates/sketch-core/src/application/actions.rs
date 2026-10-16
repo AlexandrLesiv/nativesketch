@@ -29,6 +29,8 @@ impl CycleDirection {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScaleAnchor {
     SelectionCenter,
+    /// Top-left of committed, transformed selection bounds; ignores active preview.
+    SelectionTopLeft,
 }
 /// Relative scale; preserves the existing 10000% application upper bound.
 #[derive(Debug, Clone, Copy, PartialEq)]

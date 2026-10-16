@@ -132,6 +132,7 @@ mod scene_goldens;
 mod scenes;
 mod stale_load;
 mod tag_goldens;
+mod top_left_scale;
 mod transfer_capacity;
 
 mod viewport_goldens;

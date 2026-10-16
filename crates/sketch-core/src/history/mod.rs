@@ -31,6 +31,10 @@ impl Default for UndoHistory {
     }
 }
 impl UndoHistory {
+    #[cfg(test)]
+    pub(crate) fn exhaust_revision_capacity(&mut self) {
+        self.next_revision = u64::MAX;
+    }
     pub(crate) fn check_capacity(&self) -> Result<()> {
         self.next_revision
             .checked_add(1)

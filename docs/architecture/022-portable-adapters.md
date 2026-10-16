@@ -72,7 +72,7 @@ pub enum EditorAction {
     Redo,
     ScaleSelection { factor: ScaleFactor, anchor: ScaleAnchor },
 }
-pub enum ScaleAnchor { SelectionCenter }
+pub enum ScaleAnchor { SelectionCenter, SelectionTopLeft }
 pub enum CycleDirection { Previous, Next }
 ```
 
@@ -88,7 +88,7 @@ resize_update / resize_commit for the one-shot scale control.
 | CycleSelection | Validate direction and nonempty committed document, cancel interaction, choose Select, cycle committed selection |
 | DeleteSelection | Validate capability and selected committed object, cancel interaction, delete once |
 | Undo / Redo | Validate capability/history against committed state, cancel interaction, apply history operation |
-| ScaleSelection | Validate factor, selection and resulting transform, cancel interaction, apply one committed transform anchored at committed selection center |
+| ScaleSelection | Validate factor, selection and resulting transform, cancel interaction, apply one committed transform anchored at the requested committed selection center or transformed top-left |
 
 Invalid action parameters, stale context, denied capability and unavailable history must
 leave draft, selection, settings and committed content unchanged. Validate against the state

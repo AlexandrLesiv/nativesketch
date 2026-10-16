@@ -6,6 +6,7 @@ mod capabilities;
 mod capacity;
 mod equivalence;
 mod lifecycle;
+mod top_left_scale;
 mod transactions;
 const FIXTURE: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),

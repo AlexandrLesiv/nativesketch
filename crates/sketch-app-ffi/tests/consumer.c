@@ -1,6 +1,7 @@
 #include "support.h"
 
-int main(void) {
+int main(int argc, char **argv) {
+    assert(argc == 2);
     _Static_assert(sizeof(NsV2Error) == 72, "fixed allocation-free error record");
     TestApp a = create();
     uint8_t p[128], bytes[512];
@@ -43,6 +44,7 @@ int main(void) {
     close_app(a);
     check_worker_roundtrip();
     check_viewport();
+    check_scale(argv[1]);
     puts("PASS native v2 C consumer: transfer, pthread worker, rejection, shutdown");
     return 0;
 }
