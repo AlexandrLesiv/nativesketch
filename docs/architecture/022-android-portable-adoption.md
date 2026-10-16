@@ -58,6 +58,8 @@ handles. [Official jni-rs API](https://docs.rs/jni/0.22.4/jni/)
 Freeze a separately versioned receipt layout before implementation. A 128-byte candidate
 can carry status/flags, six u64 fields and the existing structured error; it is not the
 Wasm scratch layout. Kotlin carries opaque u64 handles in Long bit patterns, never Double.
+The subsequent [JNI checkpoint contract](022-android-jni-contract.md) freezes that layout,
+per-call publication, exclusive buffer ownership and invalid-receipt behavior.
 Kotlin allocates a direct receipt ByteBuffer before each potentially consuming call. JNI
 validates directness, writability, length, capacity and nonoverlap, and resolves its address
 before dispatch. The local Java reference keeps storage alive through the native call.

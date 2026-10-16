@@ -40,6 +40,14 @@ workflow before isolating prepared-lease shutdown. Both failures remain retained
 TypeScript checking on the older worker base lacked the later Playwright dependencies;
 that is not reported as a passing check. Combined primary verification remains required.
 
+At clean primary `760a286`, the full background integration passed, including the combined
+TypeScript dependencies, 140 tooling tests, Rust workspace and actual C/Wasm consumers,
+macOS build/pre-AppKit smoke and 17 GPU-free Swift tests. The scoped
+[viewport report](../../artifacts/evidence/020-viewport-760a286-retry1/coverage.html) reran
+12 mapped Rust tests and imports the same-source C/Wasm packet: all seven acceptance rows
+passed with no mapping issues. Its initial report assembly failed on an optional metadata
+field, before publication; that attempt is retained separately and not treated as acceptance.
+
 Preparation is bounded synchronous render work, not a latency optimization claim. Browser
 consumption, cache keys and real CanvasKit large-stroke rendering remain the next separate
 verification slice. Native GPU acceptance and task 024 remain open.
