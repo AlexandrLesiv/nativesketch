@@ -38,7 +38,7 @@ Own only core `application/actions.rs`, `prepared_action.rs`, relevant tests, wi
 `decode_commands.rs`, real C/Wasm consumer cases and contract documentation in this checkpoint.
 Freeze and independently review it before Kotlin consumes the additive tag.
 
-Other required behavior already fits the portable contract:
+Existing routing and bounds queries cover these parts of the contract:
 
 - Create through opcode `8` with `AlwaysChoose`, including direct and guarded Save.
 - Use opcode `9` for full committed document bounds; retain Android's padding/zoom policy.
@@ -46,6 +46,26 @@ Other required behavior already fits the portable contract:
   the exact pending native request across the shared unsaved guard. Satisfy its ChooseSource
   effect with opcode `22`, instead of opening another picker. Release the retained source
   on cancellation/staleness. Viewer-only ViewSource is not an editable import shortcut.
+
+An additional source-lifetime audit at `05ca6f5` found a prerequisite omitted by the first
+audit: **AlwaysChoose changes routing, not binding retention.** Existing Android imports
+bytes without keeping a completed-open source binding, and successful Save acknowledges
+the snapshot without remembering a destination. Portable editable Open and SaveAs currently
+retain their provider bindings. Before host adoption, freeze explicit copy-import and
+confirmed nonbinding-save policies; keep default desktop binding behavior and existing wire
+layouts unchanged. Copy import alone does not solve successful save destination retention.
+
+These policies still use ordinary guarded editable Open and provider-confirmed Save, with
+exact issued work/results. Resources retire only after actual work and remaining operation
+leases settle. Neither viewer replacement nor unconfirmed ExportCopy is an equivalent.
+Android chooses its destination before writing; UIKit's separate staged export-picker
+continuation is described in the [Apple plan](022-apple-portable-adoption.md).
+
+Current Android VIEW may already take persistable READ permission without subsequently
+releasing it. That pre-existing permission retention is distinct from the new facade binding
+difference. Define grant ownership before changing it: do not release a prior app grant merely
+because one request completed. Test newly acquired versus already-owned grants and multiple
+requests sharing a resource; retain this gap explicitly until the provider lifecycle is fixed.
 
 ## Rust JNI ownership checkpoint
 
