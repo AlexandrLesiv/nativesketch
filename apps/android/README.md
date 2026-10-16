@@ -2,7 +2,7 @@
 
 Kotlin Android Views and Material Components 1.13.0 controls, JNI ABI 2 transport,
 and the shared Rust editor. Android Canvas paints Rust-generated paths provisionally;
-this does not decide the production renderer. No network permission or runtime service.
+Skia migration is pending (the renderer choice is already settled). No network permission or runtime service.
 
 Build with JDK 17+, Gradle 9.3.1, Android SDK 37 / build tools 36.0.0, NDK r30, and
 Rust targets `aarch64-linux-android` and `x86_64-linux-android`. Set `ANDROID_HOME`, `ANDROID_NDK_HOME`, `JAVA_HOME`,
@@ -58,3 +58,43 @@ The expanded control panel scrolls in short windows. Native sketch MIME drops ar
 alongside octet-stream and URI-list drops. Rust persistence records mouse, stylus and touch
 provenance distinctly. Fit may go below the manual zoom floor for very large drawings;
 zooming out then holds that fitted scale rather than increasing it.
+
+## Adapter composition and current migration boundary
+
+`MainActivity` composes lifecycle, owner handle and native collaborators. `EditorLayout`
+and `EditorToolbar` retain the existing Material widgets. `EditorPresenter` projects Rust
+state into status/control availability; separate dialog presenters own style, selection
+and zoom. `EditorKeyboard` retains native text-field priority. `SketchView` owns viewport
+and View callbacks, delegating painting to `CanvasPainter`, input translation to
+`CanvasInput`, ordered historical/current samples to `PointerSamples`, and temporary capture
+to `PointerState`. `EditorRetention` carries the existing owner across configuration changes.
+`EditorDocuments`, `IncomingDocuments` and `DocumentResults` isolate the existing SAF bridge.
+
+This is mechanical decomposition, not completion of the portable application migration.
+Legacy JNI operation numbers, native save/navigation policy and Android Canvas remain until
+the task 022 Rust command/provider contract is ready. The next slice must remove duplicated
+policy through that boundary, not grow the Activity or add a second Rust state machine.
+Skia is selected; this host's rendering migration is still pending.
+
+The existing injected replay was retained by responsibility: `EditorReplay` (core/history
+and touch cancellation), `DesktopReplay` (keyboard/resize/mouse), `ProviderReplay` (incoming
+file cancellation/MIME), and `InputProvenanceReplay` (device provenance/large-fit zoom).
+`ReplayInputFixture` and `ReplayQueue` retain event ordering and dialog-drain behavior.
+These cover smoke pathways relevant to INK-001, INPUT-001, CANCEL-001, UNDO-001, LOAD-001,
+SAVE-001 and FOCUS-001; they are not native UI E2E or physical-device acceptance.
+
+## Background quality commands
+
+Use `node scripts/build.ts --platform android` from the repository root with the tool
+locations above. Inside `apps/android`, the selected Gradle executable offers:
+
+- `kotlinFormat`: pinned official Maven `com.facebook:ktfmt:0.64`, Kotlin language style.
+- `kotlinFormatCheck`: non-mutating format gate, including Kotlin Gradle scripts.
+- `kotlinSourceSizeCheck`: all handwritten Kotlin/scripts <=200 physical lines.
+- `androidQuality`: format, size, AGP Android Lint (`lintDebug`) and JVM unit-test task.
+
+These tasks do not open an emulator or install an app. The unit-test task can report
+`NO-SOURCE`; that is no executed coverage, not an application test pass. Android Lint
+reports live under `app/build/reports/`. The ktfmt version was checked against official
+Maven metadata on 2026-10-16; it does not change global IDE or formatter settings.
+Native replay/E2E, TalkBack, actual stylus and ChromeOS hardware checks remain separate.
