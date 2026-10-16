@@ -1,15 +1,17 @@
 import type { CanvasKit, Path } from 'canvaskit-wasm';
-import type { Frame, Geometry } from './scene.ts';
+import type { Frame, Geometry, Stroke } from './scene.ts';
 import { f64, u32 } from './wire.ts';
 export interface CachedPath {
   path: Path;
+  pixels: boolean;
   color: number[];
   bytes: number;
 }
 /** Current-frame admission: 4096 paths/32 MiB estimate; staging peak is at most twice each bound. */
 export class SkiaPaths {
   private kit: CanvasKit;
-  private entries = new Map<bigint, CachedPath>();
+  private entries = new Map<string, CachedPath>();
+  private decisions = new Map<string, string>();
   readonly maximumBytes: number;
   readonly maximumCount: number;
   owned = 0;
@@ -18,7 +20,7 @@ export class SkiaPaths {
     this.maximumBytes = maximumBytes;
     this.maximumCount = maximumCount;
   }
-  private build(g: Geometry): CachedPath {
+  private build(g: Geometry, color: number[], pixels: boolean): CachedPath {
     const builder = new this.kit.PathBuilder();
     let consumed = false;
     try {
@@ -49,28 +51,60 @@ export class SkiaPaths {
       this.owned++;
       return {
         path,
-        color: [8, 16, 24, 32].map((o) => f64(g.commands, o)),
+        color,
+        pixels,
         bytes: g.commands.length + 128,
       };
     } finally {
       if (!consumed) builder.delete();
     }
   }
-  stage(frame: Frame) {
-    let bytes = 0;
-    for (const geometry of frame.geometry.values()) bytes += geometry.commands.length + 128;
-    if (bytes > this.maximumBytes || frame.geometry.size > this.maximumCount)
+  stage(frame: Frame, width: number, height: number) {
+    if (frame.strokes.length > this.maximumCount)
       throw Error('Visible drawing exceeds the renderer cache capacity');
-    const next = new Map<bigint, CachedPath>(),
+    const next = new Map<string, CachedPath>(),
+      decisions = new Map<string, string>();
+    const paths = new Map<Stroke, CachedPath>(),
       created: CachedPath[] = [];
+    let bytes = 0;
     try {
-      for (const [id, geometry] of frame.geometry) {
-        let entry = this.entries.get(id);
+      for (const stroke of frame.strokes) {
+        const geometry = frame.geometry.get(stroke.geometry)!;
+        const decision = JSON.stringify([
+          String(stroke.geometry),
+          stroke.scale,
+          stroke.tx,
+          stroke.ty,
+          frame.viewport,
+          width,
+          height,
+        ]);
+        let key = this.decisions.get(decision);
+        let entry = key ? this.entries.get(key) : undefined;
         if (!entry) {
-          entry = this.build(geometry);
-          created.push(entry);
+          if (!frame.prepare) throw Error('Missing leased scene preparation');
+          const prepared = frame.prepare(stroke, width, height, this.maximumBytes - bytes - 128);
+          key = prepared ? decision : `local:${stroke.geometry}`;
+          entry = next.get(key) ?? this.entries.get(key);
+          if (!entry) {
+            const g = prepared ?? geometry;
+            if (bytes + g.commands.length + 128 > this.maximumBytes)
+              throw Error('Visible drawing exceeds the renderer cache capacity');
+            entry = this.build(
+              g,
+              [8, 16, 24, 32].map((o) => f64(geometry.commands, o)),
+              prepared !== null,
+            );
+            created.push(entry);
+          }
         }
-        next.set(id, entry);
+        if (!key) throw Error('Missing prepared path cache key');
+        if (!next.has(key)) bytes += entry.bytes;
+        if (bytes > this.maximumBytes)
+          throw Error('Visible drawing exceeds the renderer cache capacity');
+        next.set(key, entry);
+        decisions.set(decision, key);
+        paths.set(stroke, entry);
       }
     } catch (error) {
       for (const entry of created) this.remove(entry);
@@ -78,12 +112,13 @@ export class SkiaPaths {
     }
     let finished = false;
     return {
-      paths: next,
+      paths,
       commit: () => {
         if (finished) throw Error('Renderer stage already completed');
         finished = true;
         for (const [id, entry] of this.entries) if (!next.has(id)) this.remove(entry);
         this.entries = next;
+        this.decisions = decisions;
       },
       abort: () => {
         if (finished) return;
@@ -99,5 +134,6 @@ export class SkiaPaths {
   dispose() {
     for (const entry of this.entries.values()) this.remove(entry);
     this.entries.clear();
+    this.decisions.clear();
   }
 }

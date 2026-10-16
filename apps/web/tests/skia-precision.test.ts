@@ -24,7 +24,13 @@ await test('actual CanvasKit preserves small portable geometry at signed billion
       engine.transform(1.25, 0, 0);
       engine.commitTransform();
       const camera = { x: origin * 1.25, y: 0, zoom: 0.875, dpr: 1.5 };
-      const frame = scene.update([camera.x, 0, 240, 240, 32]);
+      const frame = scene.update([
+        camera.x,
+        0,
+        240 / (camera.zoom * camera.dpr),
+        240 / (camera.zoom * camera.dpr),
+        32,
+      ]);
       painter.draw(surface, frame, camera);
       const image = surface.makeImageSnapshot();
       try {
@@ -101,7 +107,7 @@ await test('actual CanvasKit fills complete paged translucent portable geometry 
     await work.shutdown();
   }
 });
-await test('actual portable huge-span scene reports unsupported precision before replacing prior raster pixels', async () => {
+await test('actual portable huge-span scene renders shared prepared pixels across the viewport', async () => {
   const { engine, work } = await setup(),
     scene = new Scene(engine),
     painter = new SkiaPainter(kit);
@@ -121,13 +127,20 @@ await test('actual portable huge-span scene reports unsupported precision before
     engine.commit(100n);
     const frame = scene.update([0, 0, 240, 240, 32]);
     assert.equal(frame.strokes.length, 2);
-    assert.throws(
-      () => painter.draw(surface, frame, { x: 0, y: 0, zoom: 1, dpr: 1 }),
-      /viewport precision/,
-    );
+    painter.draw(surface, frame, { x: 0, y: 0, zoom: 1, dpr: 1 });
     const after = surface.makeImageSnapshot();
     try {
-      assert.deepEqual(after.encodeToBytes(), previous);
+      assert.notDeepEqual(after.encodeToBytes(), previous);
+      const data = after.readPixels(0, 0, {
+        width: 240,
+        height: 240,
+        colorType: kit.ColorType.RGBA_8888,
+        alphaType: kit.AlphaType.Unpremul,
+        colorSpace: kit.ColorSpace.SRGB,
+      });
+      assert.ok(data);
+      assert.ok(data[(100 * 240 + 120) * 4] < 245);
+      assert.equal(data[(150 * 240 + 120) * 4], 255);
     } finally {
       after.delete();
     }

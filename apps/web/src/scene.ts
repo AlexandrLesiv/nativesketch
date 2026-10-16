@@ -1,6 +1,9 @@
+import { PreparedPath } from './prepared-path.ts';
 import type { Engine } from './engine.ts';
 import { words, integers, floats, join, u64, u32, f64 } from './wire.ts';
 export interface Stroke {
+  selector: number;
+  index: number;
   id: bigint;
   order: bigint;
   geometry: bigint;
@@ -13,10 +16,14 @@ export interface Geometry {
   commands: Uint8Array;
 }
 export interface Frame {
+  viewport: number[];
+  prepare?: (stroke: Stroke, width: number, height: number, budget: number) => Geometry | null;
   strokes: Stroke[];
   geometry: Map<bigint, Geometry>;
 }
-const descriptor = (b: Uint8Array, o: number): Stroke => ({
+const descriptor = (b: Uint8Array, o: number, selector: number, index: number): Stroke => ({
+  selector,
+  index,
   id: u64(b, o),
   order: u64(b, o + 8),
   geometry: u64(b, o + 16),
@@ -27,14 +34,16 @@ const descriptor = (b: Uint8Array, o: number): Stroke => ({
 /** One published lease plus one temporary staging lease. Copies are bounded to 32 MiB. */
 export class Scene {
   private engine: Engine;
+  private prepared: PreparedPath;
   private maximumBytes: number;
   private lease = 0n;
   private root = 0n;
   private document = 0n;
   private committed: Stroke[] = [];
-  frame: Frame = { strokes: [], geometry: new Map() };
+  frame: Frame = { strokes: [], geometry: new Map(), viewport: [] };
   constructor(engine: Engine, maximumBytes = 32 * 1024 * 1024) {
     this.engine = engine;
+    this.prepared = new PreparedPath(engine);
     this.maximumBytes = maximumBytes;
   }
   update(viewport: number[]) {
@@ -54,7 +63,7 @@ export class Scene {
         const page = t.call(41, join(words(next), integers(first, 1365))),
           n = u32(page, 72);
         if (!n) throw Error('Incomplete scene descriptors');
-        for (let i = 0; i < n; ++i) committed.push(descriptor(page, 80 + i * 48));
+        for (let i = 0; i < n; ++i) committed.push(descriptor(page, 80 + i * 48, 0, first + i));
         first += n;
       }
       const strokes = [...committed];
@@ -62,9 +71,9 @@ export class Scene {
         const hidden = u64(info, 176);
         const index = strokes.findIndex((s) => s.id === hidden);
         if (index >= 0) strokes.splice(index, 1);
-        if (u32(info, 132)) strokes.push(descriptor(info, 240));
+        if (u32(info, 132)) strokes.push(descriptor(info, 240, 2, 0));
       }
-      if (u32(info, 124)) strokes.push(descriptor(info, 192));
+      if (u32(info, 124)) strokes.push(descriptor(info, 192, 1, 0));
       strokes.sort((a, b) => (a.order < b.order ? -1 : a.order > b.order ? 1 : 0));
       const geometry = new Map<bigint, Geometry>();
       let bytes = 0;
@@ -92,7 +101,13 @@ export class Scene {
       }
       const previous = this.lease;
       if (previous) t.call(44, words(previous));
-      this.frame = { strokes, geometry };
+      this.frame = {
+        strokes,
+        geometry,
+        viewport: [...viewport],
+        prepare: (stroke, width, height, budget) =>
+          this.prepared.read(next, stroke, width, height, budget),
+      };
       this.lease = next;
       this.root = root;
       this.document = document;
@@ -104,11 +119,12 @@ export class Scene {
     }
   }
   dispose() {
+    this.prepared.release();
     if (this.lease) this.engine.transport.call(44, words(this.lease));
     this.lease = 0n;
     this.root = 0n;
     this.document = 0n;
     this.committed = [];
-    this.frame = { strokes: [], geometry: new Map() };
+    this.frame = { strokes: [], geometry: new Map(), viewport: [] };
   }
 }

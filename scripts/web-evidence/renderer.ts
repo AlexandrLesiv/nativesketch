@@ -52,7 +52,7 @@ export function testClassification(id: string) {
       inputRoute:
         'TypeScript compiler positive/negative fixtures; no Wasm execution, browser or physical input',
     };
-  if (/\/skia-(raster|precision)\.test\.ts:/.test(id))
+  if (/\/skia-(raster|precision|prepared)\.test\.ts:/.test(id))
     return {
       level: 'rendering',
       inputRoute:
@@ -60,8 +60,10 @@ export function testClassification(id: string) {
     };
   return {
     level: 'bridge',
-    inputRoute: id.includes('/injected-failures.test.ts:')
-      ? 'TypeScript adapter with injected transport failure; no browser or physical input'
-      : 'Actual production Rust/Wasm via TypeScript adapter; no browser or physical input',
+    inputRoute:
+      id.includes('/injected-failures.test.ts:') ||
+      (/\/prepared-(ownership|quarantine)\.test\.ts:/.test(id) && id.includes('injected'))
+        ? 'TypeScript adapter with injected transport failure; no browser or physical input'
+        : 'Actual production Rust/Wasm via TypeScript adapter; no browser or physical input',
   };
 }
