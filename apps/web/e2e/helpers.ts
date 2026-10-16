@@ -26,6 +26,7 @@ export async function download(page: Page, info: TestInfo, name: string) {
   return { bytes, path };
 }
 export async function inkPixels(page: Page) {
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
   return page.locator('#canvas').evaluate((canvas: HTMLCanvasElement) => {
     const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
     let count = 0;

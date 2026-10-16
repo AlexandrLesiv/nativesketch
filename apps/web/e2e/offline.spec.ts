@@ -25,7 +25,7 @@ test('WEB-OFFLINE-001 real service worker reloads all production modules offline
     );
     return (await cache.keys()).map((request) => new URL(request.url).pathname);
   });
-  expect(cached).toContain('/nativesketch/sketch_wasm.wasm');
+  expect(cached).toContain('/nativesketch/sketch_app_wasm.wasm');
   expect(cached).toContain('/nativesketch/pointer-down.js');
   expect(cached.every((path) => path.startsWith('/nativesketch/'))).toBe(true);
   await context.setOffline(true);

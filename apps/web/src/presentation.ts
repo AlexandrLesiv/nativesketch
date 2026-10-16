@@ -24,7 +24,6 @@ export function safe(app: EditorHost, fn: () => void) {
     fn();
     app.refresh();
   } catch (e) {
-    app.cancel();
     if (!app.engine.isAvailable()) {
       app.disableEngine(
         'Drawing engine stopped. Reload to recover; unsaved work may be lost.',
@@ -40,6 +39,16 @@ export function refresh(app: EditorHost) {
   if (!app.engine?.isAvailable()) return;
   const s = app.engine.state();
   app.lastDirty = s.dirty;
+  app.tool = s.tool;
+  for (const id of ['pen', 'select']) el(id).setAttribute('aria-pressed', String(id === s.tool));
+  if (!s.interaction && (app.mode === 'ink' || app.mode === 'resize')) {
+    const owner = app.owner;
+    app.owner = undefined;
+    if (owner !== undefined && app.canvas.hasPointerCapture(owner))
+      app.canvas.releasePointerCapture(owner);
+    app.mode = '';
+    app.resize = undefined;
+  }
   for (const [id, disabled] of Object.entries({
     undo: !s.undo,
     redo: !s.redo,
@@ -57,5 +66,13 @@ export function refresh(app: EditorHost) {
     `Drawing canvas, ${s.count} strokes, ${s.selected ? 'stroke selected, ' : ''}${Math.round(app.zoom * 100)} percent zoom`,
   );
   el('hint').hidden = s.count > 0n || s.interaction !== 0;
-  paint(app, s);
+  if (!app.repaint)
+    app.repaint = requestAnimationFrame(() => {
+      app.repaint = 0;
+      try {
+        paint(app, app.engine.state());
+      } catch (error) {
+        app.error(error);
+      }
+    });
 }

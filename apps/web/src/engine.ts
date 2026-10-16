@@ -1,154 +1,117 @@
-// Own only live protocol allocations; copy each output before another command.
-export interface Api extends WebAssembly.Exports {
-  memory: WebAssembly.Memory;
-  sketch_wasm_protocol_version(): number;
-  sketch_wasm_create(): number;
-  sketch_wasm_free(h: number): number;
-  sketch_wasm_buffer_new(n: number): number;
-  sketch_wasm_buffer_ptr(t: number): number;
-  sketch_wasm_buffer_len(t: number): number;
-  sketch_wasm_buffer_free(t: number): number;
-  sketch_wasm_command(h: number, op: number, input: number): number;
-  sketch_wasm_output(h: number): number;
-}
-export const floats = (...v: number[]) => {
-  const b = new Uint8Array(v.length * 8),
-    d = new DataView(b.buffer);
-  v.forEach((x, i) => d.setFloat64(i * 8, x, true));
-  return b;
-};
-export const identity = (id: bigint) => {
-  const b = new Uint8Array(8);
-  new DataView(b.buffer).setBigUint64(0, id, true);
-  return b;
-};
+import { Transport } from './transport.ts';
+import { floats, words, integers, join, u64, u32, f64 } from './wire.ts';
+export { floats } from './wire.ts';
+export type Action = 'pen' | 'select' | 'previous' | 'next' | 'delete' | 'undo' | 'redo';
 export class Engine {
-  private handle: number;
-  private importRequest = 0;
+  readonly transport: Transport;
+  readonly session: bigint;
+  constructor(exports: WebAssembly.Exports) {
+    this.transport = new Transport(exports);
+    this.session = u64(
+      this.transport.call(
+        8,
+        join(integers(3, 1), floats(36 / 255, 99 / 255, 235 / 255, 1, 4), integers(1, 0)),
+      ),
+      72,
+    );
+  }
   isAvailable() {
-    return this.handle !== 0;
+    return this.transport.available;
   }
-  beginImportRequest() {
-    return ++this.importRequest;
+  projection() {
+    return this.transport.call(3, words(this.session));
   }
-  isCurrentImportRequest(request: number) {
-    return request === this.importRequest;
-  }
-  private api: Api;
-  constructor(api: Api) {
-    this.api = api;
-    if (api.sketch_wasm_protocol_version() !== 1) throw Error('Unsupported drawing engine');
-    this.handle = api.sketch_wasm_create();
-    if (!this.handle) throw Error('Cannot allocate drawing engine');
-  }
-  command(op: number, input = new Uint8Array()): Uint8Array {
-    if (!this.handle) throw Error('Drawing engine is unavailable; reload the page.');
-    if (op === 16 || op === 18) ++this.importRequest;
-    let token = 0;
-    try {
-      if (input.length) {
-        token = this.api.sketch_wasm_buffer_new(input.length);
-        if (!token) throw Error('Document exceeds available memory');
-        const p = this.api.sketch_wasm_buffer_ptr(token);
-        new Uint8Array(this.api.memory.buffer, p, input.length).set(input);
-      }
-      const status = this.api.sketch_wasm_command(this.handle, op, token);
-      if (status)
-        throw Error(`Drawing operation failed (${status}). The document was not replaced.`);
-      const out = this.api.sketch_wasm_output(this.handle);
-      if (!out) return new Uint8Array();
-      const p = this.api.sketch_wasm_buffer_ptr(out),
-        n = this.api.sketch_wasm_buffer_len(out);
-      return new Uint8Array(this.api.memory.buffer, p, n).slice();
-    } catch (error) {
-      if (error instanceof WebAssembly.RuntimeError) this.handle = 0;
-      throw error;
-    } finally {
-      if (token && this.handle) this.api.sketch_wasm_buffer_free(token);
-    }
+  context() {
+    const p = this.projection();
+    return words(this.session, u64(p, 80), u64(p, 104));
   }
   state() {
-    const b = this.command(1),
-      d = new DataView(b.buffer);
+    const p = this.projection(),
+      flags = u32(p, 156);
+    const b = this.transport.call(6, words(this.session));
     return {
-      count: d.getBigUint64(0, true),
-      selected: d.getBigUint64(8, true),
-      undo: !!d.getUint32(16, true),
-      redo: !!d.getUint32(20, true),
-      dirty: !!d.getUint32(24, true),
-      interaction: d.getUint32(28, true),
-      bounds: [32, 40, 48, 56].map((o) => d.getFloat64(o, true)),
+      count: u64(p, 112),
+      selected: u64(p, 120),
+      undo: !!(flags & 2),
+      redo: !!(flags & 4),
+      dirty: !!(flags & 1),
+      interaction: u32(p, 148),
+      tool: u32(p, 144) === 1 ? 'pen' : 'select',
+      bounds: [72, 80, 88, 96].map((o) => f64(b, o)),
     };
   }
-  begin(pointer: bigint, device: number, rgba: number[], width: number) {
-    const b = new Uint8Array(52),
-      d = new DataView(b.buffer);
-    d.setBigUint64(0, pointer, true);
-    d.setUint32(8, device, true);
-    [...rgba, width].forEach((v, i) => d.setFloat64(12 + i * 8, v, true));
-    this.command(2, b);
+  edit(tag: number, body = new Uint8Array()) {
+    return this.transport.call(10, join(this.context(), integers(tag, 0), body));
+  }
+  action(action: Action) {
+    const tag = { pen: 1, select: 1, previous: 2, next: 2, delete: 3, undo: 4, redo: 5 }[action];
+    const extra =
+      action === 'pen' || action === 'select'
+        ? integers(action === 'pen' ? 1 : 2, 0)
+        : action === 'previous' || action === 'next'
+          ? integers(action === 'previous' ? 1 : 2, 0)
+          : new Uint8Array();
+    return this.transport.call(11, join(this.context(), integers(tag, 0), extra));
+  }
+  scale(factor: number) {
+    return this.transport.call(11, join(this.context(), integers(6, 0, 1, 0), floats(factor)));
+  }
+  brush(rgba: number[], width: number) {
+    this.edit(2, floats(...rgba, width));
+  }
+  begin(pointer: bigint, device: number) {
+    this.edit(6, join(words(pointer), integers(device, 0)));
+  }
+  commit(pointer: bigint) {
+    this.edit(7, words(pointer));
+  }
+  cancel() {
+    this.edit(11);
+  }
+  select(x: number, y: number, tolerance: number) {
+    this.edit(3, floats(x, y, tolerance));
+  }
+  beginTransform() {
+    this.edit(8);
+  }
+  transform(scale: number, x: number, y: number) {
+    this.edit(9, floats(scale, x, y));
+  }
+  commitTransform() {
+    this.edit(10);
   }
   append(
     pointer: bigint,
-    samples: {
-      x: number;
-      y: number;
-      time: number;
-      pressure?: number;
-      id: bigint;
-    }[],
+    samples: { x: number; y: number; time: number; pressure?: number; id: bigint }[],
   ) {
-    const b = new Uint8Array(8 + 48 * samples.length),
-      d = new DataView(b.buffer);
-    d.setBigUint64(0, pointer, true);
-    samples.forEach((s, i) => {
-      const o = 8 + i * 48;
-      [s.x, s.y, s.time, s.pressure ?? 0].forEach((v, j) => d.setFloat64(o + j * 8, v, true));
-      d.setBigUint64(o + 32, s.id, true);
-      d.setUint32(o + 40, s.pressure === undefined ? 0 : 1, true);
-    });
-    this.command(3, b);
+    const records = samples.map((s) =>
+      join(
+        integers(0, s.pressure === undefined ? 0 : 1),
+        words(s.id),
+        floats(s.x, s.y, s.time, s.pressure ?? 0),
+      ),
+    );
+    this.transport.call(
+      12,
+      join(this.context(), words(pointer), integers(samples.length, 0), ...records),
+    );
   }
-  cycle(direction: number) {
-    const b = new Uint8Array(4);
-    new DataView(b.buffer).setInt32(0, direction, true);
-    this.command(8, b);
+  file(tag: number) {
+    return this.transport.call(20, join(this.context(), integers(tag, 0)));
   }
-  snapshot() {
-    const b = this.command(17);
-    return {
-      revision: new DataView(b.buffer).getBigUint64(0, true),
-      bytes: b.slice(8),
-    };
+  reply(effect: bigint, decision: number) {
+    return this.transport.call(21, join(this.context(), words(effect), integers(decision, 0)));
   }
-  dispose() {
-    if (this.handle) this.api.sketch_wasm_free(this.handle);
-    this.handle = 0;
+  resource(effect: bigint, resource: bigint, read: boolean) {
+    return this.transport.call(
+      22,
+      join(this.context(), words(effect), integers(1, read ? 1 : 2), words(resource, resource, 1n)),
+    );
+  }
+  bounds() {
+    return this.transport.call(9, words(this.session));
   }
 }
-
-/** Native file reads are asynchronous: never replace intervening edits without a fresh choice. */
-export async function importFile(
-  engine: Engine,
-  file: { size: number; arrayBuffer(): Promise<ArrayBuffer> },
-  confirmReplacement: () => Promise<boolean>,
-): Promise<boolean> {
-  if (file.size > 64 * 1024 * 1024) throw Error('Files must be no larger than 64 MiB.');
-  const request = engine.beginImportRequest();
-  engine.command(5);
-  const revision = engine.snapshot().revision;
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!engine.isCurrentImportRequest(request)) return false;
-  const hadDraft = engine.state().interaction !== 0;
-  engine.command(5);
-  if ((hadDraft || engine.snapshot().revision !== revision) && !(await confirmReplacement()))
-    return false;
-  if (!engine.isCurrentImportRequest(request)) return false;
-  engine.command(18, bytes);
-  return true;
-}
-
-/** A reused native dialog must not retain a previous destructive result on Escape. */
 export function resetReplacementChoice(dialog: { returnValue: string }) {
   dialog.returnValue = 'cancel';
 }

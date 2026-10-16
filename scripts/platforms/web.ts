@@ -12,15 +12,28 @@ export async function buildWasm() {
     '--target',
     'wasm32-unknown-unknown',
   ]);
-  await mkdir(join(root, 'artifacts/web'), { recursive: true });
+  await mkdir(join(root, 'artifacts/wasm-legacy'), { recursive: true });
   await copyFile(
     join(root, 'target/wasm32-unknown-unknown/release/sketch_wasm.wasm'),
-    join(root, 'artifacts/web/sketch_wasm.wasm'),
+    join(root, 'artifacts/wasm-legacy/sketch_wasm.wasm'),
   );
 }
 export async function buildWeb() {
   await rm(join(root, 'artifacts/web'), { recursive: true, force: true });
-  await buildWasm();
+  await command('cargo', [
+    'build',
+    '--locked',
+    '--release',
+    '-p',
+    'sketch-app-wasm',
+    '--target',
+    'wasm32-unknown-unknown',
+  ]);
+  await mkdir(join(root, 'artifacts/web'), { recursive: true });
+  await copyFile(
+    join(root, 'target/wasm32-unknown-unknown/release/sketch_app_wasm.wasm'),
+    join(root, 'artifacts/web/sketch_app_wasm.wasm'),
+  );
   await command(process.execPath, [
     'node_modules/typescript/bin/tsc',
     '-p',
@@ -62,12 +75,12 @@ export async function checkWasm() {
     ]);
     await command(process.execPath, [
       'crates/sketch-wasm/tests/conformance.ts',
-      'artifacts/web/sketch_wasm.wasm',
+      'artifacts/wasm-legacy/sketch_wasm.wasm',
       fixture,
     ]);
     await command(process.execPath, [
       'crates/sketch-wasm/tests/protocol-compatibility.ts',
-      'artifacts/web/sketch_wasm.wasm',
+      'artifacts/wasm-legacy/sketch_wasm.wasm',
     ]);
   } finally {
     await rm(temp, { recursive: true, force: true });

@@ -24,7 +24,7 @@ export function installKeyboard(app: EditorHost) {
     else if (modifier && key === 'z')
       action = () => {
         const s = app.engine.state();
-        if (e.shiftKey ? s.redo : s.undo) app.engine.command(e.shiftKey ? 15 : 14);
+        if (e.shiftKey ? s.redo : s.undo) app.engine.action(e.shiftKey ? 'redo' : 'undo');
       };
     else if (modifier && key === 's') action = app.download;
     else if (modifier && key === 'o') action = () => el('open').click();
@@ -36,11 +36,10 @@ export function installKeyboard(app: EditorHost) {
       (key === 'delete' || key === 'backspace') &&
       app.engine.state().selected
     )
-      action = () => app.engine.command(10);
+      action = () => app.engine.action('delete');
     if (action) {
       e.preventDefault();
       app.safe(() => {
-        app.cancel();
         action!();
       });
     }

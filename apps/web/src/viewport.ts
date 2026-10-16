@@ -35,8 +35,9 @@ export function installViewport(app: EditorHost) {
     app.navigation = undefined;
     app.refresh();
   });
-  new ResizeObserver(() => {
+  const resize = () => {
     const r = app.canvas.getBoundingClientRect();
+    if (r.width === app.width && r.height === app.height) return;
     app.cancel();
     app.tx += (r.width - app.width) / 2;
     app.ty += (r.height - app.height) / 2;
@@ -50,5 +51,7 @@ export function installViewport(app: EditorHost) {
     app.canvas.width = Math.round(app.width * dpr);
     app.canvas.height = Math.round(app.height * dpr);
     app.refresh();
-  }).observe(app.canvas);
+  };
+  resize();
+  new ResizeObserver(resize).observe(app.canvas);
 }

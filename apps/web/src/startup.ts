@@ -1,12 +1,13 @@
 import type { EditorHost } from './host.ts';
+import { Scene } from './scene.ts';
 import { Engine } from './engine.ts';
-import type { Api } from './engine.ts';
 export async function startEngine(app: EditorHost) {
   try {
-    const response = await fetch('sketch_wasm.wasm');
+    const response = await fetch('sketch_app_wasm.wasm');
     if (!response.ok) throw Error('Drawing engine unavailable');
     const instance = await WebAssembly.instantiate(await response.arrayBuffer(), {});
-    app.engine = new Engine(instance.instance.exports as Api);
+    app.engine = new Engine(instance.instance.exports);
+    app.scene = new Scene(app.engine);
     app.refresh();
     if ('serviceWorker' in navigator)
       void navigator.serviceWorker.register('./sw.js').catch(() => {});

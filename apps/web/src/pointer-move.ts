@@ -1,5 +1,4 @@
 import type { EditorHost } from './host.ts';
-import { floats } from './engine.ts';
 export function installPointerMove(app: EditorHost) {
   app.canvas.addEventListener('pointermove', (e) =>
     app.safe(() => {
@@ -28,16 +27,10 @@ export function installPointerMove(app: EditorHost) {
       } else if (app.mode === 'ink') app.append(e);
       else if (app.mode === 'resize' && app.resize) {
         const q = app.point(p.x, p.y);
-        app.engine.command(
-          12,
-          floats(
-            Math.max(
-              0.01,
-              Math.hypot(q.x - app.resize.x, q.y - app.resize.y) / app.resize.distance,
-            ),
-            app.resize.x,
-            app.resize.y,
-          ),
+        app.engine.transform(
+          Math.max(0.01, Math.hypot(q.x - app.resize.x, q.y - app.resize.y) / app.resize.distance),
+          app.resize.x,
+          app.resize.y,
         );
       }
     }),

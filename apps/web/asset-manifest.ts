@@ -59,7 +59,7 @@ export async function webAssetManifest(directory: string) {
   const files = paths([
     'index.html',
     'style.css',
-    'sketch_wasm.wasm',
+    'sketch_app_wasm.wasm',
     'module-inventory.json',
     ...emitted,
   ]).sort();

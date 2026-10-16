@@ -1,16 +1,19 @@
+import type { Scene } from './scene.ts';
 import type { Engine } from './engine.ts';
 import { el } from './elements.ts';
 import { error, safe, refresh, disableEngine } from './presentation.ts';
 import { setZoom } from './viewport.ts';
 import { metric, position, append } from './pointer-samples.ts';
 import { chooseTool, click } from './controls.ts';
-import { download, guard } from './files.ts';
+import { download } from './files.ts';
 
 /** Native browser presentation state; Rust remains the only document owner. */
 export class EditorHost {
   readonly canvas = el<HTMLCanvasElement>('canvas');
   readonly ctx = this.canvas.getContext('2d')!;
   engine!: Engine;
+  scene!: Scene;
+  repaint = 0;
   tool = 'pen';
   zoom = 1;
   tx = 0;
@@ -44,7 +47,7 @@ export class EditorHost {
     disableEngine(this, message, protect);
   }
   cancel = () => {
-    if (this.engine?.isAvailable()) this.engine.command(5);
+    if (this.engine?.isAvailable()) this.engine.cancel();
     this.owner = undefined;
     this.mode = '';
     this.resize = undefined;
@@ -69,8 +72,5 @@ export class EditorHost {
   }
   download = () => {
     download(this);
-  };
-  guard = () => {
-    return guard(this);
   };
 }

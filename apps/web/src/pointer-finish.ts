@@ -1,5 +1,4 @@
 import type { EditorHost } from './host.ts';
-import { floats, identity } from './engine.ts';
 function finish(app: EditorHost, e: PointerEvent, aborted: boolean) {
   app.safe(() => {
     if (app.owner === e.pointerId) {
@@ -7,23 +6,20 @@ function finish(app: EditorHost, e: PointerEvent, aborted: boolean) {
       else {
         if (app.mode === 'ink') {
           app.append(e);
-          app.engine.command(4, identity(BigInt(e.pointerId)));
+          app.engine.commit(BigInt(e.pointerId));
         }
         if (app.mode === 'resize' && app.resize) {
           const p = app.position(e),
             q = app.point(p.x, p.y);
-          app.engine.command(
-            12,
-            floats(
-              Math.max(
-                0.01,
-                Math.hypot(q.x - app.resize.x, q.y - app.resize.y) / app.resize.distance,
-              ),
-              app.resize.x,
-              app.resize.y,
+          app.engine.transform(
+            Math.max(
+              0.01,
+              Math.hypot(q.x - app.resize.x, q.y - app.resize.y) / app.resize.distance,
             ),
+            app.resize.x,
+            app.resize.y,
           );
-          app.engine.command(13);
+          app.engine.commitTransform();
         }
         app.owner = undefined;
         app.mode = '';

@@ -10,12 +10,18 @@ test('WEB-FILE-001 download remains dirty upload reopens exact portable drawing'
   await page.locator('#new').click();
   await page.getByRole('button', { name: 'Discard and continue' }).click();
   await expect(page.locator('#status')).toContainText('0 strokes');
-  await page.locator('#file').setInputFiles(saved.path);
+  const chooser = page.waitForEvent('filechooser');
+  await page.locator('#open').click();
+  await (await chooser).setFiles(saved.path);
   await expect(page.locator('#status')).toContainText('1 stroke');
   await expect(page.locator('#status')).not.toContainText('Unsaved');
   expect(await inkPixels(page)).toBeGreaterThan(100);
   expect((await download(page, info, 'reopened.nsketch')).bytes).toEqual(saved.bytes);
-  await page.locator('#file').setInputFiles({
+  const corruptChooser = page.waitForEvent('filechooser');
+  await page.locator('#open').click();
+  await (
+    await corruptChooser
+  ).setFiles({
     name: 'bad.nsketch',
     mimeType: 'application/octet-stream',
     buffer: Buffer.from('corrupt'),

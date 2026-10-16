@@ -1,6 +1,4 @@
 import type { EditorHost } from './host.ts';
-import { el } from './elements.ts';
-import { floats } from './engine.ts';
 export function installPointerDown(app: EditorHost) {
   app.canvas.addEventListener('pointerdown', (e) =>
     app.safe(() => {
@@ -42,23 +40,18 @@ export function installPointerDown(app: EditorHost) {
               y: b,
               distance: Math.max(0.01, Math.hypot(q.x - a, q.y - b)),
             };
-            app.engine.command(11);
+            app.engine.beginTransform();
             app.mode = 'resize';
             return;
           }
         }
-        app.engine.command(7, floats(q.x, q.y, 8 / app.zoom));
+        app.engine.select(q.x, q.y, 8 / app.zoom);
         app.mode = 'select';
         return;
       }
-      const hex = el<HTMLInputElement>('color').value,
-        rgba = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-      rgba.push(1);
       app.engine.begin(
         BigInt(e.pointerId),
-        e.pointerType === 'pen' ? 1 : e.pointerType === 'touch' ? 2 : 0,
-        rgba,
-        Number(el<HTMLInputElement>('width').value),
+        e.pointerType === 'pen' ? 2 : e.pointerType === 'touch' ? 3 : 1,
       );
       app.mode = 'ink';
       app.sample = 0n;
