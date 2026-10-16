@@ -34,7 +34,8 @@ static void *run_worker(void *argument) {
     return NULL;
 }
 void check_worker_roundtrip(void) {
-    TestApp a = create();
+    TestApp a = create_policy(1);
+    check_bounds(a);
     uint64_t op = queue_save(a);
     uint8_t p[128], r[512], body[16];
     NsV2Error e;
@@ -61,6 +62,7 @@ void check_worker_roundtrip(void) {
     put64(body, a.session);
     put64(body + 8, op);
     call(a, 32, body, 16, r);
-    assert(get32(r + 156) == 0);
+    assert((get32(r + 156) & 1) == 0);
+    check_bound_chooser(a);
     close_app(a);
 }

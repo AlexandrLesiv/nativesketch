@@ -9,18 +9,16 @@ impl WireApp {
         let mut reply = Reply::reserve(&self.budget, packet.opcode, packet.request, 4096)?;
         let fresh = crate::identity::reserve(3)?;
         match packet.command {
-            Request::Create(config) => {
-                if self.sessions.len() >= self.limits.sessions {
-                    return Err(WireError::capacity());
-                }
-                let handle = self.app.create_session(config)?;
-                self.sessions.push(crate::owner::Session {
-                    id: fresh,
-                    handle,
-                    effect: None,
-                });
-                reply.projection(fresh, self.app.projection(handle)?, 0);
+            Request::Create(config) => self.create(
+                config,
+                SaveDestinationPolicy::ReuseBinding,
+                fresh,
+                &mut reply,
+            )?,
+            Request::CreateWithSavePolicy(config, policy) => {
+                self.create(config, policy, fresh, &mut reply)?
             }
+            Request::DocumentBounds(id) => self.document_bounds(id, &mut reply)?,
             Request::Detach(id) => {
                 let handle = self.session(id)?;
                 self.app.detach_session(handle)?;

@@ -20,7 +20,7 @@ fn exact_request_goldens_and_invalid_tails() {
             assert!(decode(&bytes[..n]).is_err(), "truncated {name}/{n}");
         }
     }
-    assert_eq!(count, 97);
+    assert_eq!(count, 100);
 }
 #[test]
 fn malformed_flags_reserved_versions_counts_and_floats_are_rejected() {

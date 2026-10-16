@@ -4,11 +4,11 @@ import type { Harness } from './harness.ts';
 export function session(h: Harness, a: number): bigint {
   return u64(h.call(a, fixture('create.cap3')), 72);
 }
-function context(h: Harness, a: number, s: bigint): Uint8Array {
+export function context(h: Harness, a: number, s: bigint): Uint8Array {
   const r = h.call(a, packet(3, words(s)));
   return words(s, u64(r, 80), u64(r, 104));
 }
-function file(h: Harness, a: number, s: bigint, tag: number): Uint8Array {
+export function file(h: Harness, a: number, s: bigint, tag: number): Uint8Array {
   const b = new Uint8Array(32);
   b.set(context(h, a, s));
   new DataView(b.buffer).setUint32(24, tag, true);

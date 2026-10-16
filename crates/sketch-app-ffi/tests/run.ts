@@ -19,7 +19,7 @@ await command('clang', [
   '-Werror',
   '-I',
   join(root, 'crates/sketch-app-ffi/include'),
-  ...['consumer.c', 'support.c', 'worker.c'].map((name) =>
+  ...['consumer.c', 'support.c', 'worker.c', 'policy.c'].map((name) =>
     join(root, 'crates/sketch-app-ffi/tests', name),
   ),
   join(root, 'target/release/libsketch_app_ffi.a'),

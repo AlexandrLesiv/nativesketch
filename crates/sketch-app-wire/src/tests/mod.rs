@@ -125,6 +125,7 @@ mod effect_goldens;
 mod enum_records;
 mod failure_goldens;
 mod large_pages;
+mod policy_bounds;
 mod response_goldens;
 mod save_during_load;
 mod scene_goldens;

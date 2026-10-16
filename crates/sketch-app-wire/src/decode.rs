@@ -39,19 +39,30 @@ fn command(op: u32, r: &mut Reader<'_>) -> Result<Request, WireError> {
                 snapshot_bytes: r.usize()?,
             },
         }),
-        1 => {
+        1 | 8 => {
             let caps = r.u32()?;
             if caps & !3 != 0 {
                 return Err(WireError::malformed());
             }
-            Request::Create(SessionConfig {
+            let config = SessionConfig {
                 capabilities: Capabilities {
                     edit_document: caps & 1 != 0,
                     export_document: caps & 2 != 0,
                 },
                 tool: r.tool()?,
                 brush: r.brush()?,
-            })
+            };
+            if op == 1 {
+                Request::Create(config)
+            } else {
+                let policy = match r.u32()? {
+                    0 => SaveDestinationPolicy::ReuseBinding,
+                    1 => SaveDestinationPolicy::AlwaysChoose,
+                    _ => return Err(WireError::malformed()),
+                };
+                r.zero()?;
+                Request::CreateWithSavePolicy(config, policy)
+            }
         }
         2 => Request::Detach(r.u64()?),
         3 => Request::Projection(r.u64()?),
@@ -59,6 +70,7 @@ fn command(op: u32, r: &mut Reader<'_>) -> Result<Request, WireError> {
         5 => Request::Stats,
         6 => Request::SelectedBounds(r.u64()?),
         7 => Request::Diagnostic,
+        9 => Request::DocumentBounds(r.u64()?),
         10 => Request::Edit(r.context()?, r.edit()?),
         11 => Request::Action(r.context()?, r.action()?),
         12 => Request::Input(r.context()?, PointerId(r.u64()?), r.samples()?),

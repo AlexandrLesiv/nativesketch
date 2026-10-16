@@ -27,6 +27,7 @@ mod diagnostics;
 mod dispatch;
 mod exchange;
 mod projection;
+mod session_queries;
 mod work;
 mod worker_call;
 pub use work::{InputBytes, WireResult, WireWork, WorkerReply};

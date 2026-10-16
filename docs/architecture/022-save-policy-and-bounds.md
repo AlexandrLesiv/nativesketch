@@ -64,6 +64,8 @@ chooser cancellation/staleness, failed/uncertain/cancelled/older writes, exact l
 large fractional coordinates, pressure/transforms, undo/redo/delete/replacement, viewport
 exclusion, live drafts/predictions and read-only source replacement.
 
-Wire opcodes, C/Wasm consumer coverage, Linux/Android adoption and native E2E remain separate.
+Additive wire opcodes 8/9 and actual C/Wasm conformance cover policy creation,
+chooser-after-save, and identity/revision-bound f64 results. These tests remain bridge
+coverage. Linux/Android adoption and native E2E remain separate.
 Apple's staged temporary export followed by a picker and confirmed nonbinding save is a
 different contract and remains pending. This policy does not claim that behavior.

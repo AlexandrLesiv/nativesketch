@@ -45,7 +45,7 @@ void call(TestApp a, uint32_t op, const uint8_t *body, size_t n, uint8_t *out) {
     assert(ns_v2_app_call(a.app, p, len, &r, &e) == 0);
     copy_reply(r, out);
 }
-TestApp create(void) {
+static TestApp configured(uint32_t opcode, uint32_t policy) {
     uint8_t b[64], p[128], r[512];
     NsV2Error e;
     TestApp a = {0, 0};
@@ -62,7 +62,8 @@ TestApp create(void) {
         memcpy(&bits, &brush[i], 8);
         put64(b + 8 + 8 * i, bits);
     }
-    call(a, 1, b, 48, r);
+    put32(b + 48, policy);
+    call(a, opcode, b, opcode == 8 ? 56 : 48, r);
     a.session = get64(r + 72);
     return a;
 }
@@ -128,3 +129,6 @@ void close_app(TestApp a) {
     assert(ns_v2_app_free(&a.app, &e) == 0);
     assert(a.app == 0);
 }
+
+TestApp create(void) { return configured(1, 0); }
+TestApp create_policy(uint32_t policy) { return configured(8, policy); }

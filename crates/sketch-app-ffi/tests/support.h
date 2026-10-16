@@ -16,3 +16,6 @@ void context(TestApp, uint8_t *);
 void close_app(TestApp);
 uint64_t queue_save(TestApp);
 void check_worker_roundtrip(void);
+TestApp create_policy(uint32_t);
+void check_bounds(TestApp);
+void check_bound_chooser(TestApp);

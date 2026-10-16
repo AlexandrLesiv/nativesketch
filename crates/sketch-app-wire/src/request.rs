@@ -15,11 +15,13 @@ pub struct Packet {
 pub enum Request {
     Bootstrap(AppLimits),
     Create(SessionConfig),
+    CreateWithSavePolicy(SessionConfig, SaveDestinationPolicy),
     Detach(u64),
     Projection(u64),
     Availability(u64, EditorAction),
     Stats,
     SelectedBounds(u64),
+    DocumentBounds(u64),
     Diagnostic,
     Edit(RawContext, EditorCommand),
     Action(RawContext, EditorAction),

@@ -62,7 +62,9 @@ for their issuing session and current continuation. Zero denotes absence, never 
 | Opcode | Exact payload | Success body |
 | --- | --- | --- |
 | 0 CreateApp | sessions,operations,destinations,buffers,buffer_bytes,document_bytes,save_jobs,snapshot_bytes:u64 | app through typed bootstrap |
-| 1 CreateSession | capabilities:u32,tool:u32,Brush | Projection |
+| 1 CreateSession | capabilities:u32,tool:u32,Brush | Projection; ReuseBinding default |
+| 8 CreateSessionWithSavePolicy | capabilities:u32,tool:u32,Brush,policy:u32,reserved:u32=0 | Projection; policy 0 ReuseBinding, 1 AlwaysChoose |
+| 9 DocumentBounds | session_ref:u64 | document_session,revision:u64,present:u32,reserved:u32=0,x,y,width,height:f64 |
 | 2 Detach | session_ref:u64 | empty |
 | 3 Projection | session_ref:u64 | Projection |
 | 4 Availability | session_ref:u64,Action | enabled:u32,reason:u32 |
@@ -210,7 +212,7 @@ No host depends on finishing every ABI. Actual Linux display/portal/stylus remai
 Fixtures cover every request tag, error code, output enum, high-bit IDs and sample variant.
 Tests include tails/overflow/reserved flags, wrong scope/owner, output-capacity atomicity,
 real worker exchange, failed/cancelled receipts, aliases, stale continuation repair, independent
-scene leases/eviction/unchanged geometry, and all 26 facade tests. Codec fixtures may contain
+scene leases/eviction/unchanged geometry, and all facade tests. Codec fixtures may contain
 synthetic wire IDs; execution tests must obtain real private ownership. No native acceptance
 or performance claim follows from codec, replay, or compilation.
 
@@ -321,3 +323,19 @@ Released, unleased cached geometry may receive a fresh opaque identity on later 
 The literal fixture set includes complete Projection/Outcome/WorkInfo/SceneInfo/Path responses,
 not only tag units; payload handles and sample/resource IDs exercise values above 2^53 and
 with the high bit set. These are transport/core evidence, never native input or GPU evidence.
+
+## Additive save policy and whole-document bounds
+
+Opcode 8 has a 56-byte body and returns the existing 152-byte Projection. Policy tags are
+explicit; unknown values/reserved/tails fail before any session is created. Opcode 1 keeps
+its original 48-byte body and ReuseBinding semantics. The typed policy is specified in
+[save policy and bounds](022-save-policy-and-bounds.md); transport does not override it.
+
+Opcode 9 has an 8-byte body and returns 56 body bytes. Present 0 means an empty document and
+requires all four floating-point fields to be positive zero; present 1 carries the full
+f64 committed outline bounds. Document identity/revision are captured on the same owner
+call as the query. Hosts must compare both before applying a delayed Fit response.
+This explicit O(committed samples) query excludes temporary/predicted input and viewport
+culling; it does not construct a scene or cancel interaction. Platform zoom/padding remain
+host presentation policy. Foreign/detached sessions fail; output reservation failure leaves
+state and previously leased scenes intact. No existing opcode or ABI is reinterpreted.
