@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { spawnOwned } from './owned-process.ts';
 import { ProcessFailure } from './process-failure.ts';
 
 export type ProcessOptions = {
@@ -19,19 +20,24 @@ export function run(executable: string, args: string[], options: ProcessOptions)
       reject(new ProcessFailure(executable, null, null, 'Process cancelled', ''));
       return;
     }
-    const child = spawn(executable, args, {
-      cwd: options.cwd,
-      env: { ...process.env, ...options.env },
-      shell: false,
-      detached: process.platform !== 'win32',
-      stdio: options.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
-    });
+    const owned =
+      process.platform === 'win32'
+        ? null
+        : spawnOwned(executable, args, { ...options, capture: options.capture ?? false });
+    const child =
+      owned?.child ??
+      spawn(executable, args, {
+        cwd: options.cwd,
+        env: { ...process.env, ...options.env },
+        shell: false,
+        stdio: options.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+      });
     let output = '';
     let reason = '';
     let stopping = false;
     let capturedBytes = 0;
 
-    let killTimer: NodeJS.Timeout | undefined;
+    let killTimer: ReturnType<typeof setTimeout> | undefined;
     const stop = () => {
       if (stopping) return;
       stopping = true;
@@ -40,7 +46,7 @@ export function run(executable: string, args: string[], options: ProcessOptions)
       if (!pid) return;
       const terminate = (signal: NodeJS.Signals) => {
         try {
-          if (process.platform !== 'win32') process.kill(-pid, signal);
+          if (owned) owned.kill(signal);
           else child.kill(signal);
         } catch (error) {
           if ((error as NodeJS.ErrnoException).code !== 'ESRCH') reason += ': cleanup failed';
@@ -68,16 +74,12 @@ export function run(executable: string, args: string[], options: ProcessOptions)
     child.once('error', (error) => {
       reason = `Process spawn failed: ${error.message}`;
     });
-    child.once('close', (code, signal) => {
+    child.once('close', (supervisorCode, supervisorSignal) => {
       clearTimeout(timer);
-      if (reason && child.pid && process.platform !== 'win32') {
-        try {
-          process.kill(-child.pid, 'SIGKILL');
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== 'ESRCH')
-            reason += ': descendant cleanup failed';
-        }
-      }
+      const outcome = owned?.finish(supervisorCode, supervisorSignal);
+      const code = outcome ? outcome.code : supervisorCode;
+      const signal = outcome ? outcome.signal : supervisorSignal;
+      reason ||= outcome?.error ?? '';
       clearTimeout(killTimer);
       options.signal?.removeEventListener('abort', stop);
       if (reason || code !== 0)

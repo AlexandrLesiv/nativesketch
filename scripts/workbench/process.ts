@@ -1,5 +1,5 @@
 import { StringDecoder } from 'node:string_decoder';
-import { spawn } from 'node:child_process';
+import { spawnOwned } from '../lib/owned-process.ts';
 export interface OwnedResult {
   exitCode: number | null;
   signal: string | null;
@@ -26,23 +26,11 @@ export function runOwned(
       resolve({ exitCode: null, signal: null, reason: 'Cancelled', output, bytes });
       return;
     }
-    const child = spawn(executable, args, {
-      cwd,
-      detached: true,
-      shell: false,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const owned = spawnOwned(executable, args, { cwd });
+    const child = owned.child;
     let killTimer: ReturnType<typeof setTimeout> | undefined;
     let stopping = false;
-    const kill = (name: NodeJS.Signals) => {
-      if (!child.pid) return;
-      try {
-        process.kill(-child.pid, name);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH')
-          reason = `${reason ?? 'Process finished'}; owned process cleanup failed: ${(error as NodeJS.ErrnoException).code}`;
-      }
-    };
+    const kill = owned.kill;
     const terminate = () => {
       if (stopping) return;
       stopping = true;
@@ -71,8 +59,8 @@ export function runOwned(
         terminate();
       }
     };
-    child.stdout.on('data', append);
-    child.stderr.on('data', append);
+    child.stdout?.on('data', append);
+    child.stderr?.on('data', append);
     child.on('error', () => {
       reason = 'Executable unavailable or failed to spawn';
     });
@@ -82,9 +70,10 @@ export function runOwned(
     child.on('close', (exitCode, exitSignal) => {
       clearTimeout(timer);
       clearTimeout(killTimer);
-      kill('SIGKILL');
+      const outcome = owned.finish(exitCode, exitSignal);
+      if (outcome.error) reason = `${reason ?? 'Process finished'}; ${outcome.error}`;
       signal.removeEventListener('abort', cancel);
-      resolve({ exitCode, signal: exitSignal, reason, output, bytes });
+      resolve({ exitCode: outcome.code, signal: outcome.signal, reason, output, bytes });
     });
   });
 }

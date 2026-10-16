@@ -1,5 +1,6 @@
-import { spawn, execFile } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { spawnOwned } from '../lib/owned-process.ts';
 import { ProcessFailure } from '../lib/process-failure.ts';
 /** Keep reporter stdout isolated; cancellation owns the complete POSIX worker group. */
 export async function nodeProcess(root: string, args: string[], signal?: AbortSignal) {
@@ -23,12 +24,8 @@ export async function nodeProcess(root: string, args: string[], signal?: AbortSi
     }
   }
   return new Promise<{ output: string; exitFailed: boolean }>((resolve, reject) => {
-    const child = spawn(process.execPath, args, {
-      cwd: root,
-      env,
-      detached: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const owned = spawnOwned(process.execPath, args, { cwd: root, env });
+    const child = owned.child;
     const stdout: Buffer[] = [];
     const stderr: Buffer[] = [];
     let outBytes = 0;
@@ -36,15 +33,7 @@ export async function nodeProcess(root: string, args: string[], signal?: AbortSi
     let reason = '';
     let stopping = false;
     let killTimer: ReturnType<typeof setTimeout> | undefined;
-    const kill = (name: NodeJS.Signals) => {
-      if (!child.pid) return;
-      try {
-        process.kill(-child.pid, name);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH')
-          reason ||= 'Owned Node worker cleanup failed';
-      }
-    };
+    const kill = owned.kill;
     const stop = () => {
       if (stopping) return;
       stopping = true;
@@ -71,13 +60,17 @@ export async function nodeProcess(root: string, args: string[], signal?: AbortSi
         stop();
       }
     };
-    child.stdout.on('data', (chunk: Buffer) => append(chunk, 'out'));
-    child.stderr.on('data', (chunk: Buffer) => append(chunk, 'err'));
+    child.stdout?.on('data', (chunk: Buffer) => append(chunk, 'out'));
+    child.stderr?.on('data', (chunk: Buffer) => append(chunk, 'err'));
     child.on('error', () => {
       reason = 'Node evidence worker failed to spawn';
     });
     child.on('exit', stop);
-    child.on('close', (code, exitSignal) => {
+    child.on('close', (supervisorCode, supervisorSignal) => {
+      const outcome = owned.finish(supervisorCode, supervisorSignal);
+      const code = outcome.code;
+      const exitSignal = outcome.signal;
+      reason ||= outcome.error;
       clearTimeout(timer);
       clearTimeout(killTimer);
       kill('SIGKILL');
