@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "web-skia",
   "description": "Actual Rust/Wasm scenes rendered by CanvasKit CPU raster and separate TypeScript compiler fixtures. No GPU or physical latency claims.",
-  "sourceRevision": "333f9ff",
+  "sourceRevision": "6e0c4e1",
   "cases": [
     {
       "id": "WEB-SKIA-RASTER-001",
@@ -77,8 +77,8 @@
       "gaps": []
     },
     {
-      "id": "WEB-SKIA-GUARD-001",
-      "expected": "Unsupported huge-span precision fails before replacing prior raster pixels; this is rejection evidence, not successful huge-stroke rendering.",
+      "id": "WEB-SKIA-SPAN-001",
+      "expected": "Actual huge-span portable geometry renders shared prepared pixels across the visible viewport.",
       "invariants": ["RENDER-001"],
       "ownerTask": "020",
       "requirements": [
@@ -89,7 +89,7 @@
         }
       ],
       "testIds": [
-        "node:apps/web/tests/skia-precision.test.ts:actual portable huge-span scene reports unsupported precision before replacing prior raster pixels"
+        "node:apps/web/tests/skia-precision.test.ts:actual portable huge-span scene renders shared prepared pixels across the viewport"
       ],
       "automation": "implemented",
       "gaps": []
@@ -108,6 +108,100 @@
       ],
       "testIds": [
         "node:apps/web/tests/skia-types.test.ts:CanvasKit published API and built-in WebGPU remain checked with legacy globals deduplicated"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-PREPARED-001",
+      "expected": "Shared prepared signed crossings match independent local references under fractional/asymmetric backing; giant enclosing/grazing interiors and empty output render correctly.",
+      "invariants": ["RENDER-001", "CACHE-001", "FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-prepared.test.ts:actual shared prepared signed crossing paths match local references with asymmetric fractional backing and one alpha fill",
+        "node:apps/web/tests/skia-prepared.test.ts:actual prepared enclosing and grazing giant curves preserve filled interiors",
+        "node:apps/web/tests/skia-prepared.test.ts:actual prepared empty pixel path releases its lease and paints no false coverage"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SKIA-PREPARED-CACHE-001",
+      "expected": "Complete multi-page preview paths reuse only matching viewport, transform and actual backing dimensions.",
+      "invariants": ["RENDER-001", "CACHE-001", "FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "rendering",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/skia-prepared.test.ts:actual prepared multi-page preview paths cache only matching viewport transform and dimensions"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PREPARED-OWNERSHIP-001",
+      "expected": "Stale scenes, wrong provenance and actual allocation admission failure retain usable scene ownership without orphaning prepared leases.",
+      "invariants": ["RENDER-001", "CACHE-001", "FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/prepared-ownership.test.ts:actual prepared consumer rejects stale scenes and wrong provenance without retaining a wire lease",
+        "node:apps/web/tests/prepared-ownership.test.ts:actual prepared allocation budget rejection retires output and leaves the scene usable"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PREPARED-FAILURE-001",
+      "expected": "Injected page rejection/malformed data preserve previous pixels and paths; rejected release retains its handle through retry and disposal.",
+      "invariants": ["RENDER-001", "CACHE-001", "FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/prepared-ownership.test.ts:injected rejected and malformed prepared pages release leases and retain prior pixels and path owners",
+        "node:apps/web/tests/prepared-ownership.test.ts:injected prepared release rejection preserves ownership until retry and explicit consumer disposal"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PREPARED-QUARANTINE-001",
+      "expected": "Injected response copy failure after an actual consumed release quarantines ownership without repeating the committed command.",
+      "invariants": ["RENDER-001", "CACHE-001", "FFI-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge",
+          "pointerWidth": 32
+        }
+      ],
+      "testIds": [
+        "node:apps/web/tests/prepared-quarantine.test.ts:injected copy failure after consumed prepared release quarantines without repeating the committed command"
       ],
       "automation": "implemented",
       "gaps": []

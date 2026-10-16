@@ -243,6 +243,21 @@
       "testIds": ["playwright:chromium:WEB-RENDER-ERROR-001"],
       "automation": "implemented",
       "gaps": []
+    },
+    {
+      "id": "WEB-PRECISION-001",
+      "expected": "An actual giant portable stroke renders across the browser viewport and roundtrips unchanged through download.",
+      "invariants": ["RENDER-001", "SAVE-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-PRECISION-001"],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }

@@ -48,6 +48,33 @@ macOS build/pre-AppKit smoke and 17 GPU-free Swift tests. The scoped
 passed with no mapping issues. Its initial report assembly failed on an optional metadata
 field, before publication; that attempt is retained separately and not treated as acceptance.
 
-Preparation is bounded synchronous render work, not a latency optimization claim. Browser
-consumption, cache keys and real CanvasKit large-stroke rendering remain the next separate
-verification slice. Native GPU acceptance and task 024 remain open.
+## Browser consumption
+
+Frozen worker `3e02a7045e2b98a5917fd33e277e3b9e6a1bac08` integrates as `6e0c4e1`.
+The browser now pages and releases actual prepared-path leases, converts their physical
+coordinates without a second transform, and keys disposable paths by geometry, transform,
+leased viewport and actual backing dimensions. Ordinary local geometry remains reusable.
+Complete staging precedes canvas clearing. Rejected pages or capacity leave previous pixels
+and paths intact; rejected release retains ownership, while failure after an actually
+consumed release quarantines the instance rather than repeating that command.
+
+The temporary 4,096-device-coordinate rejection guard is removed. Actual huge spanning
+strokes now render through shared Rust preparation. Existing explicit work/memory/point
+bounds still reject excessive preparation; this is not unbounded geometry support.
+
+At the exact clean worker revision, all 29 classified Node checks and 17 headless browser
+journeys passed, along with strict TypeScript, full type-aware Oxc and formatting. Added
+checks cover signed giant crossings against local references, fractional/asymmetric backing,
+enclosing/grazing interiors, empty prepared output, whole-path alpha, cache identity,
+malformed/rejected pages, release retry, capacity and consumed-release quarantine. The
+browser imports an actual giant portable document, checks its rendered coverage and downloads
+unchanged bytes. No testing-only production controls were added.
+
+Fresh independent review found no actionable issue and independently passed 12 focused
+actual Wasm/CanvasKit and injected failure checks. It inspected the clean frozen 29/17
+packets without duplicating browser execution. The lead inspected the actual giant-stroke
+capture. Worker packets/captures are retained under `artifacts/evidence/020-web-prepared-worker/`.
+All changed source files meet the 200-line cap. Combined primary verification follows.
+
+Preparation is bounded synchronous render work, not a latency optimization claim. Native
+GPU acceptance, additional browser/device combinations and task 024 remain open.

@@ -23,6 +23,8 @@ or backing scale, not only distant origins. The shared Rust viewport-preparation
 is required for general spanning-geometry rendering; successful small far-origin tests do
 not close that gap. Encoding and preparation still run synchronously outside the pointer
 callback. A dedicated engine worker and performance measurements remain separate work.
+The later [shared preparation slice](020-shared-viewport.md#browser-consumption) replaces
+this temporary rejection with actual large-stroke rendering and separately recorded tests.
 
 ## Frozen verification
 
