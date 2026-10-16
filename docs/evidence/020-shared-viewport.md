@@ -74,7 +74,17 @@ Fresh independent review found no actionable issue and independently passed 12 f
 actual Wasm/CanvasKit and injected failure checks. It inspected the clean frozen 29/17
 packets without duplicating browser execution. The lead inspected the actual giant-stroke
 capture. Worker packets/captures are retained under `artifacts/evidence/020-web-prepared-worker/`.
-All changed source files meet the 200-line cap. Combined primary verification follows.
+All changed source files meet the 200-line cap.
+
+At clean integrated primary `ea0ab9e`, the full background gate passed, including 140 tooling
+tests, the Rust workspace/real C and Wasm consumers, macOS build/pre-AppKit smoke and all
+17 GPU-free Swift tests. Separately, the qualified Node lane passed 29 checks and the
+production headless browser lane passed 17 journeys. Their
+[scoped report](../../artifacts/evidence/020-prepared-ea0ab9e/coverage.html) has 33 passing
+acceptance rows and zero mapping issues. The final source/dependency gate passed with zero
+oversized handwritten files. Logs are retained as `integration-web-prepared.log`,
+`020-prepared-node-ea0ab9e.log` and `020-prepared-browser-ea0ab9e.log`; packets identify exact
+source, both Wasm builds, the installed CanvasKit runtime, tests and software backend.
 
 Preparation is bounded synchronous render work, not a latency optimization claim. Native
 GPU acceptance, additional browser/device combinations and task 024 remain open.

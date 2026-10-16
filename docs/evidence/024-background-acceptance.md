@@ -39,6 +39,8 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Browser pixel placement | `79ddcaa` | All 13 headless journeys passed, including actual composited coordinate bounds; prior focus-outline test failure retained; CanvasKit migration remains separate |
 | Full CanvasKit browser integration | `9124ec5` | Full background gate passed with 140 tooling and 17 Swift checks; 20 classified direct checks plus 16 headless journeys passed; 27 mapped acceptance rows passed; zero source-size violations |
 | Workbench CanvasKit preview | `9124ec5` | 17 service and 14 headless journeys passed, including actual production drawing preview; native Zed and speech acceptance pending |
+| Shared native/portable viewport preparation | `760a286` | Full background gate passed; 12 focused Rust tests plus actual C/Wasm conformance map to seven passing rows; native CPU precision retained |
+| Browser prepared large geometry | `ea0ab9e` | Full background gate passed; 29 classified direct checks and 17 headless journeys passed; 33 mapped rows passed; actual giant strokes replace the temporary precision rejection |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load
@@ -83,7 +85,9 @@ work and leased scenes. It records receipt-ownership and HTML width-validation r
 the separate pixel-placement regression, exact Wasm identities and all failed attempts.
 The [CanvasKit packet](020-web-canvaskit.md) records the subsequent production renderer,
 16 headless journeys and 20 classified direct checks at frozen worker `d4b5b68`.
-Shared viewport preparation and a dedicated engine Worker remain distinct follow-ups;
+The [shared viewport packet](020-shared-viewport.md) records the later native/browser
+preparation implementation and exact integrated checks. A dedicated engine Worker remains
+a distinct follow-up;
 Node bridge results do not certify browser UI, and headless UI does not certify native
 GPU/pen latency.
 
