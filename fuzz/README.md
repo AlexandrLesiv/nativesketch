@@ -17,8 +17,12 @@ Targets:
   predictions/corrections, invalid values and transaction conflicts. Rejection must preserve
   the projection, committed bytes and live geometry; every committed snapshot remains valid.
 
-These cover LOAD-001, INPUT-002, CANCEL-001 and ASYNC-001 properties. They are bounded
-coverage-guided smoke checks, not exhaustive proofs, native E2E or physical input testing.
+The asserted properties cover malformed-import preservation (LOAD-001), rejected-batch
+atomicity (INPUT-001), canonical snapshots, finite geometry and stale typed-command
+rejection. Predictions, cancellation and pressure are generated stimuli; this harness does
+not independently prove prediction exclusion, undo cardinality, pressure/order semantics,
+native cancellation (CANCEL-001) or asynchronous callback replacement (ASYNC-001).
+These are bounded coverage-guided smoke checks, not exhaustive or native/physical tests.
 Fixed seed 2601016, at most 25,000 runs/30 seconds per target, five seconds per input,
 1 GiB RSS and 64 KiB document/1 KiB command inputs bound each execution. Initial document
 and command corpus files are copied into the evidence directory; discoveries and crashes

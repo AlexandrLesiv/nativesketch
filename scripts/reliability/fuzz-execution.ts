@@ -21,7 +21,10 @@ export async function executeFuzzTargets(
 ) {
   const execution: Execution = { schemaVersion: 1, source, results: [] };
   const results = [];
+  const failures: Error[] = [];
   for (const { name: target, binary, binarySha256, core } of targets) {
+    requireUnchanged(source, await sourceIdentity(root));
+    controller.signal.throwIfAborted();
     const corpus = await seedCorpus(root, output, target);
     const started = Date.now();
     const result = {
@@ -63,12 +66,18 @@ export async function executeFuzzTargets(
         error instanceof ProcessFailure && !error.reason
           ? { valid: true, reasons: [] }
           : { valid: false, reasons: [String(error)] };
-      throw error;
+      // Independent targets still run after a real child failure. Environmental
+      // failures, cancellation and source mutation stop the lane immediately.
+      requireUnchanged(source, await sourceIdentity(root));
+      controller.signal.throwIfAborted();
+      if (!(error instanceof ProcessFailure) || error.reason) throw error;
+      failures.push(error);
     } finally {
       result.durationMs = Date.now() - started;
       execution.results.push(result);
       await fuzzExecution(output, execution);
     }
   }
+  if (failures.length) throw new AggregateError(failures, failures.map(String).join('\n'));
   return results;
 }
