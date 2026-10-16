@@ -51,7 +51,7 @@ await main(async () => {
         '-p',
         'apps/android',
         '--no-daemon',
-        'lintDebug',
+        'androidQuality',
       ]);
       break;
     default:

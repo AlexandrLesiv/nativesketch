@@ -25,9 +25,10 @@ import UniformTypeIdentifiers
     window.makeKeyAndVisible()
   }
   func sceneWillResignActive(_ scene: UIScene) {
-    (window?.rootViewController as? UINavigationController)?.viewControllers.compactMap {
-      $0 as? DrawingController
-    }.forEach { $0.inactive() }
+    guard let navigation = window?.rootViewController as? UINavigationController else { return }
+    for controller in navigation.viewControllers {
+      (controller as? DrawingController)?.inactive()
+    }
   }
   func sceneDidDisconnect(_ scene: UIScene) {
     sceneWillResignActive(scene)
