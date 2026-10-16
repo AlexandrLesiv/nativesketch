@@ -31,7 +31,7 @@
             ],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -54,7 +54,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -84,7 +84,7 @@
             "testIds": [],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -107,7 +107,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -141,7 +141,7 @@
             ],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -163,7 +163,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -198,7 +198,7 @@
             ],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -221,7 +221,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -252,7 +252,7 @@
             "testIds": [],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -276,7 +276,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -299,7 +299,7 @@
             ],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -321,7 +321,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]
@@ -347,7 +347,7 @@
             ],
             "gaps": [
               {
-                "reason": "Native execution awaits a reserved desktop. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
                 "ownerTask": "020"
               }
             ]
@@ -358,7 +358,7 @@
       "automation": "partial",
       "gaps": [
         {
-          "reason": "CPU fixtures and native automation are implemented separately; native execution, designer inspection and release Metal measurements remain pending. See task 020 evidence.",
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
           "ownerTask": "020"
         }
       ]

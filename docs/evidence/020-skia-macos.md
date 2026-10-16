@@ -2,8 +2,11 @@
 
 Implementation is on `codex/architecture-quality-plan`, descended from the owner's
 `codex/github-pages` base. The source now uses Skia Ganesh/Metal with the existing AppKit
-controls and shared Rust command dispatcher. Native acceptance and release GPU timings
-are pending an explicitly reserved desktop session. This is not task completion, owner
+controls and shared Rust command dispatcher. Native checks and designer inspection ran;
+final verification of the presentation-timestamp repair remains blocked by a system dialog.
+The desktop reservation is authorized, but the computer-control tool refuses access to
+that dialog. The owner has asked that no further per-app permission prompts be triggered
+while absent. This is not task completion, owner
 acceptance, a main merge or a release. Other platform migration gaps remain in
 [rendering architecture](../architecture/rendering.md).
 
@@ -98,13 +101,57 @@ comparison or a GPU-app memory measurement.
 These results do not compare current Core Graphics with Skia Metal and do not measure
 physical pen latency, input queues or display presentation.
 
-## Prepared native verification
+## Native verification and retained attempts
 
-Three new native cases check visible ink/undo/redo/hide/reveal, initial renderer recovery,
+Three new native cases check visible ink/undo/redo/minimize/restore, initial renderer recovery,
 and recovery after a committed stroke with preserved visible ink and history. The injected
 failure is at the Swift boundary, not a real Metal driver loss. Existing draw/save/reopen,
 field shortcut priority, command routing, gesture cancellation and inspector/focus cases
-are selected for regression. All still need execution at the migrated revision.
+are selected for regression. Final execution at the repaired revision is pending.
+
+| Attempt / source | Observed result | Qualification |
+| --- | --- | --- |
+| native 1 / `9c424c5` | Seven raw cases passed; drawing pixels/recovery cases failed | Found real hosted-layer invalidation bug; fixed `f6765b3` by scheduling explicit repaints |
+| native 2 / `f6765b3` | Draw/save/reopen and both recovery cases passed with runtime provenance | Hide shortcut case failed; the app has no Hide shortcut binding; batch did not pass |
+| native 3 / `471548d` | Ink/history assertions passed; sandbox cross-app hide returned false | Replaced test mechanism with existing native minimize and AX restore; no permissions changed |
+| native 4 / `e117245` | Minimize/restore case passed with runtime provenance | Strengthened baseline after confirmed minimization in `06b0c4d`; final rerun pending |
+| policy / `8b3e3e3` | 14 GPU-free Swift tests passed | Timestamp classification, pending retry ownership, frame bounds, recovery and evidence preservation; not native execution |
+
+The raw XCTest bundles, results, app/test hashes and provenance are retained in
+`artifacts/evidence/020-skia-native-attempt1` through `attempt4`. The current batch runner
+conservatively blocks otherwise passing rows if the whole XCTest invocation fails; raw
+per-case passes above are not a claim that those batches passed.
+
+Designer inspection of `e117245` found no blocking visual regression in visible ink,
+selection, transform undo, pan/zoom, field priority/validation, small dark layout and resize.
+See [designer report](../../artifacts/evidence/020-skia-designer/review.md) and screenshots
+beside it. The reviewer explicitly did not use presentation counters as timing proof.
+Live translucency/predictions and physical pen/VoiceOver speech remain uninspected.
+
+## Release presentation audit
+
+Release attempts 2–4 at `48dc2b5` used the Cintiq Pro 22, 120 Hz, 1000×699 logical /
+2000×1398 physical canvas, 1000 eight-sample strokes plus 120 live steps. All three
+original reports incorrectly say `valid=true`: their cold and after-idle presentation
+timestamps are zero; attempts 2/3 also include a zero live timestamp. They are **invalid
+complete presentation evidence**, not accepted latency results. Each retained directory
+now has a `validity-audit.json` beside the untouched raw report and derived summary.
+Do not use the negative derived latency values in those summaries.
+
+Apple defines [zero presentation time](https://developer.apple.com/documentation/metal/mtldrawable/presentedtime)
+as not presented or dropped. The cause of those compositor drops is not established.
+`5f1a10f` rejects zero/nonfinite/pre-submission timestamps, preserves a qualified raw
+observation and never certifies those frames. It adds at most two retries for the latest
+request, preserving its initial request time. `8b3e3e3` repairs a reviewer-found stale-timer
+race so a newer dropped request replaces the queued retry key. A successful later retry
+does not erase a dropped frame or turn the strict benchmark into a pass.
+
+Attempts 5/6 at `8b3e3e3` were rejected before drawing because an external system dialog
+overlaps the canvas. No timing claim is made. Attempt 1 remains the earlier activation
+failure, repaired by bounded activation readiness in `48dc2b5`. All attempts are retained
+under `artifacts/evidence/020-skia-metal-attemptN`, with source and release binary hashes.
+The production timestamp/retry repair has unit and independent static verification;
+its final native behavior and release measurements remain pending.
 
 The explicit `--render-benchmark OUTPUT.json --benchmark-revision REV` entry uses an
 isolated runtime with persistent services disabled and synthetic shared commands. It
@@ -118,5 +165,5 @@ files must not be overwritten. Collect unique attempts and exact release binary 
 Fresh reviewer assessments found and prompted fixes for precision, selection cache reuse,
 logical resize, missing acquisition timing, stale presentation identity, phase completion
 and evidence preservation. Static designer review preserved native interaction intent;
-actual designer inspection remains pending. No runtime accessibility, VoiceOver, physical
+actual designer inspection ran within the scope above. No full runtime accessibility, VoiceOver, physical
 Pro Pen 3, camera latency, real GPU-device loss or untested display configuration is certified.
