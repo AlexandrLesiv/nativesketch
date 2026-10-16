@@ -11,13 +11,13 @@ export function options(args: string[], root: string) {
       values.has(key)
     )
       throw new Error(
-        'Usage: --lane advisories|miri|asan --output NEW_DIRECTORY [--tools TOOLCHAIN_ROOT]',
+        'Usage: --lane advisories|miri|miri-app|asan --output NEW_DIRECTORY [--tools TOOLCHAIN_ROOT]',
       );
     values.set(key, value);
   }
   const lane = values.get('--lane');
   const output = values.get('--output');
-  if (!lane || !['advisories', 'miri', 'asan'].includes(lane) || !output)
+  if (!lane || !['advisories', 'miri', 'miri-app', 'asan'].includes(lane) || !output)
     throw new Error('Explicit lane and fresh output directory are required');
   return {
     lane,

@@ -66,7 +66,7 @@ diagnostics. Record unimplemented checks in coverage; never imply this document 
 
 ## Implemented background lanes (task 023 foundation)
 
-`node scripts/check-reliability.ts --lane advisories|miri|asan --output NEW_DIRECTORY`
+`node scripts/check-reliability.ts --lane advisories|miri|miri-app|asan --output NEW_DIRECTORY`
 uses preinstalled project tools in `.build-cache/toolchains`; `--tools PATH` selects an
 existing project cache for an isolated checkout. It never installs tools or refreshes
 advisories silently. Create the output parent first; an existing output directory is
@@ -81,10 +81,12 @@ They run offline against the explicitly provisioned database and record its comm
 An outdated or missing database fails; updating it is a separate explicit provisioning step.
 License policy/compliance is not inferred from advisories.
 
-Miri and ASan currently require macOS arm64 and run exactly the six legacy `sketch-ffi`
-library tests. ASan instruments Rust/core/std with leak detection; Miri keeps default
-isolation. Separate `target/reliability-*` caches avoid contamination of ordinary builds.
-No Skia, native UI, JNI, Wasm, other-host or new portable-facade safety is certified here.
+Miri and ASan currently require macOS arm64. The `miri` and `asan` lanes run exactly the
+six legacy `sketch-ffi` library tests; `miri-app` separately runs the 27 `sketch-app` library
+tests. Expected counts are pinned and incomplete/filtered execution fails. ASan instruments
+Rust/core/std with leak detection; both Miri lanes keep default isolation. Separate
+`target/reliability-*` caches avoid contamination of ordinary builds. Native exports,
+Skia, native UI, JNI, Wasm and other hosts are outside these lanes' scope.
 Bounded property/fuzz targets, package acceptance and native profiling remain separate work.
 
 ### Invalidated initial sanitizer evidence
@@ -104,4 +106,5 @@ cannot certify this lane. Canary source/binary hashes and expected-failure logs 
 
 Executed repaired-lane results, the additional 27-test portable-facade Miri probe and their
 precise limitations are recorded in [the background acceptance packet](../evidence/024-background-acceptance.md).
-The supplementary probe does not silently broaden the installed lane's target list.
+The subsequent explicit `miri-app` lane makes that scoped facade check repeatable; it does
+not broaden the legacy lane or certify native transport simply because it depends on Rust.

@@ -19,6 +19,7 @@ export interface Pins {
   rustcCommit: string;
   maximumDatabaseAgeDays: number;
   ffiTests: number;
+  facadeTests: number;
 }
 export async function executeLane(
   lane: string,
@@ -106,36 +107,39 @@ export async function executeLane(
   ]);
   if (!rustc.includes(`commit-hash: ${pins.rustcCommit}`))
     throw new Error('Pinned nightly compiler mismatch');
+  const miri = lane === 'miri' || lane === 'miri-app';
+  const facade = lane === 'miri-app';
   await json(output, 'tools.json', {
     nightly: pins.nightly,
     rustc,
     cargoSha256: await fileHash(join(bin, 'cargo')),
     rustcSha256: await fileHash(join(bin, 'rustc')),
-    ...(lane === 'miri' ? { miriSha256: await fileHash(join(bin, 'miri')) } : {}),
+    ...(miri ? { miriSha256: await fileHash(join(bin, 'miri')) } : {}),
   });
-  const args =
-    lane === 'miri'
-      ? ['miri', 'test', '--locked', '-p', 'sketch-ffi', '--lib']
-      : [
-          'test',
-          '--locked',
-          '-Zbuild-std',
-          '--message-format=json',
-          '--target',
-          'aarch64-apple-darwin',
-          '-p',
-          'sketch-ffi',
-          '--lib',
-        ];
+  const args = miri
+    ? ['miri', 'test', '--locked', '-p', facade ? 'sketch-app' : 'sketch-ffi', '--lib']
+    : [
+        'test',
+        '--locked',
+        '-Zbuild-std',
+        '--message-format=json',
+        '--target',
+        'aarch64-apple-darwin',
+        '-p',
+        'sketch-ffi',
+        '--lib',
+      ];
   const text = await command('execution', rustup, ['run', pins.nightly, 'cargo', ...args], {
     CARGO_TARGET_DIR: join(root, 'target', `reliability-${lane}`),
     ...(lane === 'asan' ? sanitizerEnvironment() : {}),
   });
   return {
-    testIds: validateTestOutput(text, pins.ffiTests),
+    testIds: validateTestOutput(text, facade ? pins.facadeTests : pins.ffiTests),
     ...(lane === 'asan'
       ? { instrumentation: await sanitizerProof(root, output, tools, pins.nightly, rustup, text) }
       : {}),
-    scope: 'Legacy Rust FFI/core only; no Skia, native UI, JNI, Wasm or portable facade',
+    scope: facade
+      ? 'Portable Rust application facade only; no native exports, Skia, host UI, JNI or Wasm'
+      : 'Legacy Rust FFI/core only; no Skia, native UI, JNI, Wasm or portable facade',
   };
 }

@@ -6,5 +6,6 @@
   "nightly": "nightly-2026-10-15",
   "rustcCommit": "7df81381d",
   "maximumDatabaseAgeDays": 7,
-  "ffiTests": 6
+  "ffiTests": 6,
+  "facadeTests": 27
 }

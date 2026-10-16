@@ -125,7 +125,7 @@ Automation now executes native `.ts` modules under Node24.22.0; see
 [the migration contract and historical-evidence policy](typescript-automation.md).
 TypeScript7.0.2 checks types separately from Node's syntax stripping.
 
-Task 023 scoped lanes: `node scripts/check-reliability.ts --lane advisories|miri|asan
+Task 023 scoped lanes: `node scripts/check-reliability.ts --lane advisories|miri|miri-app|asan
 --output NEW_DIRECTORY [--tools PROJECT_TOOLCHAIN_CACHE]`. These require existing pinned
 tools and preserve failed attempts; they do not install dependencies or certify native UI.
 See [lane scope and evidence](reliability.md#implemented-background-lanes-task-023-foundation).
