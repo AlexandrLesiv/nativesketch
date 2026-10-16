@@ -11,6 +11,10 @@ Roles: build_reliability, ui_ux_designer, reviewer.
 
 A complete review packet for human merge approval.
 
+The [available background packet](../docs/evidence/024-background-acceptance.md) records
+executed local checks, exact revisions and remaining native/platform gaps. It is not
+final task acceptance; later implementation requires refreshed evidence.
+
 ## Contracts and acceptance
 
 Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and the

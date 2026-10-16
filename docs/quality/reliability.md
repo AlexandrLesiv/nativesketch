@@ -101,3 +101,7 @@ symbols. It additionally compiles a disposable deliberate use-after-free canary 
 requires AddressSanitizer's expected fault report and dedicated exit code. A plain test
 pass, absent binary, uninstrumented executable, ordinary crash or wrong canary failure
 cannot certify this lane. Canary source/binary hashes and expected-failure logs are retained.
+
+Executed repaired-lane results, the additional 27-test portable-facade Miri probe and their
+precise limitations are recorded in [the background acceptance packet](../evidence/024-background-acceptance.md).
+The supplementary probe does not silently broaden the installed lane's target list.

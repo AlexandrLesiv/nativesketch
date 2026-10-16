@@ -1,5 +1,9 @@
 # Task 022: portable adapter implementation evidence
 
+Later portable-wire and browser E2E results are summarized in the
+[background acceptance packet](024-background-acceptance.md). Earlier pending statements
+below describe their recorded revision, not a superseding claim that later checks were absent.
+
 This is an incremental technical record, not all-platform acceptance or a shipping claim.
 The owner's instruction permits independent background work while the final macOS renderer
 checks are blocked by an inaccessible system dialog. No further computer-control app permission
