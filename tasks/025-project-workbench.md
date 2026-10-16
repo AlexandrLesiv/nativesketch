@@ -10,6 +10,9 @@ Roles: build_reliability, ui_ux_designer, reviewer.
 A project-specific GUI for docs, tasks/dependencies, feature verification, build/run jobs,
 Wasm preview and qualified metrics, integrated with Zed through supported project tasks.
 Read [the detailed plan](../docs/development-workbench-plan.md) before implementation.
+Implementation and exact background checks are recorded in the
+[workbench evidence](../docs/evidence/025-project-workbench.md). Nested-process cancellation
+repair and remaining native Zed/speech checks are explicit; this is not owner acceptance.
 
 ## Boundaries
 
