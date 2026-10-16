@@ -55,6 +55,10 @@ point. Windows orchestration uses native `cargo`/`dotnet`, not npm.cmd or PowerS
 Root npm exact pins: Oxlint 1.88.0, oxlint-tsgolint 7.0.2004, Oxfmt 0.73.0, TypeScript
 7.0.2, Vite 8.3.4, Node declarations 24.19.2. Lockfile integrity pins transitives. Official
 npm package metadata checked 2026-10-15; their Node engine ranges include 24.22.0.
+Playwright Test 1.64.1 is pinned for the upcoming real-browser lane (official npm metadata
+checked 2026-10-16; Node >=20). Installing the dependency alone is not an implemented or
+passed browser acceptance test. Browser binaries stay in project `.build-cache/playwright`;
+the first lane uses Chromium headless, without opening or focusing a desktop app.
 Vite 8 uses Rolldown/Oxc. The built web app preserves separate main/engine ESM files,
 relative URLs and standard service-worker cache behavior. No renderer runtime changes.
 The old apps/web compiler package/lockfile and web/Wasm shell entry points were removed
