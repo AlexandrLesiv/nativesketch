@@ -42,6 +42,9 @@ await main(async () => {
     'warnings',
   ]);
   await command('cargo', ['test', '--workspace', '--locked']);
+  if (!args.core && ['darwin', 'linux'].includes(process.platform)) {
+    await command(process.execPath, ['crates/sketch-app-ffi/tests/run.ts']);
+  }
   if (!args.core && process.platform === 'darwin') {
     await checkSwift();
     await checkLegacyFfi();

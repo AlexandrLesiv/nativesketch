@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "id": "portable-exports",
+  "description": "Portable ownership and C/Wasm bridge conformance only. Actual C host is recorded; Wasm executes in Node, not browser UI. Mapping describes automation existence, not execution. No platform UI, native provider, GPU, physical pen, Windows, JNI or cross-instance Worker acceptance is inferred.",
+  "sourceRevision": "c96f28f2af23449b011d1a6d37d140be62ec0673",
+  "cases": [
+    {
+      "id": "EXPORT-OWNER-001",
+      "expected": "Opaque ownership rejects wrong thread, app, kind, concurrent checkout and reentrant calls without consuming actual work/results.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:tests::ownership::real_worker_roundtrip_wrong_app_and_double_release_preserve_proof",
+        "cargo:sketch-app-bridge:lib:tests::ownership::owner_reentrancy_and_same_object_concurrency_reject_without_consumption",
+        "cargo:sketch-app-bridge:lib:tests::ownership::bad_packets_wrong_kind_and_byte_ranges_leave_buffers_usable",
+        "cargo:sketch-app-bridge:lib:tests::correlation::fixed_errors_correlate_only_exact_v2_frames_without_narrowing"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-CAPACITY-001",
+      "expected": "Registry and reply reservations precede transfers; exhausted output capacity preserves work and returned results for retry.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:tests::limits::completion_slot_exhaustion_retains_actual_result_for_later_owner_apply",
+        "cargo:sketch-app-bridge:lib:tests::limits::registry_reservation_exhaustion_precedes_mutation_and_cleanup_needs_no_slot",
+        "cargo:sketch-app-bridge:lib:tests::limits::reply_exhaustion_preserves_issued_work_and_recovers_after_release",
+        "cargo:sketch-app-bridge:lib:tests::limits::uploads_have_count_and_byte_bounds_and_never_reuse_handles"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-STOPPED-001",
+      "expected": "Actual owner-thread exit releases TLS and app metadata; issued work can finish truthfully and only its returned result can be retired.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:tests::lifecycle::worker_finishes_after_actual_owner_exit_and_only_then_result_can_retire"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-PANIC-001",
+      "expected": "Caught panic quarantines the owner without granting stopped-result retirement or claiming recoverable work.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:tests::lifecycle::panic_quarantine_does_not_authorize_result_retirement_until_owner_exits",
+        "cargo:sketch-app-ffi:lib:boundary::tests::panic_is_a_fixed_error_without_cross_boundary_unwind"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-RESULT-001",
+      "expected": "Encoding failure and corrupt read return actual failure proof with precise work/input consumption and usable shutdown.",
+      "invariants": [
+        "FFI-001",
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:tests::limits::encode_capacity_failure_returns_real_result_and_consumes_work",
+        "cargo:sketch-app-bridge:lib:tests::read::wrong_kind_and_foreign_input_preserve_reads_then_corrupt_result_retires"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-IDENTITY-001",
+      "expected": "Native u64 and Wasm u32 identity spaces exhaust without wrapping or reusing a freed identity.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-bridge:lib:registry::tests::native_and_wasm_identity_exhaustion_never_wraps_or_reuses"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-C-001",
+      "expected": "Real compiled C caller validates fixed layout, zero-output preflight, pthread work transfer, corrected provider completion and shutdown.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "bridge"
+        }
+      ],
+      "testIds": [
+        "native-c:portable-v2-consumer"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EXPORT-WASM-001",
+      "expected": "Actual Wasm module in Node validates memory growth/view invalidation, bounded uploads/replies, wrong-owner result retention, corrupt read and shutdown.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge"
+        }
+      ],
+      "testIds": [
+        "wasm-js:portable-v2-conformance"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

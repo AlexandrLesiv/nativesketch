@@ -97,7 +97,8 @@ Wasm traps/abort are instance-terminal and cannot be caught as ordinary Rust unw
 
 Wasm mirrors the same object kinds/transfers with nonreused u32 handles, checked before issue.
 Wire u64 values stay exact bytes/BigInt. Calls use bounded upload objects for request and provider
-bytes: upload_new(length), upload_ptr(handle), upload_len(handle), upload_free(handle). Upload
+bytes: upload_new(length), upload_view(handle), upload_free(handle). upload_view reports the
+current pointer and fixed length together. Upload
 length never changes. A request upload is borrowed for a call; PrepareRead consumes only the
 separate app-budgeted InputBytes returned by work_copy_input. Invalid transfers retain inputs.
 
@@ -157,3 +158,25 @@ native UI, provider/device acceptance and rendering. No native scene borrow is e
 Fixed error records echo opcode/request for an exact bounded NSAP v2 frame, including
 rejected scope, owner, thread, output-capacity or payload calls. Malformed framing and
 packetless functions use opcode/request0. Correlation parsing never allocates or dispatches.
+
+## Verification and consumer gaps
+
+Run `node crates/sketch-app-ffi/tests/run.ts` with pinned Node and the installed
+wasm32-unknown-unknown Rust target. Normal non-core macOS/Linux integration checks invoke
+this background runner; core checks include its strict TypeScript, Oxlint and Oxfmt gates
+and the Rust ownership tests. Each consumer execution writes source identity, binary hash,
+host, result and log under artifacts/evidence/portable-exports/<unique-run>. Import that
+run's discovery.json and execution.json with scripts/test-evidence.ts --input. These are
+C/Wasm bridge checks, not browser/native UI or real provider acceptance.
+
+No app consumes these exports yet. Existing native-v1/macOS, ABI2 and Wasm-v1 remain live.
+JNI, Windows consumers, Wasm Worker transfer, native scene borrowing and browser CanvasKit
+placement need later contracts and host evidence. A quarantined owner cannot resume or free
+normally; host owner-thread/process teardown is terminal. No lost proof is reconstructed.
+After real owner exit, host code must retain provider grants until actual work ends.
+
+Before host migration, preserve existing chooser/save semantics explicitly: Android and Linux
+currently choose a fresh destination for guarded Save, while Apple confirmed export can clear
+matching dirty state without binding and prepares the file before its native export picker.
+Whole-document Fit also needs a typed query instead of scanning viewport-culled scene pages.
+These are pending consumer amendments, not new wire tags or host workarounds in v2 exports.

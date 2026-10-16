@@ -25,6 +25,8 @@ export async function checkTooling() {
     'apps/web/tests/*.ts',
     'apps/web/e2e/*.ts',
     'crates/sketch-wasm/tests/*.ts',
+    'crates/sketch-app-ffi/tests/*.ts',
+    'crates/sketch-app-wasm/tests/*.ts',
   ]);
   const tests = [];
   for (const directory of [

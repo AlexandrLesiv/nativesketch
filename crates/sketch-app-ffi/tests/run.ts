@@ -1,20 +1,12 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { command, root } from '../../../scripts/lib/context.ts';
+import { evidence } from './evidence.ts';
 
 if (!['darwin', 'linux'].includes(process.platform)) {
   throw new Error('The C pthread conformance caller currently supports macOS/Linux hosts.');
 }
-const revision = (await command('git', ['rev-parse', 'HEAD'], { capture: true })).trim();
-const changes = await command('git', ['status', '--porcelain'], { capture: true });
-console.log(
-  JSON.stringify({
-    revision,
-    dirty: changes.length > 0,
-    platform: process.platform,
-    arch: process.arch,
-  }),
-);
+const report = await evidence();
 await command('cargo', ['build', '--locked', '--release', '-p', 'sketch-app-ffi']);
 const output = join(root, 'artifacts/portable-exports');
 await mkdir(output, { recursive: true });
@@ -35,7 +27,12 @@ await command('clang', [
   '-o',
   native,
 ]);
-await command(native, [], { timeout: 30_000 });
+await report.record(
+  'native-c:portable-v2-consumer',
+  process.platform === 'darwin' ? 'macos' : 'linux',
+  native,
+  () => command(native, [], { timeout: 30_000, capture: true }),
+);
 await command('cargo', [
   'build',
   '--locked',
@@ -45,12 +42,18 @@ await command('cargo', [
   '--target',
   'wasm32-unknown-unknown',
 ]);
-await command(
-  process.execPath,
-  [
-    join(root, 'crates/sketch-app-wasm/tests/conformance.ts'),
-    join(root, 'target/wasm32-unknown-unknown/release/sketch_app_wasm.wasm'),
-  ],
-  { timeout: 30_000 },
+await report.record(
+  'wasm-js:portable-v2-conformance',
+  'web',
+  join(root, 'target/wasm32-unknown-unknown/release/sketch_app_wasm.wasm'),
+  () =>
+    command(
+      process.execPath,
+      [
+        join(root, 'crates/sketch-app-wasm/tests/conformance.ts'),
+        join(root, 'target/wasm32-unknown-unknown/release/sketch_app_wasm.wasm'),
+      ],
+      { timeout: 30_000, capture: true },
+    ),
 );
 console.log('PASS: portable v2 export consumers (no UI/provider or physical input claim)');

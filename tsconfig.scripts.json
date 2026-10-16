@@ -18,6 +18,8 @@
     "apps/web/*.ts",
     "apps/web/src/**/*.ts",
     "apps/web/tests/**/*.ts",
-    "crates/sketch-wasm/tests/**/*.ts"
+    "crates/sketch-wasm/tests/**/*.ts",
+    "crates/sketch-app-ffi/tests/**/*.ts",
+    "crates/sketch-app-wasm/tests/**/*.ts"
   ]
 }

@@ -10,7 +10,14 @@ export async function lintTypeScript() {
   for (const [config, paths] of [
     [
       'tsconfig.scripts.json',
-      ['scripts', ...webTools, 'apps/web/tests', 'crates/sketch-wasm/tests'],
+      [
+        'scripts',
+        ...webTools,
+        'apps/web/tests',
+        'crates/sketch-wasm/tests',
+        'crates/sketch-app-ffi/tests',
+        'crates/sketch-app-wasm/tests',
+      ],
     ],
     ['apps/web/tsconfig.json', ['apps/web/src']],
     ['apps/web/e2e/tsconfig.json', ['apps/web/e2e']],
