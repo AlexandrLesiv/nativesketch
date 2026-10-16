@@ -180,6 +180,10 @@ the established scripts; a deeper IDE-specific test adapter needs its own compat
 
 ## Implementation slices and acceptance
 
+The lead's [version 1 implementation contract](architecture/025-workbench-contract.md)
+freezes shared data, endpoint, job, security and offline-export boundaries before writers
+start. Current foreground actions are disabled server-side during the owner's absence.
+
 | Slice | Owner and paths | Acceptance/evidence |
 | --- | --- | --- |
 | W1 Contract and adapters | Lead/build_reliability; `scripts/workbench/model/`, snapshot CLI | Real repo and disposable malformed fixtures; schema/version/size/source identity; honest missing data |
