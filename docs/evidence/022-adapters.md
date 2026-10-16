@@ -92,8 +92,9 @@ record exact binaries. No simulator was launched, and no device/UI/Pencil/paired
 ran. Portable facade adoption and Skia rendering are separate remaining changes.
 
 Formatter checks passed, but the integrated broad Swift lint at `de54fe0` found one
-`ReplaceForEachWithForLoop` violation in the extracted iOS scene entry. That repair is pending;
-do not treat formatting as proof that every semantic lint rule passed. The fresh reviewer
+`ReplaceForEachWithForLoop` violation in the extracted iOS scene entry. `0c08954` repaired it;
+`487a5de` added strict lint to the integration gate, including manifests and test sources.
+All 133 files passed with explicit selected Xcode at `735754d`. The fresh reviewer
 found no extraction defect in ownership, selector/delegate identity, source ordering or
 module-map resolution; the quoted Swift literal set was unchanged. The reviewer independently
 reran the host replay binary with the recorded hash and it passed. This does not add native
@@ -110,10 +111,73 @@ Apple extraction above repaired that failure. Both baseline logs are retained un
 The existing GTK adapter also passed a background `cargo check` against installed GTK 4.24.1
 and libadwaita 1.10.0 on macOS. This checks compilation only: no Linux, Wayland, portal or
 native accessibility behavior was exercised. `artifacts/evidence/022-linux-host-probe`
-records the source and log. The integrated source-size gate now reports three legacy
-oversized files: Windows, Linux and web.
+records the source and log. Subsequent composition slices are recorded below.
 
-Portable provider facade/ownership, transport-v2 consumers, Apple/Windows/Linux/web extraction,
+Portable provider facade/ownership, transport-v2 consumers,
 per-host Skia and real native journeys remain implementation/verification work. Windows and
 Linux native acceptance require their actual hosts; physical device and camera checks remain
 separate. The task board still reflects owner-acceptance dependencies, not these local handoffs.
+
+## Windows and Linux composition
+
+Windows worker `0e4cd7c` / integration `d189475` separates composition, native controls,
+presenter, input/viewport, painter and file effects into 13 C# files, maximum 192 lines.
+Real WinUI compilation and C#/Rust interop passed on macOS. Source formatting passed;
+design-time analysis reported the expected unsupported Windows resource tool warning.
+This is not Windows packaging or runtime acceptance. The reviewer found no extraction
+defect and independently reran the existing interop binary; a fresh reviewer rebuild was
+sandbox-blocked, so that check is explicitly not a fresh-build claim. Logs are retained in
+`artifacts/evidence/022-windows-composition`. Windows UI/DPI/pen/Narrator remain pending.
+
+Linux worker `c7c5ded` / integration `15daa23` separates composition, commands, controls,
+input, viewport, painter and file effects into 12 Rust modules, maximum 157 lines.
+All 60 string literals and eight replay assertions remain. Format, strict Clippy, the
+pure adapter test and GTK build passed against GTK 4.24.1/libadwaita 1.10.0 on macOS.
+The initial missing-trait-import build failure is retained. The fresh reviewer found no
+extraction defect and independently reran the pure test binary without initializing GTK.
+[Identity and logs](../../artifacts/evidence/022-linux-composition/identity.json) identify
+the exact source/binary. Linux display servers, portals, accessibility and pen remain pending.
+Both hosts still use their legacy engine/storage/rendering adapters; composition is not v2
+adoption or Skia migration.
+
+## Browser composition and emitted asset graph
+
+Worker `9e9baf9` / integration `5c05a7e` separates 15 source modules, maximum 154 formatted
+lines, preserving all 120 original runtime string literals. It retains protocol 1, Engine
+ownership, focus and pointer behavior, and honest download/dirty semantics. The production
+precache now includes the complete emitted module graph rather than only main and engine.
+
+Strict TypeScript 7, type-aware Oxlint, Oxfmt, actual Wasm adapter/native-byte conformance,
+20 protocol fixture pairs and four asset/cache tests passed. Cache tests cover nested
+dependencies, missing asset rejection, digest changes and failed-install retention of the
+old cache. These execute the emitted worker in a Node fixture, not a browser lifecycle.
+[Build identity and every emitted asset hash](../../artifacts/evidence/022-web-composition/identity.json)
+also disclose the worker's untracked local dependency symlink and retained development
+failures. Real browser E2E, CanvasKit and protocol-v2 adoption remain pending. Independent
+review of this slice is in progress.
+
+The primary `node scripts/quality/check.ts --final` passed on source `5c05a7e`
+(documentation-only evidence updates present): zero handwritten source files exceed
+200 physical lines, and production dependency/native-boundary gates passed. This closes
+the size-inventory debt, not provider migration, native testing or task 024 acceptance.
+
+## Returned write receipt recovery
+
+`5fe559c` adds explicitly unconfirmed export dispatch and checked encoded size. Unconfirmed
+downloads never acknowledge durable saving or clear dirty state. Review found a rejected
+write outcome consumed the only receipt while retaining the coordinator's active barrier.
+`39453a0` returns an owned rejected receipt for correction/retry without releasing ordering.
+
+Further review found native poison cleanup could lose that returned receipt and consume
+a queued successor before it was runnable. `12557b8` settles an actual returned invalid
+outcome as uncertain before poisoning, preserves blocked queued work, and includes outstanding
+coordinator jobs in shutdown readiness. It also repairs the diagnostic counter bound for the
+new export code. Unknown or mismatched receipts remain quarantined, never falsely completed.
+
+At exact primary revision `12557b8`, the affected Rust/native suite passed 182 tests with
+zero failures. Two ignored subprocess fixtures are exercised by their passing parent tests.
+The new real-worker fault case verifies poison, detached cleanup, exact successor bytes,
+single grant release and shutdown readiness. Fresh independent review cleared the repair;
+the counter-bound failure and retries remain in `artifacts/evidence/022-receipt-recovery`.
+The full background integration gate at the same revision passed, including 17 GPU-free
+Swift bridge/policy tests. No new native UI or GPU presentation evidence is implied.

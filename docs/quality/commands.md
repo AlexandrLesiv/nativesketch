@@ -24,8 +24,8 @@ pinned in `global.json`. No command changes a global default or grants folder tr
 | `node scripts/new-worktree.ts task-name` | Clean primary checkout only, local branch/worktree from HEAD |
 | `node scripts/lint.ts --platform rust` | Rust formatting and strict Clippy |
 | `node scripts/lint.ts --platform web` | Node gates plus web compiler checking |
-| `node scripts/lint.ts --platform swift` | Strict installed-toolchain swift-format; existing debt fails visibly |
-| `node scripts/lint.ts --platform android` | Existing pinned Android Gradle Plugin Lint task |
+| `node scripts/lint.ts --platform swift` | Strict selected-Xcode swift-format across Swift manifests, sources and tests |
+| `node scripts/lint.ts --platform android` | Pinned ktfmt, Kotlin source cap, Android Lint and available JVM tests via `androidQuality` |
 | `node scripts/lint.ts --platform windows` | Native Windows dotnet format verification |
 | `node scripts/test-evidence.ts --run` | Execute discovered Cargo tests and generate revision-bound HTML/JSON coverage; report success is not full coverage |
 | `node scripts/test-evidence.ts --gate` | Require all registered acceptance rows; currently fails on documented coverage gaps |
@@ -60,26 +60,33 @@ relative URLs and standard service-worker cache behavior. No renderer runtime ch
 The old apps/web compiler package/lockfile remain for legacy-path parity until removal.
 
 JS formatting/type-aware lint checks cover all new orchestration and quality modules;
-legacy app sources are not silently reformatted. After Android and Apple composition, the source-size gate reports three linked
-legacy debts and rejects new violations, growth after partial extraction, and all debt
-in final mode. Cargo dependency checks enforce boundaries; **not** license/advisory scans.
+legacy app sources are formatted within their owned extraction. Android, Apple, Windows,
+Linux and browser composition extractions are integrated; run the source-size gate in
+final mode to verify the current inventory. It rejects new violations, growth after
+partial extraction, and all remaining debt in final mode. Cargo dependency checks enforce
+boundaries; **not** license/advisory scans.
 The macOS native boundary gate rejects legacy bridge imports/linkage, manual C symbol
 declarations, and legacy/test-only headers reachable from the production session module.
 Its negative fixtures also exercise the actual quality CLI. This is a source regression
 guard for the supported module layout, not a Swift/C parser or proof of semantic routing;
 actual compiler consumers, bridge behavior tests and native journeys remain required.
 
-Swift 6.4 toolchain `swift-format --version` reports `main` on this host. Strict lint at
-`de54fe0` reports one extracted iOS entry-point `ReplaceForEachWithForLoop` violation, so it
-remains an explicit failing command, not a green integration gate. Do not autoformat oversized
-source before its extraction. Selected SwiftLint rules remain uninstalled. Android now has
+Swift 6.4 toolchain `swift-format --version` reports `main` on this host. The extracted iOS
+entry-point lint failure at `de54fe0` was repaired in `0c08954`. Strict lint is now part of
+the macOS integration gate and covers 133 Swift files, including manifests and tests.
+`735754d` passed using explicit Xcode selection, with `DEVELOPER_DIR` override preserved.
+Selected SwiftLint rules remain uninstalled. Android now has
 project-scoped ktfmt 0.64 with `kotlinFormat`, `kotlinFormatCheck`, `kotlinSourceSizeCheck`
 and aggregate `androidQuality` Gradle tasks. The aggregate passed on worker `398261d`:
 zero Lint errors, 15 unsuppressed warnings, JVM tests `NO-SOURCE`. The root Android lint
-entry point still runs only `lintDebug`; aggregate integration remains pending.
+entry point runs the aggregate since `0c08954`. The primary run at `0a43371` passed after
+explicit SDK configuration; the earlier missing-SDK failure is retained.
 The project NDK includes executable clang-format/clang-tidy 21.0.0; repository gates for
-them are unconfigured. Kotlin detekt, cargo-deny and C# analyzer expansion remain pending
-installation/configuration and applicable host verification. Windows format is unverified here.
+them are unconfigured. Kotlin detekt and C# analyzer expansion remain pending. Windows
+source formatting passed on the Mac with the documented design-time Windows resource-tool
+warning; native Windows packaging/runtime acceptance is still pending. Project-local
+cargo-deny, Miri and AddressSanitizer probes have run; reproducible repository lanes remain
+pending. See [tooling probe evidence](../evidence/023-tooling-probes.md).
 
 The Pages workflow invokes Node portable/Wasm/web checks with complete Git history for
 the growth gate. This is configured remote CI, not evidence of a completed remote run.

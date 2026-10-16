@@ -9,7 +9,7 @@ an old conversation; review upstream compatibility when installing/upgrading.
 | --- | --- | --- |
 | Rust | rustfmt, Clippy, cargo-deny | Cargo tests/docs, nextest where useful, proptest, targeted cargo-fuzz/Miri |
 | Swift | toolchain swift-format, nonoverlapping SwiftLint, concurrency diagnostics | Swift Testing for new appropriate unit tests; XCTest/XCUIAutomation for UI |
-| Kotlin | ktlint, Android Lint, compatible detekt | Native unit/adapter tests; Espresso/UI Automator |
+| Kotlin | Installed ktfmt and Android Lint; compatible detekt pending | Native unit/adapter tests; Espresso/UI Automator |
 | C# | dotnet format, Roslyn/SDK analyzers, nullable checks | Native unit/interop runner; FlaUI/UIA3 proof then E2E |
 | Web/Node JS/TS | Oxlint including type-aware rules, Oxfmt, explicit type checks | Vitest for JS logic; Playwright for built web app |
 | C/C++ owned bridge | clang-format, clang-tidy, compiler diagnostics | JNI conformance, applicable sanitizers |
