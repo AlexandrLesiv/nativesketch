@@ -116,12 +116,20 @@ separate from script, compiler, bridge and adapter tests.
 Subprocesses use executable/argument arrays, explicit directories, default ten-minute
 bounds, AbortSignal and SIGINT/SIGTERM cleanup, bounded captured diagnostics and POSIX
 process-group teardown. Windows tree teardown still requires native-host validation.
+Nested repository helpers register bounded ownership scopes before starting payloads;
+cancellation stops admission and confirms all registered groups have exited. External
+self-daemonizing tools outside these groups are not covered. Transient cleanup diagnostics
+are retained; persistent failures are fatal. Payload exit status is preserved separately.
 Fixtures live in ignored `artifacts/tests/` and cleanup executes even after failures.
 Negative tests cover Unicode/spaces/shell punctuation, missing/failing tools, timeout,
 cancellation, surviving descendants, output floods, environment composition and board
 validation. Source/dependency fixtures intentionally fail the real gate. Web checks
 validate emitted files, transitive imports, Pages-relative URLs and the cache digest;
 these do not replace browser UI/offline E2E.
+
+Run exact-source browser evidence separately from the full quality gate. Its negative
+source tests temporarily add invalid untracked files to the checkout to prove real CLI
+rejection; overlapping snapshot/build evidence can correctly report dirty or changed source.
 
 References: [Vite 8](https://vite.dev/blog/announcing-vite8),
 [Oxlint type-aware checks](https://oxc.rs/docs/guide/usage/linter/type-aware.html),

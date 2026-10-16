@@ -18,18 +18,20 @@ Zed integration consists of supported project tasks, not an invented custom-pane
 | Integrated `3d3e638` | 16 service and 12 browser journeys passed | Adds actual project export and production Wasm preview/drawing |
 | Integrated `6b46fb4` | 17 service and 14 browser journeys passed | Aggregate coverage format, invalid-data presentation, dependency detail and retained actual preview identity |
 | Integrated `6b46fb4` | Full background gate passed: 125 tooling tests, Rust checks/consumer tests, strict 133-file Swift lint, macOS build/pre-AppKit smoke and 17 GPU-free Swift tests | No native UI, desktop interaction or GPU benchmark |
+| Integrated `0aa3e00` | Full background gate passed: 135 tooling tests, Rust workspace/C/Wasm consumers, strict 133-file Swift lint, macOS build/pre-AppKit smoke and 17 GPU-free Swift tests | Includes nested automation ownership; no desktop interaction |
+| Integrated `0aa3e00`, serial packet | 17 service and 14 browser journeys passed; clean source throughout | Actual project export, isolated production Wasm drawing and all seven workbench views |
 
-The latest browser packet is `artifacts/evidence/025-workbench-reviewed`, with separate
+The latest browser packet is `artifacts/evidence/025-workbench-0aa3e00-serial`, with separate
 backend discovery/results, browser discovery/results, raw Playwright report, process outcome,
-identity, screenshots and an actual offline project report. At `6b46fb4`, workbench assets
-SHA-256 are `0a809a6effab0c1d142355b033dce6acb616b0e842b747d8835ae67d35255822`;
+identity, screenshots and an actual offline project report. At `0aa3e00`, workbench assets
+SHA-256 are `5c5bf709447f2c0c13db652dea462f793579cc69c426c00d64abfbec139e3a06`;
 headless Chromium SHA-256 is
 `77d8278b1ac9d0687fad4e817ea83023ede09b1deef36e1864b49ba194ac9634`.
 The raw Playwright attachment retains the isolated drawing build's source/hash and successful
 job identity. That preview uses the current Canvas2D/Wasm baseline, not CanvasKit.
 
 The 14 DX acceptance IDs are registered in `quality/features/workbench.json`. The scoped
-report at `6b46fb4` has 23 platform/level rows: 21 passed, native Zed interaction and
+report at `0aa3e00` has 23 platform/level rows: 21 passed, native Zed interaction and
 screen-reader speech missing, and no mapping issues. This is scoped workbench evidence,
 not all drawing-app functionality or line coverage. Later changes require refreshed evidence.
 
@@ -48,12 +50,32 @@ The first cancellation repair (`aafde17`, integrated `a6c5650`) stops delayed No
 and rejects pre-aborted evidence. Fresh review reproduced a deeper gap: a nested detached
 job could survive cancellation of its parent runner. The same topology affects a workbench
 job invoking another repository process helper. This is a correctness finding despite the
-passing happy-path checks above. Explicit nested process ownership is being repaired;
-this packet does not yet claim final cancellation acceptance or task completion.
+passing happy-path checks above. The repair (`8b22ca7` then `0c3c6a3`, integrated through
+`0aa3e00`) registers each helper-created process group before payload launch. Cancellation
+blocks descendant admission, signals every registered group and requires confirmed group
+disappearance before releasing ownership. A nested timeout preserves sibling/unrelated jobs.
+Payload exit status remains separate from supervisor termination. External self-daemonizing
+tools outside this protocol and Windows tree cleanup remain unsupported.
+
+The worker's 44-case cohort passed. Fresh independent review found no actionable issue;
+27 focused test results passed, including nested cancellation, resistant descendants,
+supervisor death and permission-error handling. Initial reviewer fixture-write sandbox
+failures were retained and affected checks subsequently passed in writable locations.
+Earlier repair attempts, including an invalid externally released test, remain under
+`artifacts/evidence/025-owned-process`. Darwin sometimes returned transient `EPERM` during
+group teardown; the repair retains those diagnostics and only succeeds after every group
+returns `ESRCH`. Persistent denial and other cleanup failures remain fatal.
+
+The first integrated browser attempt at `0aa3e00` passed 13/14 journeys. A concurrent
+full-check negative gate temporarily created deliberately invalid untracked source files;
+the dashboard retained a dirty snapshot, then refused initialization when source changed.
+Preview navigation consequently timed out. That packet remains at
+`025-workbench-0aa3e00`; it is not final acceptance. The separate serial packet passed all
+14 journeys with clean source, including the actual exported snapshot. Exact-source browser
+evidence must run separately from negative gates that intentionally mutate the checkout.
 
 ## Remaining acceptance and scope
 
-- The nested-process repair requires fresh review and background regression execution.
 - Native Zed task launch and screen-reader speech remain unexecuted. No Finder, CUA,
   native app, simulator or desktop permission flow was used for these workbench checks.
 - Foreground actions are disabled server-side and in the interface. No UI control can

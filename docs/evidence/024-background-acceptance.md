@@ -30,6 +30,9 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | GTK chooser-policy repair | `54cfb3d` | 17 adapter/provider tests passed; one ignored helper explicitly exercised by its parent; strict Clippy/build passed; no native Linux UI |
 | Updated facade Miri | `54cfb3d` | All 33 facade tests passed, including the new policy, import-capability and bounds cases |
 | Automation entry retirement | `965a5d8` | Python board removed after parity; Node `scripts/check` compatibility entry passed argument/exit tests and actual `--core` from another directory; remaining host wrappers retained |
+| Workbench integration and automation ownership | `0aa3e00` | Full background gate passed: 135 Node tests, Rust/C/Wasm checks, strict 133-file Swift lint, Mac build/pre-AppKit smoke and 17 GPU-free Swift tests; fresh independent process-ownership review |
+| Updated source inventory | `0aa3e00` | 859 handwritten source files, 64,070 physical lines, zero files above 200 |
+| Development workbench | `0aa3e00`, serial packet | 17 service and 14 actual/fixture browser journeys passed; scoped 21/23 acceptance rows passed, native Zed and speech missing |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load

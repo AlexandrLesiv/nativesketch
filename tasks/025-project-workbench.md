@@ -12,7 +12,8 @@ Wasm preview and qualified metrics, integrated with Zed through supported projec
 Read [the detailed plan](../docs/development-workbench-plan.md) before implementation.
 Implementation and exact background checks are recorded in the
 [workbench evidence](../docs/evidence/025-project-workbench.md). Nested-process cancellation
-repair and remaining native Zed/speech checks are explicit; this is not owner acceptance.
+is repaired and independently reviewed; native Zed/speech checks remain explicit gaps.
+Available background implementation is ready for review, not owner acceptance.
 
 ## Boundaries
 
