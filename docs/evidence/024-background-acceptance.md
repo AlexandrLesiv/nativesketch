@@ -21,6 +21,9 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Browser application E2E | `0967656` | Seven actual headless Chromium journeys passed against production Wasm assets; Canvas2D baseline, not CanvasKit or physical pen |
 | Instrumented sanitizer | `df2647f` | Six legacy FFI tests passed; actual ASan symbols and deliberate fault detection verified; narrow scope below |
 | Portable facade Miri | `cfc9e9f` | All 27 library tests passed under Miri; not native transport, host or GPU coverage |
+| Installed facade Miri lane | `a3c7497` | All 27 library tests passed through the repeatable `miri-app` runner; fresh runner review passed |
+| Linux portable owner/provider | Worker `342cfae`, integrated `a3c7497` | 15 tests passed plus one ignored child helper exercised by its parent; strict Clippy/format/build passed; native host and save-chooser compatibility remain pending |
+| Bounded core fuzz | `f8bb00b` | Both targets generated 25,000 inputs and then failed LeakSanitizer in the isolated runtime thread path; no passing fuzz acceptance |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load
@@ -64,8 +67,16 @@ This lane does not cover Skia, JNI, Wasm, native UI or the portable facade.
 
 The separate facade Miri run at `cfc9e9f` used pinned nightly `2026-10-15`, default isolation,
 and passed all 27 tests. Its identity, output, result and subsequent tool-hash supplement
-are retained. This was an explicit supplementary probe; the installed Miri lane still
-targets the six legacy FFI tests. Property/fuzz and per-host profiling remain incomplete.
+are retained. The later installed `miri-app` lane passed those 27 tests at `a3c7497` in
+`artifacts/evidence/023-miri-app-a3c7497`; the original `miri` lane still targets the six
+legacy FFI tests. [Bounded fuzz evidence](023-bounded-fuzz.md) retains failed executions and
+an empty-target runtime reproduction. Fuzz acceptance and per-host profiling remain incomplete.
+
+The [Linux adapter evidence](022-linux-portable.md) records real portable owner/provider
+tests and repaired bounded, nonblocking diagnostics. Subsequent compatibility inspection
+found that guarded Save must keep opening a chooser after earlier saves, as the original
+GTK interface did. The current shared default may reuse the bound destination. A shared
+chooser-on-save policy and regression are required; this slice is not final Linux acceptance.
 
 ## Package and symbol evidence
 

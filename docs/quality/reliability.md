@@ -93,6 +93,9 @@ The subsequent [bounded core fuzz lane](../../fuzz/README.md) adds document-code
 command/input targets through `node scripts/check-fuzz.ts --output NEW_DIRECTORY`.
 It is a separate explicit lane, with retained corpus/crashes and instrumented core proof;
 it does not make native profiling or package acceptance complete.
+The [first execution packet](../evidence/023-bounded-fuzz.md) records a reproduced runtime
+shutdown leak and failed results. The installed lane currently has no accepted passing run;
+keep leak detection and memory limits unchanged while a supported runtime repair is pending.
 
 ### Invalidated initial sanitizer evidence
 
