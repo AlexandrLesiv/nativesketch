@@ -3,7 +3,8 @@ use super::*;
 fn exact_request_goldens_and_invalid_tails() {
     let mut count = 0;
     for (name, bytes) in fixtures() {
-        if name.starts_with("tag.") || name.starts_with("failure.") {
+        if name.starts_with("tag.") || name.starts_with("failure.") || name.starts_with("response.")
+        {
             continue;
         }
         let p = decode(&bytes).unwrap_or_else(|e| panic!("{name}: {e:?}"));
@@ -19,7 +20,7 @@ fn exact_request_goldens_and_invalid_tails() {
             assert!(decode(&bytes[..n]).is_err(), "truncated {name}/{n}");
         }
     }
-    assert_eq!(count, 95);
+    assert_eq!(count, 97);
 }
 #[test]
 fn malformed_flags_reserved_versions_counts_and_floats_are_rejected() {

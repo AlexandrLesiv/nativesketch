@@ -30,5 +30,9 @@ mod projection;
 mod work;
 mod worker_call;
 pub use work::{InputBytes, WireResult, WireWork, WorkerReply};
+mod scene_budget;
+mod scene_query;
+mod scene_records;
+mod scene_store;
 #[cfg(test)]
 mod tests;

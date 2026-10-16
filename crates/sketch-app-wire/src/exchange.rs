@@ -74,6 +74,8 @@ impl WireApp {
         });
     }
     pub fn shutdown_ready(&self) -> bool {
-        self.app.stats().shutdown_ready() && self.budget.stats().0 == 0
+        self.app.stats().shutdown_ready()
+            && self.budget.stats().0 == 0
+            && self.scenes.leases.is_empty()
     }
 }

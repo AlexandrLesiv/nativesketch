@@ -141,6 +141,9 @@ diagnostic_drops,transport_buffers,transport_bytes,scenes,scene_bytes,geometry_e
 Diagnostic: app,source_operation,session_ref,request:u64; provider,kind,result,durability,
 write_failure,reserved:u32; Failure (96 bytes). source_operation is facade correlation,
 not an executable operation_ref. Kinds Completed1/Write2/ReplacementFailed3/Cancelled4/Rejected5.
+For kind2, result is SaveResult; for kind5, result is the explicit WireError status; all other
+kinds have result0. Durability/write_failure are nonzero only for kind2; Failure carries
+structured context for kinds3/5. Flat rejected Capacity/Busy/Unsupported remain distinguishable.
 
 ## Worker lane and ownership
 
@@ -210,3 +213,108 @@ real worker exchange, failed/cancelled receipts, aliases, stale continuation rep
 scene leases/eviction/unchanged geometry, and all 26 facade tests. Codec fixtures may contain
 synthetic wire IDs; execution tests must obtain real private ownership. No native acceptance
 or performance claim follows from codec, replay, or compilation.
+
+## Concrete typed implementation and host-wrapper obligations
+
+`WireApp::bootstrap(&[u8], TransportLimits)` accepts opcode0 only. Bootstrap validates
+sessions/operations/buffers 1..1024, destinations 1..2048, document bytes 24..64MiB,
+buffer bytes at least document bytes and at most 512MiB, save jobs 1..1024 and snapshot
+bytes 1..512MiB. Transport limits separately permit buffers 1..1024, bytes 0..512MiB,
+scenes 1..64, pinned scene bytes 0..512MiB, geometry identities 1..65536. A zero byte
+budget intentionally admits no allocations. `decode` is pure and cannot mutate an app.
+One static checked allocator covers every WireApp and every transport handle kind in the
+loaded process/Wasm instance. IDs from another app cannot accidentally resolve locally.
+
+`WireApp::call(&[u8]) -> Result<Reply, WireError>` owns no caller buffer. Reply owns its
+immutable bytes and a transport reservation until Rust Drop; `Reply::bytes()` borrows only.
+There is no wire free opcode for replies: future C/JNI/Wasm wrappers must provide their
+own exactly-once object free operation. No view may outlive its Reply. Failure packets are
+fixed 72-byte stack values from `WireError::packet(opcode,request)`, requiring no registry slot.
+The owner reserves a 4096-byte control reply before any action/event/resource consumption;
+page replies reserve their exact bounded maximum. This is conservative capacity accounting,
+not a claim that each small reply contains 4096 useful bytes. Stats include their own reply.
+
+`take_work(request30) -> (Reply, Option<WireWork>)` transfers actual issued work. Calls to
+30/31 through ordinary call are WrongScope. `complete(request31, &mut Option<WireResult>)`
+consumes only on success; wrong app, phase, output capacity or ownership preserves the result.
+The facade operation slot bounds one active work/result chain; result identity is reserved
+before consuming work. A completed worker object has no work left and cannot execute again.
+Ordinary controls/effects and work have separate private registries; no raw integer constructor
+can fabricate proof. Dropping work/result is not completion and can leave shutdown busy.
+`shutdown_ready()` also requires all response/input buffers and scene leases released.
+
+`WireWork::copy_input(&[u8])` copies at most maximum_read_bytes+1 into owned InputBytes,
+reserving the same app transport budget before allocation. Inputs are not document validation
+proof. `WireWork::call(packet,&mut Option<InputBytes>) -> WorkerReply` retains input on
+wrong scope, wrong app or rejected request; successful PrepareRead consumes it and holds its
+reservation through decoding. Its Vec is not exposed. Corrupt/oversized content is an issued
+failure result. A host must bound its original read as well; Rust cannot account an arbitrary
+host allocation made before this copy. Result and encoded snapshot budgets remain distinct.
+
+| State | Allowed operations | Ownership transition |
+| --- | --- | --- |
+| Issued Write | 100,101,105 | Encode -> Encoded or failure Result; FailBeforeIO -> Result |
+| Issued Read | 100,102,105 | PrepareRead or FailBeforeIO -> Result |
+| Issued New | 100,103 | PrepareNew -> Result |
+| Issued Retire | 100,106 | Dispose -> Result |
+| Encoded Write | 100,104,107 | Finish -> Result; invalid outcome retains Encoded |
+| Consumed | none | InvalidState, no new proof |
+
+105 is valid only before provider side effects. After Encode use104 with actual Written,
+Failed (replacement definitely did not happen), or Uncertain outcome. The protocol cannot
+verify a provider's truthful report; its adapter owns that guarantee. Never use FailBeforeIO
+to guess that an interrupted write did not happen. Non-PrepareRead calls reject extra inputs.
+Work is Send and serially movable; application ownership remains !Send/!Sync. Future native
+wrappers must enforce thread identity and catch unwinding; this safe Rust crate exports no FFI.
+
+## Scene consumption details
+
+A scene request borrows `previous_scene_ref`; it never consumes or retains that lease.
+Same key/viewport returns the same ref with unchanged=1 and **does not add a retain**.
+For a changed frame: request using the old ref, retain the old view on failure, and only after
+success with a different ref release the old ref once. Same ref must not be released merely
+because another response reported it. `root_ref` equality independently signals unchanged
+committed descriptors; live/preview portions can differ while root_ref stays equal.
+
+Page first is a zero-based record index. first==count is EOF with zero records; first>count
+is InvalidArgument. limit==0 returns zero records. Larger limits clamp to 1365 Stroke records
+or 744 Path records, respectively, so record bytes are <=64KiB. An 8-byte count/reserved prefix,
+48-byte status prefix and 24-byte frame header are additional. CopyEncoded likewise permits
+65536 copied bytes plus these prefixes; offset==length is EOF, offset>length rejects.
+A geometry ref must belong to the specified live scene, even if another scene retains it.
+ReleaseScene is exactly once; a duplicate release is Stale. Scene commands are read-only.
+
+Geometry path points use document-local stroke coordinates before the Stroke transform:
+Move/Line use points[0..2], Cubic uses control1/control2/end in all six slots, Close uses none;
+unused slots are zero. Reassemble **all** pages in order, preserving contours, and use one
+nonzero-winding fill for the whole geometry. RGBA is normalized, straight alpha; retain the
+existing Skia Color4f/no-explicit-source-color-space interpretation. This wire adds no color
+management conversion. Do not fill each segment/page separately or multiply alpha twice.
+For GPU narrowing, subtract GeometryInfo.origin in f64 first. With camera origin C, zoom Z,
+stroke scale S and translation T, view = Z*S*(point-origin) + Z*(S*origin+T-C), then host
+backing scale. Viewport is document space; this layer adds no desktop zoom clamp. Native
+style/overlay geometry is outside this document/scene protocol.
+
+One bounded SceneCache is reused across sessions, retaining at most 32MiB geometry and a
+64MiB prepared root (below the 128MiB app cache allowance); switching sessions may evict it.
+Live leases pin immutable data independently. Root and geometry reference counts charge each
+unique payload once. Reusing a committed root updates constant-size registry state and only
+examines new live/preview geometry; it does not flatten or walk all committed paths per input.
+New roots require descriptor traversal. Metadata identities and staged lookup work are bounded
+by geometry_entries and MAX_STROKES; allocator overhead is excluded from byte estimates.
+Query capacity/error preserves old leases; cache eviction cannot invalidate pinned scenes.
+Released, unleased cached geometry may receive a fresh opaque identity on later publication.
+
+## Test mapping for this slice
+
+| Existing acceptance/invariant scope | Transport evidence |
+| --- | --- |
+| FFI-001, INPUT-001/002 | Exact fixtures, every truncation/tail, reserved/tag/float/count rejection, high-bit IDs, whole-batch preservation |
+| FFI-001, ASYNC-001 | Two-app references/results/input rejection, actual worker thread exchange, one completion, cancellation and shutdown |
+| SAVE-001/003, LOAD-001 | Alias releases, encoded outcome correction, output-capacity ownership, stale-load retirement and usable subsequent intent |
+| RENDER-001, CACHE-001 | Full response/path goldens, paged reassembly, scene/root reuse, pinned capacity, old-scene survival and membership |
+| Existing portable facade acceptance | Run all 26 sketch-app tests unchanged alongside transport tests |
+
+The literal fixture set includes complete Projection/Outcome/WorkInfo/SceneInfo/Path responses,
+not only tag units; payload handles and sample/resource IDs exercise values above 2^53 and
+with the high bit set. These are transport/core evidence, never native input or GPU evidence.

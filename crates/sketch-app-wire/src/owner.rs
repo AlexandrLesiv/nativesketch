@@ -20,6 +20,7 @@ pub struct WireApp {
     pub(crate) operations: Vec<Op>,
     pub(crate) budget: Arc<Budget>,
     pub(crate) limits: AppLimits,
+    pub(crate) scenes: crate::scene_store::Scenes,
 }
 impl WireApp {
     pub fn bootstrap(bytes: &[u8], limits: TransportLimits) -> Result<Self, WireError> {
@@ -50,6 +51,7 @@ impl WireApp {
             operations,
             budget: Budget::new(limits.buffers, limits.buffer_bytes),
             limits: config,
+            scenes: crate::scene_store::Scenes::new(limits)?,
         })
     }
     pub(crate) fn session(&self, id: u64) -> Result<SessionHandle, WireError> {

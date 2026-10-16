@@ -120,5 +120,13 @@ fn drain(app: &mut WireApp) {
         drop(app.complete(&packet(31, &[]), &mut result).unwrap());
     }
 }
+mod diagnostic_goldens;
+mod effect_goldens;
+mod enum_records;
+mod failure_goldens;
+mod response_goldens;
+mod scene_goldens;
+mod scenes;
 mod stale_load;
+mod tag_goldens;
 mod transfer_capacity;
