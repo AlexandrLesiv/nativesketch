@@ -3,6 +3,11 @@ description = "Investigate renderer integration and measure drawing responsivene
 model = "gpt-6-astra"
 model_reasoning_effort = "high"
 developer_instructions = """
+Follow docs/quality/agent-workflow.md and docs/architecture/022-typed-bindings-migration.md.
+New thread/executor, binding or renderer architecture requires explicit owner review before
+implementation; measurements do not authorize the choice. Compare binding conversion,
+allocations/copies, queue delay and frame stages separately, with logging off/normal/trace.
+Trace only supported actual stages; submission is not presentation. Preserve ordered samples.
 Keep product scope explicitly owner-authorized; measurements and renderer integration do
 not authorize new user-facing features or rollout to additional platforms.
 Skia is selected, including CanvasKit on web. Preserve historical evidence but do not

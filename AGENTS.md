@@ -53,6 +53,15 @@ change for human merge approval. Native Sketch is a working name.
   automation existence from execution status; retain skips, failures and flaky retries.
 - Instrument operation/failure boundaries with structured, correlated, redacted diagnostics.
   No per-sample production logging, swallowed errors or unbounded queues/logs/caches.
+  Instrument native intent origins and shared command outcomes/state transitions centrally;
+  preserve request/session/operation correlation across workers. Use allowlisted metadata,
+  never document text/paths/credentials. Bounded queues drain off input callbacks; count
+  drops and sink failures without failing edits. Test redaction, rejection and overload.
+  Follow docs/architecture/022-typed-bindings-migration.md and docs/quality/agent-workflow.md.
+- Typed FFI with generated declarations replaces the custom packet protocol as the target
+  language boundary. Preserve shared Rust commands/behavior and working consumers until
+  parity passes; document encoding is not the command transport. No incidental executor,
+  renderer or UniFFI adoption. The migration plan is not evidence of implementation.
 - Run applicable format/lint/type/dependency/size checks and behavior/E2E/recovery tests.
   Planned tooling is not an installed gate; docs/quality.md distinguishes current checks
   from tasks that install them. Never weaken a baseline, exclusion or test to obtain green.
@@ -72,6 +81,8 @@ changes; do not claim independent review unless it actually ran.
   build_reliability owns quality runners, coverage reporting and diagnostics infrastructure;
   implementers own feature tests/logging; rendering_performance owns measurement validity;
   reviewer independently checks contracts and evidence. No extra permanent quality agent.
+  Follow docs/quality/agent-workflow.md: small vertical slices, explicit old-path retirement,
+  and focused maintainability/security/performance/design reviews by existing specialists.
 - Use isolated worktrees for concurrent writers. Subagents do NOT automatically get
   their own worktree. If isolation is unavailable, serialize edits or explicitly assign
   disjoint paths. Do not run worktree creation from a worktree recursively.
@@ -87,12 +98,27 @@ changes; do not claim independent review unless it actually ran.
 
 ## Completion and authority
 
+Explicit owner review is required BEFORE implementing material architecture choices:
+new/custom protocols, serialization/document formats, language/runtime boundaries, mutable
+state ownership or thread topology, renderer/framework replacements, and security/trust
+models. Present concrete interfaces, alternatives, risks, migration/removal and test plans;
+record the owner's approval. Lead/agent agreement or general refactoring authorization is
+not a substitute. Existing explicit approval covers routine work within its scope; do not
+re-ask for ordinary fixes/extraction/tests. Material deviations require renewed review.
+Continue independent authorized work while waiting. The typed-binding direction is approved;
+task 022A requests owner review of the concrete contract before implementation.
+
 New user-facing features and extensions to additional platforms require explicit owner
 approval before implementation. A general implementation/refactoring request, an agent-authored
 design, platform convention or test convenience is not approval for extra features. Propose
 the scope and obtain approval; continue already authorized fixes and verification meanwhile.
 Retain the existing macOS color picker and other already implemented color controls. Do not
 add a color picker to another platform or expand these controls without explicit approval.
+For new application pages/screens or tools, ui_ux_designer must prepare a Figma design
+and obtain explicit owner approval of an identified version before implementation. Follow
+docs/design/principles.md for native feasibility, handoff, approval records and material
+deviations. Missing Figma access is a blocker for that UI slice, not permission to bypass
+review; continue independent authorized work. Routine fixes within approved designs proceed.
 
 Implement, run, inspect, and fix the authorized work through to a reviewable result.
 Routine local builds and tests use disposable fixtures: run and repair them without

@@ -21,6 +21,9 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
 [refactoring sequence](../docs/refactoring-plan.md). One owner changes shared contracts.
 
 - Verify zero handwritten source-size violations, dependency/ownership boundaries and removal of unverified legacy automation.
+- Require task 022 typed-binding parity and retirement inventory, reproducible generated
+  declarations, thread/lifetime and structured logging evidence (BIND/LOG IDs). The earlier
+  custom-protocol checks remain historical evidence, not proof of the replacement API.
 - Run required feature/E2E matrix and package clean-launch/old-document/upgrade tests for selected distribution; retain symbols/build identities.
 - Resolve correctness/data-loss findings; record designer and fresh independent review plus remaining device/physical-latency gaps.
 - Do not mark all-platform completion when required platforms remain blocked; present narrowed acceptance explicitly if needed.

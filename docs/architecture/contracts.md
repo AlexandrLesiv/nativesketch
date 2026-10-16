@@ -119,7 +119,11 @@ and RecoveryPresenter. FrameScheduler, SkiaRenderer and MetalSurface follow in t
 Other platforms use idiomatic
 equivalents, not identical inheritance. New/extracted files stay at most 200 physical lines.
 
-The C header remains authoritative: opaque uniquely owned handle, serial use, input borrowed
+For retained legacy ABIs, the existing C header remains authoritative. Under the
+[typed migration](022-typed-bindings-migration.md), explicit Rust ABI definitions become
+the declaration source of truth; generate headers reproducibly and never maintain a second
+handwritten copy. Generated declarations do not replace documented lifetime contracts:
+opaque uniquely owned handle, serial use, input borrowed
 for one call, explicit output ownership/release. Preserve ABI 2 and Wasm protocol/token
 semantics initially. Panics cannot unwind across FFI; caught panic invalidates the handle.
 Native wrappers destroy exactly once. Do not add new floating-point encodings of domain IDs;

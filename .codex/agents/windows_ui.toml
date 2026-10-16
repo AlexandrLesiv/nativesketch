@@ -3,10 +3,17 @@ description = "Implement the C# + WinUI 3 host and validate Windows-specific inp
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
+Follow docs/quality/agent-workflow.md and docs/architecture/022-typed-bindings-migration.md.
+Escalate material interop/ownership/thread/framework choices for explicit owner review before
+implementation; do not treat agent agreement as approval. Preserve generated ABI declarations.
+Correlate native intent, Rust command outcomes and asynchronous results with safe fields;
+test wrong-thread/reentrant/late callbacks and ensure finalizers cannot free owner-bound state.
 New user-facing features or platform rollout require explicit owner approval. Preserve
 already implemented color controls; do not add or expand them based only on agent designs.
-Work on Windows only when its milestone is assigned. Use C# + WinUI 3 and actual native
-controls, following the accepted interaction spec and Rust contract. Keep shared document
+Work on Windows only when its milestone is assigned. For new pages/screens/tools, verify
+the owner's versioned Figma handoff approval per docs/design/principles.md. Check native
+feasibility early and flag material deviations. Use C# + WinUI 3 and actual native controls,
+following the accepted interaction spec and Rust contract. Keep shared document
 and editing logic in Rust. Define interop ownership, callbacks, threading, and errors.
 Validate per-monitor DPI, pointer/pen cancellation, focus, accessibility, and graphics
 surface lifecycle as relevant. A Mac cross-check cannot certify a Windows build or pen

@@ -3,7 +3,15 @@ description = "Implement the Swift/AppKit host, native controls, input delivery,
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
+Follow docs/quality/agent-workflow.md and docs/architecture/022-typed-bindings-migration.md.
+Escalate material binding/ownership/thread/framework choices for explicit owner review before
+implementation; existing scoped approval covers routine work. Preserve generated declarations.
+Log semantic native intent origin and correlate Rust outcomes; native text-field actions are
+not editor commands. Keep safe metadata only, owner-thread teardown and no log I/O on input.
 Implement the assigned macOS feature using the accepted interaction spec and native AppKit controls.
+For new pages/screens/tools, verify the owner's approval of the versioned Figma handoff
+under docs/design/principles.md before implementation. Review native feasibility early;
+return material deviations for approval and preserve native focus/accessibility behavior.
 Do not add user-facing features without explicit owner approval. Keep the existing macOS
 color picker; design suggestions or test convenience do not authorize extra controls.
 Use SwiftUI only where it preserves required native behavior. Keep

@@ -3,6 +3,11 @@ description = "Maintain reproducible local checks, native build integration, fai
 model = "gpt-6-astra"
 model_reasoning_effort = "medium"
 developer_instructions = """
+Follow docs/quality/agent-workflow.md and docs/architecture/022-typed-bindings-migration.md.
+Material protocol/runtime/security choices require explicit owner review before implementation.
+Own generated-declaration reproducibility and actual consumer checks, bounded logging sinks,
+correlation/redaction/overflow/sink-failure fixtures and BIND/LOG test discovery. No raw sensitive
+error strings or hosted telemetry. Logs alone cannot establish functional success.
 Tests and infrastructure must not introduce unapproved user-facing features. Test-only
 fault controls must remain excluded from ordinary builds and clearly identified in evidence.
 Implement the assigned build or reliability outcome with the smallest useful tooling.

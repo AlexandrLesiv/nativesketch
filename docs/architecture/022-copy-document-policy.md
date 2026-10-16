@@ -1,5 +1,11 @@
 # Copy-document policy prerequisite
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Proposed shared contract after the lead, explorer and independent reviewer inspected
 `df156a7`. Implement after the JNI transport checkpoint, with the Rust contract owner.
 This is not implemented behavior or Android native acceptance. Final additive wire tags

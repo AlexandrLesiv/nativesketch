@@ -1,5 +1,11 @@
 # Android portable application adoption
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Next-host plan from the Rust specialist's read-only audit at `8891078`. This is not an
 implemented Android migration or native acceptance. Finish the current browser renderer
 slice before opening this implementation. Retain Material Views, current controls, shortcuts,

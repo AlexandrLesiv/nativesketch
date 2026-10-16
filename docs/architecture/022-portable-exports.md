@@ -1,5 +1,11 @@
 # Portable export boundary v2 — signature freeze
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Task022 continuation after reviewed wire6df14a2. This boundary adds no platform consumer,
 renderer or product capability. Native-v1, ABI2, Wasm-v1 and document bytes remain unchanged.
 The shared registry owns objects; `sketch-app-wire` remains the only editing/work dispatcher.

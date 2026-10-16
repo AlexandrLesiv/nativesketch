@@ -31,6 +31,11 @@ PR #1 architecture audit: `de46c2f`.
 
 ## Dependencies
 
+The owner-selected [typed bindings migration](architecture/022-typed-bindings-migration.md)
+replaces custom command packets with typed native FFI/generated declarations and a typed
+Wasm binding. Existing consumers migrate incrementally; shared Rust commands and document
+encoding remain authoritative. Read the migration plan before following older 022 layouts.
+
 ```mermaid
 flowchart TB
     Controls[Native controls and accessibility] --> Presenter[Native presenter]

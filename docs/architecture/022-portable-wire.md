@@ -1,5 +1,11 @@
 # Portable wire v2.0
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Lead-approved task 022 transport design; implementation acceptance is separate. This
 contract wraps frozen sketch-app 42bd477. It changes no document format, legacy ABI2,
 native-v1 or Wasm-v1. No C/JNI/Wasm exports or host consumer are added in this slice.

@@ -1,5 +1,11 @@
 # Task 022 implementation contract — portable application adapters
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Implementation design approved by the lead, 2026-10-16; starting source `8b3e3e3`.
 The read-only contract audit used `e117245`/`06b0c4d`; subsequent changes are macOS
 rendering verification repairs. The designer reviewed action and viewer interaction policy.

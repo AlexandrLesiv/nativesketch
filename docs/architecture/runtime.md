@@ -2,6 +2,10 @@
 
 Target policy; threading changes are measured separately from structural extraction.
 Async does not imply CPU work leaves the UI thread.
+The [typed migration](022-typed-bindings-migration.md) preserves these rules independently
+of language binding. Current PortableApp/bridge use a fixed OS-thread owner, not merely
+serial access. Generated wrappers must not silently introduce locks, worker hops or
+arbitrary-thread destruction. Changes to that ownership require explicit owner review.
 
 ## Single owner first
 

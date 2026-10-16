@@ -11,9 +11,12 @@ Roles: rust_engine, ui_ux_designer, macos_ui, windows_ui, build_reliability, rev
 
 Shared host contracts and scoped extraction plans for every existing platform.
 Progress, exact checks and retained gaps: [adapter evidence](../docs/evidence/022-adapters.md).
-The lead-approved phased [adapter design](../docs/architecture/022-portable-adapters.md)
-freezes action semantics and provider ownership; concrete transport layouts freeze after
-typed ownership tests. Local downstream preparation proceeds under the owner's explicit
+The owner-selected [typed binding migration](../docs/architecture/022-typed-bindings-migration.md)
+supersedes the earlier adapter design's custom packet layouts. Preserve its action semantics
+and provider ownership. Implement slices 022A–F: inventory/owner contract review, typed
+vertical slice, structured logging, macOS adoption, other consumers, protocol retirement.
+The direction is approved; concrete ABI review precedes implementation. All new slices
+remain planned. Local downstream preparation proceeds under the owner's explicit
 instruction to continue independent work when a foreground permission blocks verification.
 
 ## Contracts and acceptance
@@ -22,6 +25,11 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
 [refactoring sequence](../docs/refactoring-plan.md). One owner changes shared contracts.
 
 - Freeze native UI/action/sample/viewer contracts and common byte/command fixtures; retain idiomatic native presenters.
+- Replace custom command packets with typed FFI/generated declarations; preserve saved
+  document bytes. Follow BIND-001–006 and LOG-001–002 in the typed migration contract;
+  register executable mappings as implemented, never mark planned cases as passed.
+- Preserve fixed-thread editor ownership, immutable worker inputs and owner-applied results.
+  Test lifetime/reentrancy, diagnostic correlation/redaction/overflow and actual consumers.
 - Use the reviewed `ApplicationSession` and task 019 [native session contract](../docs/architecture/019bc-native-interface.md)
   as the command boundary. Map every platform's controls and shortcuts to that boundary;
   keep native field editing first. Do not duplicate file/navigation policy in a new host.
@@ -48,7 +56,9 @@ No recursive delegation; at most two writers/three subagents and one feature in 
 
 ## Completion boundary
 
-Conformance boundaries and scoped host extractions ready for individual platform acceptance; not all-platform certification.
+Typed conformance boundaries, consumer migration and verified packet retirement ready for
+individual platform acceptance; not all-platform certification. Keep unsupported native
+acceptance pending; do not retire its working adapter based only on cross-host builds.
 
 Fresh review follows substantive implementation and material fixes. Task status becomes
 review when evidence is ready; only owner acceptance permits done. No main merge or release.

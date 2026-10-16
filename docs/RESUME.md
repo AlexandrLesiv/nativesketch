@@ -4,6 +4,19 @@ Handoff written 16 October 2026 (Europe/Kyiv). Read this first in a new chat.
 The owner stopped implementation to conserve account usage and requested a draft PR.
 This document records a stopping point, not acceptance of unfinished work.
 
+## Subsequent owner decision — read before resuming
+
+On 2026-10-16 the owner requested updating the plan to replace the custom binary command
+protocol with typed FFI and generated declarations, while preserving shared Rust behavior.
+Follow [the new 022 migration](architecture/022-typed-bindings-migration.md), slices 022A–F,
+and [agent workflow](quality/agent-workflow.md). This supersedes packet-layout/adoption
+instructions below and in older 022 designs; their behavioral/provider guarantees remain.
+This follow-up changes documentation/instructions only, not runtime code or prior results.
+Do not continue expanding v2 packet consumers. First inventory current consumers, prepare
+the concrete typed contract and obtain the specified owner review. Existing working paths
+remain until parity and per-host retirement gates pass. Remaining implementation, native
+verification and copy-policy gaps below are still unresolved, subject to the new sequence.
+
 ## Repository and authority
 
 - Primary checkout: `/Users/oleksandr/projects/native-sketch`.

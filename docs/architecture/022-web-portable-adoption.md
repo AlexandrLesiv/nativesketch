@@ -1,5 +1,11 @@
 # Browser portable-command adoption
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Lead handoff, reviewed against `6b46fb4` by rust_engine and ui_ux_designer on
 2026-10-16. This is the next bounded task 022 implementation slice after the workbench's
 process-ownership repair. It does not change the selected Skia/CanvasKit direction.

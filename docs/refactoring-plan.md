@@ -2,6 +2,12 @@
 
 Current execution handoff: [resume instructions and exact stopping point](RESUME.md).
 
+Update 2026-10-16: the owner selected typed FFI with generated declarations to replace
+custom command packets. Follow [022 typed migration](architecture/022-typed-bindings-migration.md)
+for slices 022A–F, thread ownership, logging and migration tests. This supersedes earlier
+022 packet-layout prescriptions, not shared Rust semantics or saved document formats.
+These slices are planned; no consumer migration or acceptance is claimed by this update.
+
 Date: 2026-10-15. Planning branch: `codex/architecture-quality-plan`.
 Required starting point: `codex/github-pages`, `712059d5c4470c9770d08c42de8f1391884a66be`.
 The owner explicitly excluded `codex/renderer-results` from new implementation ancestry.
@@ -38,7 +44,7 @@ Keep behavior changes separate from extraction; a renderer swap is not a mechani
 | [021](../tasks/021-diagnostics-and-recovery.md) | Diagnostics, snapshot storage and recovery | 018; failure and stale-write tests |
 | [019](../tasks/019-macos-editor-composition.md) | Complete native macOS brush/edit slice | 018/021; native E2E and designer review |
 | [020](../tasks/020-skia-scene-and-caching.md) | Production Skia scene/cache/scheduling slice | 019; reference rendering and measured effects |
-| [022](../tasks/022-portable-adapter-contracts.md) | Shared host conformance and scoped adapter decomposition | 020/021; port-specific work proceeds below |
+| [022](../tasks/022-portable-adapter-contracts.md) | Typed bindings/generated declarations, shared host conformance and protocol retirement | 020/021; slices 022A–F before final port acceptance |
 | 004, 009–013 | Windows, Apple editors, Android/ChromeOS, Linux, web, viewers | 022 plus existing dependencies; each own host evidence |
 | [023](../tasks/023-quality-hardening.md) | Fuzz/sanitizer, accessibility, sustained/performance checks | 022; hardware lanes explicit, no fabricated budgets |
 | [024](../tasks/024-refactor-acceptance.md) | Final source cap, package/upgrade checks, review packet | 023 and port acceptance; zero hidden coverage debt |
@@ -82,6 +88,10 @@ state/lifetime ownership, errors/effects, cancellation, files/types and required
 The lead + rust_engine do architecture planning; ui_ux_designer checks interaction contracts.
 No extra permanent architecture/logging/test agent is required. Use focused review rather
 than running all agents for every task.
+Apply [agent workflow](quality/agent-workflow.md): owner review before material architecture
+choices, explicit structured logging responsibilities, and security/maintainability review.
+Agent approval cannot authorize a new protocol. The owner approved this migration direction;
+022A presents the concrete contract for owner review before implementation.
 
 ```mermaid
 flowchart TB
@@ -129,6 +139,8 @@ behavior after integration and material fixes. Keep task-specific failures and r
 - Shared invariants, byte/bridge compatibility and real native journeys have named evidence.
 - Coverage matrix identifies actual tests/results at tested revisions, platform gaps and flakiness.
 - Diagnostics are redacted/bounded; failure injection proves retention and recovery behavior.
+- Typed consumers preserve command/provider behavior; generated declarations reproduce;
+  logging/thread/lifetime tests pass and unused packet paths have a verified retirement inventory.
 - Skia rendering is correct with/without caches and after surface loss; budgets are measured.
 - Owned shell/PowerShell orchestration removed only after verified Node parity.
 - Packaged artifacts, required symbols and upgrade checks match selected distribution scope.

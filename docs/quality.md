@@ -8,6 +8,10 @@ See [tooling](quality/tooling.md), [feature coverage](quality/coverage.md),
 [platform E2E](quality/platforms.md), [reliability](quality/reliability.md), and
 [invariants](architecture/invariants.md). The [refactoring plan](refactoring-plan.md)
 assigns implementation owners and gates.
+The [agent workflow](quality/agent-workflow.md) requires owner review before material
+architecture choices and assigns structured logging/security/maintainability responsibilities.
+Task 022's [typed migration](architecture/022-typed-bindings-migration.md) adds planned
+BIND/LOG acceptance IDs; they become evidence only when executable mappings and runs exist.
 
 ## Required target gates and adoption
 

@@ -1,5 +1,11 @@
 # Android Rust JNI transport checkpoint
 
+> Migration update (2026-10-16): follow [typed bindings migration](022-typed-bindings-migration.md).
+> Its owner-selected typed FFI/generated declarations supersede custom packet/layout
+> prescriptions here. Preserve semantic/provider/lifetime requirements; existing code and
+> historical evidence are not automatically migrated or invalidated. Do not expand packet consumers.
+
+
 Implementation contract approved by the lead after the Rust specialist's read-only audit
 at `ed53773`. This is an additive transport plan, not implemented Android adoption or native
 acceptance. Follow [the host migration plan](022-android-portable-adoption.md); finish the
