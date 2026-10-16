@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "portable-actions",
+  "description": "Shared action and read-only viewer source semantics. Host adapter adoption, provider integration and native E2E remain separate requirements; mapping existence is not execution.",
+  "sourceRevision": "1291f7c",
+  "cases": [
+    {
+      "id": "ACTION-ATOMIC-001",
+      "expected": "Rejected high-level actions preserve the active draft, transform and settings before any cancellation.",
+      "invariants": [
+        "INK-001",
+        "ASYNC-001"
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::action_failures::unavailable_history_selection_and_stale_context_preserve_draft",
+        "cargo:sketch-core:lib:application::session::tests::action_failures::invalid_scale_and_composed_overflow_preserve_active_transform",
+        "cargo:sketch-core:lib:application::session::tests::action_failures::exhausted_generation_does_not_cancel_or_change_settings"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ACTION-HISTORY-001",
+      "expected": "Valid shared actions cancel once and apply one committed operation; primitive active Undo retains its rejection contract.",
+      "invariants": [
+        "UNDO-001",
+        "UNDO-002"
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::actions::active_draft_action_undo_cancels_and_undoes_one_committed_stroke",
+        "cargo:sketch-core:lib:application::session::tests::actions::choose_tool_and_cycle_cancel_once_without_history_then_delete_is_one_operation",
+        "cargo:sketch-core:lib:application::session::tests::actions::one_shot_scale_ignores_preview_and_has_exactly_one_undo_redo"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "VIEWER-SOURCE-001",
+      "expected": "Only the latest issued viewer source can replace validated content; corrupt/cancelled/stale results retain the last document without a save binding.",
+      "invariants": [
+        "VIEW-001",
+        "SOURCE-001",
+        "LOAD-001"
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::viewer::viewer_source_installs_latest_only_and_never_creates_save_binding",
+        "cargo:sketch-core:lib:application::routing::tests::viewer::corrupt_latest_and_cancelled_source_cannot_clear_or_replace_displayed_document",
+        "cargo:sketch-core:lib:application::routing::tests::viewer::stale_source_failure_cannot_consume_latest_ticket_and_max_generation_never_wraps"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ACTION-CAPABILITY-001",
+      "expected": "Read-only source replacement does not grant editing, export or ordinary Open capability.",
+      "invariants": [
+        "VIEW-001"
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::action_failures::readonly_compound_mutations_are_denied",
+        "cargo:sketch-core:lib:application::routing::tests::viewer_capabilities::viewer_route_never_grants_edit_export_or_ordinary_open_authority"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}
