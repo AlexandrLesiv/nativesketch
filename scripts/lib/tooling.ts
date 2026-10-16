@@ -9,6 +9,11 @@ export async function checkTooling() {
     '-p',
     'tsconfig.scripts.json',
   ]);
+  await command(process.execPath, [
+    'node_modules/typescript/bin/tsc',
+    '-p',
+    'apps/web/e2e/tsconfig.json',
+  ]);
   await lintTypeScript();
   await command(process.execPath, [
     'node_modules/oxfmt/bin/oxfmt',
@@ -18,10 +23,16 @@ export async function checkTooling() {
     'apps/web/*.ts',
     'apps/web/src/*.ts',
     'apps/web/tests/*.ts',
+    'apps/web/e2e/*.ts',
     'crates/sketch-wasm/tests/*.ts',
   ]);
   const tests = [];
-  for (const directory of ['scripts/tests', 'scripts/quality']) {
+  for (const directory of [
+    'scripts/tests',
+    'scripts/quality',
+    'scripts/browser-e2e',
+    'scripts/reliability',
+  ]) {
     for (const name of await readdir(join(root, directory)))
       if (name.endsWith('.test.ts')) tests.push(`${directory}/${name}`);
   }

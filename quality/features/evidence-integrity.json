@@ -62,6 +62,25 @@
       ],
       "automation": "implemented",
       "gaps": []
+    },
+    {
+      "id": "EVIDENCE-BROWSER-001",
+      "expected": "Only normally completed browser execution certifies passing peers; timeout, cancellation, signals, output limits and unexplained process failure invalidate the report.",
+      "invariants": [],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/browser-e2e/process-result.test.ts:a valid pass report followed by actual runner timeout cannot certify acceptance",
+        "node:scripts/browser-e2e/process-result.test.ts:cancel signal overflow spawn and unexplained exits invalidate completed reports",
+        "node:scripts/browser-e2e/process-result.test.ts:normal attributable assertion failure preserves independently passed peers"
+      ],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }

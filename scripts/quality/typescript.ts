@@ -13,6 +13,7 @@ export async function lintTypeScript() {
       ['scripts', ...webTools, 'apps/web/tests', 'crates/sketch-wasm/tests'],
     ],
     ['apps/web/tsconfig.json', ['apps/web/src']],
+    ['apps/web/e2e/tsconfig.json', ['apps/web/e2e']],
   ] as const) {
     await command(process.execPath, [
       'node_modules/oxlint/bin/oxlint',

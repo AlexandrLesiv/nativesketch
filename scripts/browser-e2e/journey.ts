@@ -10,7 +10,14 @@ import { serve } from '../lib/server.ts';
 import { sourceIdentity } from '../evidence/identity.ts';
 import { prepareOutput } from './output.ts';
 import { browserIdentity, treeHash } from './identity.ts';
-import { browserSpecs, browserTestId, browserOutcome } from './results.ts';
+import { browserSpecs, browserTestId } from './results.ts';
+import {
+  failedProcess,
+  executionReasons,
+  certifiedOutcome,
+  processSucceeded,
+} from './process-result.ts';
+import type { ProcessResult } from './process-result.ts';
 
 export async function browserJourney(options: { output: string; attempt: number }) {
   const { output, attempt } = options;
@@ -24,7 +31,11 @@ export async function browserJourney(options: { output: string; attempt: number 
   process.once('SIGTERM', cancel);
   const save = (name: string, value: unknown) =>
     writeFile(join(output, name), JSON.stringify(value, null, 2));
-  const logged = async (name: string, args: string[], env: NodeJS.ProcessEnv = {}) => {
+  const logged = async (
+    name: string,
+    args: string[],
+    env: NodeJS.ProcessEnv = {},
+  ): Promise<ProcessResult> => {
     try {
       const text = await run(process.execPath, args, {
         cwd: root,
@@ -34,15 +45,15 @@ export async function browserJourney(options: { output: string; attempt: number 
         signal: controller.signal,
       });
       await writeFile(join(output, name), text);
-      return true;
+      return { exitCode: 0, signal: null, reason: '' };
     } catch (error) {
       await writeFile(join(output, name), String(error));
-      return false;
+      return failedProcess(error);
     }
   };
   try {
     const beforeBuild = await sourceIdentity(root);
-    if (!(await logged('build.log', ['scripts/build.ts', '--platform', 'web'])))
+    if (!processSucceeded(await logged('build.log', ['scripts/build.ts', '--platform', 'web'])))
       throw new Error('Production build failed; see build.log');
     const identity = await browserIdentity(executable);
     if (JSON.stringify(identity.source) !== JSON.stringify(beforeBuild))
@@ -81,10 +92,12 @@ export async function browserJourney(options: { output: string; attempt: number 
       'apps/web/e2e/playwright.config.ts',
     ];
     if (
-      !(await logged('discovery.log', [...cli, '--list'], {
-        ...env,
-        SKETCH_BROWSER_REPORT: join(output, 'enumeration.json'),
-      }))
+      !processSucceeded(
+        await logged('discovery.log', [...cli, '--list'], {
+          ...env,
+          SKETCH_BROWSER_REPORT: join(output, 'enumeration.json'),
+        }),
+      )
     )
       throw new Error('Browser discovery failed');
     const readReport = async (name: string): Promise<JSONReport> =>
@@ -105,10 +118,11 @@ export async function browserJourney(options: { output: string; attempt: number 
     };
     validateDiscovery(discovery);
     await save('discovery.json', discovery);
-    const successful = await logged('execution.log', cli, {
+    const completion = await logged('execution.log', cli, {
       ...env,
       SKETCH_BROWSER_REPORT: join(output, 'playwright.json'),
     });
+    await save('process-result.json', completion);
     const executed = browserSpecs(await readReport('playwright.json'));
     const discoveredIds = discovery.tests.map((test) => test.id).sort();
     if (JSON.stringify(executed.map(browserTestId).sort()) !== JSON.stringify(discoveredIds))
@@ -116,15 +130,17 @@ export async function browserJourney(options: { output: string; attempt: number 
     const changed =
       JSON.stringify(await browserIdentity(executable)) !== JSON.stringify(identity) ||
       (await treeHash(served)) !== identity.binarySha256;
+    const reasons = executionReasons(completion, executed);
+    if (changed) reasons.push('Source, browser, tests or served assets changed during execution');
     const execution: Execution = {
       schemaVersion: 1,
       source: identity.source,
       results: executed.map((spec) => {
-        const outcome = browserOutcome(spec);
+        const outcome = certifiedOutcome(spec, reasons);
         return {
           testId: browserTestId(spec),
           attempt,
-          status: changed ? 'blocked' : outcome.status,
+          status: outcome.status,
           durationMs: outcome.run.duration,
           timestamp: outcome.run.startTime,
           binarySha256: identity.binarySha256,
@@ -134,16 +150,12 @@ export async function browserJourney(options: { output: string; attempt: number 
           device: 'Chromium headless software browser',
           os: `${platform()} ${release()} ${arch()}`,
           inputRoute: 'browser-dispatched mouse and keyboard; not physical pen',
-          environment: changed
-            ? {
-                valid: false,
-                reasons: ['Source, browser, tests or served assets changed during execution'],
-              }
-            : outcome.environment,
+          environment: outcome.environment,
           artifacts: [
             'playwright.json',
             'execution.log',
             'identity.json',
+            'process-result.json',
             ...outcome.run.attachments.flatMap((a) => (a.path ? [relative(output, a.path)] : [])),
           ],
           output: outcome.output,
@@ -152,7 +164,10 @@ export async function browserJourney(options: { output: string; attempt: number 
     };
     validateExecution(execution);
     await save('execution.json', execution);
-    if (!successful || execution.results.some((result) => result.status !== 'passed'))
+    if (
+      !processSucceeded(completion) ||
+      execution.results.some((result) => result.status !== 'passed')
+    )
       throw new Error('Browser acceptance did not pass; see execution.json');
     console.log(`Passed ${execution.results.length} browser journeys: ${output}`);
   } catch (error) {

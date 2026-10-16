@@ -18,7 +18,7 @@
     "check": "node scripts/check.ts",
     "typecheck": "tsc --project tsconfig.scripts.json",
     "lint": "node scripts/lint-typescript.ts",
-    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts crates/sketch-wasm/tests/*.ts",
-    "test:tooling": "node --test scripts/tests/*.test.ts scripts/quality/*.test.ts"
+    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts apps/web/e2e/*.ts crates/sketch-wasm/tests/*.ts",
+    "test:tooling": "node --test scripts/tests/*.test.ts scripts/quality/*.test.ts scripts/browser-e2e/*.test.ts scripts/reliability/*.test.ts"
   }
 }
