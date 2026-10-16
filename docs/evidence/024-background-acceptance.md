@@ -33,6 +33,10 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Workbench integration and automation ownership | `0aa3e00` | Full background gate passed: 135 Node tests, Rust/C/Wasm checks, strict 133-file Swift lint, Mac build/pre-AppKit smoke and 17 GPU-free Swift tests; fresh independent process-ownership review |
 | Updated source inventory | `0aa3e00` | 859 handwritten source files, 64,070 physical lines, zero files above 200 |
 | Development workbench | `0aa3e00`, serial packet | 17 service and 14 actual/fixture browser journeys passed; scoped 21/23 acceptance rows passed, native Zed and speech missing |
+| Atomic evidence publication | `8e70cde`, exclusive-service packet | 17 service and 14 browser journeys passed after reviewed cancellation/publication repair; earlier singleton-lock conflict retained |
+| Portable browser integration | `233b79a` | Full background integration passed with 137 tooling tests, Rust/C/Wasm consumers, 133-file Swift lint, Mac pre-AppKit smoke and 17 GPU-free Swift checks; final source gate has zero oversized files |
+| Browser portable v2 | `233b79a` | 14 bridge checks and 12 headless journeys passed; 17 mapped rows passed; Canvas2D placement gap subsequently found and separately repaired |
+| Browser pixel placement | `79ddcaa` | All 13 headless journeys passed, including actual composited coordinate bounds; prior focus-outline test failure retained; CanvasKit migration remains separate |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load
@@ -70,6 +74,13 @@ infrastructure failure, preserves ordinary mixed assertion results, and records 
 signal and failure reason. Nine runner tests include timeout/cancellation and output failure.
 Normal quality checks now include the runner and browser E2E sources. Fresh review passed.
 Actual Chromium at the primary revision passed all seven journeys with exit zero.
+
+The later [portable browser packet](022-adapters.md#browser-portable-v2-adoption) replaces
+the production legacy Wasm consumer with the shared application dispatcher, issued file
+work and leased scenes. It records receipt-ownership and HTML width-validation repairs,
+the separate pixel-placement regression, exact Wasm identities and all failed attempts.
+CanvasKit integration and a dedicated engine Worker remain distinct follow-ups; Node bridge
+results do not certify browser UI, and headless UI does not certify native GPU/pen latency.
 
 ## Safety tooling and invalidated evidence
 

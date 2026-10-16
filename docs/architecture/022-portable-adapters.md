@@ -364,6 +364,11 @@ web slice is one dedicated engine Worker, ordinary message passing, ordered actu
 coalesced repaint notifications and explicit queue overflow failure/cancellation. Add no
 SharedArrayBuffer deployment requirement to GitHub Pages.
 
+The implemented first browser slice deliberately uses the bounded main-thread option;
+see the [adoption handoff](022-web-portable-adoption.md). File reads are asynchronous,
+but encode/decode remains synchronous outside input callbacks. The later whole-engine
+Worker is still pending; do not describe the current implementation as background decoding.
+
 ## 7. Read-only viewers and source ordering
 
 Initial viewer session creation uses Capabilities { edit_document:false, export_document:false }
