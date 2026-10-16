@@ -5,7 +5,7 @@ use sketch_core::application::{routing::*, *};
 pub(crate) fn translate(key: gdk::Key, ctrl: bool, shift: bool) -> Option<Intent<'static>> {
     let file = if ctrl {
         match key {
-            gdk::Key::s => Some(FileIntent::SaveAs),
+            gdk::Key::s => Some(FileIntent::Save),
             gdk::Key::o => Some(FileIntent::Navigate(NavigationIntent::Open)),
             gdk::Key::n => Some(FileIntent::Navigate(NavigationIntent::New)),
             _ => None,

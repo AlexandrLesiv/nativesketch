@@ -7,6 +7,6 @@
   "rustcCommit": "7df81381d",
   "maximumDatabaseAgeDays": 7,
   "ffiTests": 6,
-  "facadeTests": 27,
+  "facadeTests": 33,
   "cargoFuzz": "0.13.2"
 }

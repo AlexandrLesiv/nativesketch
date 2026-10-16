@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "linux-save-policy",
+  "description": "GTK command/provider replay on macOS without GTK initialization. Not Linux native UI acceptance.",
+  "sourceRevision": "9543d68b8f3554e0cde3adda85d187739a5c87a5",
+  "cases": [
+    {
+      "id": "GTK-SAVE-POLICY-001",
+      "expected": "Shortcut Save and direct or navigation-guarded Save obey shared AlwaysChoose; cancelling preserves dirty content and prior file bytes.",
+      "invariants": ["SAVE-001", "SAVE-003"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "host-replay",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "gtk-replay:save_policy_tests::save_shortcut_dispatches_shared_save_intent",
+              "gtk-replay:save_policy_tests::direct_and_guarded_save_choose_again_without_overwriting_bound_file"
+            ],
+            "gaps": []
+          }
+        },
+        { "platform": "linux", "level": "e2e" }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        { "reason": "Native Linux keyboard focus and portal dialog behavior require Linux UI execution.", "ownerTask": "022" }
+      ]
+    }
+  ]
+}

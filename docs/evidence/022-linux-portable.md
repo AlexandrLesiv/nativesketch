@@ -17,7 +17,8 @@ It does not migrate Linux rendering to Skia or claim Linux native acceptance.
   Native widget updates happen after releasing model borrows.
 - `file_effects` and `file_dialogs` present issued `HostEffect` values, preserving the
   original token/session/request for replies. They do not implement dirty-navigation
-  policy. Save retains its previous chooser behavior by dispatching `SaveAs`.
+  policy. Save buttons and shortcuts dispatch `Save`; the session's shared immutable
+  `AlwaysChoose` policy preserves chooser behavior for direct and guarded saves.
 - `provider` retains exact resource ID/generation leases. IDs are process-unique;
   paths remain private host data. Unknown aliases are ordered by the one facade.
   No canonicalization or filesystem access occurs in GTK/input callbacks.
@@ -64,6 +65,8 @@ launch a window, exercise accessibility, or prove native focus delivery.
 | `load_order_tests::older_read_finishing_after_newer_load_cannot_replace_new_document` | Newer load finishes first, late older result cannot replace it; ASYNC-001, LOAD-001 |
 | `scene_tests::cairo_scene_coordinates_and_transform_preview_suppress_original` | Actual Cairo pixel coordinates, preview suppression, cancel restores pixels; RENDER-001, CACHE-001 |
 | `activation::tests::activation_never_creates_an_owner_while_old_work_drains` | One owner across repeat activation and closing interval; SAVE-003, FFI-001 |
+| `save_policy_tests::save_shortcut_dispatches_shared_save_intent` | Ctrl+S translates to the same shared Save intent as the native button; SAVE-001 |
+| `save_policy_tests::direct_and_guarded_save_choose_again_without_overwriting_bound_file` | Actual provider save followed by direct Save or New/Open/Close guard; cancellation queues no write, retains dirty drawing and original bytes; SAVE-001, SAVE-003 |
 
 Commands: `cargo fmt --manifest-path apps/linux/Cargo.toml -- --check`,
 `cargo clippy --locked --manifest-path apps/linux/Cargo.toml --all-targets -- -D warnings`,
@@ -102,3 +105,14 @@ receipt despite 1000 logging attempts. The suite reports 15 passes and one ignor
 helper; that helper is explicitly executed in the passing subprocess test, not left
 unverified. Original e0360c4 evidence is retained; repair
 evidence uses a separate artifacts/evidence/022-linux-logging-repair directory.
+
+## Shared save-policy adoption
+
+The compatibility audit found that translating only the button to `SaveAs` did not
+preserve the original chooser behavior when an unsaved-navigation prompt chose Save.
+The repaired shared policy now governs both routes. GTK configures `AlwaysChoose` once
+and does not implement a second save decision. The new regressions use a real temporary
+file and provider worker, then verify direct Save and all three navigation guards.
+Seventeen tests pass, with the same one explicitly invoked ignored child helper.
+These remain macOS-hosted adapter/provider replays; the native Linux gaps above remain.
+The separate `022-linux-save-policy` artifact directory records revision, binary and tools.

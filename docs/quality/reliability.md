@@ -82,7 +82,7 @@ An outdated or missing database fails; updating it is a separate explicit provis
 License policy/compliance is not inferred from advisories.
 
 Miri and ASan currently require macOS arm64. The `miri` and `asan` lanes run exactly the
-six legacy `sketch-ffi` library tests; `miri-app` separately runs the 27 `sketch-app` library
+six legacy `sketch-ffi` library tests; `miri-app` separately runs the 33 `sketch-app` library
 tests. Expected counts are pinned and incomplete/filtered execution fails. ASan instruments
 Rust/core/std with leak detection; both Miri lanes keep default isolation. Separate
 `target/reliability-*` caches avoid contamination of ordinary builds. Native exports,

@@ -111,7 +111,7 @@ pub(crate) fn connect(ui: &Ui, controls: &Controls) {
         })
     });
     for (button, intent) in [
-        (&controls.save, FileIntent::SaveAs),
+        (&controls.save, FileIntent::Save),
         (&controls.open, FileIntent::Navigate(NavigationIntent::Open)),
         (&controls.new, FileIntent::Navigate(NavigationIntent::New)),
     ] {

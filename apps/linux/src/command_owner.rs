@@ -11,19 +11,22 @@ impl CommandOwner {
     pub fn new() -> Self {
         let mut app = PortableApp::new(Default::default()).expect("valid host limits");
         let session = app
-            .create_session(SessionConfig {
-                capabilities: Capabilities {
-                    edit_document: true,
-                    export_document: true,
+            .create_session_with_save_policy(
+                SessionConfig {
+                    capabilities: Capabilities {
+                        edit_document: true,
+                        export_document: true,
+                    },
+                    tool: ToolId::Pen,
+                    brush: sketch_core::Brush {
+                        rgba: [0.14, 0.39, 0.92, 1.0],
+                        width: 4.0,
+                    }
+                    .try_into()
+                    .unwrap(),
                 },
-                tool: ToolId::Pen,
-                brush: sketch_core::Brush {
-                    rgba: [0.14, 0.39, 0.92, 1.0],
-                    width: 4.0,
-                }
-                .try_into()
-                .unwrap(),
-            })
+                SaveDestinationPolicy::AlwaysChoose,
+            )
             .expect("initial session");
         Self {
             app,

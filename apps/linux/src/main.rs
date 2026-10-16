@@ -30,6 +30,8 @@ mod provider;
 mod provider_tests;
 mod provider_work;
 mod runtime;
+#[cfg(test)]
+mod save_policy_tests;
 mod scene_painter;
 #[cfg(test)]
 mod scene_tests;
