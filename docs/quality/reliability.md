@@ -63,3 +63,26 @@ Refactor stage: recovery fixtures, diagnostic contracts, dependency checks and r
 runtime diagnostics. Platform stage: actual E2E, lifecycle/accessibility and package smoke.
 Release stage: sustained/hardware regressions, symbols, upgrade/rollback and optional field
 diagnostics. Record unimplemented checks in coverage; never imply this document installs them.
+
+## Implemented background lanes (task 023 foundation)
+
+`node scripts/check-reliability.ts --lane advisories|miri|asan --output NEW_DIRECTORY`
+uses preinstalled project tools in `.build-cache/toolchains`; `--tools PATH` selects an
+existing project cache for an isolated checkout. It never installs tools or refreshes
+advisories silently. Create the output parent first; an existing output directory is
+rejected, so retries preserve earlier evidence. Each command records argv, bounded logs,
+failures, source/diff identity and tool hashes. Successful execution also requires complete
+expected output and unchanged source. These lanes are separate from the normal fast gate.
+
+Pins live in `quality/reliability-tools.json`: cargo-deny 0.20.2 and nightly-2026-10-15;
+normal application builds retain stable Rust 1.99.0. Advisory checks use locked dependencies,
+all features, no ignores, denied yanked crates and seven-day database staleness enforcement.
+They run offline against the explicitly provisioned database and record its commit/date/age.
+An outdated or missing database fails; updating it is a separate explicit provisioning step.
+License policy/compliance is not inferred from advisories.
+
+Miri and ASan currently require macOS arm64 and run exactly the six legacy `sketch-ffi`
+library tests. ASan instruments Rust/core/std with leak detection; Miri keeps default
+isolation. Separate `target/reliability-*` caches avoid contamination of ordinary builds.
+No Skia, native UI, JNI, Wasm, other-host or new portable-facade safety is certified here.
+Bounded property/fuzz targets, package acceptance and native profiling remain separate work.
