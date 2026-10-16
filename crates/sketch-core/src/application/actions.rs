@@ -72,6 +72,9 @@ impl EditorViewState {
         {
             return Disabled(ReadOnly);
         }
+        if matches!(action, CycleSelection(_)) && self.document.count == 0 {
+            return Disabled(NothingSelected);
+        }
         if matches!(action, DeleteSelection | ScaleSelection { .. }) && self.document.selected == 0
         {
             return Disabled(NothingSelected);

@@ -79,7 +79,7 @@ fn invalid_scale_and_composed_overflow_preserve_active_transform() {
 }
 #[test]
 fn exhausted_generation_does_not_cancel_or_change_settings() {
-    let mut editor = session(true, false);
+    let mut editor = session(true, true);
     let ctx = begin(&mut editor);
     editor.generation = SceneGeneration(u64::MAX);
     preserve(
@@ -112,5 +112,29 @@ fn readonly_compound_mutations_are_denied() {
         },
     ] {
         preserve(&mut editor, ctx, action, FailureKind::ReadOnly);
+    }
+}
+
+// Empty-document selection controls stay unavailable, including during the first draft.
+#[test]
+fn empty_cycle_in_both_directions_preserves_draft_and_predictions() {
+    let mut editor = session(true, false);
+    let ctx = begin(&mut editor);
+    editor
+        .append(
+            ctx,
+            SampleBatch {
+                pointer: PointerId(42),
+                samples: &[Input::Actual(sample(1)), Input::Predicted(sample(2))],
+            },
+        )
+        .unwrap();
+    for direction in [CycleDirection::Previous, CycleDirection::Next] {
+        let action = EditorAction::CycleSelection(direction);
+        assert_eq!(
+            editor.view_state().action_availability(action),
+            Availability::Disabled(DisabledReason::NothingSelected)
+        );
+        preserve(&mut editor, ctx, action, FailureKind::InvalidTransition);
     }
 }
