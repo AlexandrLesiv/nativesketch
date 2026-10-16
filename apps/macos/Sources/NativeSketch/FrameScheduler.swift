@@ -39,6 +39,11 @@ import Metal
     state.request()
     schedule()
   }
+  func setSuspended(_ value: Bool) {
+    state.setSuspended(value)
+    if !value { requestedAt = ProcessInfo.processInfo.systemUptime }
+    schedule()
+  }
   private func schedule() {
     guard state.canSchedule, !scheduled else { return }
     scheduled = true

@@ -64,4 +64,5 @@ import AppKit
     surface = nil
   }
   func invalidate() { scheduler?.invalidate() }
+  func setSuspended(_ value: Bool) { scheduler?.setSuspended(value) }
 }

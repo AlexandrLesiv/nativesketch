@@ -4,6 +4,19 @@ import Testing
 @testable import NativeSketch
 
 struct RenderScheduleStateTests {
+  @Test func suspensionPreservesPendingWorkWithoutSchedulingFrames() {
+    var state = RenderScheduleState()
+    state.request()
+    state.setSuspended(true)
+    #expect(state.pending)
+    #expect(!state.canSchedule)
+    state.setSuspended(false)
+    #expect(state.canSchedule)
+    state.close()
+    state.setSuspended(false)
+    #expect(!state.canSchedule)
+  }
+
   @Test func fractionalLogicalResizeAdvancesGenerationEvenWithSamePixelSize() {
     var surface = RenderSurfaceState()
     let initial = surface.update(CGSize(width: 100.1, height: 100), scale: 2)

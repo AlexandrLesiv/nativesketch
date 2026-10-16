@@ -6,9 +6,10 @@ struct RenderScheduleState {
   private(set) var recoveryAttempted = false
   private(set) var blocked = false
   private(set) var closed = false
+  private(set) var suspended = false
   private var drawableRetries = 0
   var canSchedule: Bool {
-    !closed && !blocked && pending && outstanding < 2
+    !closed && !suspended && !blocked && pending && outstanding < 2
       && (!recoveryNeeded || outstanding == 0)
   }
   mutating func request() {
@@ -18,6 +19,7 @@ struct RenderScheduleState {
     drawableRetries = 0
   }
   mutating func begin() { pending = false }
+  mutating func setSuspended(_ value: Bool) { suspended = value }
   mutating func deferDrawable() { pending = true }
   mutating func reserveDrawableRetry() -> Bool {
     guard !closed, drawableRetries < 2 else { return false }

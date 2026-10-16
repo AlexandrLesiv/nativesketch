@@ -18,6 +18,8 @@ import AppKit
   private var drainUntil: Double?
   private var idleUntil: Double?
   private var finished = false
+  private var awaitingVisibility = true
+  private var visibilityDeadline = 0.0
   private var visibilityChecks = 0
   private var visibilitySeconds = 0.0
   private var visibilityMaxSeconds = 0.0
@@ -54,13 +56,16 @@ import AppKit
       }
       try RenderBenchmarkFixture.prepare(owner.editor)
       owner.show()
+      owner.canvas.rendering.setSuspended(true)
       owner.window.contentView?.layoutSubtreeIfNeeded()
       phaseStartedAt = ProcessInfo.processInfo.systemUptime
+      visibilityDeadline = phaseStartedAt + 5
       owner.window.title = "Native Sketch — Renderer software comparison"
       owner.canvas.renderDiagnostics.reset()
       visibility = try RenderBenchmarkVisibility(owner: owner)
-      try visibility?.validate(owner)
       report.metadata = visibility!.metadata(owner: owner)
+      report.metadata["coldScope"] =
+        "first scene draw after visibility; context and window already created"
       report.metadata["sourceRevision"] =
         NativeLaunchConfiguration.argument("--benchmark-revision") ?? "unrecorded"
       report.metadata["thermalStateStart"] = String(ProcessInfo.processInfo.thermalState.rawValue)
@@ -76,6 +81,10 @@ import AppKit
 
   private func tick() {
     guard !finished else { return }
+    if awaitingVisibility {
+      beginWhenVisible()
+      return
+    }
     do {
       let validationStart = ProcessInfo.processInfo.systemUptime
       try visibility?.validate(owner)
@@ -116,6 +125,24 @@ import AppKit
       stepIndex += 1
       if stepIndex == phase.1 { self.drainUntil = now + 0.5 }
     } catch { finish(error) }
+  }
+
+  private func beginWhenVisible() {
+    do {
+      try visibility?.validate(owner)
+      guard owner.canvas.renderDiagnostics.snapshot().isEmpty else {
+        throw RenderBenchmarkError(reason: "unexpected-frame-before-visibility")
+      }
+      awaitingVisibility = false
+      phaseStartedAt = ProcessInfo.processInfo.systemUptime
+      owner.canvas.rendering.setSuspended(false)
+    } catch {
+      if (error as? RenderBenchmarkError)?.reason != "window-not-active-visible"
+        || ProcessInfo.processInfo.systemUptime >= visibilityDeadline
+      {
+        finish(error)
+      }
+    }
   }
 
   private func appendPhase() {
