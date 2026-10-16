@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "id": "native-command-adapter",
+  "description": "Task019 native acceptance. Automation existence is separate from revision-bound discovery/execution. At clean 5933c5d, attempt 32 discovered 45 cases and passed the two selected held-gesture cancellation cases, including actual resize and deactivation, saved bytes and Undo/Redo. Earlier failures are preserved. Historical results never become current-source passes.",
+  "sourceRevision": "5933c5d5eabb776cf3bb7dc41f6fcc827cab937d",
+  "cases": [
+    {
+      "id": "NATIVE-ROUTING-001",
+      "expected": "Equivalent shortcuts, menus and controls use the shared dispatcher and produce equivalent tool, brush, history and file outcomes",
+      "invariants": [
+        "INPUT-001",
+        "FOCUS-001",
+        "FFI-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState",
+              "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-FIELD-REFRESH-001",
+      "expected": "Delayed save completion preserves unfinished native field text, caret, focus and text undo; corrected width affects freshly saved ink",
+      "invariants": [
+        "FOCUS-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
+              "xctest:NativeSketchUITests:NativeFieldCompletionTests/testSaveCompletionPreservesExistingNonzeroFieldSelection"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-ASYNC-SAVE-001",
+      "expected": "A delayed admitted save writes revision A while newer native drawing B stays dirty; next Save writes B",
+      "invariants": [
+        "SAVE-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:AsyncSaveTests/testAdmittedSaveKeepsNewerDrawingDirty"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-ASYNC-SAVEAS-001",
+      "expected": "Save As preserves the old binding until acknowledgement, disables duplicate Save As and preserves the old destination on cancellation or failure",
+      "invariants": [
+        "SAVE-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:AsyncSaveAsTests/testPendingSaveAsRetainsOldBindingUntilAcknowledgement",
+              "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testSaveAsKeyboardBeforeAndAfterBinding",
+              "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testOrdinarySaveDuringPendingSaveAsWritesOldBinding",
+              "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testOrdinarySaveAfterFailedSaveAsKeepsOriginalBinding"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-SAVE-FAILURE-001",
+      "expected": "Real write failures retain edits and last-good bytes where applicable; durability warnings accurately report written data; retry is a fresh command",
+      "invariants": [
+        "SAVE-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:AsyncSaveAsTests/testDirectorySyncWarningReportsWrittenData",
+              "xctest:NativeSketchUITests:AsyncSaveAsTests/testFailedSaveAsRetainsOldFileAndRetryUsesFreshChooser",
+              "xctest:NativeSketchUITests:NativeRoutingTests/testRealWriteFailureWaitsBehindRecoverySheet",
+              "xctest:NativeSketchUITests:NativeSaveIntegrityTests/testFailedOverwritePreservesLastGoodBytesAndCanRetry"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-OPEN-ORDER-001",
+      "expected": "Open observes previously accepted Save; corrupt or stale delayed reads cannot replace newer edits or change binding",
+      "invariants": [
+        "LOAD-001",
+        "SAVE-003",
+        "ASYNC-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeOpenTests/testOpenWaitsForAcceptedSaveAndCorruptReadPreservesContent",
+              "xctest:NativeSketchUITests:NativeReadIsolationTests/testOversizedOpenRetainsContentAndBinding",
+              "xctest:NativeSketchUITests:NativeReadIsolationTests/testDelayedValidatedReadCannotReplaceNewerDrawing"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-NAVIGATION-001",
+      "expected": "New and Open honor Save, Cancel and Don't Save, outstanding writes and newer edits without premature replacement",
+      "invariants": [
+        "LOAD-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeNavigationTests/testNewCancelAndDiscardPreservePendingSaveSemantics",
+              "xctest:NativeSketchUITests:NativeDecisionTests/testNewSaveWritesCurrentDrawingBeforeReplacingIt",
+              "xctest:NativeSketchUITests:NativeDecisionTests/testOpenCancelDiscardAndSaveUseCurrentDirtyDrawing"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-CLOSE-QUIT-001",
+      "expected": "Close and Quit defer accepted writes, preserve the app after cancellation or failure, and finish native termination exactly once",
+      "invariants": [
+        "SAVE-002",
+        "ASYNC-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeNavigationTests/testQuitCancellationAndSuccessfulDrain",
+              "xctest:NativeSketchUITests:NativeNavigationTests/testInvalidWidthBlocksQuitUntilEscapeRestoration",
+              "xctest:NativeSketchUITests:NativeDecisionTests/testCloseCancellationKeepsDrawingAndSaveClosesWindow",
+              "xctest:NativeSketchUITests:NativeDecisionTests/testFailedSaveDuringQuitKeepsAppAndDrawingOpen",
+              "xctest:NativeSketchUITests:NativePoisonClosureTests/testCaughtEnginePanicAllowsCancelledCloseAndQuitThenSafeExit"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-STALE-EFFECT-001",
+      "expected": "Late results from cancelled operations cannot present obsolete sheets, replace content, change title or steal focus",
+      "invariants": [
+        "ASYNC-001",
+        "FOCUS-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus",
+              "xctest:NativeSketchUITests:NativeReadIsolationTests/testDelayedValidatedReadCannotReplaceNewerDrawing",
+              "xctest:NativeSketchUITests:NativeReadIsolationTests/testCancelledSourceResolutionFailureCannotPresentObsoleteError",
+              "xctest:NativeSketchUITests:NativeReadIsolationTests/testCloseAfterCancellingReadDoesNotResurrectWindow"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-RECOVER-COPY-001",
+      "expected": "Later preserves recovery; opening a recovered copy uses unsaved navigation and creates visible dirty, unbound content",
+      "invariants": [
+        "LOAD-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRecoveryTests/testLaterPreservesRecoveryAndOpensDirtyUnboundCopy",
+              "xctest:NativeSketchUITests:NativeRecoveryDecisionTests/testRecoveredCopyOverDirtyDrawingHonorsCancelDiscardAndSave"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-RECOVER-MANAGE-001",
+      "expected": "Recovery fallback, capacity feedback and exact-candidate discard preserve newer or unselected recovery data",
+      "invariants": [
+        "ASYNC-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRecoveryTests/testCorruptNewestGenerationFallsBackToEarlierValidCopy",
+              "xctest:NativeSketchUITests:NativeRecoveryTests/testDiscardConfirmationDefaultsToCancelAndRemovesOnlySelectedCopy",
+              "xctest:NativeSketchUITests:NativeRecoveryManagementTests/testRecoveryCapacityFeedbackRetainsAllExistingCopies",
+              "xctest:NativeSketchUITests:NativeRecoveryManagementTests/testDiscardCannotRemoveGenerationNewerThanDisplayedCandidate"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "NATIVE-ASYNC-FOCUS-001",
+      "expected": "Background work preserves focus; cancelled sheets restore only a valid responder; resize or deactivation cancels drafts before remapping",
+      "invariants": [
+        "FOCUS-001",
+        "INK-001",
+        "CANCEL-001"
+      ],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:AsyncSaveTests/testSaveCompletionPreservesIncompleteFieldEditing",
+              "xctest:NativeSketchUITests:NativeOpenTests/testCancelledResolutionCannotChangeNewerDrawingOrFocus",
+              "xctest:NativeSketchUITests:NativeFieldCompletionTests/testSaveCompletionPreservesExistingNonzeroFieldSelection",
+              "xctest:NativeSketchUITests:NativeFocusRestorationTests/testCancelledSaveAsRestoresNativeWidthSelection",
+              "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveryLaterRestoresOriginalWidthSelection",
+              "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveCancellationRestoresOriginalWidthSelection",
+              "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands",
+              "xctest:NativeSketchUITests:NativeSheetFocusTests/testFailedSaveAsSuccessorCancellationRestoresOriginalWidthSelection",
+              "xctest:NativeSketchUITests:NativeSheetFocusTests/testRecoveredCopyUnsavedCancellationRestoresOriginalWidthSelection",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+import { EditorHost } from './host.ts';
+import { el } from './elements.ts';
+import { installPointerDown } from './pointer-down.ts';
+import { installPointerMove } from './pointer-move.ts';
+import { installPointerFinish } from './pointer-finish.ts';
+import { installViewport } from './viewport.ts';
+import { installControls } from './controls.ts';
+import { installFiles } from './files.ts';
+import { installKeyboard } from './keyboard.ts';
+import { startEngine } from './startup.ts';
+
+const app = new EditorHost();
+el('reload').addEventListener('click', () => location.reload());
+installPointerDown(app);
+installPointerMove(app);
+installPointerFinish(app);
+installViewport(app);
+installControls(app);
+installFiles(app);
+installKeyboard(app);
+await startEngine(app);

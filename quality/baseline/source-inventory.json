@@ -1,0 +1,1225 @@
+{
+  "schemaVersion": 1,
+  "revision": "712059d5c4470c9770d08c42de8f1391884a66be",
+  "policy": "All tracked files classified; physical lines include comments and blanks. No generated or vendor source in this revision.",
+  "categories": {
+    "handwritten-source": {
+      "files": 67,
+      "physicalLines": 10837
+    },
+    "generated": {
+      "files": 0,
+      "physicalLines": 0
+    },
+    "vendor": {
+      "files": 0,
+      "physicalLines": 0
+    },
+    "lockfile": {
+      "files": 3,
+      "physicalLines": 770
+    },
+    "fixture-data": {
+      "files": 1,
+      "physicalLines": 6
+    },
+    "documentation": {
+      "files": 48,
+      "physicalLines": 2498
+    },
+    "configuration": {
+      "files": 35,
+      "physicalLines": 700
+    }
+  },
+  "oversized": [
+    {
+      "path": "apps/android/app/src/main/java/dev/nativesketch/MainActivity.kt",
+      "category": "handwritten-source",
+      "bytes": 54630,
+      "physicalLines": 1233,
+      "sha256": "eb5cd52cdf08bb2a468b80f7c1791992aa9182ea6f54e41f4a59d77dea19579c",
+      "extractionTask": "010"
+    },
+    {
+      "path": "apps/ios/Sources/NativeSketch.swift",
+      "category": "handwritten-source",
+      "bytes": 39314,
+      "physicalLines": 1020,
+      "sha256": "126bb8491ca4fac528eeb99124157b9acd9e2c1d0079ec23ddd163c4990d611c",
+      "extractionTask": "009"
+    },
+    {
+      "path": "apps/linux/src/main.rs",
+      "category": "handwritten-source",
+      "bytes": 29900,
+      "physicalLines": 899,
+      "sha256": "bb206475d3043a25f6a594f6a5b12f44f65807a3eaa1816e000a9c1109a587e3",
+      "extractionTask": "011"
+    },
+    {
+      "path": "apps/macos/Sources/NativeSketch/NativeSketch.swift",
+      "category": "handwritten-source",
+      "bytes": 31957,
+      "physicalLines": 848,
+      "sha256": "343f6836a927f63ab54a79c9192d8062fc964d8f2b529a6d7c877614a12e8aec",
+      "extractionTask": "019"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "category": "handwritten-source",
+      "bytes": 17540,
+      "physicalLines": 572,
+      "sha256": "63375d3a53d69e96aef74e59036ff057476ecee3de314b1e3b1ec93a2e956351",
+      "extractionTask": "012"
+    },
+    {
+      "path": "apps/windows/App.cs",
+      "category": "handwritten-source",
+      "bytes": 20782,
+      "physicalLines": 446,
+      "sha256": "2522c428bc447abc35a53e09fc4c7d75bceffb3fdf0959217262c17c361be519",
+      "extractionTask": "004"
+    },
+    {
+      "path": "crates/sketch-core/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 20039,
+      "physicalLines": 649,
+      "sha256": "1dd8db1136a81f29856388280916edbb5d687232f9012176d5e76cacfeffa4c3",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/persistence.rs",
+      "category": "handwritten-source",
+      "bytes": 9046,
+      "physicalLines": 284,
+      "sha256": "7b21d96c5de4010d598f8fe78e7cf77a60a06985cef13cfef1eaab48f5022e14",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/source_policy.rs",
+      "category": "handwritten-source",
+      "bytes": 12313,
+      "physicalLines": 313,
+      "sha256": "3612669e78cd42ba60a1e6e57926136f9ad62bca3a9cf42b714a59ff9a8f94ea",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/tests.rs",
+      "category": "handwritten-source",
+      "bytes": 9383,
+      "physicalLines": 293,
+      "sha256": "f129e47bdb47bec2343a5ec2e273410500cbded8d884094803c61d5857a98d64",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-ffi/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 25080,
+      "physicalLines": 770,
+      "sha256": "db4578ed5a2fe9db02472dd84457f151006b83eb8e889a1cea249702d22aac44",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-wasm/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 9949,
+      "physicalLines": 319,
+      "sha256": "5789b365919425ccb72ec6bd599a3ffb830fa595a006e7bcf376ba36a21d49bd",
+      "extractionTask": "018"
+    }
+  ],
+  "entries": [
+    {
+      "path": ".codex/agents/build_reliability.toml",
+      "category": "configuration",
+      "bytes": 937,
+      "physicalLines": 14,
+      "sha256": "18c347a7ab2fc281f6291ff28290066a9965b457994c0451439d812560d5860a"
+    },
+    {
+      "path": ".codex/agents/macos_ui.toml",
+      "category": "configuration",
+      "bytes": 986,
+      "physicalLines": 15,
+      "sha256": "b13660f35ea526ad969f2f51a18c66e5c0f44d2e6e0462bf636c7e238e04ac74"
+    },
+    {
+      "path": ".codex/agents/rendering_performance.toml",
+      "category": "configuration",
+      "bytes": 1073,
+      "physicalLines": 16,
+      "sha256": "7ea0b5a3beb6a145396281737733e2801f739b9a181db831e70e0041c2101c47"
+    },
+    {
+      "path": ".codex/agents/reviewer.toml",
+      "category": "configuration",
+      "bytes": 1003,
+      "physicalLines": 15,
+      "sha256": "484c0855267587f1b9c0ff084f83abd3674c01fbac42c8831e68adce8ea33145"
+    },
+    {
+      "path": ".codex/agents/rust_engine.toml",
+      "category": "configuration",
+      "bytes": 933,
+      "physicalLines": 14,
+      "sha256": "1068df7666ebe6004279a2470d93d65f3e7e346efc282b6d9f5ef4c79953106e"
+    },
+    {
+      "path": ".codex/agents/ui_ux_designer.toml",
+      "category": "configuration",
+      "bytes": 1237,
+      "physicalLines": 18,
+      "sha256": "3fa95957a4010b52cc93c5c20c35f09949357e3726b161f257a280f26afaccb8"
+    },
+    {
+      "path": ".codex/agents/windows_ui.toml",
+      "category": "configuration",
+      "bytes": 831,
+      "physicalLines": 13,
+      "sha256": "24f0ea8b60ead79ba0ec9d4f30479444615a1d44e8b7e6692565389a81597ab2"
+    },
+    {
+      "path": ".codex/config.toml",
+      "category": "configuration",
+      "bytes": 288,
+      "physicalLines": 10,
+      "sha256": "934ee95e11d1d01db9b8c8d2ba1561a037c9e0fd5efd14efe469d68d240b3144"
+    },
+    {
+      "path": ".editorconfig",
+      "category": "configuration",
+      "bytes": 193,
+      "physicalLines": 13,
+      "sha256": "310e6da58229a969f0ff1c788eb5c416f8af6169f4a4891cfd239669a8097703"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "category": "configuration",
+      "bytes": 2118,
+      "physicalLines": 63,
+      "sha256": "c9834e023ab33898441ccb660a37e04bce38e4df078810196b1917371084cabf"
+    },
+    {
+      "path": ".gitignore",
+      "category": "configuration",
+      "bytes": 165,
+      "physicalLines": 14,
+      "sha256": "11e8835b71ea3094923cbb9627ddd5a455fbdd35354844ab6e7811f333bc34a2"
+    },
+    {
+      "path": "AGENTS.md",
+      "category": "documentation",
+      "bytes": 3250,
+      "physicalLines": 55,
+      "sha256": "fca2189342916ddf60216c626221a9497cdbdf51e8dbb2ff985244afe262e409"
+    },
+    {
+      "path": "Cargo.lock",
+      "category": "lockfile",
+      "bytes": 328,
+      "physicalLines": 21,
+      "sha256": "b683bcde4ae9d546904af3d550c89ba3319bc3f5ecf312335b8d28d99e2cbc7a"
+    },
+    {
+      "path": "Cargo.toml",
+      "category": "configuration",
+      "bytes": 230,
+      "physicalLines": 13,
+      "sha256": "d0a57e92cfa2dada75808e4c62ef18c90ab731db7ad0c2eb876e040a88b09d33"
+    },
+    {
+      "path": "README.md",
+      "category": "documentation",
+      "bytes": 4891,
+      "physicalLines": 85,
+      "sha256": "3bb3d41ad6038aef004b016424ddc33f915d9dcf2e0f8e5280a9863a3c5d267e"
+    },
+    {
+      "path": "apps/android/.gitignore",
+      "category": "configuration",
+      "bytes": 66,
+      "physicalLines": 5,
+      "sha256": "d752537a2bbc9a58ecefb606ecba30d097a123b62694a06291c061c4bec02720"
+    },
+    {
+      "path": "apps/android/README.md",
+      "category": "documentation",
+      "bytes": 4337,
+      "physicalLines": 60,
+      "sha256": "64bda418c244cd3c51f3d1b1a7514122b7754ee698309bcfd7c63fc7e846233c"
+    },
+    {
+      "path": "apps/android/app/build.gradle.kts",
+      "category": "handwritten-source",
+      "bytes": 474,
+      "physicalLines": 19,
+      "sha256": "025d6f7eed6a5f3006ac2ed19163c6c7d84ca2cfc582f792aaf32cd48ca08621"
+    },
+    {
+      "path": "apps/android/app/src/main/AndroidManifest.xml",
+      "category": "configuration",
+      "bytes": 1048,
+      "physicalLines": 14,
+      "sha256": "eac30a8af73082921000f0a9eb27cc5d3e3c6f3c32b7b7776daa30cd2a9e7300"
+    },
+    {
+      "path": "apps/android/app/src/main/cpp/bridge.cpp",
+      "category": "handwritten-source",
+      "bytes": 5367,
+      "physicalLines": 183,
+      "sha256": "5a38ad87ef347895280b3bd6e8f57332fe0475c931759b60227fd1d310a6c979"
+    },
+    {
+      "path": "apps/android/app/src/main/java/dev/nativesketch/Engine.kt",
+      "category": "handwritten-source",
+      "bytes": 976,
+      "physicalLines": 41,
+      "sha256": "480accfbf17376c4f8787994f968ff454c21ae2a5ee4cb223d9e43b7356ddc83"
+    },
+    {
+      "path": "apps/android/app/src/main/java/dev/nativesketch/MainActivity.kt",
+      "category": "handwritten-source",
+      "bytes": 54630,
+      "physicalLines": 1233,
+      "sha256": "eb5cd52cdf08bb2a468b80f7c1791992aa9182ea6f54e41f4a59d77dea19579c",
+      "extractionTask": "010"
+    },
+    {
+      "path": "apps/android/app/src/main/res/values/styles.xml",
+      "category": "configuration",
+      "bytes": 184,
+      "physicalLines": 1,
+      "sha256": "89c6671a5ff13814345cad7b80cff754c963f9219917b15aea441b56681a7b76"
+    },
+    {
+      "path": "apps/android/build.gradle.kts",
+      "category": "handwritten-source",
+      "bytes": 70,
+      "physicalLines": 1,
+      "sha256": "62c55c6b701bf45c63988cfb83d176674897c2e7396023a88c8b5b6b3211e44e"
+    },
+    {
+      "path": "apps/android/settings.gradle.kts",
+      "category": "handwritten-source",
+      "bytes": 268,
+      "physicalLines": 18,
+      "sha256": "11b12d6a8cc163649e5eda708a198f50e77a2a0aa18c00272165b17054143b76"
+    },
+    {
+      "path": "apps/apple-sources/DocumentSources.swift",
+      "category": "handwritten-source",
+      "bytes": 9834,
+      "physicalLines": 156,
+      "sha256": "2ac85c273474cf47e8e341af98bee7b0415a5f710f96559853e910a8a5d5f388"
+    },
+    {
+      "path": "apps/apple-sources/PhoneMessageCallbacks.swift",
+      "category": "handwritten-source",
+      "bytes": 1059,
+      "physicalLines": 22,
+      "sha256": "04531e06fe40a32310303edb1abdd9678a7f6ce22486bd4fda8f8c9f58064307"
+    },
+    {
+      "path": "apps/apple-viewer/DownloadPolicy.swift",
+      "category": "handwritten-source",
+      "bytes": 1837,
+      "physicalLines": 42,
+      "sha256": "e2643f6c0a13dc5abd866f6263877a86a3de8e1c63edd1fe30356aa7454b975a"
+    },
+    {
+      "path": "apps/apple-viewer/README.md",
+      "category": "documentation",
+      "bytes": 673,
+      "physicalLines": 11,
+      "sha256": "470d595a7414f42076183b12648822b68ea2ef2cc4cd6669ca64e0809f73f9e3"
+    },
+    {
+      "path": "apps/apple-viewer/ReadOnlyDocument.swift",
+      "category": "handwritten-source",
+      "bytes": 6935,
+      "physicalLines": 141,
+      "sha256": "f2b4ded72e6b8fa59830d1ca6d8ecb6eefa043f8b1c84b9d9e75c402216552fb"
+    },
+    {
+      "path": "apps/apple-viewer/SourceCoordinator.swift",
+      "category": "handwritten-source",
+      "bytes": 9384,
+      "physicalLines": 151,
+      "sha256": "c4b6e8368c30c34d8608aea4f41d517935f91dfdb9e307c3894d0211a7b706ec"
+    },
+    {
+      "path": "apps/apple-viewer/SourceHTTPReplay.swift",
+      "category": "handwritten-source",
+      "bytes": 3111,
+      "physicalLines": 53,
+      "sha256": "c773a062a628a667016fd61a03c9d880319c1757b94527ea061c7b22ca0cce29"
+    },
+    {
+      "path": "apps/apple-viewer/SourceReplay.swift",
+      "category": "handwritten-source",
+      "bytes": 8352,
+      "physicalLines": 114,
+      "sha256": "d7a275749046513d7831dadfe6bfdfc72423321f0f17b12eb1f860c455b7b49d"
+    },
+    {
+      "path": "apps/apple-viewer/ViewerReplay.swift",
+      "category": "handwritten-source",
+      "bytes": 4542,
+      "physicalLines": 59,
+      "sha256": "683a62f3875f15fb331cd107c2bce9a0495ccd7ece00faa437bc2e59587fc58c"
+    },
+    {
+      "path": "apps/ios/Info.plist",
+      "category": "configuration",
+      "bytes": 1364,
+      "physicalLines": 17,
+      "sha256": "ab6341aa90872ad1ff86ace344580e3aae8cdf810dab08c553c41eb7a10a0752"
+    },
+    {
+      "path": "apps/ios/README.md",
+      "category": "documentation",
+      "bytes": 3067,
+      "physicalLines": 52,
+      "sha256": "d07240e2355057ad8be23084c94f64fe7e29603e7d69e8c1af2026755caf57c6"
+    },
+    {
+      "path": "apps/ios/Sources/NativeSketch.swift",
+      "category": "handwritten-source",
+      "bytes": 39314,
+      "physicalLines": 1020,
+      "sha256": "126bb8491ca4fac528eeb99124157b9acd9e2c1d0079ec23ddd163c4990d611c",
+      "extractionTask": "009"
+    },
+    {
+      "path": "apps/ios/Sources/WatchCopySender.swift",
+      "category": "handwritten-source",
+      "bytes": 6618,
+      "physicalLines": 138,
+      "sha256": "d8959a60f55ecd0257421d5d3cb4e6fe054f2ad33b915c77fc929076e94bffe0"
+    },
+    {
+      "path": "apps/linux/.gitignore",
+      "category": "configuration",
+      "bytes": 9,
+      "physicalLines": 1,
+      "sha256": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368"
+    },
+    {
+      "path": "apps/linux/Cargo.lock",
+      "category": "lockfile",
+      "bytes": 16916,
+      "physicalLines": 705,
+      "sha256": "7c2609cb51a96d29eaa1b2f317092100bdd40c55e6473ec96704be30b62cb0bb"
+    },
+    {
+      "path": "apps/linux/Cargo.toml",
+      "category": "configuration",
+      "bytes": 311,
+      "physicalLines": 10,
+      "sha256": "1b449d9c56fee32841adea4ffaefd1f9c8fd4d47afa47cad4a2336d32d20a2c7"
+    },
+    {
+      "path": "apps/linux/README.md",
+      "category": "documentation",
+      "bytes": 2178,
+      "physicalLines": 30,
+      "sha256": "8ec3832f800c4275f438bb35b0cb64a5f4f327dbe284bd8a3185e7c748d34075"
+    },
+    {
+      "path": "apps/linux/src/main.rs",
+      "category": "handwritten-source",
+      "bytes": 29900,
+      "physicalLines": 899,
+      "sha256": "bb206475d3043a25f6a594f6a5b12f44f65807a3eaa1816e000a9c1109a587e3",
+      "extractionTask": "011"
+    },
+    {
+      "path": "apps/macos/AGENTS.md",
+      "category": "documentation",
+      "bytes": 460,
+      "physicalLines": 8,
+      "sha256": "b659cb383f6dfadb99dc836bc5f94b834fee7db21c11207040c3627cee8d9efd"
+    },
+    {
+      "path": "apps/macos/Info.plist",
+      "category": "configuration",
+      "bytes": 723,
+      "physicalLines": 16,
+      "sha256": "e55454e033588bb5c23ea6441391381238dfdc5defa7c166317d0f58c495e3dd"
+    },
+    {
+      "path": "apps/macos/Package.swift",
+      "category": "handwritten-source",
+      "bytes": 831,
+      "physicalLines": 26,
+      "sha256": "0a93fb21179c4cfc6acf4d0ea2c2a13f28644737ba2b3bd879600e6f7384b09d"
+    },
+    {
+      "path": "apps/macos/Sources/CSketchFFI/module.modulemap",
+      "category": "configuration",
+      "bytes": 109,
+      "physicalLines": 5,
+      "sha256": "4a33d8fafa0531dde11c066e384b635c6829a43f5cab199125ca450c678aa431"
+    },
+    {
+      "path": "apps/macos/Sources/NativeSketch/Integration.swift",
+      "category": "handwritten-source",
+      "bytes": 6081,
+      "physicalLines": 147,
+      "sha256": "a34437ff8087af98a1b9e45ec7a82a7685d363afad59a267af84d1d381649729"
+    },
+    {
+      "path": "apps/macos/Sources/NativeSketch/NativeSketch.swift",
+      "category": "handwritten-source",
+      "bytes": 31957,
+      "physicalLines": 848,
+      "sha256": "343f6836a927f63ab54a79c9192d8062fc964d8f2b529a6d7c877614a12e8aec",
+      "extractionTask": "019"
+    },
+    {
+      "path": "apps/tvos/Info.plist",
+      "category": "configuration",
+      "bytes": 860,
+      "physicalLines": 33,
+      "sha256": "996e62f2dfe445529a17dfe37b02f801642bdca6a05951821cf0ac8dc7d2bbc6"
+    },
+    {
+      "path": "apps/tvos/NativeSketchTV.swift",
+      "category": "handwritten-source",
+      "bytes": 9531,
+      "physicalLines": 161,
+      "sha256": "3f4953362c58d6c67bd498f78f94a98973c260854c77db30195297deb34633e0"
+    },
+    {
+      "path": "apps/tvos/README.md",
+      "category": "documentation",
+      "bytes": 1419,
+      "physicalLines": 23,
+      "sha256": "58e031a5573b408712971c44937ae80547b5131c7d7c72952696f508f656ac8b"
+    },
+    {
+      "path": "apps/visionos/Info.plist",
+      "category": "configuration",
+      "bytes": 980,
+      "physicalLines": 37,
+      "sha256": "6c44360aedf977532c47b5b5c1df03f51b5f72c09a91c3dc8b46c84c226bbc87"
+    },
+    {
+      "path": "apps/visionos/README.md",
+      "category": "documentation",
+      "bytes": 1719,
+      "physicalLines": 33,
+      "sha256": "ca90217f6df634935c73dcf0e1e87f15566b71a83b111df0a73fe559f56a35ba"
+    },
+    {
+      "path": "apps/watchos/Info.plist",
+      "category": "configuration",
+      "bytes": 876,
+      "physicalLines": 32,
+      "sha256": "ba44a3e1a54f691d10a6550977f1dda1c9392ba6c12821250a661d57513177f5"
+    },
+    {
+      "path": "apps/watchos/NativeSketchWatch.swift",
+      "category": "handwritten-source",
+      "bytes": 11149,
+      "physicalLines": 198,
+      "sha256": "a39400f4fea0fc1d0e86cd8f004429ab50512b5d8ce2388e51f8520cf8c8fc6e"
+    },
+    {
+      "path": "apps/watchos/PhoneDrawingSource.swift",
+      "category": "handwritten-source",
+      "bytes": 4137,
+      "physicalLines": 73,
+      "sha256": "a7fcb06c454a40f83551dc6ccf7d2ed49938a108d6454df2a9af7f1c6bcafd91"
+    },
+    {
+      "path": "apps/watchos/README.md",
+      "category": "documentation",
+      "bytes": 2351,
+      "physicalLines": 35,
+      "sha256": "f5e4cd3e7cdb136e7221fde60d63d876f71a16ed236d4513d214d5308fac1c48"
+    },
+    {
+      "path": "apps/watchos/SOURCES.md",
+      "category": "documentation",
+      "bytes": 3502,
+      "physicalLines": 51,
+      "sha256": "15a40736b3106162be5929dc361841caa97f83c9be482cbe9042ebbd4476a5bd"
+    },
+    {
+      "path": "apps/web/.gitignore",
+      "category": "configuration",
+      "bytes": 14,
+      "physicalLines": 1,
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    {
+      "path": "apps/web/README.md",
+      "category": "documentation",
+      "bytes": 3213,
+      "physicalLines": 51,
+      "sha256": "0f0619f034559f6e7fd5715be413875c3b83c12990f6e539317dce727265f4fd"
+    },
+    {
+      "path": "apps/web/index.html",
+      "category": "handwritten-source",
+      "bytes": 3577,
+      "physicalLines": 94,
+      "sha256": "240535be86e9efc2624cde072bcbeccba6d03f98883b13661179ac868067050f"
+    },
+    {
+      "path": "apps/web/package-lock.json",
+      "category": "lockfile",
+      "bytes": 1206,
+      "physicalLines": 44,
+      "sha256": "9b876f796a8363a628a39da8b4d207e7a055fc928b526b72503c36243cf04bab"
+    },
+    {
+      "path": "apps/web/package.json",
+      "category": "configuration",
+      "bytes": 191,
+      "physicalLines": 12,
+      "sha256": "c7f14661ab027482530d9ec30c49e09d111d4b41b44250dd996fd29668715a43"
+    },
+    {
+      "path": "apps/web/src/engine.ts",
+      "category": "handwritten-source",
+      "bytes": 6096,
+      "physicalLines": 164,
+      "sha256": "56d6f3f09b49971f7d792a30a20de0011f6465f03348c2f28c8890256356d6a8"
+    },
+    {
+      "path": "apps/web/src/main.ts",
+      "category": "handwritten-source",
+      "bytes": 17540,
+      "physicalLines": 572,
+      "sha256": "63375d3a53d69e96aef74e59036ff057476ecee3de314b1e3b1ec93a2e956351",
+      "extractionTask": "012"
+    },
+    {
+      "path": "apps/web/style.css",
+      "category": "handwritten-source",
+      "bytes": 1978,
+      "physicalLines": 123,
+      "sha256": "15f884e23fee9cff608d0caa883169c7075f5319e71f923b09a9473f40a00066"
+    },
+    {
+      "path": "apps/web/sw.js",
+      "category": "handwritten-source",
+      "bytes": 1073,
+      "physicalLines": 38,
+      "sha256": "140723a0c63e763700ca79f077e529fad201c3c9987f6be872e7126fe375a006"
+    },
+    {
+      "path": "apps/web/tests/adapter.mjs",
+      "category": "handwritten-source",
+      "bytes": 3983,
+      "physicalLines": 123,
+      "sha256": "fddac56f0c05d1c75efcc3306c5df313c998924a2362616ca5453e312149702f"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "category": "configuration",
+      "bytes": 276,
+      "physicalLines": 13,
+      "sha256": "775a8684c59b3e62b72c6968ccec37646e7ad6c3aa1fd21fea971e41a58c686a"
+    },
+    {
+      "path": "apps/windows/.editorconfig",
+      "category": "configuration",
+      "bytes": 97,
+      "physicalLines": 3,
+      "sha256": "87e1853c0d0b2ea7584d9ac1049cd872f47cda7c8765c7c3ae707996faecd42f"
+    },
+    {
+      "path": "apps/windows/.gitignore",
+      "category": "configuration",
+      "bytes": 16,
+      "physicalLines": 2,
+      "sha256": "79810615b4063be5474618fd002df934762fe9ccebb448537ce74ce23b319202"
+    },
+    {
+      "path": "apps/windows/App.cs",
+      "category": "handwritten-source",
+      "bytes": 20782,
+      "physicalLines": 446,
+      "sha256": "2522c428bc447abc35a53e09fc4c7d75bceffb3fdf0959217262c17c361be519",
+      "extractionTask": "004"
+    },
+    {
+      "path": "apps/windows/Engine.cs",
+      "category": "handwritten-source",
+      "bytes": 7702,
+      "physicalLines": 172,
+      "sha256": "d841e6b9f4454b1e50b47e54daaee67238f59ad73e5821f8d42bdba00c5cd9dd"
+    },
+    {
+      "path": "apps/windows/InteropCheck/InteropCheck.csproj",
+      "category": "configuration",
+      "bytes": 752,
+      "physicalLines": 13,
+      "sha256": "a3eb6a38cf2efe8dcc45d4997b088fd06519a2214d7e16604f93c1d1e2a7918b"
+    },
+    {
+      "path": "apps/windows/InteropCheck/Program.cs",
+      "category": "handwritten-source",
+      "bytes": 2709,
+      "physicalLines": 30,
+      "sha256": "ddb0a2e42f57b83d15d6ec6fdc61567baa915514a23004077b7112e8f030118f"
+    },
+    {
+      "path": "apps/windows/NativeSketch.Windows.csproj",
+      "category": "configuration",
+      "bytes": 1072,
+      "physicalLines": 21,
+      "sha256": "c6b5f2956d576f0b008d5c74a8e4fa23dfb35f435a71030af1a5c827e3d8a1f8"
+    },
+    {
+      "path": "apps/windows/README.md",
+      "category": "documentation",
+      "bytes": 4498,
+      "physicalLines": 83,
+      "sha256": "8e0da9f82bf9c202c1002aacfebbd9d5144b2a15b7541c829e4e1bdb891fb12c"
+    },
+    {
+      "path": "apps/windows/app.manifest",
+      "category": "configuration",
+      "bytes": 393,
+      "physicalLines": 1,
+      "sha256": "cdece6c0589f5d920becfc656e0a2ac6fffabf99ff302ae385d1d43d7b182bc5"
+    },
+    {
+      "path": "crates/AGENTS.md",
+      "category": "documentation",
+      "bytes": 441,
+      "physicalLines": 8,
+      "sha256": "d148e8998460cce39ac87532344ad375a91528d93248c5ecefb7959b1a5a24cd"
+    },
+    {
+      "path": "crates/sketch-core/Cargo.toml",
+      "category": "configuration",
+      "bytes": 164,
+      "physicalLines": 10,
+      "sha256": "ab16cc61b789d925be2779d40c03e0136f72fd1eb88abb5ddb6ac1ab8b1f2d80"
+    },
+    {
+      "path": "crates/sketch-core/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 20039,
+      "physicalLines": 649,
+      "sha256": "1dd8db1136a81f29856388280916edbb5d687232f9012176d5e76cacfeffa4c3",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/persistence.rs",
+      "category": "handwritten-source",
+      "bytes": 9046,
+      "physicalLines": 284,
+      "sha256": "7b21d96c5de4010d598f8fe78e7cf77a60a06985cef13cfef1eaab48f5022e14",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/source_policy.rs",
+      "category": "handwritten-source",
+      "bytes": 12313,
+      "physicalLines": 313,
+      "sha256": "3612669e78cd42ba60a1e6e57926136f9ad62bca3a9cf42b714a59ff9a8f94ea",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/src/tests.rs",
+      "category": "handwritten-source",
+      "bytes": 9383,
+      "physicalLines": 293,
+      "sha256": "f129e47bdb47bec2343a5ec2e273410500cbded8d884094803c61d5857a98d64",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-core/tests/fixtures/synthetic-pressure-v1.csv",
+      "category": "fixture-data",
+      "bytes": 211,
+      "physicalLines": 6,
+      "sha256": "7259957ee5109455ed91041462549283cceee3cc93251664fc672af525b89900"
+    },
+    {
+      "path": "crates/sketch-ffi/Cargo.toml",
+      "category": "configuration",
+      "bytes": 246,
+      "physicalLines": 13,
+      "sha256": "ff248d127abfafd88ab69b71bf5ad5c39b2c83afa84195bc303043bf69266597"
+    },
+    {
+      "path": "crates/sketch-ffi/examples/portable-fixture.rs",
+      "category": "handwritten-source",
+      "bytes": 1988,
+      "physicalLines": 70,
+      "sha256": "29dace1f762c24095d8fabc12de6569ce83c3dff82972d68b46af6a698a6f31e"
+    },
+    {
+      "path": "crates/sketch-ffi/include/sketch_ffi.h",
+      "category": "handwritten-source",
+      "bytes": 7182,
+      "physicalLines": 114,
+      "sha256": "57655bcda814e3f6a8a02688e3a62a33b687cbfcd3f70fe347a1a85be1c63dfd"
+    },
+    {
+      "path": "crates/sketch-ffi/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 25080,
+      "physicalLines": 770,
+      "sha256": "db4578ed5a2fe9db02472dd84457f151006b83eb8e889a1cea249702d22aac44",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-wasm/Cargo.toml",
+      "category": "configuration",
+      "bytes": 233,
+      "physicalLines": 12,
+      "sha256": "c888e77c7b508e4094c98bd54e1760915507baac45ad65a8bbc3610ec09e25c1"
+    },
+    {
+      "path": "crates/sketch-wasm/WASM.md",
+      "category": "documentation",
+      "bytes": 4904,
+      "physicalLines": 44,
+      "sha256": "cc6d36a8811301869f49e78a691e1de59157ffac5aeae205e27b782934e76715"
+    },
+    {
+      "path": "crates/sketch-wasm/src/lib.rs",
+      "category": "handwritten-source",
+      "bytes": 9949,
+      "physicalLines": 319,
+      "sha256": "5789b365919425ccb72ec6bd599a3ffb830fa595a006e7bcf376ba36a21d49bd",
+      "extractionTask": "018"
+    },
+    {
+      "path": "crates/sketch-wasm/tests/conformance.mjs",
+      "category": "handwritten-source",
+      "bytes": 3619,
+      "physicalLines": 43,
+      "sha256": "120274cabdc8f7c43c06cfee57b4f489da737cd8237ac70cde7a968403395427"
+    },
+    {
+      "path": "docs/architecture.md",
+      "category": "documentation",
+      "bytes": 6532,
+      "physicalLines": 109,
+      "sha256": "3e7544cb5863560954171bc68b9405edfa26fb4c11ad5faadaaadbc1b0565693"
+    },
+    {
+      "path": "docs/decisions/0001-foundation.md",
+      "category": "documentation",
+      "bytes": 1095,
+      "physicalLines": 19,
+      "sha256": "8787380b0edb47a3c516f16a99587b477a035996d0b402e10d9d1d2ca81786a4"
+    },
+    {
+      "path": "docs/decisions/0002-first-stroke-rendering.md",
+      "category": "documentation",
+      "bytes": 1154,
+      "physicalLines": 20,
+      "sha256": "cd731362d230494b53cba7925dd1ac842319930acd2734a42fde02fc8879533c"
+    },
+    {
+      "path": "docs/design/apple-device-family.md",
+      "category": "documentation",
+      "bytes": 2772,
+      "physicalLines": 42,
+      "sha256": "b072ca7e3ee04de9a9aa63ecdc407262880cf75ab1b8d9941154ec7b9bac54a4"
+    },
+    {
+      "path": "docs/design/first-stroke.md",
+      "category": "documentation",
+      "bytes": 4076,
+      "physicalLines": 67,
+      "sha256": "2a0ba0d4a9e8b763ccbb6649f7e1b0d81f1e22b382528c9b3013578c461e2962"
+    },
+    {
+      "path": "docs/design/native-platforms.md",
+      "category": "documentation",
+      "bytes": 3344,
+      "physicalLines": 47,
+      "sha256": "03dbb3494e1d7bbb376ed23940dea46fee735167756ef459ebdba87169a89391"
+    },
+    {
+      "path": "docs/design/principles.md",
+      "category": "documentation",
+      "bytes": 2308,
+      "physicalLines": 43,
+      "sha256": "748cea8c5f2b39063470b8e5e08ce6f003fecb67bb10a295bfcbad640af7d82a"
+    },
+    {
+      "path": "docs/evidence/001-first-stroke.md",
+      "category": "documentation",
+      "bytes": 9276,
+      "physicalLines": 153,
+      "sha256": "d872f7956943d06eb29059ca603da7e6251f50fdbe4244a0a827e0bedbc4d217"
+    },
+    {
+      "path": "docs/evidence/005-native-platforms.md",
+      "category": "documentation",
+      "bytes": 8369,
+      "physicalLines": 120,
+      "sha256": "7bea2e3811b6df0347b10676fb534be1b5895a31084cb652d3e805b455f2efda"
+    },
+    {
+      "path": "docs/evidence/006-apple-device-family.md",
+      "category": "documentation",
+      "bytes": 7170,
+      "physicalLines": 110,
+      "sha256": "67966633ce8bfef490f83ccb88d95e60df6a7d64cb96eeecd18daa26cbf08aa5"
+    },
+    {
+      "path": "docs/evidence/007-watch-document-sources.md",
+      "category": "documentation",
+      "bytes": 6064,
+      "physicalLines": 96,
+      "sha256": "1dddfe6cf258068ad24328da97fcadb92df6dbf2a44d899a72da48236dc0c987"
+    },
+    {
+      "path": "docs/evidence/008-android-desktop.md",
+      "category": "documentation",
+      "bytes": 6517,
+      "physicalLines": 107,
+      "sha256": "89732cec544114571ccd5a4d90137255106e22311d306938f6663fc3e7ca0c73"
+    },
+    {
+      "path": "docs/product.md",
+      "category": "documentation",
+      "bytes": 2047,
+      "physicalLines": 39,
+      "sha256": "c14d7bc17de9b538e6789ca9a5fe238712116c4caf7d0c56f5e44a1ba4347b5a"
+    },
+    {
+      "path": "docs/quality.md",
+      "category": "documentation",
+      "bytes": 5190,
+      "physicalLines": 83,
+      "sha256": "9e3860a5fed43d26fc0c779faa7e24eb1d30af3644581f4117962930bc0f0433"
+    },
+    {
+      "path": "docs/setup-validation.md",
+      "category": "documentation",
+      "bytes": 1904,
+      "physicalLines": 30,
+      "sha256": "93caa9d21f502636003966f07ab407d181f7bf7c1d35dff6337c9bb9fbe37749"
+    },
+    {
+      "path": "docs/workflow.md",
+      "category": "documentation",
+      "bytes": 4009,
+      "physicalLines": 72,
+      "sha256": "4b0cce71621c58a4943808b90248bb459d6c7a5e8fb363202ce00612cda74e5a"
+    },
+    {
+      "path": "scripts/board",
+      "category": "handwritten-source",
+      "bytes": 3446,
+      "physicalLines": 84,
+      "sha256": "9edeba1173836744b1ca96a348ef46865ed9ecbfe1066589efa252aae27e5607"
+    },
+    {
+      "path": "scripts/build-android",
+      "category": "handwritten-source",
+      "bytes": 1456,
+      "physicalLines": 28,
+      "sha256": "5b3106ce288d359db1d16272947167dd8d783a908576ff5e56543f094aabb331"
+    },
+    {
+      "path": "scripts/build-apple-family",
+      "category": "handwritten-source",
+      "bytes": 937,
+      "physicalLines": 22,
+      "sha256": "02d4cd449ce0a05e38559725c87b1a8857b9747b7945c53a37448cb7484fa77c"
+    },
+    {
+      "path": "scripts/build-ios",
+      "category": "handwritten-source",
+      "bytes": 1572,
+      "physicalLines": 25,
+      "sha256": "6cb2ffb3c25e085efd865fbce2bcf636ec256b108bfd530f9b95ad421a66c374"
+    },
+    {
+      "path": "scripts/build-linux",
+      "category": "handwritten-source",
+      "bytes": 298,
+      "physicalLines": 8,
+      "sha256": "5b12865b27a5aa1703a234526b337035bd26f71844f8a163fddc5d4e6b1582b5"
+    },
+    {
+      "path": "scripts/build-macos",
+      "category": "handwritten-source",
+      "bytes": 1513,
+      "physicalLines": 37,
+      "sha256": "4b4605f7877d5a1fa3551b997fda32873ff06db4a30bb3babb4e7eeda0083eb8"
+    },
+    {
+      "path": "scripts/build-tvos",
+      "category": "handwritten-source",
+      "bytes": 1528,
+      "physicalLines": 21,
+      "sha256": "6c1cbc0f50fba5656f63e72e59a7b60519910ea9a15ec21aae74d154f56c5643"
+    },
+    {
+      "path": "scripts/build-visionos",
+      "category": "handwritten-source",
+      "bytes": 1530,
+      "physicalLines": 25,
+      "sha256": "404dace7126d75d12b305ecfa98e287e7191d922e19fae3687c59220bb4251e0"
+    },
+    {
+      "path": "scripts/build-wasm",
+      "category": "handwritten-source",
+      "bytes": 417,
+      "physicalLines": 9,
+      "sha256": "d60d3ddd2256c11df872004365b28366eae7786a78443b92e64b0d31c4f06cff"
+    },
+    {
+      "path": "scripts/build-watchos",
+      "category": "handwritten-source",
+      "bytes": 1591,
+      "physicalLines": 21,
+      "sha256": "c9c2ce78b18687e5257f8f3987651c3def5cf74c9b912085748af437a8808ba7"
+    },
+    {
+      "path": "scripts/build-web",
+      "category": "handwritten-source",
+      "bytes": 604,
+      "physicalLines": 16,
+      "sha256": "157eb75e1fd251c67e2bb10ce64029a2ff93b638004de9f66cdd34db8daf93bf"
+    },
+    {
+      "path": "scripts/build-windows.ps1",
+      "category": "handwritten-source",
+      "bytes": 436,
+      "physicalLines": 7,
+      "sha256": "79093f75346a7bd0b2d87b065f0b9a27486226807caab793dbe5ddc93b52d8e3"
+    },
+    {
+      "path": "scripts/check",
+      "category": "handwritten-source",
+      "bytes": 689,
+      "physicalLines": 17,
+      "sha256": "ada932279f218b1bc2d2a1f7a4500f387efd424e2dd93a59c402f5ddad9dd09a"
+    },
+    {
+      "path": "scripts/check-android",
+      "category": "handwritten-source",
+      "bytes": 1791,
+      "physicalLines": 37,
+      "sha256": "68d8cea7b98f9c275fcf51c8548aa27da8b7733bc888fe4803336dfadaeb23cc"
+    },
+    {
+      "path": "scripts/check-apple-viewers",
+      "category": "handwritten-source",
+      "bytes": 961,
+      "physicalLines": 15,
+      "sha256": "e87cbfa2e15daa8838ca6b80be123872b91878b5797c6dd3cc811538c3c65d41"
+    },
+    {
+      "path": "scripts/check-linux",
+      "category": "handwritten-source",
+      "bytes": 364,
+      "physicalLines": 9,
+      "sha256": "a6825f50f5deff76f510e3c774b0630f78a196346e7588e4bac36ea5630f9a9d"
+    },
+    {
+      "path": "scripts/check-wasm",
+      "category": "handwritten-source",
+      "bytes": 428,
+      "physicalLines": 10,
+      "sha256": "e74dc06f88982c8a2767cd7ec0507ff51a1c0f01e54b0bb2e3c38a07462aa158"
+    },
+    {
+      "path": "scripts/check-web",
+      "category": "handwritten-source",
+      "bytes": 152,
+      "physicalLines": 6,
+      "sha256": "0e2394766b4fb1da7b91cb7cc02bc0e3bd017df8413a721ae1a28563d834b630"
+    },
+    {
+      "path": "scripts/check-windows.ps1",
+      "category": "handwritten-source",
+      "bytes": 307,
+      "physicalLines": 5,
+      "sha256": "ef1fec7f4463c33cdf097c082150b6f50f9bf2a4b83c7e6f9c5b92342ec35c1c"
+    },
+    {
+      "path": "scripts/new-worktree",
+      "category": "handwritten-source",
+      "bytes": 791,
+      "physicalLines": 21,
+      "sha256": "19ccf4da4164ff96e55a2baa0ba7bae41bea90b5b961e048de6d7e5f782033af"
+    },
+    {
+      "path": "scripts/run-ios",
+      "category": "handwritten-source",
+      "bytes": 371,
+      "physicalLines": 8,
+      "sha256": "98601ec12b10013a44eeab426509af300085d1eeac653640cb213032859cc13c"
+    },
+    {
+      "path": "scripts/run-macos",
+      "category": "handwritten-source",
+      "bytes": 176,
+      "physicalLines": 5,
+      "sha256": "e5d7b8720d7e4791bc8503f9a1e057cb44b90d2827ffcd9f36360115a12ab361"
+    },
+    {
+      "path": "scripts/run-tvos",
+      "category": "handwritten-source",
+      "bytes": 372,
+      "physicalLines": 8,
+      "sha256": "6350c08e0b30afa52522331de5f557b28e25f25d5b65b96147260bc54121dd52"
+    },
+    {
+      "path": "scripts/run-visionos",
+      "category": "handwritten-source",
+      "bytes": 381,
+      "physicalLines": 8,
+      "sha256": "1d62173910d918a87c1d3133eeafd3e3495a9dd85c194c92f383f0213f2e8c62"
+    },
+    {
+      "path": "scripts/run-watchos",
+      "category": "handwritten-source",
+      "bytes": 893,
+      "physicalLines": 19,
+      "sha256": "aba5d1a425cf08956f563f2c64c7652661eab6c5106c0a9757fd0b7d7e09c5c9"
+    },
+    {
+      "path": "scripts/run-web",
+      "category": "handwritten-source",
+      "bytes": 207,
+      "physicalLines": 6,
+      "sha256": "dad10dc7eeb865b6db95bf7754b3228d2f742ed137d507ae25e712908fa3c0ad"
+    },
+    {
+      "path": "tasks/001-first-stroke.md",
+      "category": "documentation",
+      "bytes": 1935,
+      "physicalLines": 39,
+      "sha256": "9159f5debbc9d1f0a5831d1b9c9bdd2d434a0ddd080fcaa3a846dd5590de76b5"
+    },
+    {
+      "path": "tasks/002-renderer-comparison.md",
+      "category": "documentation",
+      "bytes": 22919,
+      "physicalLines": 334,
+      "sha256": "9decd048ae7d5007eb258620b98324c4b362b8917d44479b5e3cb59382c861d6"
+    },
+    {
+      "path": "tasks/003-input-replay.md",
+      "category": "documentation",
+      "bytes": 673,
+      "physicalLines": 13,
+      "sha256": "c33b5b68e025d141c664d30f11c13dc3dbcaf3e7d606134741cf08b5e3207bec"
+    },
+    {
+      "path": "tasks/004-windows-spike.md",
+      "category": "documentation",
+      "bytes": 1526,
+      "physicalLines": 27,
+      "sha256": "83cbe15dee33730e2cc4f9293e47224a8b7023aac151bc41b3b70fdb81b48ba5"
+    },
+    {
+      "path": "tasks/005-native-platforms.md",
+      "category": "documentation",
+      "bytes": 2042,
+      "physicalLines": 37,
+      "sha256": "eac4ea501c331b03115994588f6a7275ade70958e5a0111dce308bd16d15ca9a"
+    },
+    {
+      "path": "tasks/006-apple-device-family.md",
+      "category": "documentation",
+      "bytes": 2400,
+      "physicalLines": 39,
+      "sha256": "94377933815d456ed8fad1cba8c5f792d9228fcc026c2cd8195653a635af3675"
+    },
+    {
+      "path": "tasks/007-watch-document-sources.md",
+      "category": "documentation",
+      "bytes": 2204,
+      "physicalLines": 38,
+      "sha256": "5b7f50d2113690ea96636abd197839fb8b457f58e3dd6e405765123a060430f5"
+    },
+    {
+      "path": "tasks/008-android-desktop.md",
+      "category": "documentation",
+      "bytes": 1439,
+      "physicalLines": 24,
+      "sha256": "cf971d5b1a80ae1dcb08aeaf76128945681cbb6700bd6af16da49ce39e220a49"
+    },
+    {
+      "path": "tasks/009-apple-editor-ports.md",
+      "category": "documentation",
+      "bytes": 1550,
+      "physicalLines": 16,
+      "sha256": "672352876970d9a8a796ed41025020bed9aa75b8c989ef9999f13c513beb10f2"
+    },
+    {
+      "path": "tasks/010-android-desktop-acceptance.md",
+      "category": "documentation",
+      "bytes": 1463,
+      "physicalLines": 17,
+      "sha256": "5d4782cf48e9684ab75f1ee3776c0803e46f6c08769332c66d71a9dfdb971c6e"
+    },
+    {
+      "path": "tasks/011-linux-native-port.md",
+      "category": "documentation",
+      "bytes": 1254,
+      "physicalLines": 16,
+      "sha256": "8b482f8839a83e6cdeb922fc74b9cc1486032e29804ad449c1ee88c6a58b1137"
+    },
+    {
+      "path": "tasks/012-browser-wasm-port.md",
+      "category": "documentation",
+      "bytes": 1349,
+      "physicalLines": 16,
+      "sha256": "27073fd6a8a887eb97b8944e20fea762704d6441b953174d6748329a2a1a1f17"
+    },
+    {
+      "path": "tasks/013-apple-viewer-ports.md",
+      "category": "documentation",
+      "bytes": 1381,
+      "physicalLines": 16,
+      "sha256": "957e10d452618ecfb8a5f3895f9953c3e5a4b36125710a84d0843cbbdf1568f5"
+    },
+    {
+      "path": "tasks/014-network-document-source.md",
+      "category": "documentation",
+      "bytes": 1448,
+      "physicalLines": 16,
+      "sha256": "041a25f9a5bdfab18418cdb4c88226d108810fba747b7e9c4409d9a66ed5e7c2"
+    },
+    {
+      "path": "tasks/README.md",
+      "category": "documentation",
+      "bytes": 602,
+      "physicalLines": 12,
+      "sha256": "9570ca090f65c688ca9fed4ecb8b3e4dbd8e300a5d5f90d960b925f5631d91fb"
+    },
+    {
+      "path": "tasks/board.json",
+      "category": "configuration",
+      "bytes": 4599,
+      "physicalLines": 210,
+      "sha256": "e41ece300434658e44d0f4bcc48461358912102b2364892d710ddcfc00c503f5"
+    },
+    {
+      "path": "templates/change-report.md",
+      "category": "documentation",
+      "bytes": 509,
+      "physicalLines": 29,
+      "sha256": "02577d2585acf7ecd837bf41bc1ff585b45fef2fd31829a66949c24fafa31efa"
+    },
+    {
+      "path": "templates/task.md",
+      "category": "documentation",
+      "bytes": 475,
+      "physicalLines": 23,
+      "sha256": "109d4af7352a88b9a1c09e6c2773dfbc65b9eb8adef4442bb218568b164cdc67"
+    }
+  ]
+}

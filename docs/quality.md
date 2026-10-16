@@ -1,18 +1,100 @@
 # Quality and evidence
 
+Policy updated 2026-10-15. Node orchestration and source/dependency gates are implemented;
+see [enabled commands and remaining tool/host gaps](quality/commands.md). macOS/core/Wasm/web
+replacements have local parity evidence. Retained platform scripts remain available until
+each native host is verified. The target gates below are not all implemented yet.
+See [tooling](quality/tooling.md), [feature coverage](quality/coverage.md),
+[platform E2E](quality/platforms.md), [reliability](quality/reliability.md), and
+[invariants](architecture/invariants.md). The [refactoring plan](refactoring-plan.md)
+assigns implementation owners and gates.
+The [agent workflow](quality/agent-workflow.md) requires owner review before material
+architecture choices and assigns structured logging/security/maintainability responsibilities.
+Task 022's [typed migration](architecture/022-typed-bindings-migration.md) adds planned
+BIND/LOG acceptance IDs; they become evidence only when executable mappings and runs exist.
+
+## Required target gates and adoption
+
+| Gate | Owner | Implementation task / scope |
+| --- | --- | --- |
+| Format/lint/type and <=200 physical source lines | build_reliability + implementers | 016; new/extracted files comply immediately |
+| Dependency/FFI boundaries | rust_engine + build_reliability | 015/016/018; verify violating fixtures |
+| Acceptance/invariant IDs and executable mappings | implementers + reviewer | 015/017; feature manifests and real runner discovery |
+| Platform E2E | platform implementer | 017/019/022 and port tasks; real UI route |
+| Error diagnostics and recovery | implementers + build_reliability | 021; failure injection and redaction |
+| Render/cache equivalence and performance | rendering_performance | 020/023; release builds on named hardware |
+| Fuzz/property/sanitizer and dependency checks | rust_engine + build_reliability | 018/023; supported configurations only |
+| Accessibility and native behavior | ui_ux_designer + platform implementer | 019 and port tasks; separate automation/runtime evidence |
+| Package/upgrade/symbol checks | build_reliability | 024; selected distribution, no publishing implied |
+
+Review policy applies now. Until an automated gate exists, report its manual evidence or
+gap. Do not claim automation from policy text. Existing oversized files are enumerated debt:
+new/extracted files <=200; touched oversized files cannot grow and have an extraction task.
+Final refactor acceptance requires zero handwritten source violations. Do not compress code,
+hide executable code in data or split a coupled object into arbitrary fragments.
+
+For each change, name acceptance cases and invariant IDs before implementation. Native
+E2E, bridge/replay, core tests and physical-device checks remain distinct. Required missing,
+skipped, flaky or unsupported evidence cannot be silently reported as passing. Generate a
+feature/platform matrix from manifests, discovered tests and revision-specific results.
+Code coverage percentages supplement this matrix; they do not prove user journeys.
+
+Use fast deterministic checks per change; affected native E2E per integration; longer fuzz,
+sustained and hardware checks in explicitly provisioned jobs or release validation. Do not
+create recurring automation/runners merely because this policy describes a cadence.
+
 Use checks proportionate to the changed behavior. Do not write tests that merely repeat
 constants or implementation details. Do not rerun unrelated suites after successful checks
 unless new changes or evidence justify it.
 
 ## Local baseline
 
-`./scripts/check` validates the task board, checks Rust formatting and clippy, runs the
-Rust tests, builds the macOS shell, and runs its Swift-to-Rust ABI smoke check.
-Initially the domain crate has zero behavior tests; a green scaffold check proves build
-and linkage only. UI, drawing, saving, Windows, and physical pen latency are not covered.
+`node scripts/check.ts` also validates/types/lints/formats new Node tooling, runs its
+negative tests, and enforces source-size and dependency boundaries. It validates the task board,
+checks Rust formatting and clippy, runs the
+Rust tests, builds the macOS app, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
+editing, pressure replay, persistence, and FFI failure behavior. The Swift integration
+check covers geometry/style round-trips and editing through the actual C boundary.
+Running-app interaction, native event replay, Windows, physical tablets, and GPU or
+pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
-`./scripts/check --core` skips macOS and is suitable for a non-Mac Rust runner.
+`node scripts/check.ts --core` skips macOS and is suitable for a non-Mac Rust runner.
+Install root dependencies with `npm ci --ignore-scripts` first. `./scripts/check` is a
+three-line Node compatibility entry point to the same TypeScript checks and quality gates.
+Use the pinned Node on PATH; no Python or shell interpreter is required for this command.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.
+
+## Portable host checks
+
+`node scripts/check.ts --platform wasm` verifies the raw Wasm bridge and native byte equivalence.
+`node scripts/check.ts --platform web` builds TypeScript and runs real-Wasm adapter/lifecycle regressions.
+`scripts/check-linux` builds GTK/libadwaita, runs clippy and the native adapter test;
+running this on macOS does not certify Linux display servers or portals.
+`scripts/check-android` runs the JNI/input replay on the selected Android device or
+emulator. Always identify the disposable test device before choosing `ANDROID_SERIAL`.
+Desktop replay covers keyboard callbacks, resize cancellation, native MIME eligibility,
+mouse/stylus/touch provenance and large-document Fit/zoom. Real input dispatch, small/short
+window usability and file-provider permissions also require native runtime inspection.
+Dual-ABI packaging alone does not certify ChromeOS/Googlebook hardware.
+`scripts/run-ios <UUID> --integration-test` runs the UIKit replay in that
+simulator. Coordinate device runs and native UI inspection exclusively on the host.
+`scripts/check-windows.ps1` builds the x64 Rust DLL/WinUI host and runs C# conformance
+on Windows. Cross-host C# compilation or interop checks do not replace Windows launch.
+
+`scripts/build-apple-family simulator` builds all Apple hosts and embeds the Watch
+companion in the iPhone app. Device variants require owner provisioning.
+`scripts/check-apple-viewers` exercises actual Rust read-only imports, byte identity,
+stale/corrupt/oversized transfer retention, atomic caches and HTTPS download policy.
+Watch source checks additionally cover Rust version decisions, staged update ordering,
+legacy migration, phone-first fallback, and actual utility-queue callback delivery to
+MainActor. URLProtocol HTTP fixtures run on macOS; watchOS explicitly skips that fixture
+because its runtime did not intercept the requests. Watch replay launch validates the
+PASS marker as well as process launch status.
+Simulator viewer replays are debug-only and exit with a result; physical WatchConnectivity
+delivery and Vision input require separate device evidence.
+
+Record OS, SDK, exact source revision, build, adapter execution, and visible interaction
+as separate evidence. See `docs/evidence/005-native-platforms.md` for current coverage.
 
 ## Feature-specific merge evidence
 

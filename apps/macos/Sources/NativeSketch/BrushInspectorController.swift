@@ -1,0 +1,124 @@
+import AppKit
+import CSketchSession
+
+@MainActor final class BrushInspectorController: NSObject {
+  unowned let owner: EditorWindowController
+  init(owner: EditorWindowController) { self.owner = owner }
+  let tool = NSSegmentedControl(
+    labels: ["Pen", "Select"], trackingMode: .selectOne, target: nil, action: nil)
+  let color = NSColorWell()
+  let width = NSTextField(string: "6")
+  let stepper = NSStepper()
+  let scale = NSTextField(string: "100")
+  let apply = NSButton(title: "Apply", target: nil, action: nil)
+  var toolbarControls: NSStackView!
+  let inspector = NSPopover()
+  lazy var fieldEditing = NativeFieldEditingCoordinator(
+    field: width,
+    report: { [weak self] message in self?.owner.status.stringValue = message },
+    resolve: { [weak self] message in
+      guard let self, owner.status.stringValue == message else { return }
+      owner.refresh()
+    }, dismissed: { [weak self] in self?.restoreCanvasAfterDismissal() },
+    commit: { [weak self] value in self?.commitWidth(value) ?? false })
+  func configure() {
+    tool.selectedSegment = 0
+    tool.target = owner.actions
+    tool.action = #selector(EditorActions.changeTool(_:))
+    tool.setAccessibilityLabel("Drawing tool")
+    color.color = .black
+    color.target = self
+    color.action = #selector(colorChanged(_:))
+    NativeAccessibility.label(color, id: "sketch.brush.color", text: "Stroke color")
+    color.widthAnchor.constraint(equalToConstant: 44).isActive = true
+    NativeAccessibility.label(
+      width, id: "sketch.brush.width", text: "Stroke width in document points")
+    width.target = self
+    width.action = #selector(BrushInspectorController.widthChanged(_:))
+    width.widthAnchor.constraint(equalToConstant: 48).isActive = true
+    let formatter = NumberFormatter()
+    formatter.minimum = 0.1
+    formatter.maximum = 256
+    formatter.maximumFractionDigits = 1
+    width.formatter = formatter
+    width.delegate = fieldEditing
+    inspector.delegate = fieldEditing
+    stepper.minValue = 0.1
+    stepper.maxValue = 256
+    stepper.increment = 1
+    stepper.doubleValue = 6
+    stepper.target = self
+    stepper.action = #selector(BrushInspectorController.widthStepped(_:))
+    stepper.setAccessibilityLabel("Adjust stroke width")
+    scale.setAccessibilityLabel("Selection scale percent")
+    scale.widthAnchor.constraint(equalToConstant: 56).isActive = true
+    scale.target = owner.actions
+    scale.action = #selector(EditorActions.resize(_:))
+    apply.target = owner.actions
+    apply.action = #selector(EditorActions.resize(_:))
+    let brushRow = NSStackView(views: [
+      color, NSTextField(labelWithString: "Width"), width, stepper,
+    ])
+    brushRow.spacing = 8
+    let scaleRow = NSStackView(views: [NSTextField(labelWithString: "Scale %"), scale, apply])
+    scaleRow.spacing = 8
+    let controls = NSStackView(views: [brushRow, scaleRow])
+    controls.orientation = .vertical
+    controls.alignment = .leading
+    controls.spacing = 12
+    controls.edgeInsets = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+    toolbarControls = controls
+    let inspectorController = NSViewController()
+    inspectorController.view = controls
+    inspector.contentViewController = inspectorController
+    inspector.contentSize = controls.fittingSize
+    inspector.behavior = .transient
+  }
+  @objc func showInspector(_ sender: Any?) {
+    owner.canvas.cancel()
+    if inspector.isShown {
+      inspector.performClose(sender)
+      return
+    }
+    ensureShown()
+  }
+  func ensureShown() {
+    guard !inspector.isShown else { return }
+    inspector.show(relativeTo: tool.bounds, of: tool, preferredEdge: .maxY)
+  }
+  private func restoreCanvasAfterDismissal() {
+    let session = owner.editor.projection.session
+    Task { @MainActor [weak self] in
+      guard let self, session == owner.editor.projection.session,
+        !inspector.isShown, NSApp.isActive, owner.window.isKeyWindow,
+        owner.window.attachedSheet == nil, !owner.focusRestoration.isRestorationPending
+      else { return }
+      let responder = owner.window.firstResponder
+      guard responder == nil || responder === owner.window else { return }
+      owner.window.makeFirstResponder(owner.canvas)
+    }
+  }
+  private func commitWidth(_ value: Double) -> Bool {
+    var brush = owner.editor.projection.brush
+    if brush.width == value { return true }
+    brush.width = value
+    return owner.editor.send(.brush(brush))
+  }
+  @objc func widthChanged(_ sender: Any?) { _ = commitWidth(width.doubleValue) }
+  @objc func widthStepped(_ sender: Any?) {
+    let proposed = stepper.doubleValue
+    guard fieldEditing.finishEditing() else { return }
+    _ = commitWidth(proposed)
+  }
+  @objc func colorChanged(_ sender: Any?) {
+    guard let selected = color.color.usingColorSpace(.sRGB), fieldEditing.finishEditing() else {
+      return
+    }
+    var brush = owner.editor.projection.brush
+    brush.red = selected.redComponent
+    brush.green = selected.greenComponent
+    brush.blue = selected.blueComponent
+    brush.alpha = selected.alphaComponent
+    owner.editor.send(.brush(brush))
+  }
+}

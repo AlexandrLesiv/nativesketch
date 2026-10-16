@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "e467d402c0f9888ae11a5312a2caabcd9335480f",
+  "discovery": "cargo test -p <package> --lib --locked -- --list",
+  "executionStatus": "not-recorded",
+  "tests": [
+    {
+      "id": "cargo:sketch-core:lib:persistence::tests::accepted_boundary_samples_roundtrip_from_default_editor",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "persistence::tests::accepted_boundary_samples_roundtrip_from_default_editor",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:persistence::tests::checksum_and_version_reject_corruption",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "persistence::tests::checksum_and_version_reject_corruption",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:persistence::tests::interrupted_replace_preserves_good_file",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "persistence::tests::interrupted_replace_preserves_good_file",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::drafts_require_known_parent_and_do_not_silently_downgrade",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::drafts_require_known_parent_and_do_not_silently_downgrade",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::identity_and_immutable_revision_are_checked_before_comparison",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::identity_and_immutable_revision_are_checked_before_comparison",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::malformed_metadata_and_cycles_are_rejected",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::malformed_metadata_and_cycles_are_rejected",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::published_order_uses_generation_without_clock_or_parent_assumptions",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::published_order_uses_generation_without_clock_or_parent_assumptions",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::same_content_draft_advance_preserves_parent_chain",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::same_content_draft_advance_preserves_parent_chain",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:source_policy::tests::same_content_published_advance_retains_generation_against_delayed_rollback",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "source_policy::tests::same_content_published_advance_retains_generation_against_delayed_rollback",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::cancel_and_noop_resize_preserve_redo_and_history",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::cancel_and_noop_resize_preserve_redo_and_history",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::cancelled_and_stale_input_never_commits",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::cancelled_and_stale_input_never_commits",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::corrections_and_invalid_batches_are_atomic",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::corrections_and_invalid_batches_are_atomic",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::rejects_invalid_pressure_transform_and_gesture_conflicts",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::rejects_invalid_pressure_transform_and_gesture_conflicts",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::replay_named_synthetic_trace_and_save_only_actual_samples",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::replay_named_synthetic_trace_and_save_only_actual_samples",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::replay_preserves_actual_pressure_and_discards_prediction",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::replay_preserves_actual_pressure_and_discards_prediction",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::resize_is_preview_then_one_undo_step_including_width",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::resize_is_preview_then_one_undo_step_including_width",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::save_roundtrip_dirty_identity_and_failed_load_save",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::save_roundtrip_dirty_identity_and_failed_load_save",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:lib:tests::selection_is_topmost_and_delete_is_undoable",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "lib",
+      "test": "tests::selection_is_topmost_and_delete_is_undoable",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:source_tests::ffi_policy_reports_nonmutating_conflicts_and_identity_mismatch",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "source_tests::ffi_policy_reports_nonmutating_conflicts_and_identity_mismatch",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:source_tests::ffi_same_content_revision_advance_prevents_rollback_and_keeps_ancestry",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "source_tests::ffi_same_content_revision_advance_prevents_rollback_and_keeps_ancestry",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:source_tests::ffi_source_comparison_validates_buffers_and_preserves_output_on_failure",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "source_tests::ffi_source_comparison_validates_buffers_and_preserves_output_on_failure",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:tests::byte_buffers_have_owned_copy_and_atomic_capacity_errors",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "tests::byte_buffers_have_owned_copy_and_atomic_capacity_errors",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:tests::ffi_errors_copy_ownership_and_real_editor_flow",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "tests::ffi_errors_copy_ownership_and_real_editor_flow",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:lib:tests::panic_is_contained",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "lib",
+      "test": "tests::panic_is_contained",
+      "level": "unit",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-wasm:lib:tests::malformed_messages_and_handles_are_errors",
+      "runner": "cargo",
+      "package": "sketch-wasm",
+      "target": "lib",
+      "test": "tests::malformed_messages_and_handles_are_errors",
+      "level": "unit",
+      "platform": "portable"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo_root"
+platform="${1:-simulator}"
+export DEVELOPER_DIR="${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}"
+case "$platform" in
+ simulator) swift_defines=(-D DEBUG); sdk=watchsimulator; rust_target=aarch64-apple-watchos-sim; swift_target=arm64-apple-watchos10.0-simulator ;;
+ device) swift_defines=(-D NATIVE_DEVICE); sdk=watchos; rust_target=aarch64-apple-watchos; swift_target=arm64-apple-watchos10.0 ;;
+ *) echo 'Usage: scripts/build-watchos [simulator|device]' >&2; exit 2 ;;
+esac
+export CARGO_TARGET_DIR="$repo_root/target"
+export SDKROOT="$(xcrun --sdk "$sdk" --show-sdk-path)"
+cargo build --locked --release -p sketch-ffi --target "$rust_target"
+app="$repo_root/artifacts/watchos-$platform/NativeSketchWatch.app"
+mkdir -p "$app" "$repo_root/.build-cache/watchos"
+xcrun --sdk "$sdk" swiftc "${swift_defines[@]}" -swift-version 6 -parse-as-library -O -target "$swift_target" -sdk "$SDKROOT" -module-cache-path "$repo_root/.build-cache/watchos" -I apps/macos/Sources/CSketchFFI apps/apple-sources/*.swift apps/apple-viewer/*.swift apps/watchos/*.swift "target/$rust_target/release/libsketch_ffi.a" -framework SwiftUI -framework WatchConnectivity -framework Security -o "$app/NativeSketchWatch"
+cp apps/watchos/Info.plist "$app/Info.plist"
+SDKROOT="$(xcrun --sdk macosx --show-sdk-path)" cargo run --locked --quiet -p sketch-ffi --example portable-fixture -- "$app/Sample.nsketch"
+codesign --force --sign - "$app"
+echo "Built $app (arm64 watches only; provisioning remains required)."

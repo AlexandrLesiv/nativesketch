@@ -1,0 +1,21 @@
+[package]
+name = "sketch-app-jni"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+sketch-app-bridge = { path = "../sketch-app-bridge" }
+jni = { version = "=0.22.4", default-features = false }
+
+[package.metadata.native-sketch]
+test-platform = "host"
+
+# Test-only JVM probe; never linked into the production cdylib or an Android APK.
+[[example]]
+name = "pending_exception_probe"
+crate-type = ["cdylib"]

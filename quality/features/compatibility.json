@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "id": "compatibility",
+  "description": "Fixed byte/protocol preservation guards added in015; these are integration tests, not native E2E.",
+  "sourceRevision": "88900e4",
+  "cases": [
+    {
+      "id": "COMPAT-001",
+      "expected": "committed predictions match fixed document bytes",
+      "invariants": [
+        "INK-002",
+        "UNDO-001",
+        "UNDO-002"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:document_compatibility:committed_predictions_match_fixed_document_bytes"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "COMPAT-002",
+      "expected": "correction requires an existing id and identical timestamp",
+      "invariants": [
+        "INPUT-002"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:document_compatibility:correction_requires_an_existing_id_and_identical_timestamp"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "COMPAT-003",
+      "expected": "frozen document roundtrips and invalid import retains history",
+      "invariants": [
+        "LOAD-001"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:document_compatibility:frozen_document_roundtrips_and_invalid_import_retains_history"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "COMPAT-004",
+      "expected": "invalid batch and cancel preserve frozen document",
+      "invariants": [
+        "INK-001",
+        "INPUT-001",
+        "UNDO-002"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:document_compatibility:invalid_batch_and_cancel_preserve_frozen_document"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "COMPAT-005",
+      "expected": "abi2 frozen document capacity and save revision contract",
+      "invariants": [
+        "FFI-001",
+        "SAVE-001",
+        "SAVE-002"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-ffi:abi_compatibility:abi2_frozen_document_capacity_and_save_revision_contract"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "COMPAT-006",
+      "expected": "abi2 native layout is unchanged",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "015",
+      "requirements": [
+        {
+          "platform": "portable",
+          "pointerWidth": 64,
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-ffi:abi_compatibility:abi2_native_layout_is_unchanged"
+      ],
+      "automation": "implemented",
+      "gaps": [
+        {
+          "reason": "This mapping checks Rust 64-bit layouts. ABI2-C-001 separately verifies the real macOS C compiler/header/library; other compiler/OS layouts still require their own consumer conformance.",
+          "ownerTask": "022"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": [
+      "node"
+    ],
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": [
+    "scripts/**/*.ts",
+    "apps/web/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/tests/**/*.ts",
+    "crates/sketch-wasm/tests/**/*.ts",
+    "crates/sketch-app-ffi/tests/**/*.ts",
+    "crates/sketch-app-wasm/tests/**/*.ts"
+  ]
+}

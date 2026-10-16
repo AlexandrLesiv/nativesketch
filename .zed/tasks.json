@@ -1,0 +1,39 @@
+[
+  {
+    "label": "Native Sketch: build project workbench",
+    "command": "node",
+    "args": ["node_modules/vite/bin/vite.js", "build", "--config", "apps/workbench/vite.config.ts"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "allow_concurrent_runs": false,
+    "reveal": "never",
+    "save": "none"
+  },
+  {
+    "label": "Native Sketch: start project workbench (prints URL)",
+    "command": "node",
+    "args": ["scripts/workbench.ts", "serve"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "allow_concurrent_runs": false,
+    "use_new_terminal": true,
+    "reveal": "never",
+    "save": "none"
+  },
+  {
+    "label": "Native Sketch: background core checks",
+    "command": "node",
+    "args": ["scripts/check.ts", "--core"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "allow_concurrent_runs": false,
+    "reveal": "never",
+    "save": "none"
+  },
+  {
+    "label": "Native Sketch: build web drawing app",
+    "command": "node",
+    "args": ["scripts/build.ts", "--platform", "web"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "allow_concurrent_runs": false,
+    "reveal": "never",
+    "save": "none"
+  }
+]

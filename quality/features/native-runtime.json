@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "id": "native-runtime",
+  "description": "Scoped task019 native runtime regressions discovered from macOS Cargo executables. No native UI, physical input, arbitrary memory-corruption recovery, other host or complete FFI acceptance is inferred. Feature-only fault tests and the C consumer retain separate raw evidence until their runner lanes are modeled.",
+  "sourceRevision": "bb49291",
+  "cases": [
+    {
+      "id": "RUNTIME-RESOLUTION-001",
+      "expected": "Resolved Save As admission preserves newer active ink and captures the later committed revision; trusted macOS parent aliases work while final symlinks are rejected",
+      "invariants": ["SAVE-001", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_owner:resolution_ready_preserves_new_stroke_and_saves_exact_resolved_admission",
+        "cargo:sketch-services:macos:native_worker:local_resolution_accepts_macos_var_alias_but_rejects_symlink_final_entry"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-RECOVERY-ORIGIN-001",
+      "expected": "Cancelled recovery cannot resolve an unrelated later document's candidate, and document replacement clears prior checkpoint revision knowledge",
+      "invariants": ["LOAD-001", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_recovery_identity:cancelled_recovery_must_not_follow_later_new_document",
+        "cargo:sketch-services:macos:native_recovery_identity:replacing_session_clears_checkpoint_revision_knowledge"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-ROOT-001",
+      "expected": "The worker provisions fresh private recovery/diagnostic ancestors and produces real checkpoints, rejects unsafe paths without changing existing permissions, excludes competing root owners, and keeps drawing/local I/O available with observable degraded recovery",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_worker:exclusive_recovery_root_degrades_second_runtime_without_blocking_local_io",
+        "cargo:sketch-services:macos:native_worker:disabled_recovery_is_observable_and_ordered_registration_can_be_listed",
+        "cargo:sketch-services:macos:native_first_launch:first_launch_nested_private_roots_support_registration_and_real_checkpoint",
+        "cargo:sketch-services:macos:native_private_roots:fresh_nested_roots_are_provisioned_privately_by_worker_and_reopen",
+        "cargo:sketch-services:macos:native_private_roots:non_directory_ancestor_is_rejected_without_overwrite",
+        "cargo:sketch-services:macos:native_private_roots:symlink_ancestors_and_permissive_existing_roots_are_rejected_unchanged"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-DIAGNOSTICS-001",
+      "expected": "Failed reads and recovery operations export bounded redacted diagnostics with session, request and operation correlation",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_diagnostics:failed_read_and_recovery_export_redacted_correlated_records"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-POISON-DRAIN-001",
+      "expected": "Poisoned session retirement drains an already accepted write and releases its grant exactly once",
+      "invariants": ["SAVE-002", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_owner:poisoned_detach_drains_accepted_write_and_releases_grant_once"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-PANIC-BOUNDARY-001",
+      "expected": "Normal dirty detach is rejected; a caught internal boundary panic rejects further mutation while permitting public terminal cleanup",
+      "invariants": ["FFI-001", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-native-ffi:macos:lib:boundary_tests::caught_boundary_panic_preserves_dirty_detach_guard_then_allows_terminal_cleanup"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-REGISTRATION-001",
+      "expected": "A failed exclusive recovery identity registration cannot be authorized by window or global Retry; an approved identity can retry checkpoint allocation after capacity becomes available; old registration/retry completion cannot update a replacement session",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_registration_retry:rejected_identity_cannot_be_authorized_by_window_or_global_retry",
+        "cargo:sketch-services:macos:native_registration_retry:first_checkpoint_allocation_failure_retries_after_capacity_is_released",
+        "cargo:sketch-services:macos:native_registration_provenance:stale_registration_success_or_failure_cannot_change_new_or_open_replacement"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-PROCESS-LOCK-001",
+      "expected": "Separate processes cannot share recovery or diagnostics root ownership; locks release after process death",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_root_lock:independent_root_locks_survive_conflict_and_release_on_process_death"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RUNTIME-STALE-READ-001",
+      "expected": "The global unresolved-location barrier rejects cross-window I/O and repeated stale reads preserve new ink without leaking event leases",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-services:macos:native_stale_read:global_resolution_barrier_and_repeated_stale_reads_preserve_new_ink_and_release_leases"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

@@ -1,11 +1,21 @@
 # Backlog
 
-Run `./scripts/board` to view status and ready tasks. `board.json` contains IDs,
+Run `node scripts/board.ts` to view status and ready tasks. `board.json` contains IDs,
 dependencies, roles, and links to task briefs. It does not launch agents or spend tokens.
 
-Tasks 001 and 002 can start independently, but benchmark runs must be exclusive on the
-machine. Task 001's contracts may proceed before task 002 finishes; choosing and integrating
-the production renderer depends on the comparison decision.
+The implementation base is `codex/github-pages@712059d5`. The owner excluded
+`codex/renderer-results` from new implementation ancestry. Task 002 is historical review
+on that separate branch; Skia is selected. Ports no longer wait for another comparison.
+
+Follow [the detailed plan](../docs/refactoring-plan.md): 015 contracts -> 016 Node/tooling
+-> 017 E2E evidence -> 018 Rust -> 021 diagnostics/recovery -> 019 macOS -> 020 Skia
+-> 022 host contracts -> individual 004/009-013 ports and 023 hardening -> 024 acceptance.
+015 is implemented and in review; its [evidence](../docs/evidence/015-contracts-and-baseline.md)
+records the tested contracts and compatibility baseline. Downstream tasks retain their
+acceptance prerequisites. Authorized local preparation is recorded in task briefs while
+board status remains waiting; it does not turn unaccepted dependencies into done. Task 003 keeps
+recorder/replay scope and 014 keeps network/account scope. Native UI/GPU jobs remain exclusive.
+Run existing scripts until task 016 proves Node parity and updates command references.
 
 The repo setup is separate from task 001. A working blank shell is not completion of the
 first drawing milestone. The owner accepts a task before its board status becomes done.

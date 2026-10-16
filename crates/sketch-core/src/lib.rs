@@ -1,6 +1,29 @@
-//! Platform-independent drawing and document behavior will live here.
-//!
-//! The bootstrap deliberately does not select a stroke representation, renderer,
-//! or persistence schema. Task 001 defines the first contracts.
-
+//! Renderer-independent editable strokes and transactional editor state.
 #![forbid(unsafe_code)]
+pub mod application;
+mod error;
+mod geometry;
+mod history;
+mod interaction;
+mod model;
+mod persistence;
+mod scene;
+pub mod source_policy;
+#[cfg(test)]
+mod tests;
+pub use application::{Editor, State};
+pub use error::{Error, Result};
+pub use model::{Bounds, Brush, Document, Input, Sample, Stroke, Transform};
+pub use scene::PathCommand;
+pub const MAX_SAMPLES: usize = 100_000;
+pub const MAX_STROKES: usize = 10_000;
+pub use scene::SceneCache;
+pub use scene::{
+    RenderScene, RenderViewport, SceneCacheStats, SceneError, SceneLimits, SceneStroke,
+    StrokeGeometry, TransformPreview,
+};
+
+pub use scene::{
+    PixelViewport, PreparationLimits, PreparedViewportPath, prepare_viewport_path,
+    viewport_preparation_needed,
+};

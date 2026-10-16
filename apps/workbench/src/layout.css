@@ -1,0 +1,142 @@
+header {
+  padding: 1.4rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+header p {
+  margin: 0.2rem 0;
+}
+#workbench-root > div > .notice,
+[role='status'] {
+  margin: 0.7rem 2rem;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1rem 2rem 3rem;
+}
+.navigation {
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+}
+.navigation nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.navigation a {
+  display: block;
+  min-height: 44px;
+  padding: 0.65rem;
+  border-radius: 5px;
+  text-decoration: none;
+}
+.navigation a[aria-current='page'] {
+  color: var(--surface);
+  background: var(--accent);
+}
+main,
+section,
+article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+main:focus {
+  outline: none;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+.cards .card {
+  margin: 0;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+.filters label {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  gap: 0.25rem;
+}
+.filters input,
+.filters select {
+  width: 100%;
+  max-width: 22rem;
+}
+.table-region,
+.graph-region {
+  max-width: 100%;
+  overflow: auto;
+  margin: 1rem 0;
+}
+table {
+  width: 100%;
+  min-width: 850px;
+  overflow-wrap: normal;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+caption {
+  text-align: left;
+  font-weight: 650;
+  padding: 0.6rem 0;
+}
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--surface);
+}
+svg {
+  display: block;
+  max-width: none;
+  font-size: 13px;
+}
+.skip {
+  position: absolute;
+  left: -10000px;
+}
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 1;
+  background: var(--surface);
+  padding: 0.8rem;
+}
+article {
+  max-width: 80ch;
+}
+@media (max-width: 799px) {
+  header {
+    padding: 1rem;
+  }
+  .layout {
+    display: block;
+    padding: 0 1rem 2rem;
+  }
+  .navigation {
+    position: static;
+    border-bottom: 1px solid var(--border);
+  }
+  .navigation nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  #workbench-root > div > .notice,
+  [role='status'] {
+    margin: 0.7rem 1rem;
+  }
+}

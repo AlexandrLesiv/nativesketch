@@ -1,54 +1,114 @@
-# Architecture boundaries
+# Native Sketch architecture
 
-## Bootstrap status
+Accepted direction, consolidated 2026-10-15. This is the target, not a claim that the
+refactor or production Skia integration is implemented. Starting code: `712059d5`
+(`codex/github-pages`, selected by the owner; comparison-results branch excluded);
+PR #1 architecture audit: `de46c2f`.
 
-`sketch-core` is an intentionally empty, platform-independent domain crate.
-`sketch-ffi` exports only an ABI-version handshake. The AppKit shell links this static
-library. No drawing/document API is implied by this handshake.
+## Decisions and reading map
 
-## Intended ownership
+- Skia is selected for native editors and CanvasKit for web; native controls stay native.
+- Rust owns drawing/document/editing semantics and shared tool/action definitions.
+- Maximum 200 physical lines per handwritten source file, including tests/scripts.
+- Node.js ES modules replace owned shell/PowerShell and routine orchestration.
+- Define typed commands/queries for future agents; agent transport is deferred.
+- macOS first, iPad/iPhone next; other hosts are individually scheduled milestones.
 
-| Area | Owner |
+| Document | Purpose |
 | --- | --- |
-| Document, strokes, layers, stable IDs, undo semantics | Rust core |
-| Sampling, smoothing, pressure curves, geometry, hit testing | Rust core |
-| Scene preparation, renderer implementation, caches | Future Rust renderer module/crate |
-| Window lifecycle, controls, native input capture, display scheduling | Platform adapter |
-| File schema and migrations | Rust persistence layer |
-| File dialogs, access grants, OS document integration | Platform adapter |
+| [Contracts](architecture/contracts.md) | Types, patterns, transactions, FFI, module map |
+| [Runtime](architecture/runtime.md) | Ownership, threads, platform scheduling |
+| [Storage contracts](architecture/021-storage-contracts.md) | Exact save snapshots, bounded workers, diagnostics and local recovery policy |
+| [Rendering](architecture/rendering.md) | Skia, caches, infinite canvas, latency |
+| [Invariants](architecture/invariants.md) | Rules, enforcement and acceptance cases |
+| [Quality](quality.md) | Required gates and current versus planned checks |
+| [Coverage](quality/coverage.md) | Feature registry and executable evidence |
+| [Platform checks](quality/platforms.md) | E2E, diagnostics and hardware limits |
+| [Tooling](quality/tooling.md) | Languages, Node migration, tool versions |
+| [Reliability](quality/reliability.md) | Diagnostics, recovery and packaging |
+| [Refactoring plan](refactoring-plan.md) | Implementation tasks and completion |
+| [Prototype baseline](architecture/prototype-baseline.md) | Implemented boundaries at the selected base |
 
-Keep document state, editor-session state, and native UI state distinct.
-Rendering caches are disposable and are not the document format.
+## Dependencies
 
-## Input and rendering contracts to design in task 001
+The owner-selected [typed bindings migration](architecture/022-typed-bindings-migration.md)
+replaces custom command packets with typed native FFI/generated declarations and a typed
+Wasm binding. Existing consumers migrate incrementally; shared Rust commands and document
+encoding remain authoritative. Read the migration plan before following older 022 layouts.
 
-Normalize pointer ID, event phase, monotonic timestamp, coordinate space, device type,
-optional pressure/orientation, buttons, cancellation, and sample corrections.
-Preserve missing capabilities as missing, rather than pretending every mouse has pressure.
-Keep predicted positions temporary; never persist them as actual samples.
+```mermaid
+flowchart TB
+    Controls[Native controls and accessibility] --> Presenter[Native presenter]
+    Events[OS pointer events] --> Adapter[Native input adapter]
+    Adapter --> Interaction[Rust interaction controller]
+    Presenter --> API[Typed editor commands and queries]
+    Future[Future agent adapter] -.-> API
+    Interaction --> API
+    API --> Session[Editor session]
+    Session --> Model[Document and undo history]
+    Session --> Projection[Small UI state projection]
+    Projection --> Presenter
+    Session --> Scene[Scene builder]
+    Scene --> Skia[Skia renderer and disposable caches]
+    Skia --> Surface[Native GPU surface or browser canvas]
+    API <-->|snapshots and effect results| Services[Storage and clipboard adapters]
+```
 
-Store editable stroke geometry and brush parameters separately from renderer objects.
-Use document-space double precision and viewport-relative GPU coordinates where appropriate.
-Avoid synchronous disk work, document-wide copies, and full UI updates on the ink path.
-Preserve real sample order while avoiding a backlog of stale visual frames.
+Core depends on validated values and pure geometry, not native UI, Skia, file dialogs or
+transport implementations. Bridges are the only native FFI callers. Rendering reads
+immutable scene data; it cannot mutate the document. Storage returns correlated results.
+Canvas composes surface/focus/layout, input and scheduling; it does not read tool widgets.
 
-## Native boundary
+## State ownership
 
-The canonical C header is `crates/sketch-ffi/include/sketch_ffi.h`; the Swift module map
-imports that header directly. Add opaque handles, error values, and explicit buffer ownership
-only when a real interface requires them. Rust panics must not unwind through FFI.
-The core crate forbids unsafe Rust. Any required unsafe code is isolated in adapters with
-documented ownership and lifetime assumptions.
+| State | Authority | Persistence |
+| --- | --- | --- |
+| Strokes, styles, stable IDs | Rust Document | Versioned document format |
+| Tool, brush, selection, interaction, history | Rust EditorSession | Explicit session policy, not incidental document data |
+| Camera/viewport | Per-view instance, shared Rust math | Not an edit or undo entry |
+| Focus, dialogs, incomplete field text | Native host | Presentation lifecycle |
+| Paths/textures/tiles | Geometry/renderer owners | Disposable, never authoritative |
+| Save request | Immutable snapshot + session/revision | Acknowledge only confirmed persistence |
 
-UniFFI remains an option for richer Swift/Kotlin control APIs. Do not add both generated
-bindings and hand-written wrappers for the same operation without a concrete reason.
-Windows will use a C# interop layer and a native GPU presentation adapter; validate
-SwapChainPanel composition rather than assuming a regular window surface is sufficient.
+Windows must not accidentally share a camera. Multiple views editing one document need
+an explicit document owner/history policy, not independently mutable handles to one model.
 
-## Renderer decision
+## Native presentation
 
-OPEN. Start the comparison with Skia over Metal, evaluate Vello's specific version and
-renderer variant. Compare identical scenes, quality, scale, input traces, and presentation.
-Choose using the app's latency, correctness, memory, and integration evidence.
-Do not introduce a permanent abstraction supporting hypothetical backends before the spike.
+| Platform | UI and capabilities |
+| --- | --- |
+| macOS | Swift/AppKit controls, custom Skia canvas; SwiftUI when behavior is preserved |
+| iPhone/iPad | Swift/UIKit, touch-oriented native layout; SwiftUI where appropriate |
+| visionOS | Native 2D window editor; immersive/spatial work deferred |
+| tvOS | Native view-only interface and remote focus navigation |
+| watchOS | Standalone viewer, cached-first display, optional iPhone/network adapters |
+| Android | Kotlin/Android Views and Material controls |
+| Windows | C#/WinUI 3 controls |
+| Linux | Rust/GTK4/libadwaita; GNOME-first validation |
+| Web | TypeScript/semantic HTML, Rust/Wasm editor, CanvasKit |
+| ChromeOS/Googlebook | Android and/or browser distribution, no separate document engine |
 
+Use native Apple appearance including Liquid Glass where supported, with legible older-OS
+fallbacks. Preserve focus, contrast and touch targets. Do not build a shared widget tree.
+
+## Viewers and document sources
+
+Enforce read-only capability in Rust and the native ViewerSession facade, not only hidden
+buttons. Validate candidates before replacing displayed content. Watch launches independently:
+show validated cache, prefer iPhone on explicit refresh within the existing bounded deadline,
+then use a configured server for the same published identity. Phone-only copies have no
+invented cloud fallback. Compare revision/parent, server generation and hash, not timestamps.
+Reject late callbacks, corrupt/oversized input and identity mismatches. Stage changed content
+during navigation. Preserve [current source behavior](../apps/watchos/SOURCES.md); production
+network/auth remains task 014. Queued transfer does not mean displayed or saved.
+
+## Baseline and open decisions
+
+PR #1 has 12 audited source files over 200 lines and mixed input/UI/document duties.
+Inventory the selected base rather than importing comparison tooling. Preserve ABI 2, Wasm protocol 1, document
+bytes and history behavior during extraction. Native painters remain prototypes.
+The [Skia decision](decisions/0003-skia-and-quality-architecture.md) supersedes open selection
+in historical proposals; preserve evidence and its limits. Physical pen-to-screen measurement
+awaits a suitable camera; Cintiq software results are not physical latency measurements.
+Minimum OS/device matrix, absolute budgets, signing/distribution, production network auth
+and recovery retention remain explicit task decisions.

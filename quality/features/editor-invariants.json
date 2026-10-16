@@ -1,0 +1,591 @@
+{
+  "schemaVersion": 1,
+  "id": "editor-invariants",
+  "description": "Invariant inventory reconciled with typed editor, storage services and scoped macOS native evidence. Automation existence is separate from exact-revision execution; broader device, callback and surface gaps stay explicit.",
+  "sourceRevision": "3f6ca94dc88788cc06e4f6c348a8be57a277e4dc",
+  "cases": [
+    {
+      "id": "INK-001",
+      "expected": "Cancel leaves committed content/history unchanged",
+      "invariants": ["INK-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::input::cancelled_and_stale_input_never_commits",
+        "cargo:sketch-core:lib:tests::editing::cancel_and_noop_resize_preserve_redo_and_history",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "INPUT-001",
+      "expected": "Invalid batch cannot partially mutate",
+      "invariants": ["INPUT-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::input::corrections_and_invalid_batches_are_atomic",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history",
+        "cargo:sketch-core:lib:application::session::tests::transactions::invalid_batch_leaves_preview_summary_and_generation_unchanged"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "INPUT-002",
+      "expected": "Actual samples ordered; missing pressure stays missing",
+      "invariants": ["INPUT-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::input::replay_preserves_actual_pressure_and_discards_prediction",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Generated rebatching and correction identity are covered in Rust; native adapter delivery and device clock conversion need host evidence.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "INK-002",
+      "expected": "Predictions never enter saved/committed data",
+      "invariants": ["INK-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::input::replay_preserves_actual_pressure_and_discards_prediction",
+        "cargo:sketch-core:lib:tests::input::replay_named_synthetic_trace_and_save_only_actual_samples",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo",
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured",
+        "cargo:sketch-core:lib:application::storage::tests::admission::capture_rejects_active_input_then_excludes_cancelled_predictions"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "INK-003",
+      "expected": "Brush snapshot fixed for active stroke",
+      "invariants": ["INK-003"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::properties::successful_empty_batch_clears_only_predictions_and_brush_is_captured",
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::captured_brush_and_tool_rules_are_additive_without_hidden_cancellation"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "UNDO-001",
+      "expected": "One committed stroke/transform creates one undo entry",
+      "invariants": ["UNDO-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::editing::resize_is_preview_then_one_undo_step_including_width",
+        "cargo:sketch-core:lib:tests::properties::generated_rebatching_and_predictions_preserve_document_bytes_and_one_undo",
+        "cargo:sketch-core:lib:application::session::tests::transactions::transform_requires_current_token_and_commits_one_history_operation"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "UNDO-002",
+      "expected": "Cancel/no-op creates no history; active undo keeps defined rejection",
+      "invariants": ["UNDO-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::editing::cancel_and_noop_resize_preserve_redo_and_history",
+        "cargo:sketch-core:lib:tests::input::rejects_invalid_pressure_transform_and_gesture_conflicts",
+        "cargo:sketch-core:lib:tests::properties::generated_invalid_trailing_samples_preserve_predictions_and_cancelled_history"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "SAVE-001",
+      "expected": "Successful older save cannot mark newer edits clean",
+      "invariants": ["SAVE-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::older_save_keeps_new_edits_dirty_and_undo_finds_actual_saved_revision",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::save_b_finishing_after_undo_to_saved_a_makes_a_dirty_and_redo_b_clean",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::reordered_acknowledgements_cannot_revert_saved_revision"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Core acknowledgement is covered. macOS asynchronous save and real disk completion now have separate STORAGE, RUNTIME and NATIVE-ASYNC-SAVE evidence; this portable-only row does not certify other-host save adoption.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-002",
+      "expected": "New/import invalidates old save completions",
+      "invariants": ["SAVE-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::persistence::portable_snapshot_stale_acknowledgement_and_atomic_failure",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::replacement_rejects_completion_and_resets_binding"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Typed session replacement rejects old completions. macOS native Open/Close ordering has separate NATIVE-OPEN-ORDER and NATIVE-CLOSE evidence; forced replacement during every pending-write phase and other-host adapters are not certified by this portable row.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SAVE-003",
+      "expected": "Older write cannot overwrite newer content at same destination",
+      "invariants": ["SAVE-003"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::ordering::fifo_jobs_hold_exact_request_revision_and_worker_cannot_overtake",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::one_process_queue_orders_different_windows_even_when_destination_ids_alias"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Coordinator ordering, macOS worker receipt supervision, actual staged writes and shared runtime adoption are implemented; see STORAGE-ORDER-001 and SERVICE-WORKER-001. Windows/Linux execution and concurrent multi-window native UI ordering remain unverified.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "LOAD-001",
+      "expected": "Invalid candidate preserves current document",
+      "invariants": ["LOAD-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:tests::persistence::save_roundtrip_dirty_identity_and_failed_load_save",
+        "cargo:sketch-core:lib:persistence::tests::checksum_and_version_reject_corruption"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FOCUS-001",
+      "expected": "Native text editing wins over canvas shortcuts",
+      "invariants": ["FOCUS-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState",
+              "xctest:NativeSketchUITests:NativeFieldValidationTests/testIncompleteWidthRefusesInkAndEscapeRestoresValue"
+            ],
+            "gaps": [
+              {
+                "reason": "Width-field shortcuts and empty-field focus refusal are tested; other invalid ranges, native field/panel contexts, locale/IME behavior and keyboard traversal remain pending.",
+                "ownerTask": "019"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "019"
+        }
+      ]
+    },
+    {
+      "id": "CANCEL-001",
+      "expected": "Cancel before coordinate remap or gesture ownership change",
+      "invariants": ["CANCEL-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
+            ],
+            "gaps": [
+              {
+                "reason": "Synthetic native resize and app deactivation passed at 5933c5d. Physical tablet proximity/capture loss and additional gesture-ownership changes require separate host/device evidence.",
+                "ownerTask": "022"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "ios",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "ipados",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "visionos",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "chromeos-android",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "windows",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "linux",
+          "level": "native-e2e"
+        },
+        {
+          "platform": "web",
+          "level": "native-e2e"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "VIEW-001",
+      "expected": "Read-only sessions reject mutation through the API",
+      "invariants": ["VIEW-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_denies_every_edit_command_and_batch_without_partial_state",
+        "cargo:sketch-core:lib:application::session::tests::capabilities::readonly_allows_selection_queries_and_idle_cancel_but_not_pen_constructor",
+        "cargo:sketch-core:lib:application::storage::tests::admission::admission_enforces_edit_and_export_capabilities_before_copying"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Typed Rust sessions enforce capabilities; legacy bridges and native viewer source lifecycle are not migrated yet.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "RENDER-001",
+      "expected": "Renderer cannot mutate document",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "render-equivalence"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "CACHE-001",
+      "expected": "Cache eviction does not change final content",
+      "invariants": ["CACHE-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "render-equivalence"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "No discovered executable test proves this target invariant.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "ASYNC-001",
+      "expected": "Stale callbacks cannot affect replacement session/surface",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::replacement_rejects_completion_and_resets_binding",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::unknown_duplicate_and_unfinished_completion_are_rejected"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Typed storage completions and macOS stale reads, worker failure and retirement have separate RUNTIME evidence. Renderer surface generations/context loss remain task 020 work; other-host callbacks require their own verification.",
+          "ownerTask": "021"
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-001",
+      "expected": "Source fallback preserves document identity and revision policy",
+      "invariants": ["SOURCE-001"],
+      "ownerTask": "013",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:source_policy::tests::identity::identity_and_immutable_revision_are_checked_before_comparison",
+        "cargo:sketch-core:lib:source_policy::tests::identity::published_order_uses_generation_without_clock_or_parent_assumptions",
+        "cargo:sketch-core:lib:source_policy::tests::immutability::same_content_published_advance_retains_generation_against_delayed_rollback"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Rust identity policy only; phone/network timing and transport failure require native source replay and device evidence.",
+          "ownerTask": "013"
+        }
+      ]
+    },
+    {
+      "id": "FFI-001",
+      "expected": "Unique handle ownership, serial mutation, no cross-FFI unwind",
+      "invariants": ["FFI-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-ffi:lib:tests::ffi_errors_copy_ownership_and_real_editor_flow",
+        "cargo:sketch-ffi:lib:tests::byte_buffers_have_owned_copy_and_atomic_capacity_errors",
+        "cargo:sketch-ffi:lib:tests::panic_is_contained"
+      ],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "Legacy Rust panic/lifecycle checks are mapped here; ABI2-C-001 separately exercises the real macOS C header/library. Native-v1 C/Swift consumers use a distinct interface. Other-host layouts and caller serialization conformance remain separate port obligations; ABI2 does not promise runtime wrong-thread rejection.",
+          "ownerTask": "022"
+        }
+      ]
+    },
+    {
+      "id": "FACADE-001",
+      "expected": "Typed editable commands preserve legacy document/history/scene semantics",
+      "invariants": ["UNDO-001", "INK-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::equivalence::generated_editable_sessions_match_legacy_document_history_and_scene"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-002",
+      "expected": "Session and transaction identity reject stale input before mutation",
+      "invariants": ["INPUT-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::replacement_rotates_session_preserves_settings_and_rejects_old_contexts",
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::distinct_instances_with_same_revision_reject_each_others_context",
+        "cargo:sketch-core:lib:application::session::tests::transactions::stable_tokens_survive_batches_but_reused_pointer_rejects_old_transaction",
+        "cargo:sketch-core:lib:application::session::tests::capacity::generation_exhaustion_rejects_before_brush_document_or_preview_mutation",
+        "cargo:sketch-core:lib:application::session::tests::capacity::exhausted_interaction_identity_never_starts_or_reuses_a_transaction",
+        "cargo:sketch-core:lib:application::ids::tests::exhausted_session_identity_never_wraps_or_reuses"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-003",
+      "expected": "Native presenters can distinguish settings, selection and capability-aware action availability",
+      "invariants": ["VIEW-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::capabilities::availability_distinguishes_history_from_actions_and_readonly_queries",
+        "cargo:sketch-core:lib:application::session::tests::projections::outcomes_distinguish_settings_selection_identity_and_preview_changes"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-004",
+      "expected": "Explicit snapshots own committed content and preserve preview freshness identity",
+      "invariants": ["INK-002"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::projections::snapshot_is_owned_committed_content_and_scene_identity_tracks_preview"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "FACADE-005",
+      "expected": "Validated settings and request correlation do not grant permission or imply deduplication",
+      "invariants": ["VIEW-001"],
+      "ownerTask": "018",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::lifecycle::brush_validation_and_request_correlation_are_not_permissions_or_deduplication"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

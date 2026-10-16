@@ -1,0 +1,55 @@
+use crate::*;
+#[derive(Debug, Clone, Copy)]
+pub struct RawContext {
+    pub session: u64,
+    pub document: u64,
+    pub interaction: u64,
+}
+#[derive(Debug)]
+pub struct Packet {
+    pub opcode: u32,
+    pub request: u64,
+    pub command: Request,
+}
+#[derive(Debug)]
+pub enum Request {
+    Bootstrap(AppLimits),
+    Create(SessionConfig),
+    CreateWithSavePolicy(SessionConfig, SaveDestinationPolicy),
+    Detach(u64),
+    Projection(u64),
+    Availability(u64, EditorAction),
+    Stats,
+    SelectedBounds(u64),
+    DocumentBounds(u64),
+    Diagnostic,
+    Edit(RawContext, EditorCommand),
+    Action(RawContext, EditorAction),
+    Input(RawContext, PointerId, Vec<sketch_core::Input>),
+    File(RawContext, FileIntent),
+    Reply(RawContext, u64, EffectDecision),
+    Resource(RawContext, u64, ResourceDescriptor),
+    TakeWork,
+    Complete,
+    Apply(u64, u64),
+    Cancel(u64),
+    Release,
+    Scene(u64, u64, sketch_core::RenderViewport),
+    Descriptors(u64, u32, u32),
+    GeometryInfo(u64, u64),
+    GeometryCommands(u64, u64, u32, u32),
+    ReleaseScene(u64),
+    PrepareViewport(u64, u32, u32, u32, u32),
+    PreparedCommands(u64, u32, u32),
+    ReleasePrepared(u64),
+    ViewSource(RawContext, u64, ResourceDescriptor),
+    WorkInfo,
+    Encode,
+    PrepareRead,
+    PrepareNew,
+    Finish(WriteOutcome),
+    Fail(StorageFailure),
+    Dispose,
+    CopyEncoded(u64, u32),
+    Unsupported,
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "core-fuzz",
+  "description": "Bounded coverage-guided Rust core checks. Generated command stimuli do not independently establish all command semantics. Existence is separate from actual execution, sanitizer failures and native acceptance.",
+  "sourceRevision": "2a9e736",
+  "cases": [
+    {
+      "id": "FUZZ-CODEC-001",
+      "expected": "Rejected raw and checksum-repaired document inputs preserve bytes and revision; accepted imports produce canonical round-trips and finite geometry.",
+      "invariants": ["LOAD-001"],
+      "ownerTask": "023",
+      "requirements": [{"platform": "portable", "level": "fuzz", "coverage": {"automation": "implemented", "testIds": ["libfuzzer:sketch-core:document_codec"], "gaps": []}}],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    },
+    {
+      "id": "FUZZ-COMMAND-001",
+      "expected": "Rejected typed operations preserve the projection, committed bytes and live geometry; committed snapshots remain decodable and finite across bounded command sequences.",
+      "invariants": ["INPUT-001"],
+      "ownerTask": "023",
+      "requirements": [{"platform": "portable", "level": "fuzz", "coverage": {"automation": "implemented", "testIds": ["libfuzzer:sketch-core:command_sequence"], "gaps": []}}],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": []
+    }
+  ]
+}

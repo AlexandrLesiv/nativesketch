@@ -1,0 +1,18 @@
+[package]
+name = "sketch-renderer"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.99"
+publish.workspace = true
+
+[package.metadata.native-sketch]
+test-platform = "host"
+
+[dependencies]
+sketch-core = { path = "../sketch-core" }
+skia-safe = { version = "=0.153.3", default-features = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+skia-safe = { version = "=0.153.3", default-features = true, features = ["ganesh", "metal"] }
+objc2 = "=0.6.3"
+objc2-metal = { version = "=0.3.2", default-features = false, features = ["std", "MTLTexture", "MTLPixelFormat", "MTLResource", "MTLAllocation", "MTLCommandQueue", "MTLDevice"] }

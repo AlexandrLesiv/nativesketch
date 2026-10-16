@@ -1,0 +1,4 @@
+module CSketchFFI [system] {
+  header "../../../crates/sketch-ffi/include/sketch_ffi.h"
+  export *
+}

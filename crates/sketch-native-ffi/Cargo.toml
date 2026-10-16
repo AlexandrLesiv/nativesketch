@@ -1,0 +1,22 @@
+[package]
+name = "sketch-native-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.99"
+publish.workspace = true
+
+[package.metadata.native-sketch]
+test-platform = "host"
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+native-test-controls = ["sketch-services/native-test-controls"]
+
+[dependencies]
+sketch-core = { path = "../sketch-core" }
+sketch-services = { path = "../sketch-services" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+sketch-renderer = { path = "../sketch-renderer" }

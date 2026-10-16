@@ -1,0 +1,156 @@
+import type {
+  ProjectSnapshot,
+  Section,
+  Source,
+} from '../../../scripts/workbench/contracts/index.ts';
+const source: Source = {
+  revision: 'fixture-revision-1234567890',
+  dirtyDiffSha256: 'fixture-dirty-hash',
+};
+function ready<T>(data: T): Section<T> {
+  return { state: 'ready', diagnostics: [], data };
+}
+export function snapshotFixture(): ProjectSnapshot {
+  return {
+    schemaVersion: 1,
+    generatedAt: '2026-10-16T00:00:00Z',
+    source,
+    branch: 'fixture/workbench',
+    host: { platform: 'fixture-host', architecture: 'fixture-arch' },
+    tasks: ready([
+      {
+        id: '001',
+        title: 'Core commands',
+        status: 'review',
+        brief: 'tasks/001.md',
+        depends_on: [],
+        roles: ['rust_engine'],
+      },
+      {
+        id: '002',
+        title: 'Native adapter',
+        status: 'waiting',
+        brief: 'tasks/002.md',
+        depends_on: ['001'],
+        roles: ['macos_ui'],
+      },
+    ]),
+    documents: ready([
+      {
+        id: 'docs/architecture.md',
+        title: 'Architecture',
+        format: 'markdown',
+        sha256: 'fixture-document-hash',
+        text: '# Architecture\nShared commands and native controls.\n[Named heading](#architecture)\n[Task](../tasks/001.md)\n[Unsafe](javascript:alert(1))\n<script>window.pwned=true</script>\n![Remote](https://example.com/image.png)\n[External](https://example.com)',
+      },
+      {
+        id: 'tasks/001.md',
+        title: 'Core task',
+        format: 'markdown',
+        sha256: 'fixture-task-hash',
+        text: '# Core task\nOwned paths and acceptance requirements.',
+      },
+    ]),
+    dependencies: ready([
+      {
+        id: 'rust:skia',
+        ecosystem: 'Rust',
+        name: 'skia-safe',
+        version: 'fixture-version',
+        versionKind: 'declared',
+        scope: 'direct',
+        license: null,
+        provenance: 'Cargo.toml',
+        dependencies: [],
+      },
+    ]),
+    coverage: ready({
+      freshness: 'stale',
+      discoverySource: { ...source, revision: 'historical-fixture-source' },
+      evidencePaths: ['artifacts/evidence/discovery.json'],
+      issues: ['Fixture mapping warning'],
+      rows: [
+        {
+          caseId: 'DX-FIXTURE',
+          feature: 'fixture',
+          expected: 'Preserve all attempts',
+          platform: 'web',
+          level: 'browser-e2e',
+          automation: 'implemented',
+          status: 'flaky',
+          testIds: ['fixture-test'],
+          discoveredTestIds: ['fixture-test'],
+          gaps: [{ reason: 'Physical device pending', ownerTask: '002' }],
+          ownerTask: '002',
+          invariants: ['INV-FIXTURE'],
+          attempts: [
+            {
+              testId: 'fixture-test',
+              attempt: 1,
+              status: 'failed',
+              durationMs: 5,
+              timestamp: '2026-10-15T00:00:00Z',
+              binarySha256: 'fixture-binary',
+              platform: 'web',
+              toolchain: 'fixture-runner',
+              device: 'fixture-browser',
+              environment: { valid: false, reasons: ['Fixture environment failure'] },
+              artifacts: ['failure.png'],
+            },
+            {
+              testId: 'fixture-test',
+              attempt: 2,
+              status: 'passed',
+              durationMs: 5,
+              timestamp: '2026-10-15T00:00:01Z',
+              binarySha256: 'fixture-binary',
+              platform: 'web',
+              toolchain: 'fixture-runner',
+              device: 'fixture-browser',
+              environment: { valid: true, reasons: [] },
+              artifacts: [],
+            },
+          ],
+        },
+      ],
+    }),
+    metrics: ready([
+      {
+        id: 'missing-latency',
+        label: 'Physical pen latency',
+        value: null,
+        unit: 'ms',
+        status: 'missing',
+        source: null,
+        capturedAt: null,
+        scope: 'Camera unavailable',
+        configuration: 'No measurement',
+        evidencePaths: [],
+      },
+    ]),
+    actions: ready([
+      {
+        id: 'fixture-check',
+        label: 'Fixture background check',
+        category: 'check',
+        platform: 'fixture-host',
+        commandPreview: 'fixture-check-only',
+        foreground: false,
+        enabled: true,
+        disabledReason: null,
+        prerequisites: [],
+      },
+      {
+        id: 'native-run',
+        label: 'Native run',
+        category: 'run',
+        platform: 'macOS',
+        commandPreview: 'disabled-native-run',
+        foreground: true,
+        enabled: true,
+        disabledReason: null,
+        prerequisites: ['Reserved foreground session'],
+      },
+    ]),
+  };
+}

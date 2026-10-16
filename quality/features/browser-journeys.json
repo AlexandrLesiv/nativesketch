@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "id": "browser-journeys",
+  "description": "Actual Chromium headless production Wasm UI journeys. Browser-dispatched mouse/keyboard; not physical pen, native desktop E2E or performance evidence.",
+  "sourceRevision": "3d97af4623fd6b6dd9f22741f0818e4c07a1a517",
+  "cases": [
+    {
+      "id": "WEB-HISTORY-001",
+      "expected": "Mouse drawing, selection, scale, deletion, undo and redo preserve exact portable geometry.",
+      "invariants": ["UNDO-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-HISTORY-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-FOCUS-001",
+      "expected": "Width and Scale field native editing does not invoke canvas undo/delete commands.",
+      "invariants": ["FOCUS-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-FOCUS-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-CANCEL-001",
+      "expected": "Escape and delivered canvas resize cancel held mouse drafts without modifying saved bytes.",
+      "invariants": ["INK-001", "CANCEL-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-CANCEL-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-FILE-001",
+      "expected": "Actual download preserves dirty state; upload restores clean exact bytes; corrupt upload preserves content.",
+      "invariants": ["LOAD-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-FILE-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-GUARD-001",
+      "expected": "Escape and Cancel preserve dirty content after an earlier destructive dialog choice.",
+      "invariants": ["LOAD-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-GUARD-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-OFFLINE-001",
+      "expected": "A real installed service worker reloads all production modules and draws offline at a Pages subpath.",
+      "invariants": ["CACHE-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-OFFLINE-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-WORKER-001",
+      "expected": "An updated worker activates; a subsequent missing asset prevents activation while the old offline app works.",
+      "invariants": ["CACHE-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-WORKER-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-ACTION-001",
+      "expected": "Unavailable Undo preserves a held draft; native width-field Undo retains field focus and committed content.",
+      "invariants": ["CANCEL-001", "UNDO-001", "FOCUS-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-ACTION-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-EXPORT-001",
+      "expected": "Guard Download stays in the document and preserves dirty state; downloading a clean reopened document keeps it clean.",
+      "invariants": ["SAVE-001", "LOAD-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-EXPORT-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PICKER-001",
+      "expected": "Open and keyboard routes request an actual browser chooser; injected browser cancellation events restore canvas focus and permit another request.",
+      "invariants": ["FOCUS-001", "LOAD-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-PICKER-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-STALE-001",
+      "expected": "A controlled delayed File read cannot replace newer committed drawing or display an obsolete error.",
+      "invariants": ["ASYNC-001", "LOAD-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-STALE-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-BRUSH-002",
+      "expected": "Color at the existing default width and ordinary integer-width edits reach saved stroke data without unintended HTML step rejection.",
+      "invariants": ["INPUT-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-BRUSH-002"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-POSITION-001",
+      "expected": "Composited stroke pixels remain at the input coordinates; absolute wire points and origin metadata are not applied twice.",
+      "invariants": ["RENDER-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-POSITION-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-SURFACE-001",
+      "expected": "Initial WebGL refusal uses labeled Skia raster on the original canvas; resize and native field focus preserve functional input.",
+      "invariants": ["RENDER-001", "FOCUS-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-SURFACE-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-CONTEXT-001",
+      "expected": "Injected context loss cancels the draft, preserves history and field focus, and restores a fresh stroke as one undo operation.",
+      "invariants": ["RENDER-001", "CANCEL-001", "UNDO-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-CONTEXT-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-RENDER-ERROR-001",
+      "expected": "Injected restoration failure displays an explicit renderer error while exact retained document bytes remain downloadable.",
+      "invariants": ["RENDER-001", "SAVE-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-RENDER-ERROR-001"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-PRECISION-001",
+      "expected": "An actual giant portable stroke renders across the browser viewport and roundtrips unchanged through download.",
+      "invariants": ["RENDER-001", "SAVE-001"],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": ["playwright:chromium:WEB-PRECISION-001"],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

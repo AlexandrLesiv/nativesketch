@@ -1,0 +1,76 @@
+#include "sketch_session_v1.h"
+#include <assert.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <unistd.h>
+_Static_assert(sizeof(SketchEditorActionV1) == 16, "action layout");
+_Static_assert(offsetof(SketchEditorActionV1, factor) == 8, "action factor layout");
+_Static_assert(sizeof(SketchSampleV1) == 48, "sample layout");
+_Static_assert(sizeof(SketchCommandV1) == 48, "command layout");
+_Static_assert(offsetof(SketchOutcomeV1, effect) == sizeof(SketchProjectionV1), "projection layout");
+_Static_assert(sizeof(SketchRenderRequestV1) == 152, "render request layout");
+_Static_assert(offsetof(SketchRenderRequestV1, selection_rgba) == 88, "render color layout");
+_Static_assert(sizeof(SketchRenderStatsV1) == 72, "render stats layout");
+_Static_assert(offsetof(SketchRenderStatsV1, background_hit) == 64, "render stats flag layout");
+int main(void) {
+  SketchRendererV1 *renderer = NULL;
+  uint32_t renderer_status = sketch_renderer_v1_create(NULL, NULL, &renderer);
+  assert(renderer_status == SK_V1_INVALID_ARGUMENT || renderer_status == SK_V1_UNSUPPORTED);
+  assert(renderer == NULL);
+  assert(sketch_renderer_v1_free(&renderer) == SK_V1_OK);
+  SketchRuntimeConfigV1 config = {0};
+  config.struct_size = sizeof(config);
+  SketchRuntimeV1 *runtime = NULL;
+  assert(sketch_runtime_v1_create(&config, &runtime) == SK_V1_OK);
+  SketchSessionConfigV1 session_config = {SK_V1_CAP_EDIT | SK_V1_CAP_EXPORT,
+      SK_V1_PEN, {0, 0, 0, 1, 4}};
+  SketchSessionV1 *session = NULL;
+  assert(sketch_session_v1_create(runtime, &session_config, &session) == SK_V1_OK);
+  SketchProjectionV1 projection = {0};
+  assert(sketch_session_v1_projection(runtime, session, &projection) == SK_V1_OK);
+  SketchContextV1 context = {projection.session, 9, 0};
+  SketchCommandV1 command = {0};
+  command.tag = SK_V1_BEGIN_STROKE;
+  command.payload.stroke.pointer = 2;
+  command.payload.stroke.device = SK_V1_STYLUS;
+  SketchOutcomeV1 result = {0};
+  assert(sketch_session_v1_dispatch(runtime, session, context, &command, &result) == SK_V1_OK);
+  context.interaction = result.projection.interaction;
+  SketchSampleV1 samples[2] = {{1, 1, 1, 0.5, 1, 1, 0}, {2, 2, 2, 0.5, 2, 1, 99}};
+  uint64_t generation = result.projection.scene_generation;
+  assert(sketch_session_v1_input(runtime, session, context, 2, samples, 2, &result) == SK_V1_INVALID_ARGUMENT);
+  assert(sketch_session_v1_projection(runtime, session, &projection) == SK_V1_OK);
+  assert(projection.scene_generation == generation && projection.stroke_count == 0);
+  SketchEditorActionV1 action = {SK_V1_ACTION_UNDO, 0, 0};
+  SketchAvailabilityV1 available = {0};
+  assert(sketch_session_v1_action_availability(runtime, session, &action, &available) == SK_V1_OK);
+  assert(available.enabled == 0 && available.reason == 5);
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) != SK_V1_OK);
+  action = (SketchEditorActionV1){SK_V1_ACTION_SCALE_SELECTION, SK_V1_ANCHOR_SELECTION_CENTER, -1};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_INVALID_ARGUMENT);
+  action = (SketchEditorActionV1){SK_V1_ACTION_CYCLE_SELECTION, 99, 0};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_INVALID_ARGUMENT);
+  assert(sketch_session_v1_projection(runtime, session, &projection) == SK_V1_OK);
+  assert(projection.scene_generation == generation && projection.interaction == context.interaction);
+  action = (SketchEditorActionV1){SK_V1_ACTION_CHOOSE_TOOL, SK_V1_SELECT, 0};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_OK);
+  assert(result.projection.interaction == 0 && result.projection.tool == SK_V1_SELECT);
+  assert(sketch_session_v1_detach(runtime, &session) == SK_V1_OK);
+  assert(session == NULL);
+  assert(sketch_runtime_v1_request_shutdown(runtime) == SK_V1_OK);
+  for (int attempt = 0; attempt < 5000 && runtime; attempt++) {
+    SketchEventV1 events[32];
+    SketchRuntimeStateV1 state = {0};
+    uint32_t count = 0;
+    assert(sketch_runtime_v1_poll(runtime, events, 32, &count, &state) == SK_V1_OK);
+    for (uint32_t index = 0; index < count; index++) {
+      assert(sketch_runtime_v1_release_event(runtime, events[index].event_id) == SK_V1_OK);
+    }
+    uint32_t freed = sketch_runtime_v1_free(&runtime);
+    assert(freed == SK_V1_OK || freed == SK_V1_BUSY);
+    usleep(1000);
+  }
+  assert(runtime == NULL);
+  puts("native C layout, atomic invalid batch, lifecycle passed");
+  return 0;
+}

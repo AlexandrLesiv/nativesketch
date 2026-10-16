@@ -1,0 +1,57 @@
+# 021: Structured diagnostics and revision-safe recovery
+
+Status: waiting.
+Closure audit: the portable contracts and macOS service/runtime adoption are implemented;
+specialist and independent audits found no remaining macOS implementation blocker.
+See [the pre-Skia readiness report](../docs/evidence/018-021-pre-skia-readiness.md) for
+current execution, scope and the required distinction from global task completion.
+Windows/Linux service requirements remain unexecuted, and provider/metadata guarantees
+remain limited. They are retained explicitly, not converted to passing macOS evidence.
+
+Local preparation: [storage/recovery contracts](../docs/architecture/021-storage-contracts.md)
+agreed at `62d54e8`; reviewed Rust admission/snapshot/acknowledgement contracts are integrated
+and tested at `5a38bc0` ([021A evidence](../docs/evidence/021a-save-contracts.md)).
+Background services, diagnostics and recovery are integrated at `9295357`; see
+[021B service evidence](../docs/evidence/021b-native-services.md). Task 019 subsequently
+integrated the command router, native bridge, asynchronous reads, recovery UI and diagnostic
+sink wiring, with scoped native save/recovery/close checks recorded in
+[desktop validation](../docs/evidence/019-native-desktop-validation.md).
+Remaining limits include other-host service execution, native provider/ACL/xattr and Windows
+replacement semantics, and measured snapshot capture costs (task 020). Upstream owner
+acceptance remains pending; existing integration is not a claim of all-platform acceptance.
+Owner role: rust_engine (lead assigns concrete worker).
+Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
+Owned paths: shared diagnostic/storage contracts; host services; recovery fixtures; coverage mappings.
+Dependencies: 018.
+Roles: rust_engine, build_reliability, macos_ui, reviewer.
+
+## Outcome
+
+Diagnosable failures and storage operations that preserve drawings.
+
+## Contracts and acceptance
+
+Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and the
+[refactoring sequence](../docs/refactoring-plan.md). One owner changes shared contracts.
+
+- Specify events, correlation IDs, bounded sinks/rotation/redaction and dropped-event counts; no per-sample production logs.
+- Move costly encoding/I/O off ink path with immutable snapshots, session/revision/request identity and same-destination write ordering.
+- Define autosave/checkpoint frequency/retention/recovery UI and provider-specific durability before implementation.
+- Inject disk/access/log failure, corrupt/oversized import, delayed saves, close/import callbacks and disposable process-kill scenarios.
+
+## Required evidence
+
+Name affected acceptance/invariant IDs, executable test mappings, exact source/diff and
+binary identity, platform/toolchain/device, commands, results and artifacts. Run applicable
+current integration checks until Node parity is established; then the verified replacements.
+Failures, skips, flakes and unsupported hardware remain visible. Read-only review is not
+runtime evidence. Writers use isolated worktrees and do not revert other workers' changes.
+No recursive delegation; at most two writers/three subagents and one feature in flight.
+
+## Completion boundary
+
+Failure retention, stale-save/write ordering, recovery and logging-sink tests; no automatic hosted telemetry or network/auth expansion.
+
+Fresh review follows substantive implementation and material fixes. Task status becomes
+review when evidence is ready; only owner acceptance permits done. No main merge or release.
+

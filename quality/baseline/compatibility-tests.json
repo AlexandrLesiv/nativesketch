@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "88900e4",
+  "discovery": "cargo test -p <package> --test <target> --locked -- --list",
+  "executionStatus": "not-recorded",
+  "tests": [
+    {
+      "id": "cargo:sketch-core:document_compatibility:committed_predictions_match_fixed_document_bytes",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "document_compatibility",
+      "test": "committed_predictions_match_fixed_document_bytes",
+      "level": "integration",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:document_compatibility:correction_requires_an_existing_id_and_identical_timestamp",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "document_compatibility",
+      "test": "correction_requires_an_existing_id_and_identical_timestamp",
+      "level": "integration",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:document_compatibility:frozen_document_roundtrips_and_invalid_import_retains_history",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "document_compatibility",
+      "test": "frozen_document_roundtrips_and_invalid_import_retains_history",
+      "level": "integration",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-core:document_compatibility:invalid_batch_and_cancel_preserve_frozen_document",
+      "runner": "cargo",
+      "package": "sketch-core",
+      "target": "document_compatibility",
+      "test": "invalid_batch_and_cancel_preserve_frozen_document",
+      "level": "integration",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:abi_compatibility:abi2_frozen_document_capacity_and_save_revision_contract",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "abi_compatibility",
+      "test": "abi2_frozen_document_capacity_and_save_revision_contract",
+      "level": "integration",
+      "platform": "portable"
+    },
+    {
+      "id": "cargo:sketch-ffi:abi_compatibility:abi2_native_layout_is_unchanged",
+      "runner": "cargo",
+      "package": "sketch-ffi",
+      "target": "abi_compatibility",
+      "test": "abi2_native_layout_is_unchanged",
+      "level": "integration",
+      "platform": "portable",
+      "pointerWidth": 64
+    }
+  ]
+}

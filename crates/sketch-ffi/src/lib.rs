@@ -1,10 +1,22 @@
-//! Minimal native boundary; the first milestone will add the editor contract.
-
-/// Returns the native interface version expected by the platform shell.
-///
-/// This function has no allocation, arguments, or panic path. The exported symbol
-/// is unique to this library; the canonical declaration is in sketch_ffi.h.
-#[unsafe(no_mangle)]
-pub extern "C" fn sketch_abi_version() -> u32 {
-    1
-}
+//! C ABI for serialized, caller-owned editor handles. See the canonical header.
+mod document;
+mod editing;
+mod handles;
+mod input;
+mod scene;
+mod source;
+mod state;
+mod status;
+mod types;
+pub use document::*;
+pub use editing::*;
+pub use handles::{SketchEditor, sketch_abi_version, sketch_editor_create, sketch_editor_free};
+pub use input::*;
+pub use scene::*;
+pub use source::*;
+pub use state::*;
+pub use types::*;
+#[cfg(test)]
+mod source_tests;
+#[cfg(test)]
+mod tests;

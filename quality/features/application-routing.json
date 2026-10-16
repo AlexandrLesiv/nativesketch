@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "id": "application-routing",
+  "description": "Portable shared application command contracts only. New C/runtime, native controls, filesystem integration, agent transport and physical-input acceptance remain separate work.",
+  "sourceRevision": "1344d3daaa906fedb019544e9bc049c95b1b852d",
+  "cases": [
+    {
+      "id": "ROUTER-DISPATCH-001",
+      "expected": "Typed edit/input dispatch preserves atomic rejection; explicit file intent cancellation occurs only after preflight; wrapped low-level document replacement cannot bypass navigation",
+      "invariants": ["INPUT-001", "INK-002"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::effects::capability_and_busy_preflight_do_not_cancel_ink_but_accepted_file_intent_does",
+        "cargo:sketch-core:lib:application::routing::tests::effects::input_rejection_does_not_cancel_or_partially_append",
+        "cargo:sketch-core:lib:application::routing::tests::effects::rejected_effect_and_wrapped_replacement_preserve_draft_and_pending_intent"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-CAPABILITY-001",
+      "expected": "Read-only sessions reject editing, saving and recovery while exports follow the issued effect route",
+      "invariants": ["VIEW-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::effects::readonly_edit_save_and_recovery_are_denied_but_export_uses_same_issued_route"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-EFFECT-001",
+      "expected": "Cross-session replies cannot cancel another session; rejected issued read failures retain ownership for correct delivery and are consumed once",
+      "invariants": ["ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::failure_ownership::rejected_replacement_failure_is_retained_for_correct_owner_and_consumed_once",
+        "cargo:sketch-core:lib:application::routing::tests::lifecycle::effect_from_another_session_cannot_cancel_pending_navigation_or_ink"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-SAVE-001",
+      "expected": "Save distinguishes rejected preflight from accepted admission failure, keeps the old binding during Save As, and rejects a second unbound Save chooser",
+      "invariants": ["SAVE-001", "SAVE-002"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::pending_binding::unbound_save_cannot_open_second_destination_chooser_or_cancel_active_draft",
+        "cargo:sketch-core:lib:application::routing::tests::saves::accepted_save_admission_failure_is_not_reported_as_rejected_draft_mutation",
+        "cargo:sketch-core:lib:application::routing::tests::saves::ordinary_save_uses_old_binding_while_save_as_is_queued"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-COMPLETION-001",
+      "expected": "Save obligations remain bounded and visible until acknowledgement; rejected delivery retains the trusted completion",
+      "invariants": ["SAVE-002", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::lifecycle::dropped_completion_keeps_visible_outstanding_obligation",
+        "cargo:sketch-core:lib:application::routing::tests::lifecycle::stale_context_rejection_retains_trusted_completion_for_correct_owner",
+        "cargo:sketch-core:lib:application::routing::tests::limits::undelivered_completion_obligations_have_bounded_admission_and_remain_observable"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-NAVIGATION-001",
+      "expected": "Navigation rechecks saved and discarded revisions, waits for undelivered saves, and preserves edits across cancelled or failed operations",
+      "invariants": ["SAVE-002", "LOAD-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::lifecycle::failed_navigation_save_preserves_edits_and_cancels_navigation_with_failure_details",
+        "cargo:sketch-core:lib:application::routing::tests::lifecycle::source_choice_cannot_authorize_edits_committed_while_panel_was_pending",
+        "cargo:sketch-core:lib:application::routing::tests::navigation::cancelled_navigation_does_not_cancel_write_or_reopen_it_on_late_completion",
+        "cargo:sketch-core:lib:application::routing::tests::navigation::dirty_edits_after_save_and_after_close_authorization_require_new_decision",
+        "cargo:sketch-core:lib:application::routing::tests::navigation::old_discard_decision_does_not_authorize_newer_edits_or_clear_history",
+        "cargo:sketch-core:lib:application::routing::tests::navigation::undelivered_save_completion_cannot_be_bypassed_by_navigation_continue"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ROUTER-REPLACEMENT-001",
+      "expected": "Prepared document replacement is atomic, preserves current settings, retains rejected candidates, and distinguishes ordinary binding from dirty recovered copies",
+      "invariants": ["LOAD-001", "ASYNC-001"],
+      "ownerTask": "019",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::routing::tests::replacement::atomic_open_binds_clears_history_selection_and_preserves_current_settings",
+        "cargo:sketch-core:lib:application::routing::tests::replacement::failed_preparation_preserves_live_document_and_reports_issued_failure",
+        "cargo:sketch-core:lib:application::routing::tests::replacement::recovered_copy_is_dirty_unbound_and_cancelled_read_cannot_replace",
+        "cargo:sketch-core:lib:application::routing::tests::replacement::stale_install_preserves_candidate_document_and_pending_state",
+        "cargo:sketch-core:lib:application::routing::tests::saves::checkpoint_does_not_block_replacement_or_clean_recovered_state",
+        "cargo:sketch-core:lib:application::routing::tests::saves::late_save_during_read_blocks_install_until_trusted_completion_is_applied"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

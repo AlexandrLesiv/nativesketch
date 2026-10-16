@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 1,
+  "id": "skia-macos",
+  "description": "Task 020 acceptance separates portable scene geometry, host Skia pixels and actual native presentation. Automation mappings are not execution results.",
+  "sourceRevision": "86ac9f8",
+  "cases": [
+    {
+      "id": "SKIA-VISUAL-001",
+      "expected": "Cached and reference rendering preserve geometry, pixels, order and clipping.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:budgets::eviction_clear_and_zero_retention_preserve_reference_geometry_across_viewports"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore"
+            ],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::cached_reference_and_analytic_alpha_preserve_order",
+              "cargo:sketch-renderer:macos:lib:tests::pixels::transform_preview_stays_below_later_strokes_and_omits_culled_original"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-ALPHA-001",
+      "expected": "Actual and predicted contours fill once; translucent live and committed ink retain opacity.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::committed_root_is_shared_through_predictions_and_commit_has_no_duplicate_ink"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::one_fill_for_overlapping_actual_prediction_contours_and_atomic_commit",
+              "cargo:sketch-renderer:macos:lib:tests::pixels::cached_reference_and_analytic_alpha_preserve_order"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-COMMIT-001",
+      "expected": "Stroke and transform commits present once, retaining ordered content and undo semantics.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::committed_root_is_shared_through_predictions_and_commit_has_no_duplicate_ink",
+              "cargo:sketch-core:scene_cache:lifecycle::committed_transform_undo_redo_reuse_geometry_but_update_presentation_metadata"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
+            ],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::one_fill_for_overlapping_actual_prediction_contours_and_atomic_commit"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-INVALIDATE-001",
+      "expected": "Cancel, undo, delete, document replacement and eviction never resurrect old content.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:lifecycle::cancellation_id_reuse_new_session_and_import_never_reuse_wrong_geometry",
+              "cargo:sketch-core:scene_cache:budgets::eviction_clear_and_zero_retention_preserve_reference_geometry_across_viewports"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument"
+            ],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::reset_and_budget_bypass_preserve_pixels_without_retaining_oversized_resources",
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::new_session_with_reused_id_and_viewport_density_replaces_cached_content"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-VIEWPORT-001",
+      "expected": "Culling, pan, zoom and density preserve geometry and point-sized native adornments.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "integration",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-core:scene_cache:visibility::antialias_margin_predictions_and_transform_crossing_are_not_culled_incorrectly",
+              "cargo:sketch-core:scene_cache:visibility::large_coordinate_geometry_keeps_small_local_differences_in_f64"
+            ],
+            "gaps": []
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "planned",
+            "testIds": [],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::pixels::negative_coordinate_alpha_matches_at_zoom_and_backing_density_matrix",
+              "cargo:sketch-renderer:macos:lib:tests::precision::actual_editor_long_stroke_preserves_far_endpoint_in_positive_and_negative_viewports",
+              "cargo:sketch-renderer:macos:lib:tests::precision::enclosing_giant_curved_contour_keeps_fill_and_single_alpha"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-SURFACE-001",
+      "expected": "Missing drawables, stale work and context recreation preserve state and resume latest rendering without spinning.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeRendererTests/testVisibleInkUndoRedoAndMinimizeRestore",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing",
+              "xctest:NativeSketchUITests:NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory"
+            ],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        },
+        {
+          "platform": "macos",
+          "level": "unit",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "cargo:sketch-renderer:macos:lib:tests::lifecycle::invalid_and_stale_requests_do_not_change_cache_state"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    },
+    {
+      "id": "SKIA-NATIVE-001",
+      "expected": "AppKit controls, focus, shortcuts, cancellation and accessibility remain intact with the Metal canvas.",
+      "invariants": [],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "partial",
+            "testIds": [
+              "xctest:NativeSketchUITests:EditorJourneyTests/testDrawSaveReopen",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState",
+              "xctest:NativeSketchUITests:NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState",
+              "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testSmallDarkWindowFitsInspectorAndAcceptsDrawing",
+              "xctest:NativeSketchUITests:NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands"
+            ],
+            "gaps": [
+              {
+                "reason": "Earlier native cases ran; final timestamp/retry repair awaits foreground verification blocked by a system dialog. Automated pointer/pixel cases do not cover physical pen latency, all display scales, live opacity transitions or real Metal device failure.",
+                "ownerTask": "020"
+              }
+            ]
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "partial",
+      "gaps": [
+        {
+          "reason": "CPU fixtures, partial native runs and scoped designer inspection exist. Final native verification and corrected release presentation measurements remain blocked; earlier reports with zero Metal timestamps are invalid. See task 020 evidence.",
+          "ownerTask": "020"
+        }
+      ]
+    }
+  ]
+}

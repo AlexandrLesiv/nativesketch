@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "outDir": "../../artifacts/web",
+    "rootDir": "src",
+    "noEmitOnError": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "typeRoots": [
+      "./types",
+      "../../node_modules/@types"
+    ],
+    "types": []
+  },
+  "include": [
+    "src/*.ts"
+  ]
+}

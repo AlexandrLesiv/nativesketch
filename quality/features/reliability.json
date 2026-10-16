@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "reliability-lanes",
+  "description": "Task 023 background lane integrity. Unit checks verify orchestration, not native application acceptance.",
+  "sourceRevision": "414d58a",
+  "cases": [
+    {
+      "id": "RELIABILITY-001",
+      "expected": "Pinned tools, complete outputs and unchanged source are required; failed attempts and prior evidence survive.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "023",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/reliability/validation.test.ts:reliability rejects mismatched tools and missing or incomplete lane output",
+        "node:scripts/reliability/validation.test.ts:reliability refuses stale source and preserves immutable prior output",
+        "node:scripts/reliability/validation.test.ts:reliability retains missing-tool, failed-command and timeout evidence",
+        "node:scripts/reliability/asan-proof.test.ts:sanitizer uses encoded flags rather than a shadowed RUSTFLAGS value",
+        "node:scripts/reliability/asan-proof.test.ts:sanitizer refuses missing artifacts and uninstrumented passing binaries",
+        "node:scripts/reliability/asan-proof.test.ts:sanitizer canary requires its exact detected fault and expected exit",
+        "node:scripts/reliability/proof-cancellation.test.ts:pre-cancelled sanitizer proof cannot inspect artifacts or start a process",
+        "node:scripts/reliability/proof-cancellation.test.ts:cancelling during sanitizer proof stops its command and cannot publish proof"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "RELIABILITY-002",
+      "expected": "Native platform and new facade memory safety require separately scoped executed evidence.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "023",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "integration"
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
+      "gaps": [
+        {
+          "reason": "Initial Miri/ASan lanes cover six legacy Rust FFI tests only; no Skia, JNI, native UI, Wasm or portable-facade safety claim.",
+          "ownerTask": "023"
+        }
+      ]
+    }
+  ]
+}

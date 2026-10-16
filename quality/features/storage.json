@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "id": "storage",
+  "description": "021A pure Rust save contracts. These tests do not certify actual disk writes, worker supervision, recovery or native UI adoption.",
+  "sourceRevision": "8fe29d62af93ef3ce6d1e2350b47c6e2a71e1c62",
+  "cases": [
+    {
+      "id": "STORAGE-ADMISSION-001",
+      "expected": "Admission validates capabilities, idle state and bounded capacity before capturing exact committed content",
+      "invariants": ["VIEW-001", "INK-002"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::admission::admission_enforces_edit_and_export_capabilities_before_copying",
+        "cargo:sketch-core:lib:application::storage::tests::admission::bounded_slots_and_memory_reject_without_changing_session",
+        "cargo:sketch-core:lib:application::storage::tests::admission::save_as_remains_pending_until_owner_consumes_result_and_failure_preserves_binding",
+        "cargo:sketch-core:lib:application::storage::tests::admission::capture_rejects_active_input_then_excludes_cancelled_predictions"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "STORAGE-ORDER-001",
+      "expected": "A single coordinator serializes immutable jobs and accepts each owned completion only once",
+      "invariants": ["SAVE-003", "ASYNC-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::ordering::fifo_jobs_hold_exact_request_revision_and_worker_cannot_overtake",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::unknown_duplicate_and_unfinished_completion_are_rejected",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::one_process_queue_orders_different_windows_even_when_destination_ids_alias",
+        "cargo:sketch-core:lib:application::storage::tests::ordering::acknowledgement_during_new_draft_preserves_active_samples"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "STORAGE-ACK-001",
+      "expected": "Save acknowledgement preserves current edits, actual saved revision and replacement session identity",
+      "invariants": ["SAVE-001", "SAVE-002"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::older_save_keeps_new_edits_dirty_and_undo_finds_actual_saved_revision",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::save_b_finishing_after_undo_to_saved_a_makes_a_dirty_and_redo_b_clean",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::replacement_rejects_completion_and_resets_binding",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::save_as_adopts_only_success_and_obsolete_binding_cannot_restore_old_destination",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::checkpoints_and_export_copies_never_clear_dirty_edits",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::reordered_acknowledgements_cannot_revert_saved_revision",
+        "cargo:sketch-core:lib:application::storage::tests::acknowledgement::obsolete_binding_write_to_current_destination_invalidates_clean_state"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "STORAGE-BINDING-001",
+      "expected": "Save As adoption and destination reservations remain correct across acknowledgement order and uncertain outcomes",
+      "invariants": ["SAVE-001", "SAVE-003"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::binding_order::newer_save_of_old_destination_does_not_supersede_save_as_in_either_ack_order",
+        "cargo:sketch-core:lib:application::storage::tests::binding_order::same_destination_save_as_keeps_newer_written_revision_when_acks_reverse",
+        "cargo:sketch-core:lib:application::storage::tests::binding_order::uncertain_active_write_never_assumes_prior_file_or_clean_state_survived",
+        "cargo:sketch-core:lib:application::storage::tests::binding_order::pending_save_as_destination_rejects_copy_and_checkpoint_until_acknowledged"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "STORAGE-CANCEL-001",
+      "expected": "Queued cancellation releases capture; writes completed after cancellation invalidate clean knowledge when necessary, and known failures retain edits",
+      "invariants": ["SAVE-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::storage::tests::cancellation::queued_cancel_releases_memory_and_cannot_write_or_clean",
+        "cargo:sketch-core:lib:application::storage::tests::cancellation::cancelled_write_to_bound_file_invalidates_previously_clean_knowledge",
+        "cargo:sketch-core:lib:application::storage::tests::cancellation::cancelled_save_as_to_another_file_does_not_adopt_or_dirty_current_binding",
+        "cargo:sketch-core:lib:application::storage::tests::cancellation::failed_write_preserves_saved_revision_and_edits"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "STORAGE-COPY-001",
+      "expected": "Encoded ceiling and estimated owned payload reject overflow before allocation and agree with frozen payload sizes",
+      "invariants": ["SAVE-001"],
+      "ownerTask": "021",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:persistence::estimate::tests::encoded_ceiling_and_accounting_overflow_fail_before_allocation",
+        "cargo:sketch-core:lib:persistence::estimate::tests::frozen_document_estimate_matches_exact_payload_sizes"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

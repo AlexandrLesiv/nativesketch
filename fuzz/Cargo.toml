@@ -1,0 +1,28 @@
+[package]
+name = "sketch-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "=0.4.13"
+sketch-core = { path = "../crates/sketch-core" }
+
+[workspace]
+
+[[bin]]
+name = "document_codec"
+path = "fuzz_targets/document_codec.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "command_sequence"
+path = "fuzz_targets/command_sequence.rs"
+test = false
+doc = false
+bench = false

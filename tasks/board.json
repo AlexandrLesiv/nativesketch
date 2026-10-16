@@ -1,10 +1,384 @@
 {
   "schema_version": 1,
   "tasks": [
-    {"id": "001", "title": "First editable stroke on macOS", "status": "ready", "depends_on": [], "brief": "tasks/001-first-stroke.md", "roles": ["ui_ux_designer", "rust_engine", "macos_ui", "reviewer"]},
-    {"id": "002", "title": "Renderer comparison", "status": "ready", "depends_on": [], "brief": "tasks/002-renderer-comparison.md", "roles": ["rendering_performance", "build_reliability", "reviewer"]},
-    {"id": "003", "title": "Input recorder and replay", "status": "waiting", "depends_on": ["001"], "brief": "tasks/003-input-replay.md", "roles": ["rust_engine", "build_reliability", "reviewer"]},
-    {"id": "004", "title": "Windows native host spike", "status": "waiting", "depends_on": ["001", "002"], "brief": "tasks/004-windows-spike.md", "roles": ["windows_ui", "rendering_performance", "reviewer"]}
+    {
+      "id": "001",
+      "title": "First editable stroke on macOS",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/001-first-stroke.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "002",
+      "title": "Renderer comparison",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/002-renderer-comparison.md",
+      "roles": [
+        "rendering_performance",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "003",
+      "title": "Input recorder and replay",
+      "status": "waiting",
+      "depends_on": [
+        "001"
+      ],
+      "brief": "tasks/003-input-replay.md",
+      "roles": [
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "004",
+      "title": "Windows native host spike",
+      "status": "waiting",
+      "depends_on": [
+        "001",
+        "022"
+      ],
+      "brief": "tasks/004-windows-spike.md",
+      "roles": [
+        "windows_ui",
+        "rendering_performance",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "005",
+      "title": "Native first-stroke hosts",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/005-native-platforms.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "windows_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "006",
+      "title": "Apple editors and view-only companions",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/006-apple-device-family.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "007",
+      "title": "Independent Watch document sources",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/007-watch-document-sources.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "008",
+      "title": "ChromeOS and Googlebook desktop adapter",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/008-android-desktop.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "009",
+      "title": "Apple editor ports: iPhone, iPad and Vision Pro",
+      "status": "waiting",
+      "depends_on": [
+        "006",
+        "022"
+      ],
+      "brief": "tasks/009-apple-editor-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "ios_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "010",
+      "title": "Android, ChromeOS and Googlebook port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "008",
+        "022"
+      ],
+      "brief": "tasks/010-android-desktop-acceptance.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "android_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "011",
+      "title": "Linux native GTK4/libadwaita port acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "005",
+        "022"
+      ],
+      "brief": "tasks/011-linux-native-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "012",
+      "title": "Browser Rust/Wasm editor production port",
+      "status": "waiting",
+      "depends_on": [
+        "005",
+        "022"
+      ],
+      "brief": "tasks/012-browser-wasm-port.md",
+      "roles": [
+        "ui_ux_designer",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "013",
+      "title": "Apple TV and independent Watch viewer ports",
+      "status": "waiting",
+      "depends_on": [
+        "006",
+        "007",
+        "022"
+      ],
+      "brief": "tasks/013-apple-viewer-ports.md",
+      "roles": [
+        "ui_ux_designer",
+        "macos_ui",
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "014",
+      "title": "Network document source and account integration",
+      "status": "waiting",
+      "depends_on": [
+        "007"
+      ],
+      "brief": "tasks/014-network-document-source.md",
+      "roles": [
+        "rust_engine",
+        "macos_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "015",
+      "title": "Architecture contracts and compatibility baseline",
+      "status": "review",
+      "depends_on": [],
+      "brief": "tasks/015-contracts-and-baseline.md",
+      "roles": [
+        "rust_engine",
+        "ui_ux_designer",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "016",
+      "title": "Node automation and code quality gates",
+      "status": "waiting",
+      "depends_on": [
+        "015"
+      ],
+      "brief": "tasks/016-node-quality-tooling.md",
+      "roles": [
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "017",
+      "title": "Feature registry and native E2E evidence foundation",
+      "status": "waiting",
+      "depends_on": [
+        "016"
+      ],
+      "brief": "tasks/017-feature-e2e-evidence.md",
+      "roles": [
+        "build_reliability",
+        "rust_engine",
+        "macos_ui",
+        "windows_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "018",
+      "title": "Extract Rust editor responsibilities and typed facades",
+      "status": "waiting",
+      "depends_on": [
+        "015",
+        "017"
+      ],
+      "brief": "tasks/018-rust-editor-extraction.md",
+      "roles": [
+        "rust_engine",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "019",
+      "title": "Compose native macOS editor and complete brush E2E",
+      "status": "waiting",
+      "depends_on": [
+        "018",
+        "021"
+      ],
+      "brief": "tasks/019-macos-editor-composition.md",
+      "roles": [
+        "macos_ui",
+        "rust_engine",
+        "ui_ux_designer",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "020",
+      "title": "Integrate Skia scenes and bounded caches",
+      "status": "waiting",
+      "depends_on": [
+        "019"
+      ],
+      "brief": "tasks/020-skia-scene-and-caching.md",
+      "roles": [
+        "rendering_performance",
+        "rust_engine",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "021",
+      "title": "Structured diagnostics and revision-safe recovery",
+      "status": "waiting",
+      "depends_on": [
+        "018"
+      ],
+      "brief": "tasks/021-diagnostics-and-recovery.md",
+      "roles": [
+        "rust_engine",
+        "build_reliability",
+        "macos_ui",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "022",
+      "title": "Portable adapter decomposition and conformance",
+      "status": "waiting",
+      "depends_on": [
+        "020",
+        "021"
+      ],
+      "brief": "tasks/022-portable-adapter-contracts.md",
+      "roles": [
+        "rust_engine",
+        "ui_ux_designer",
+        "macos_ui",
+        "ios_ui",
+        "android_ui",
+        "windows_ui",
+        "build_reliability",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "023",
+      "title": "Recovery, accessibility and performance hardening",
+      "status": "waiting",
+      "depends_on": [
+        "022"
+      ],
+      "brief": "tasks/023-quality-hardening.md",
+      "roles": [
+        "build_reliability",
+        "rust_engine",
+        "rendering_performance",
+        "ui_ux_designer",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "024",
+      "title": "Final architecture and packaged-app acceptance",
+      "status": "waiting",
+      "depends_on": [
+        "023",
+        "004",
+        "009",
+        "010",
+        "011",
+        "012",
+        "013"
+      ],
+      "brief": "tasks/024-refactor-acceptance.md",
+      "roles": [
+        "build_reliability",
+        "ui_ux_designer",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "025",
+      "title": "Project development workbench and Zed integration",
+      "status": "waiting",
+      "depends_on": [
+        "024"
+      ],
+      "brief": "tasks/025-project-workbench.md",
+      "roles": [
+        "build_reliability",
+        "ui_ux_designer",
+        "reviewer"
+      ]
+    }
   ]
 }
-

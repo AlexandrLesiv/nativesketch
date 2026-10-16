@@ -1,0 +1,29 @@
+{
+  "name": "native-sketch-tooling",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.22.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  },
+  "scripts": {
+    "check": "node scripts/check.ts",
+    "typecheck": "tsc --project tsconfig.scripts.json",
+    "lint": "node scripts/lint-typescript.ts",
+    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts apps/web/e2e/*.ts crates/sketch-wasm/tests/*.ts crates/sketch-app-ffi/tests/*.ts crates/sketch-app-wasm/tests/*.ts apps/workbench/**/*.ts apps/workbench/**/*.css",
+    "test:tooling": "node --test scripts/android-jni/*.test.ts scripts/tests/*.test.ts scripts/quality/*.test.ts scripts/browser-e2e/*.test.ts scripts/reliability/*.test.ts scripts/workbench/tests/*.test.ts",
+    "workbench:build": "node node_modules/vite/bin/vite.js build --config apps/workbench/vite.config.ts",
+    "workbench": "node scripts/workbench.ts serve"
+  },
+  "dependencies": {
+    "canvaskit-wasm": "0.42.0"
+  }
+}

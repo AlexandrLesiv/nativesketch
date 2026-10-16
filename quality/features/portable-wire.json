@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "id": "portable-wire",
+  "description": "Rust v2 codec, owner/work ownership and scene export evidence only. Mapping is automation existence, not execution status. No native C/JNI, Wasm export, host UI, real pen or GPU acceptance is inferred.",
+  "sourceRevision": "94d1503f24fefa85508e11599887c62841419c23",
+  "cases": [
+    {
+      "id": "WIRE-CODEC-001",
+      "expected": "Exact packets and explicit tags reject malformed versions, reserved fields, counts, tails and truncation while preserving high-bit IDs and f64 geometry.",
+      "invariants": [
+        "FFI-001",
+        "INPUT-001",
+        "INPUT-002"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::codec::exact_request_goldens_and_invalid_tails",
+        "cargo:sketch-app-wire:lib:tests::codec::malformed_flags_reserved_versions_counts_and_floats_are_rejected",
+        "cargo:sketch-app-wire:lib:tests::codec::sample_kinds_pressure_and_high_ids_are_preserved",
+        "cargo:sketch-app-wire:lib:tests::response_goldens::complete_projection_and_outcome_layouts_match_fixed_bytes",
+        "cargo:sketch-app-wire:lib:tests::response_goldens::complete_work_info_layout_has_high_bit_opaque_ids",
+        "cargo:sketch-app-wire:lib:tests::response_goldens::high_bit_payload_values_decode_without_float_conversion",
+        "cargo:sketch-app-wire:lib:tests::tag_goldens::explicit_output_enum_mappings_match_named_golden_units",
+        "cargo:sketch-app-wire:lib:tests::failure_goldens::failure_variants_map_to_all_fixed_domain_codes",
+        "cargo:sketch-app-wire:lib:tests::effect_goldens::every_effect_and_save_result_has_an_explicit_fixed_tag",
+        "cargo:sketch-app-wire:lib:tests::enum_records::native_tool_device_direction_and_projection_tags_are_explicit",
+        "cargo:sketch-app-wire:lib:tests::enum_records::stale_or_foreign_effect_and_operation_references_cannot_execute"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-OWNER-001",
+      "expected": "Private issued references and real worker transfers reject stale or foreign ownership without manufacturing completion or mutating active drafts.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001",
+        "INK-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::owner::output_capacity_does_not_mutate_or_drain_events",
+        "cargo:sketch-app-wire:lib:tests::owner::invalid_trailing_batch_and_stale_context_preserve_active_draft",
+        "cargo:sketch-app-wire:lib:tests::owner::owner_scope_rejects_worker_and_forged_session_calls",
+        "cargo:sketch-app-wire:lib:tests::work::issued_write_crosses_thread_and_wrong_owner_retains_result",
+        "cargo:sketch-app-wire:lib:tests::work::completed_aliases_release_once_and_keep_one_bound_lease",
+        "cargo:sketch-app-wire:lib:identity::tests::global_identity_exhaustion_never_wraps"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-CAPACITY-001",
+      "expected": "Output and sidecar capacity is reserved before consuming work, completion, diagnostics or resource-release obligations.",
+      "invariants": [
+        "FFI-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::transfer_capacity::consumed_events_and_work_wait_for_output_capacity",
+        "cargo:sketch-app-wire:lib:tests::transfer_capacity::wrong_worker_kind_and_foreign_input_preserve_both_objects"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-CANCEL-001",
+      "expected": "Cancellation preserves real write proof and classification across overlapping Open/Save, bounded capacity, exact release and shutdown.",
+      "invariants": [
+        "SAVE-003",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::cancellation::cancelled_queued_loads_do_not_exhaust_operation_registry",
+        "cargo:sketch-app-wire:lib:tests::cancellation::cancelled_actual_write_keeps_receipt_and_shutdown_drains",
+        "cargo:sketch-app-wire:lib:tests::save_during_load::cancelling_bound_save_while_load_pending_keeps_issued_save_completion",
+        "cargo:sketch-app:lib:tests::classification::issued_write_classification_rejects_foreign_and_stale_ids"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-LOAD-001",
+      "expected": "Stale decoded candidates retire without leaving a stranded continuation and subsequent file intents remain usable.",
+      "invariants": [
+        "LOAD-001",
+        "ASYNC-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::stale_load::stale_loaded_candidate_retires_and_file_intents_recover"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-SCENE-001",
+      "expected": "Bounded opaque scene leases preserve previous scenes on failure and share unchanged committed roots independently from live ink.",
+      "invariants": [
+        "RENDER-001",
+        "CACHE-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::scenes::same_frame_borrows_lease_and_live_frames_reuse_committed_root",
+        "cargo:sketch-app-wire:lib:tests::scenes::page_boundaries_wrong_membership_and_failed_query_keep_old_scene",
+        "cargo:sketch-app-wire:lib:tests::scenes::scene_capacity_and_pin_budget_fail_before_publication"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-PAGING-001",
+      "expected": "Full f64 path and scene records preserve order and optional fields across actual page caps, exact reassembly, EOF and release accounting.",
+      "invariants": [
+        "RENDER-001",
+        "CACHE-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::scene_goldens::full_scene_and_paged_paths_preserve_precision_and_optional_zeroes",
+        "cargo:sketch-app-wire:lib:tests::large_pages::actual_scene_crosses_both_page_caps_without_reordering_or_lost_geometry"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WIRE-DIAGNOSTICS-001",
+      "expected": "Structured diagnostics retain explicit failure classes and redacted context with unambiguous discriminated result fields.",
+      "invariants": [
+        "FFI-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::errors::all_failure_domain_codes_have_exact_golden_bytes",
+        "cargo:sketch-app-wire:lib:tests::errors::editor_failure_context_and_router_status_are_redacted",
+        "cargo:sketch-app-wire:lib:tests::diagnostic_goldens::flat_diagnostic_failures_keep_status_and_full_fixed_layout",
+        "cargo:sketch-app-wire:lib:tests::diagnostic_goldens::diagnostic_kinds_and_empty_unused_fields_are_discriminated"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

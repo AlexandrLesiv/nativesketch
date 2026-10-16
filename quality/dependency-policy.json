@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "sketch-renderer": {"allowedNormalDependencies": ["sketch-core", "skia-safe", "objc2", "objc2-metal"], "allowedBuildDependencies": []},
+    "sketch-core": {"allowedNormalDependencies": [], "allowedBuildDependencies": []},
+    "sketch-ffi": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
+    "sketch-wasm": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
+    "sketch-native-ffi": {"allowedNormalDependencies": ["sketch-core", "sketch-services", "sketch-renderer"], "allowedBuildDependencies": []},
+    "sketch-app-wire": {"allowedNormalDependencies": ["sketch-app", "sketch-core"], "allowedBuildDependencies": []},
+    "sketch-app-bridge": {"allowedNormalDependencies": ["sketch-app-wire"], "allowedBuildDependencies": []},
+    "sketch-app-ffi": {"allowedNormalDependencies": ["sketch-app-bridge"], "allowedBuildDependencies": []},
+    "sketch-app-jni": {"allowedNormalDependencies": ["sketch-app-bridge", "jni"], "allowedBuildDependencies": []},
+    "sketch-app-wasm": {"allowedNormalDependencies": ["sketch-app-bridge"], "allowedBuildDependencies": []},
+    "sketch-app": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
+    "sketch-services": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []}
+  },
+  "policy": "Production/build dependency additions require explicit architectural review. Dev-only testing dependencies are outside this boundary check; advisories/licenses are a separate tool. This does not inspect standard-library calls or prove within-crate layering."
+}

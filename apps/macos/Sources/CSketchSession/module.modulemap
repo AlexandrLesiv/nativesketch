@@ -1,0 +1,4 @@
+module CSketchSession [system] {
+  header "../../../../crates/sketch-native-ffi/include/sketch_session_v1.h"
+  export *
+}

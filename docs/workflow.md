@@ -9,11 +9,22 @@ Three subagents maximum; at most two concurrent writers and one feature in fligh
 Use designer and reviewer at the relevant stage rather than running every role throughout.
 Windows work begins when its milestone is selected; it is not a parallel launch project.
 
+Lead and rust_engine own architecture plans: types, dependencies, state ownership, commands/
+effects, threading, file map and invariants. Designer owns native acceptance. build_reliability
+owns Node tooling, executable coverage reporting, diagnostics infrastructure and failure
+fixtures. Implementers own tests/logging; rendering_performance owns measurement validity;
+reviewer independently checks evidence. No extra permanent architecture/logging/test agent.
+Explicitly assign qualified workers for Android/Linux/web; those specialist configs do not exist.
+
+The [refactoring plan](refactoring-plan.md) starts from `codex/github-pages@712059d5`.
+Do not import the excluded comparison-results branch. New task branches use `codex/`.
+Preserve scripts until task 016 proves Node parity; new owned automation is JavaScript.
+
 ## Lifecycle
 
 Ready task -> interaction/contract design -> isolated implementation -> integration ->
 appropriate checks -> fresh review -> repairs and affected checks -> human merge approval.
-The task board in `tasks/board.json` is the durable status source. Use `./scripts/board`
+The task board in `tasks/board.json` is the durable status source. Use `node scripts/board.ts`
 to inspect it. Update it only when the corresponding state is true. Status `done` means
 the owner accepted the result; `review` means implementation/evidence await that decision.
 
@@ -22,8 +33,8 @@ relevant documents, required evidence, and a stopping condition. One owner chang
 shared interface. Workers can propose contract changes; lead reconciles consumers first.
 
 Use Codex-managed worktrees when available. For a manual local checkout, the lead can
-use `./scripts/new-worktree task-001-rust` after the repository has a baseline commit.
-It creates an ignored local worktree and `agent/task-001-rust` branch from HEAD.
+use `node scripts/new-worktree.ts task-001-rust` from a clean primary checkout.
+It creates an ignored local worktree and `codex/task-001-rust` branch from HEAD.
 Worktrees do not isolate ports, simulators, data directories, GPU loads, or credentials.
 Pass workers their actual checkout path and serialize operations that share those resources.
 
@@ -55,7 +66,8 @@ old conversation summaries. Update the relevant document when an accepted decisi
 
 ## Automate later
 
-No scheduler, unattended model calls, remote repository, or auto-merge is installed.
+No new scheduler, unattended model calls or auto-merge is installed by this plan.
+Existing GitHub/Pages configuration is preserved; remote protections are not inferred.
 After about ten accepted changes, assess review time, repair cycles, post-merge defects,
 elapsed time, and cost/usage where available. Compare the current team with a single
 implementer plus reviewer. Add a queue/runner via Codex SDK only for observed repetition.
