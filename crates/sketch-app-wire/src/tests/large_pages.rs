@@ -47,6 +47,10 @@ fn actual_scene_crosses_both_page_caps_without_reordering_or_lost_geometry() {
         for chunk in r.bytes()[80..].as_chunks::<48>().0 {
             collected.push((u64_at(chunk, 0), u64_at(chunk, 8)));
             last_geometry = u64_at(chunk, 16);
+            let info = a
+                .call(&packet(42, &words(&[scene, last_geometry])))
+                .unwrap();
+            assert!(u64_at(info.bytes(), 120) >= 6);
         }
         first += count;
     }
@@ -90,4 +94,5 @@ fn actual_scene_crosses_both_page_caps_without_reordering_or_lost_geometry() {
     assert_eq!(a.scenes.bytes, 0);
     assert!(a.scenes.geometries.is_empty());
     assert!(a.scenes.roots.is_empty());
+    assert!(a.scenes.geometry_ids.is_empty());
 }

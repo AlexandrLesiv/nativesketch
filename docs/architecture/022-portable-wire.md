@@ -300,7 +300,10 @@ One bounded SceneCache is reused across sessions, retaining at most 32MiB geomet
 Live leases pin immutable data independently. Root and geometry reference counts charge each
 unique payload once. Reusing a committed root updates constant-size registry state and only
 examines new live/preview geometry; it does not flatten or walk all committed paths per input.
-New roots require descriptor traversal. Metadata identities and staged lookup work are bounded
+New roots require descriptor traversal. Geometry IDs resolve through a bounded direct index;
+per-scene membership uses a sorted committed-root index shared across live frames, with
+binary search plus at most two live/preview checks. Exporting N geometries therefore does
+not rescan N strokes for every geometry/page. Both ID maps share the geometry_entries bound. Metadata identities and staged lookup work are bounded
 by geometry_entries and MAX_STROKES; allocator overhead is excluded from byte estimates.
 Query capacity/error preserves old leases; cache eviction cannot invalidate pinned scenes.
 Released, unleased cached geometry may receive a fresh opaque identity on later publication.
@@ -313,7 +316,7 @@ Released, unleased cached geometry may receive a fresh opaque identity on later 
 | FFI-001, ASYNC-001 | Two-app references/results/input rejection, actual worker thread exchange, one completion, cancellation and shutdown |
 | SAVE-001/003, LOAD-001 | Alias releases, encoded outcome correction, output-capacity ownership, stale-load retirement and usable subsequent intent |
 | RENDER-001, CACHE-001 | Full response/path goldens, paged reassembly, scene/root reuse, pinned capacity, old-scene survival and membership |
-| Existing portable facade acceptance | Run all 26 sketch-app tests unchanged alongside transport tests |
+| Existing portable facade acceptance | Run the original 26 sketch-app tests plus issued-classification regression alongside transport tests |
 
 The literal fixture set includes complete Projection/Outcome/WorkInfo/SceneInfo/Path responses,
 not only tag units; payload handles and sample/resource IDs exercise values above 2^53 and

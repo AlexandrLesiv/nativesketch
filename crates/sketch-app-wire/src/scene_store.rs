@@ -29,6 +29,7 @@ pub(crate) struct Scenes {
     pub leases: Vec<Lease>,
     pub geometries: HashMap<usize, Geometry>,
     pub roots: HashMap<usize, Root>,
+    pub geometry_ids: HashMap<u64, usize>,
     pub cache: SceneCache,
     pub bytes: usize,
 }
@@ -37,14 +38,6 @@ pub(crate) fn geometry_key(value: &Arc<StrokeGeometry>) -> usize {
 }
 pub(crate) fn root_key(value: &Arc<[SceneStroke]>) -> usize {
     Arc::as_ptr(value).cast::<SceneStroke>() as usize
-}
-pub(crate) fn strokes(scene: &RenderScene) -> impl Iterator<Item = &SceneStroke> {
-    scene.committed.iter().chain(scene.live.iter()).chain(
-        scene
-            .transform_preview
-            .iter()
-            .filter_map(|p| p.replacement.as_ref()),
-    )
 }
 impl Scenes {
     pub fn new(limits: TransportLimits) -> Result<Self, WireError> {
@@ -56,6 +49,10 @@ impl Scenes {
         geometries
             .try_reserve(limits.geometry_entries)
             .map_err(|_| WireError::capacity())?;
+        let mut geometry_ids = HashMap::new();
+        geometry_ids
+            .try_reserve(limits.geometry_entries)
+            .map_err(|_| WireError::capacity())?;
         let mut roots = HashMap::new();
         roots
             .try_reserve(limits.scenes + 1)
@@ -64,6 +61,7 @@ impl Scenes {
             limits,
             leases,
             geometries,
+            geometry_ids,
             roots,
             cache: SceneCache::default(),
             bytes: 0,
@@ -77,15 +75,29 @@ impl Scenes {
     }
     pub fn geometry(&self, scene: u64, id: u64) -> Result<Arc<StrokeGeometry>, WireError> {
         let lease = self.lease(scene)?;
-        let geometry = self
-            .geometries
-            .values()
-            .find(|g| g.id == id)
-            .and_then(|g| g.weak.upgrade())
-            .ok_or(WireError::plain(7))?;
-        if !strokes(&lease.scene).any(|s| Arc::ptr_eq(&s.geometry, &geometry)) {
+        let key = *self.geometry_ids.get(&id).ok_or(WireError::plain(7))?;
+        let root = &self.roots[&root_key(&lease.scene.committed)];
+        let in_root = root.geometries.binary_search(&key).is_ok();
+        let in_overlay = lease
+            .scene
+            .live
+            .iter()
+            .chain(
+                lease
+                    .scene
+                    .transform_preview
+                    .iter()
+                    .filter_map(|p| p.replacement.as_ref()),
+            )
+            .any(|s| geometry_key(&s.geometry) == key);
+        if !in_root && !in_overlay {
             return Err(WireError::plain(7));
         }
+        let geometry = self
+            .geometries
+            .get(&key)
+            .and_then(|g| g.weak.upgrade())
+            .ok_or(WireError::plain(7))?;
         Ok(geometry)
     }
     pub fn geometry_id(&self, stroke: &SceneStroke) -> u64 {
@@ -123,7 +135,9 @@ impl Scenes {
         let geometry = self.geometries.get_mut(&key).expect("leased geometry");
         geometry.pins -= 1;
         if geometry.pins == 0 {
-            self.bytes -= self.geometries.remove(&key).expect("leased geometry").bytes;
+            let geometry = self.geometries.remove(&key).expect("leased geometry");
+            self.geometry_ids.remove(&geometry.id);
+            self.bytes -= geometry.bytes;
         }
     }
 }

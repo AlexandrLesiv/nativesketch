@@ -78,6 +78,7 @@ impl Scenes {
         {
             return Err(WireError::capacity());
         }
+        root_geometries.sort_unstable();
         let mut next = fresh + 1;
         for (key, (geometry, pins)) in pending {
             if let Some(existing) = self.geometries.get_mut(&key) {
@@ -93,6 +94,7 @@ impl Scenes {
                         bytes,
                     },
                 );
+                self.geometry_ids.insert(next, key);
                 next += 1;
             }
         }
