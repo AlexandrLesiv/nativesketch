@@ -85,7 +85,7 @@ resize_update / resize_commit for the one-shot scale control.
 | Action | Accepted semantic operation |
 | --- | --- |
 | ChooseTool | Validate tool/capability, cancel current interaction, choose tool |
-| CycleSelection | Validate direction, cancel interaction, choose Select, cycle committed selection |
+| CycleSelection | Validate direction and nonempty committed document, cancel interaction, choose Select, cycle committed selection |
 | DeleteSelection | Validate capability and selected committed object, cancel interaction, delete once |
 | Undo / Redo | Validate capability/history against committed state, cancel interaction, apply history operation |
 | ScaleSelection | Validate factor, selection and resulting transform, cancel interaction, apply one committed transform anchored at committed selection center |
@@ -223,7 +223,9 @@ Concrete proposed additive core outcome: `WriteOutcome::DispatchedUnconfirmed`, 
 `SaveResult::DispatchedUnconfirmed` / `DispatchedAfterCancellation` and acknowledgment
 `Acknowledgement::CopyDispatched`. Accept only an issued ExportCopy job whose provider is
 unconfirmed; reject it for Save/SaveAs/Checkpoint before consuming the issued work. It releases
-the operation without binding a destination, acknowledging a revision or advancing navigation.
+the operation without binding a destination or acknowledging a revision. Settling an existing
+AwaitWrites barrier may re-evaluate navigation, but dirty content still requires the normal
+Save/Discard/Cancel decision; unconfirmed export cannot satisfy Save.
 The core coordinator repeats the purpose check. This addition needs its own fault/compatibility
 tests and exhaustive-match updates; preserve old numeric ABI values and allocate new v2 codes.
 

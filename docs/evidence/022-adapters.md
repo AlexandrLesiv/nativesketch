@@ -49,7 +49,12 @@ and native test bundle compilation also passed. Changed files are at most 175 li
 
 Two new native held-pointer Undo journeys are mapped by `ACTION-NATIVE-HISTORY-001`.
 Their execution remains pending; successful test-bundle compilation is not UI evidence.
-Fresh review is in progress. Logs are retained under
+Fresh review found empty-document selection cycling had become available; shared Rust
+policy now rejects it before cancellation in `2d2a534`, preserving draft and predictions.
+The reviewer independently passed that regression. The standard background gate now
+includes the three bridge tests (`e5b35d6` / formatting `6e44ffb`). Full integration at
+`2d2a534` passed, including all 17 Swift tests; the earlier formatting-only failure at
+`e5b35d6` remains retained rather than relabeled. Native execution remains pending. Logs are retained under
 `artifacts/evidence/022-macos-actions`; the worker revision identifies the tested source.
 
 ## Android mechanical decomposition
@@ -72,13 +77,38 @@ This slice deliberately retains legacy JNI, Android Canvas and local persistence
 policy. Those still need the portable Rust facade and Skia adapter; extracted host fields alone
 are not the final architecture. Formatting is an installed gate; native feature acceptance is not.
 
+## Apple compatibility decomposition
+
+Worker `ce9ac082` / integrated `de54fe0` separates UIKit composition, lifecycle, native
+controls, input, painting, file callbacks and replay. Shared viewer modules separate source
+ordering/comparison, HTTP transport/cancellation and cache persistence. A dedicated legacy
+module map in `apps/apple-bridge/CSketchFFI` repairs Apple builds without restoring legacy
+imports in the macOS production adapter. Existing selectors, controls and behavior remain.
+
+All 39 owned Swift files are at most 185 physical lines after formatting. Host viewer/source
+replay passed; ARM64 simulator release builds for iOS, visionOS, tvOS and watchOS passed.
+[Build identities and logs](../../artifacts/evidence/022-apple-extraction/identity.json)
+record exact binaries. No simulator was launched, and no device/UI/Pencil/paired-Watch check
+ran. Portable facade adoption and Skia rendering are separate remaining changes.
+
+Formatter checks passed, but the integrated broad Swift lint at `de54fe0` found one
+`ReplaceForEachWithForLoop` violation in the extracted iOS scene entry. That repair is pending;
+do not treat formatting as proof that every semantic lint rule passed. Independent review
+of the extraction is in progress.
+
 ## Baseline and outstanding hosts
 
 At `24cf21a`, the web build, actual Wasm adapter checks and production precache/subpath check
-passed. These are build/replay checks, not browser E2E. Apple viewer replay failed before execution:
-its build script still references the removed macOS `CSketchFFI` module. A shared Apple bridge
-location and script repair are required during Apple extraction. Both logs are retained under
+passed. These are build/replay checks, not browser E2E. Apple viewer replay initially failed
+before execution because its script referenced the removed macOS `CSketchFFI` module; the
+Apple extraction above repaired that failure. Both baseline logs are retained under
 `artifacts/evidence/022-baseline`; the failure is not hidden by the passing macOS integration gate.
+
+The existing GTK adapter also passed a background `cargo check` against installed GTK 4.24.1
+and libadwaita 1.10.0 on macOS. This checks compilation only: no Linux, Wayland, portal or
+native accessibility behavior was exercised. `artifacts/evidence/022-linux-host-probe`
+records the source and log. The integrated source-size gate now reports three legacy
+oversized files: Windows, Linux and web.
 
 Portable provider facade/ownership, transport-v2 consumers, Apple/Windows/Linux/web extraction,
 per-host Skia and real native journeys remain implementation/verification work. Windows and
