@@ -1,6 +1,6 @@
 # 010: Android, ChromeOS and Googlebook port acceptance
 
-Status: waiting. Roles: ui_ux_designer, rust_engine, build_reliability, reviewer.
+Status: waiting. Roles: ui_ux_designer, rust_engine, android_ui, build_reliability, reviewer.
 Dependencies: 008, 022.
 
 Complete native Kotlin/Material Views acceptance on Android phones/tablets and compatible ChromeOS/Googlebook systems. Continue the existing ARM64/x86-64 implementation; adapt by window/input capabilities, not branding. Verify actual runtime availability on each target before promising support.

@@ -28,7 +28,8 @@ New/extracted files/tests <=200 physical lines. Preserve native text-field short
 cancel-before-remap behavior, accessibility, display scale and event provenance.
 Own actual XCTest/XCUIAutomation journeys and diagnostic instrumentation for assigned UI;
 map acceptance IDs, preserve failure artifacts and distinguish replay/AX/speech/device evidence.
-When explicitly assigned Apple-family work, preserve UIKit touch arbitration, 2D Vision
-scope and read-only TV/independent Watch source behavior; record native visionOS UI automation
-limitations. Do not infer real pressure from indirect input or claim physical latency.
+ios_ui owns assigned iPhone/iPad work and visionOS 2D editor work. Coordinate shared Apple
+files through one lead-assigned owner; do not edit them concurrently. tvOS/independent Watch
+viewer work requires explicit assignment and capability preservation. Do not infer real
+pressure from indirect input or claim physical latency.
 """

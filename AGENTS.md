@@ -78,6 +78,12 @@ changes; do not claim independent review unless it actually ran.
   dependencies, relevant contracts, required evidence, and stopping condition.
 - Agree shared interfaces before parallel implementation. One owner changes a contract.
 - Lead plus rust_engine own architecture planning; ui_ux_designer reviews native behavior.
+  ui_ux_designer coordinates shared product design and per-platform Figma variants/reviews;
+  owner approval remains required before new pages/tools are implemented. Use macos_ui for
+  AppKit, ios_ui for UIKit iPhone/iPad and assigned visionOS 2D, android_ui for Kotlin/Views
+  and Android-on-ChromeOS, windows_ui for WinUI. Assign Linux/web and Apple viewer work
+  explicitly; one owner for shared Apple files. Designers request specialist reviews through
+  the lead, not recursive delegation. Adding roles does not raise concurrency limits.
   build_reliability owns quality runners, coverage reporting and diagnostics infrastructure;
   implementers own feature tests/logging; rendering_performance owns measurement validity;
   reviewer independently checks contracts and evidence. No extra permanent quality agent.

@@ -81,7 +81,10 @@ One feature in flight, <=3 subagents and <=2 writers. Lead freezes a starting co
 owned paths and one owner for contract changes. Writers use isolated worktrees; concurrent
 read-only design/review is allowed. Native displays/devices/GPU runs are exclusive across
 worktrees. For any unclear platform role the lead explicitly assigns ownership to an
-existing qualified worker; no silently configured Android/Linux/web specialist is assumed.
+existing qualified worker. android_ui and ios_ui are configured implementation roles;
+Linux/web and TV/Watch viewer work still need explicit assignment. One owner changes shared
+Apple modules/contracts. ui_ux_designer coordinates platform briefs and reviews through the
+lead and presents versioned Figma variants for owner approval before new pages/tools.
 
 Before implementation, each task names acceptance/invariant IDs, dependency direction,
 state/lifetime ownership, errors/effects, cancellation, files/types and required evidence.
@@ -102,11 +105,15 @@ flowchart TB
     Lead <--> Reliability[build_reliability]
     Lead --> Mac[macos_ui]
     Lead --> Windows[windows_ui when assigned]
+    Lead --> IOS[ios_ui when assigned]
+    Lead --> Android[android_ui when assigned]
     Rust --> Integrated[Integrated code and evidence]
     Render --> Integrated
     Reliability --> Integrated
     Mac --> Integrated
     Windows --> Integrated
+    IOS --> Integrated
+    Android --> Integrated
     Integrated --> Designer
     Integrated --> Reviewer[Fresh reviewer]
     Reviewer -->|findings| Lead

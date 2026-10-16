@@ -1,6 +1,6 @@
 # 009: Apple editor ports: iPhone, iPad and Vision Pro
 
-Status: waiting. Roles: ui_ux_designer, rust_engine, macos_ui, build_reliability, reviewer.
+Status: waiting. Roles: ui_ux_designer, rust_engine, ios_ui, build_reliability, reviewer.
 Dependencies: 006, 022.
 
 Extend the existing UIKit prototypes into verified native editor ports, in order iPad/iPhone, then Vision Pro. Reuse shared Rust semantics and the accepted renderer; preserve native UIKit controls and system appearance, using SwiftUI only where control behavior remains correct. Vision Pro remains a 2D window unless separately authorized.

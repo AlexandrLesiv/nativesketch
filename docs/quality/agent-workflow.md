@@ -1,7 +1,8 @@
 # Agent workflow: reviewable architecture and quality ownership
 
 Policy updated 2026-10-16. These are agent obligations, not claims that automated gates
-already enforce them. No new permanent agent role or hosted service is introduced.
+already enforce them. Owner-requested android_ui and ios_ui implementation roles are now
+configured; no extra permanent designer/quality coordinator or hosted service is introduced.
 
 ## Architecture review before implementation
 
@@ -46,14 +47,17 @@ reviewable commits. Do not repeat the previous broad multi-platform diff pattern
 | --- | --- |
 | Lead/integrator | Scope/owner review, decision record, narrow integration, dependency and retirement inventory, honest status/handoff |
 | rust_engine | Shared semantics, typed ABI, single ownership, transaction safety, unsafe/FFI threat analysis, invariant/differential tests |
-| macos_ui / windows_ui / explicitly assigned port implementer | Native intent provenance, typed wrappers, native lifecycle/focus, real UI tests, platform diagnostics |
+| macos_ui / ios_ui / android_ui / windows_ui / assigned Linux or web implementer | Native intent provenance, typed wrappers, native lifecycle/focus, real UI tests, platform diagnostics |
 | build_reliability | Reproducible generated declarations, lint/dependency/size gates, diagnostic sink/redaction tests, failure injection and trustworthy evidence |
 | rendering_performance | Buffer/copy/allocation costs, queue age and tail latency, cache correctness, bounded tracing overhead, reproducible visible benchmarks |
-| ui_ux_designer | Before/after native interaction, hierarchy/spacing, accessibility, empty/error/loading states, focus, light/dark, resize and input variants |
+| ui_ux_designer | Coordinate shared behavior and platform-specific Figma/review briefs; native hierarchy, accessibility, states, focus, appearance, resize and input variants |
 | Fresh reviewer | Independent diff/evidence review; explicit maintainability, security, ownership, logging and performance-risk pass |
 
-The lead assigns Android/Linux/web ownership explicitly; no missing configured specialist
-is assumed. Use a focused existing reviewer for high-risk security questions (FFI, imported
+Use android_ui for Android/ChromeOS native delivery and ios_ui for iPhone/iPad plus explicitly
+assigned visionOS 2D. The lead assigns Linux/web and TV/Watch viewer ownership explicitly,
+with one writer per shared Apple contract/module. The designer requests focused platform
+design reviews through the lead; no recursive delegation or larger concurrency budget.
+Use a focused existing reviewer for high-risk security questions (FFI, imported
 files, providers, credentials/network when scoped). Do not add a permanent architecture,
 logging or security agent just to create another approval layer. Reconsider specialization
 only if repeated tasks demonstrate a concrete expertise or capacity gap.

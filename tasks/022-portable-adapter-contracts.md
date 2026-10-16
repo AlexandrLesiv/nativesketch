@@ -5,7 +5,7 @@ Owner role: rust_engine (lead assigns concrete worker).
 Starting revision: integration descendant of `codex/github-pages@712059d5`; freeze exact commit at dispatch.
 Owned paths: platform bridge contracts/conformance fixtures; targeted apps/ modules; port task evidence.
 Dependencies: 020, 021.
-Roles: rust_engine, ui_ux_designer, macos_ui, windows_ui, build_reliability, reviewer.
+Roles: rust_engine, ui_ux_designer, macos_ui, ios_ui, android_ui, windows_ui, build_reliability, reviewer.
 
 ## Outcome
 
@@ -43,7 +43,8 @@ Read [architecture](../docs/architecture.md), [quality](../docs/quality.md), and
   preconditions; routing every step through Rust alone does not prove equivalent intents.
 - Split remaining host responsibilities <=200 lines; serialize by host or use isolated worktrees with explicit owners.
 - Preserve Apple editor versus viewer capabilities, standalone Watch source policy, Android desktop reuse and semantic HTML.
-- Port tasks 004/009-013 own platform E2E/packaging; record blocked drivers/hardware honestly. No invented Android/Linux/web agent config.
+- Port tasks 004/009-013 own platform E2E/packaging; use configured ios_ui/android_ui for
+  their hosts and explicit lead assignments for Linux/web/viewers. Record blocked drivers/hardware honestly.
 
 ## Required evidence
 

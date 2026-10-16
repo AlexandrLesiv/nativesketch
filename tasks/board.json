@@ -120,7 +120,7 @@
       "roles": [
         "ui_ux_designer",
         "rust_engine",
-        "macos_ui",
+        "ios_ui",
         "build_reliability",
         "reviewer"
       ]
@@ -137,6 +137,7 @@
       "roles": [
         "ui_ux_designer",
         "rust_engine",
+        "android_ui",
         "build_reliability",
         "reviewer"
       ]
@@ -322,6 +323,8 @@
         "rust_engine",
         "ui_ux_designer",
         "macos_ui",
+        "ios_ui",
+        "android_ui",
         "windows_ui",
         "build_reliability",
         "reviewer"

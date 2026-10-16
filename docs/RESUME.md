@@ -17,6 +17,13 @@ the concrete typed contract and obtain the specified owner review. Existing work
 remain until parity and per-host retirement gates pass. Remaining implementation, native
 verification and copy-policy gaps below are still unresolved, subject to the new sequence.
 
+The owner also requested android_ui and ios_ui implementation roles, now defined in
+.codex/agents/. Task 009 uses ios_ui, 010 uses android_ui, and 022 includes both.
+ui_ux_designer coordinates platform-specific briefs/Figma variants and running-app reviews;
+new pages/tools still require explicit owner approval before implementation. Shared Apple
+files have one lead-assigned writer; Linux/web and TV/Watch work remain explicitly assigned.
+No concurrency increase or new platform acceptance is implied by these instruction changes.
+
 ## Repository and authority
 
 - Primary checkout: `/Users/oleksandr/projects/native-sketch`.
