@@ -22,8 +22,7 @@ import CSketchSession
       owner.refresh()
       return
     }
-    owner.canvas.cancel()
-    if owner.editor.send(.tool(tool)) { owner.window.makeFirstResponder(owner.canvas) }
+    if perform(.chooseTool(tool)) { owner.window.makeFirstResponder(owner.canvas) }
   }
   @objc func resize(_ sender: Any?) {
     guard owner.inspectorController.fieldEditing.finishEditing() else { return }
@@ -42,43 +41,40 @@ import CSketchSession
         userInfo: [.announcement: message, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
       return
     }
-    owner.canvas.cancel()
-    guard let bounds = owner.scene.bounds(), owner.editor.send(.beginTransform) else { return }
-    if owner.editor.send(
-      .transform(percent / 100, bounds.x + bounds.width / 2, bounds.y + bounds.height / 2))
-    {
-      _ = owner.editor.send(.commitTransform)
+    if perform(.scaleSelection(percent / 100)) {
+      owner.inspectorController.scale.stringValue = "100"
     }
-    if owner.editor.projection.interaction != 0 { owner.editor.send(.cancel) }
-    owner.inspectorController.scale.stringValue = "100"
   }
-  @objc func nextStroke(_ sender: Any?) { cycle(1) }
-  @objc func previousStroke(_ sender: Any?) { cycle(-1) }
-  private func cycle(_ direction: Int32) {
+  @objc func nextStroke(_ sender: Any?) { cycle(.next) }
+  @objc func previousStroke(_ sender: Any?) { cycle(.previous) }
+  private func cycle(_ direction: SessionAction.CycleDirection) {
     guard owner.inspectorController.fieldEditing.finishEditing() else { return }
-    owner.canvas.cancel()
-    if owner.editor.send(.tool(SK_V1_SELECT.rawValue)) { owner.editor.send(.cycle(direction)) }
+    perform(.cycleSelection(direction))
   }
   @objc func deleteStroke(_ sender: Any?) {
     guard fieldEditor == nil else { return }
-    owner.canvas.cancel()
-    owner.editor.send(.delete)
+    perform(.deleteSelection)
   }
   @objc func undo(_ sender: Any?) {
     if let fieldEditor {
       fieldEditor.undoManager?.undo()
       return
     }
-    owner.canvas.cancel()
-    owner.editor.send(.undo)
+    perform(.undo)
   }
   @objc func redo(_ sender: Any?) {
     if let fieldEditor {
       fieldEditor.undoManager?.redo()
       return
     }
-    owner.canvas.cancel()
-    owner.editor.send(.redo)
+    perform(.redo)
+  }
+  @discardableResult func perform(_ action: SessionAction) -> Bool {
+    guard owner.editor.perform(action) else { return false }
+    // Shared actions already cancelled Rust state. Never send a second Cancel.
+    owner.canvas.input.gesture = .idle
+    owner.canvas.input.space = false
+    return true
   }
   @objc func zoomIn(_ sender: Any?) { owner.canvas.setZoom(owner.canvas.zoom * 1.25) }
   @objc func zoomOut(_ sender: Any?) { owner.canvas.setZoom(owner.canvas.zoom / 1.25) }

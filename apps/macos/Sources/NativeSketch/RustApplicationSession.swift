@@ -161,7 +161,7 @@ import CSketchSession
     return false
   }
 
-  private func accept(_ status: UInt32, _ outcome: SketchOutcomeV1) -> Bool {
+  func accept(_ status: UInt32, _ outcome: SketchOutcomeV1) -> Bool {
     guard status == SK_V1_OK.rawValue else {
       if status == SK_V1_PANIC.rawValue || status == SK_V1_POISONED.rawValue { unavailable = true }
       NativeDiagnostics.failure("session-command", status: status, session: projection.session)

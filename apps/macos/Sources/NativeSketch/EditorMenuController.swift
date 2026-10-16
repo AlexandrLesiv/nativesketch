@@ -69,20 +69,19 @@ import CSketchSession
     if item.action == #selector(DocumentCoordinator.cancelNavigation(_:)) {
       return owner.editor.projection.continuation.serial != 0
     }
-    if item.action == #selector(EditorActions.nextStroke(_:))
-      || item.action == #selector(EditorActions.previousStroke(_:))
-    {
-      return owner.editor.projection.stroke_count > 0
-        && owner.editor.available(SK_V1_CHOOSE_SELECT.rawValue)
+    let actions: [Selector: SessionAction] = [
+      #selector(EditorActions.undo(_:)): .undo,
+      #selector(EditorActions.redo(_:)): .redo,
+      #selector(EditorActions.deleteStroke(_:)): .deleteSelection,
+      #selector(EditorActions.penTool(_:)): .chooseTool(SK_V1_PEN.rawValue),
+      #selector(EditorActions.selectTool(_:)): .chooseTool(SK_V1_SELECT.rawValue),
+      #selector(EditorActions.nextStroke(_:)): .cycleSelection(.next),
+      #selector(EditorActions.previousStroke(_:)): .cycleSelection(.previous),
+    ]
+    if let selector = item.action, let action = actions[selector] {
+      return owner.editor.available(action)
     }
     let mapping: [Selector: UInt32] = [
-      #selector(EditorActions.undo(_:)): SK_V1_UNDO.rawValue,
-      #selector(EditorActions.redo(_:)): SK_V1_REDO.rawValue,
-      #selector(EditorActions.deleteStroke(_:)): SK_V1_DELETE_SELECTION.rawValue,
-      #selector(EditorActions.penTool(_:)): SK_V1_CHOOSE_PEN.rawValue,
-      #selector(EditorActions.selectTool(_:)): SK_V1_CHOOSE_SELECT.rawValue,
-      #selector(EditorActions.nextStroke(_:)): SK_V1_SELECT_CYCLE.rawValue,
-      #selector(EditorActions.previousStroke(_:)): SK_V1_SELECT_CYCLE.rawValue,
       #selector(DocumentCoordinator.saveDocument(_:)): SK_V1_SAVE.rawValue,
       #selector(DocumentCoordinator.saveAs(_:)): SK_V1_SAVE_AS.rawValue,
       #selector(DocumentCoordinator.newDocument(_:)): SK_V1_NEW.rawValue,

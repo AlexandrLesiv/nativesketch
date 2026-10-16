@@ -9,6 +9,48 @@ import XCTest
     try verifyCancellation(resize: false)
   }
 
+  // CANCEL-001 / UNDO-001: actual native command routing during held synthetic input.
+  func testUndoCancelsHeldDraftAndUndoesCommittedStroke() throws {
+    try verifyHeldUndo(hasHistory: true)
+  }
+
+  func testUnavailableUndoPreservesFirstHeldDraft() throws {
+    try verifyHeldUndo(hasHistory: false)
+  }
+
+  private func verifyHeldUndo(hasHistory: Bool) throws {
+    continueAfterFailure = false
+    let fixture = try NativeSessionFixture()
+    fixture.registerTeardown(in: self)
+    let teardown = NativeTestTeardown(test: self)
+    try fixture.launch()
+    if hasHistory { fixture.draw(count: 1) }
+    let file = fixture.document("held-action")
+    try saveDocument(in: fixture.app, to: file, saveAs: false)
+    waitForSaved(fixture)
+    let native = try NativeGestureWindow(fixture: fixture, file: file)
+    teardown.add { try native.cleanup() }
+    try native.begin()
+    fixture.wait { (native.interaction ?? 0) > 0 }
+    let interaction = native.interaction
+    fixture.app.typeKey("z", modifierFlags: .command)
+    if hasHistory {
+      fixture.wait { native.interaction == 0 }
+      fixture.strokes(0)
+    } else {
+      XCTAssertEqual(native.interaction, interaction)
+    }
+    try native.pointer.release()
+    fixture.strokes(hasHistory ? 0 : 1)
+    if hasHistory {
+      fixture.app.typeKey("z", modifierFlags: [.command, .shift])
+      fixture.strokes(1)
+    }
+    fixture.app.typeKey("s", modifierFlags: .command)
+    waitForSaved(fixture)
+    fixture.diskStrokes(1, at: file)
+  }
+
   private func verifyCancellation(resize: Bool) throws {
     continueAfterFailure = false
     let fixture = try NativeSessionFixture()

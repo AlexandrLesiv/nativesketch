@@ -26,8 +26,10 @@ import CSketchSession
     owner.window.isDocumentEdited = state.dirty != 0
     owner.window.title = "\(owner.documents.displayName) — Native Sketch"
     inspector.tool.selectedSegment = state.tool == SK_V1_PEN.rawValue ? 0 : 1
-    inspector.tool.setEnabled(owner.editor.available(SK_V1_CHOOSE_PEN.rawValue), forSegment: 0)
-    inspector.tool.setEnabled(owner.editor.available(SK_V1_CHOOSE_SELECT.rawValue), forSegment: 1)
+    inspector.tool.setEnabled(
+      owner.editor.available(.chooseTool(SK_V1_PEN.rawValue)), forSegment: 0)
+    inspector.tool.setEnabled(
+      owner.editor.available(.chooseTool(SK_V1_SELECT.rawValue)), forSegment: 1)
     let brushEnabled = owner.editor.available(SK_V1_SET_BRUSH.rawValue)
     for control in [inspector.color, inspector.width, inspector.stepper] as [NSControl] {
       control.isEnabled = brushEnabled
@@ -37,7 +39,7 @@ import CSketchSession
     inspector.color.color = NSColor(
       srgbRed: state.brush.red, green: state.brush.green,
       blue: state.brush.blue, alpha: state.brush.alpha)
-    let transformEnabled = owner.editor.available(SK_V1_BEGIN_TRANSFORM.rawValue)
+    let transformEnabled = owner.editor.available(.scaleSelection(1))
     inspector.scale.isEnabled = transformEnabled
     inspector.apply.isEnabled = transformEnabled
     let selected = state.selected_id != 0
