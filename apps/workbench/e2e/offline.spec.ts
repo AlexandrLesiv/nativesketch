@@ -65,6 +65,13 @@ test('DX-DOC-001 offline document links and literal hostile content', async ({ p
 test('DX-COVERAGE-001 stale attempts and missing metrics stay distinct', async ({ page }) => {
   await page.getByRole('link', { name: 'Coverage', exact: true }).click();
   await expect(page.getByRole('main')).toContainText('Evidence source freshness: stale');
+  const issues = page
+    .locator('details')
+    .filter({ has: page.getByText('Mapping issues (1)', { exact: true }) });
+  await expect(issues).not.toHaveAttribute('open');
+  await expect(page.getByRole('searchbox', { name: 'Search coverage' })).toBeVisible();
+  await issues.getByText('Mapping issues (1)', { exact: true }).click();
+  await expect(issues).toContainText('Fixture mapping warning');
   await page.getByRole('link', { name: 'DX-FIXTURE · fixture' }).click();
   await expect(
     page.getByText('fixture-test · attempt 1 · failed · environment invalid', { exact: true }),

@@ -19,7 +19,9 @@ export function coverageView(snapshot: ProjectSnapshot): HTMLElement {
       ? identity(data.discoverySource)
       : notice('No discovery source loaded. Missing execution evidence is not zero failures.'),
     sourcePaths(data.evidencePaths),
-    textList(data.issues),
+    ...(data.issues.length
+      ? [detail(`Mapping issues (${data.issues.length})`, textList(data.issues))]
+      : []),
   );
   root.append(
     filterForm('coverage', {
