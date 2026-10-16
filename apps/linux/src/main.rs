@@ -7,6 +7,12 @@ mod command_owner;
 mod composition;
 mod control_actions;
 mod controls;
+mod diagnostic_budget;
+#[cfg(test)]
+mod diagnostic_receipt_tests;
+mod diagnostic_sink;
+#[cfg(test)]
+mod diagnostic_sink_tests;
 mod diagnostics;
 mod file_dialogs;
 mod file_effects;
@@ -34,6 +40,7 @@ mod stylus_input;
 mod test_support;
 
 fn main() {
+    crate::diagnostics::start();
     let app = adw::Application::builder()
         .application_id("dev.nativesketch.Gtk")
         .build();

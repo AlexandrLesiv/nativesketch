@@ -123,9 +123,17 @@ impl Provider {
             }
         }
         while let Some(diagnostic) = owner.app.take_diagnostic() {
-            crate::diagnostics::record(format_args!(
-                "event=provider_boundary diagnostic={diagnostic:?}"
-            ));
+            match diagnostic.outcome {
+                DiagnosticOutcome::WorkCompleted
+                | DiagnosticOutcome::Write(
+                    sketch_core::application::storage::SaveResult::Written(_),
+                ) => crate::diagnostics::event(format_args!(
+                    "event=provider_boundary diagnostic={diagnostic:?}"
+                )),
+                _ => crate::diagnostics::record(format_args!(
+                    "event=provider_boundary diagnostic={diagnostic:?}"
+                )),
+            }
         }
         // One active job plus one retained host slot; ownership is never dropped on send error.
         if !self.active

@@ -34,7 +34,13 @@ It does not migrate Linux rendering to Skia or claim Linux native acceptance.
   Shutdown never joins an active worker or treats dropping work as termination.
   A 30-second stall emits at most four warnings; the live hold remains rather than
   falsely reporting completion. Ordinary operation/failure diagnostics are redacted
-  and capped at 128 process records; no sample/path/document logging is emitted.
+  with separate 32-slot failure/event queues and recovering limits of 16 records per
+  category per second. A dedicated sink thread emits cumulative queue/rate suppression
+  and sink-failure counts at most once per second. Each record is bounded to 1024 UTF-8
+  bytes. Producers only format bounded redacted records and try nonblocking enqueue;
+  they never write stderr or wait for a sink. Broken stderr cannot panic the editor or
+  prevent file work from returning its actual receipt. No sample/path/document logging
+  is emitted.
 - `scene_painter` traverses immutable `RenderScene` in original paint order, suppresses
   the original transform-preview stroke, and fills live actual/predicted geometry
   once. Cairo retains f64 coordinates; geometry origin must not be added twice.
@@ -81,3 +87,18 @@ accessibility need an actual Linux host E2E session. No performance claim is mad
 Physical pen latency, Linux Skia migration and cross-process file coordination are
 outside this slice. Atomic access deliberately rejects unsupported/symlink destinations
 and reports failure; it does not silently fall back to non-atomic writes.
+
+## Logging repair after e0360c4
+
+Independent review found that the initial process-lifetime quota could be exhausted by
+successes, permanently suppressing future failures, and that synchronous stderr writes
+could panic on a broken sink. The separate repair replaces that design with recovering
+rate limits, independent queues, observable cumulative suppression counts and a dedicated
+fallible sink. Pure tests cover success/failure budget isolation, time-window recovery,
+UTF-8 size bounds, actual full-queue drops and summary recovery, and sink-panic
+containment. A bounded subprocess redirects real stderr to a read-only descriptor,
+then verifies that a worker still returns and applies its actual successful write
+receipt despite 1000 logging attempts. The suite reports 15 passes and one ignored
+helper; that helper is explicitly executed in the passing subprocess test, not left
+unverified. Original e0360c4 evidence is retained; repair
+evidence uses a separate artifacts/evidence/022-linux-logging-repair directory.
