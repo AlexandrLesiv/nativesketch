@@ -7,6 +7,9 @@
     "sketch-wasm": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
     "sketch-native-ffi": {"allowedNormalDependencies": ["sketch-core", "sketch-services", "sketch-renderer"], "allowedBuildDependencies": []},
     "sketch-app-wire": {"allowedNormalDependencies": ["sketch-app", "sketch-core"], "allowedBuildDependencies": []},
+    "sketch-app-bridge": {"allowedNormalDependencies": ["sketch-app-wire"], "allowedBuildDependencies": []},
+    "sketch-app-ffi": {"allowedNormalDependencies": ["sketch-app-bridge"], "allowedBuildDependencies": []},
+    "sketch-app-wasm": {"allowedNormalDependencies": ["sketch-app-bridge"], "allowedBuildDependencies": []},
     "sketch-app": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []},
     "sketch-services": {"allowedNormalDependencies": ["sketch-core"], "allowedBuildDependencies": []}
   },

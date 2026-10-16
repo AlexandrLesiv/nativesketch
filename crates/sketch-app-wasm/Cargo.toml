@@ -1,0 +1,10 @@
+[package]
+name = "sketch-app-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+[lib]
+crate-type = ["cdylib", "rlib"]
+[dependencies]
+sketch-app-bridge = { path = "../sketch-app-bridge" }

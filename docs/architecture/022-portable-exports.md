@@ -55,8 +55,8 @@ must not concurrently access the same handle except to receive a documented Busy
 | app_call | New reply buffer | Existing app unchanged by transport rejection |
 | app_take_work | Reply and optional issued Work | No work consumed |
 | work_copy_input | Copied bounded InputBytes | Work and caller bytes unchanged |
-| work_call100/101/107 | Reply;101 may produce failure Result | Work/input retained |
-| work_call102/103/104/105/106 | Reply and actual Result; clear consumed Work and Input | Work/input retained |
+| work_call100/101/107 | Reply; Encode failure returns Result and consumes Work; otherwise Work retained | Work/input retained |
+| work_call102/103/104/105/106 | Reply and actual Result; consume Work; only102 consumes Input, others require no Input | Work/input retained |
 | app_complete | Consume actual Result; clear its handle; new reply | Result retained |
 | buffer/input free | Remove exactly one registered object; clear handle | No transfer |
 | app_free | Remove owner only when typed shutdown_ready and no registry objects remain | Busy/Poisoned, owner retained |

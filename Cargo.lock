@@ -435,6 +435,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "sketch-app-bridge"
+version = "0.1.0"
+dependencies = [
+ "sketch-app-wire",
+]
+
+[[package]]
+name = "sketch-app-ffi"
+version = "0.1.0"
+dependencies = [
+ "sketch-app-bridge",
+]
+
+[[package]]
+name = "sketch-app-wasm"
+version = "0.1.0"
+dependencies = [
+ "sketch-app-bridge",
+]
+
+[[package]]
 name = "sketch-app-wire"
 version = "0.1.0"
 dependencies = [
