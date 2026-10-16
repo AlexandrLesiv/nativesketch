@@ -113,7 +113,7 @@ fn worker_emits_correlated_redacted_stage_failure_and_durability_codes() {
     }
 }
 
-// DIAG-001: every code has an independent bounded counter, including the newest.
+// Every diagnostic code has an independent bounded counter, including the newest.
 #[test]
 fn all_event_codes_have_independent_rate_limits_and_reset() {
     use EventCode::*;
