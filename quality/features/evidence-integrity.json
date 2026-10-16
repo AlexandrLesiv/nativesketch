@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "evidence-integrity",
+  "description": "Background evidence-classifier and process tests; historical native result replay does not certify the current native application.",
+  "sourceRevision": "a6637a7",
+  "cases": [
+    {
+      "id": "EVIDENCE-XCTEST-001",
+      "expected": "Only reconciled completed XCTest failures preserve certified passing peers; incomplete, ambiguous or infrastructure evidence fails closed.",
+      "invariants": [],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/tests/e2e-classification.test.ts:real sanitized 11-case run preserves seven certified peers despite four failures",
+        "node:scripts/tests/e2e-classification.test.ts:non-normal exits cannot certify passing peers",
+        "node:scripts/tests/e2e-classification.test.ts:incomplete selection, duplicated outcomes and summary disagreement fail closed",
+        "node:scripts/tests/e2e-classification.test.ts:runner finalization errors cannot hide behind complete test counts",
+        "node:scripts/tests/e2e-classification.test.ts:attributed teardown issues remain failed; duplicated issue levels reconcile",
+        "node:scripts/tests/e2e-classification.test.ts:aliases are exact and ambiguous targets are rejected",
+        "node:scripts/tests/e2e-classification.test.ts:unattributed issues, mismatched multisets, malformed wrappers and extra actions block",
+        "node:scripts/tests/e2e-classification.test.ts:nonterminal and unknown tree cases are not silently dropped"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EVIDENCE-PROCESS-001",
+      "expected": "Process results preserve normal exit, signal, timeout, cancellation and bounded output as distinct failure evidence.",
+      "invariants": [],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/tests/process-failure.test.ts:real command failure retains structured exit, signal and bounded output",
+        "node:scripts/tests/process-failure.test.ts:pre-cancel and timeout are distinguishable from a normal exit"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "EVIDENCE-TEARDOWN-001",
+      "expected": "Negative cleanup acceptance requires actual test failures and exact cleanup completion.",
+      "invariants": [],
+      "ownerTask": "017",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "node:scripts/tests/e2e-teardown.test.ts:negative native cleanup suite requires actual failures and exact LIFO completion"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

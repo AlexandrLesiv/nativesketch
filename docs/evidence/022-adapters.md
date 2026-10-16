@@ -200,6 +200,14 @@ All new Rust source files are at most 171 lines. The author's full background in
 also passed. C/JNI/Wasm transport, host adoption and native acceptance are separate work;
 no portable recovery provider or platform renderer was introduced by this crate.
 
+At primary `d4afbc7`, actual Cargo discovery/execution passed all nine registered facade
+acceptance groups. The complete report has 246 acceptance/platform rows, 71 passed;
+the remainder remain explicit gaps. [Revision-bound coverage](../../artifacts/evidence/022-facade-d4afbc7/coverage.html)
+does not equate successful report generation with complete product coverage.
+The full background integration at `3d97af4` passed, including all 17 GPU-free Swift tests.
+Its first attempt passed portable checks but was sandbox-blocked reading native host
+identity; the authorized background retry and original failure are both retained.
+
 ## Returned write receipt recovery
 
 `5fe559c` adds explicitly unconfirmed export dispatch and checked encoded size. Unconfirmed
