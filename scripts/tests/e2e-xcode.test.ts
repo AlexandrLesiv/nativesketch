@@ -23,20 +23,21 @@ await test('executable discovery normalizes target class method and rejects dupl
   assert.throws(() => enumeratedTests({ values: [{ enabledTests: [entry, entry] }] }), /No unique/);
 });
 await test('system initialization failures do not masquerade as test execution', () => {
-  assert.deepEqual(
-    testOutcomes(
-      {
-        testNodes: [
-          {
-            nodeType: 'Test Case',
-            nodeIdentifier: 'Runner encountered an error',
-            result: 'Failed',
-          },
-        ],
-      },
-      [id],
-    ),
-    [],
+  assert.throws(
+    () =>
+      testOutcomes(
+        {
+          testNodes: [
+            {
+              nodeType: 'Test Case',
+              nodeIdentifier: 'Runner encountered an error',
+              result: 'Failed',
+            },
+          ],
+        },
+        [id],
+      ),
+    /Unknown/,
   );
 });
 await test('XCTest assertions preserve failed and skipped outcomes', () => {

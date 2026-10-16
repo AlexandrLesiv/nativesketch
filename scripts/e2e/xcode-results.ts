@@ -1,4 +1,5 @@
-interface TestOutcome {
+import { testIdentifier } from './test-identifiers.ts';
+export interface TestOutcome {
   testId: string;
   status: 'passed' | 'failed' | 'skipped';
   durationMs: number;
@@ -39,13 +40,18 @@ export function testOutcomes(value: unknown, discovered: string[]): TestOutcome[
       const identifier = (
         typeof node.nodeIdentifier === 'string' ? node.nodeIdentifier : ''
       ).replace(/\(\)$/, '');
-      const id = discovered.find((test) => test.endsWith(`:${identifier}`));
+      const id = testIdentifier(identifier, discovered);
+      if (!id) throw new Error('Unknown XCTest case identity');
+      const duration = Number(node.durationInSeconds ?? 0);
+      if (!Number.isFinite(duration) || duration < 0) throw new Error('Invalid XCTest duration');
+      if (id && !['Passed', 'Failed', 'Skipped'].includes(String(node.result)))
+        throw new Error('Nonterminal XCTest outcome');
       if (id)
         outcomes.push({
           testId: id,
           status:
             node.result === 'Passed' ? 'passed' : node.result === 'Skipped' ? 'skipped' : 'failed',
-          durationMs: Number(node.durationInSeconds ?? 0) * 1000,
+          durationMs: duration * 1000,
         });
     }
     for (const child of array(node.children)) visit(child);

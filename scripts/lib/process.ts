@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { ProcessFailure } from './process-failure.ts';
 
 export type ProcessOptions = {
   cwd: string;
@@ -15,7 +16,7 @@ export function run(executable: string, args: string[], options: ProcessOptions)
   }
   return new Promise<string>((resolve, reject) => {
     if (options.signal?.aborted) {
-      reject(new Error('Process cancelled'));
+      reject(new ProcessFailure(executable, null, null, 'Process cancelled', ''));
       return;
     }
     const child = spawn(executable, args, {
@@ -64,7 +65,9 @@ export function run(executable: string, args: string[], options: ProcessOptions)
     };
     child.stdout?.on('data', append);
     child.stderr?.on('data', append);
-    child.once('error', reject);
+    child.once('error', (error) => {
+      reason = `Process spawn failed: ${error.message}`;
+    });
     child.once('close', (code, signal) => {
       clearTimeout(timer);
       if (reason && child.pid && process.platform !== 'win32') {
@@ -78,9 +81,7 @@ export function run(executable: string, args: string[], options: ProcessOptions)
       clearTimeout(killTimer);
       options.signal?.removeEventListener('abort', stop);
       if (reason || code !== 0)
-        reject(
-          new Error(`${executable}: ${reason || `exit ${code}, signal ${signal}`}\n${output}`),
-        );
+        reject(new ProcessFailure(executable, code, signal, reason, output));
       else resolve(output.trim());
     });
   });

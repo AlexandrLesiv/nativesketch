@@ -1,0 +1,44 @@
+{
+  "expectedFailures": 0,
+  "failedTests": 4,
+  "finishTime": 1792108269.899,
+  "passedTests": 7,
+  "result": "Failed",
+  "skippedTests": 0,
+  "startTime": 1792107820.576,
+  "testFailures": [
+    {
+      "failureText": "XCTAssertTrue failed",
+      "targetName": "NativeSketchUITests",
+      "testIdentifier": 1,
+      "testIdentifierString": "EditorJourneyTests/testDrawSaveReopen()",
+      "testIdentifierURL": "test://com.apple.xcode/NativeSketchUITests/NativeSketchUITests/EditorJourneyTests/testDrawSaveReopen",
+      "testName": "testDrawSaveReopen()"
+    },
+    {
+      "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+      "targetName": "NativeSketchUITests",
+      "testIdentifier": 8,
+      "testIdentifierString": "NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing()",
+      "testIdentifierURL": "test://com.apple.xcode/NativeSketchUITests/NativeSketchUITests/NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing",
+      "testName": "testInjectedBackendFailureRecoversWithoutEditing()"
+    },
+    {
+      "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+      "targetName": "NativeSketchUITests",
+      "testIdentifier": 9,
+      "testIdentifierString": "NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory()",
+      "testIdentifierURL": "test://com.apple.xcode/NativeSketchUITests/NativeSketchUITests/NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory",
+      "testName": "testInjectedFailureAfterCommitPreservesInkAndHistory()"
+    },
+    {
+      "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+      "targetName": "NativeSketchUITests",
+      "testIdentifier": 10,
+      "testIdentifierString": "NativeRendererTests/testVisibleInkUndoRedoAndHideReveal()",
+      "testIdentifierURL": "test://com.apple.xcode/NativeSketchUITests/NativeSketchUITests/NativeRendererTests/testVisibleInkUndoRedoAndHideReveal",
+      "testName": "testVisibleInkUndoRedoAndHideReveal()"
+    }
+  ],
+  "totalTestCount": 11
+}

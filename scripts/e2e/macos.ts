@@ -1,3 +1,4 @@
+import { classifyXcodeExit } from './classify-xcode-exit.ts';
 import type { Discovery, Execution } from '../evidence/types.ts';
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -117,6 +118,7 @@ export async function macosJourney(
     ]);
     await assertSource();
     const outcomes = testOutcomes(JSON.parse(raw), ids);
+    let validationError = await classifyXcodeExit(output, executionError, outcomes, selected);
     try {
       await validateRuntimeProvenance(
         output,
@@ -124,7 +126,7 @@ export async function macosJourney(
         stable,
       );
     } catch (error) {
-      executionError = error;
+      validationError = error;
     }
     if (outcomes.some((outcome) => !selected.includes(outcome.testId)))
       throw new Error(
@@ -135,7 +137,7 @@ export async function macosJourney(
       results.results.push({
         testId: id,
         attempt,
-        ...executionOutcome(outcome, executionError),
+        ...executionOutcome(outcome, validationError),
         durationMs: outcome?.durationMs ?? 0,
         timestamp: new Date().toISOString(),
         binarySha256,
@@ -148,6 +150,9 @@ export async function macosJourney(
         artifacts: [
           'execution.log',
           'xcresult-tests.json',
+          ...(executionError
+            ? ['xcresult-invocation.json', 'xcresult-summary.json', 'execution-classification.json']
+            : []),
           'journey.xcresult',
           'identity.json',
           'runner-identity.json',
@@ -156,7 +161,11 @@ export async function macosJourney(
       });
     }
     await save();
-    if (executionError || results.results.some((item) => item.status !== 'passed'))
+    if (
+      executionError ||
+      validationError ||
+      results.results.some((item) => item.status !== 'passed')
+    )
       throw new Error(
         `Native journey did not pass: ${executionError instanceof Error ? executionError.message : 'see results.json'}`,
       );

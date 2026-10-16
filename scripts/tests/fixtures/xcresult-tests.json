@@ -1,0 +1,138 @@
+{
+  "testNodes": [
+    {
+      "nodeType": "Test Plan",
+      "result": "Failed",
+      "children": [
+        {
+          "nodeType": "UI test bundle",
+          "result": "Failed",
+          "children": [
+            {
+              "nodeType": "Test Suite",
+              "result": "Failed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "EditorJourneyTests/testDrawSaveReopen()",
+                  "result": "Failed",
+                  "durationInSeconds": 24.73736608028412,
+                  "children": [
+                    {
+                      "nodeType": "Failure Message"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "KeyboardShortcutTests/testFieldEditingKeepsCanvasState()",
+                  "result": "Passed",
+                  "durationInSeconds": 53.887462973594666
+                },
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "KeyboardShortcutTests/testOneStrokeUndoRedoKeyboard()",
+                  "result": "Passed",
+                  "durationInSeconds": 62.57043492794037
+                }
+              ]
+            },
+            {
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeGestureCancellationTests/testDeactivationCancelsHeldStrokeAndPreservesSavedDocument()",
+                  "result": "Passed",
+                  "durationInSeconds": 50.75745499134064
+                },
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeGestureCancellationTests/testResizeCancelsHeldStrokeAndPreservesSavedDocument()",
+                  "result": "Passed",
+                  "durationInSeconds": 43.918389081954956
+                }
+              ]
+            },
+            {
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeInspectorDismissalTests/testInspectorEscapeRestoresCanvasKeyboardCommands()",
+                  "result": "Passed",
+                  "durationInSeconds": 30.694725036621094
+                },
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeInspectorDismissalTests/testSmallDarkWindowFitsInspectorAndAcceptsDrawing()",
+                  "result": "Passed",
+                  "durationInSeconds": 9.940629005432129
+                }
+              ]
+            },
+            {
+              "nodeType": "Test Suite",
+              "result": "Failed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeRendererTests/testInjectedBackendFailureRecoversWithoutEditing()",
+                  "result": "Failed",
+                  "durationInSeconds": 35.11401093006134,
+                  "children": [
+                    {
+                      "nodeType": "Failure Message"
+                    }
+                  ]
+                },
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeRendererTests/testInjectedFailureAfterCommitPreservesInkAndHistory()",
+                  "result": "Failed",
+                  "durationInSeconds": 39.15020799636841,
+                  "children": [
+                    {
+                      "nodeType": "Failure Message"
+                    }
+                  ]
+                },
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeRendererTests/testVisibleInkUndoRedoAndHideReveal()",
+                  "result": "Failed",
+                  "durationInSeconds": 39.1547509431839,
+                  "children": [
+                    {
+                      "nodeType": "Failure Message"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "nodeType": "Test Suite",
+              "result": "Passed",
+              "children": [
+                {
+                  "nodeType": "Test Case",
+                  "nodeIdentifier": "NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState()",
+                  "result": "Passed",
+                  "durationInSeconds": 49.75271499156952
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
