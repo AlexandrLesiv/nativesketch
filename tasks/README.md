@@ -1,6 +1,6 @@
 # Backlog
 
-Run `./scripts/board` to view status and ready tasks. `board.json` contains IDs,
+Run `node scripts/board.ts` to view status and ready tasks. `board.json` contains IDs,
 dependencies, roles, and links to task briefs. It does not launch agents or spend tokens.
 
 The implementation base is `codex/github-pages@712059d5`. The owner excluded

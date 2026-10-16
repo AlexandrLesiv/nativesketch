@@ -48,15 +48,16 @@ unless new changes or evidence justify it.
 `node scripts/check.ts` also validates/types/lints/formats new Node tooling, runs its
 negative tests, and enforces source-size and dependency boundaries. It validates the task board,
 checks Rust formatting and clippy, runs the
-Rust tests, builds the macOS shell, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
+Rust tests, builds the macOS app, and runs its Swift-to-Rust first-stroke integration check. Rust tests cover transactional
 editing, pressure replay, persistence, and FFI failure behavior. The Swift integration
 check covers geometry/style round-trips and editing through the actual C boundary.
 Running-app interaction, native event replay, Windows, physical tablets, and GPU or
 pen-to-screen latency are separate evidence; a green check alone does not cover them.
 
 `node scripts/check.ts --core` skips macOS and is suitable for a non-Mac Rust runner.
-Install root dependencies with `npm ci --ignore-scripts` first. The old `./scripts/check`
-remains available as a parity reference, but does not include the new Node quality gates.
+Install root dependencies with `npm ci --ignore-scripts` first. `./scripts/check` is a
+three-line Node compatibility entry point to the same TypeScript checks and quality gates.
+Use the pinned Node on PATH; no Python or shell interpreter is required for this command.
 Generated artifacts are not source. Keep test fixtures synthetic and disposable.
 
 ## Portable host checks

@@ -5,6 +5,9 @@ entry points resolve their checkout, not the caller's current directory. Install
 packages with `npm ci --ignore-scripts` using Node **24.22.0** (`.node-version`). Rust
 **1.99.0**, rustfmt and Clippy are pinned in `rust-toolchain.toml`; .NET **10.0.107** is
 pinned in `global.json`. No command changes a global default or grants folder trust.
+`./scripts/check` remains an executable Node compatibility name for `check.ts`, with the
+same arguments and exit status. The Python board command has been retired after matching
+listing/check output from an unrelated working directory; use `node scripts/board.ts`.
 
 | Command | Scope |
 | --- | --- |
