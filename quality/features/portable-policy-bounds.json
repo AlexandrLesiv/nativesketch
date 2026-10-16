@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "portable-policy-bounds",
-  "description": "Typed core/facade save-policy and bounds tests. Automation existence is separate from execution. No host UI, wire or rendering performance acceptance is inferred.",
-  "sourceRevision": "0dcfedf6088bdbab7df45fd7d4fe279102dd11b8",
+  "description": "Typed core/facade and v2 transport save-policy and bounds tests. Automation existence is separate from execution. Actual C/Wasm execution is bridge scope, not host UI or performance acceptance.",
+  "sourceRevision": "da5fad6cf73cc8ac9177ba045cebb9ea46712c70",
   "cases": [
     {
       "id": "PORTABLE-SAVE-POLICY-001",
@@ -60,6 +60,56 @@
         "cargo:sketch-app:lib:tests::document_bounds::document_bounds_remain_available_when_viewport_culls_all_strokes_and_draft_is_active",
         "cargo:sketch-app:lib:tests::document_bounds::readonly_source_replacement_updates_document_bounds_and_detached_handle_is_rejected"
       ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "PORTABLE-POLICY-WIRE-001",
+      "expected": "Explicit additive policy tags, fixed whole-frame bounds goldens, full f64 coordinates and identity/revision preserve existing defaults and reject malformed, stale or capacity-limited calls.",
+      "invariants": ["FFI-001", "ASYNC-001", "SAVE-001", "RENDER-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app-wire:lib:tests::policy_bounds::explicit_policy_tags_reject_invalid_create_without_consuming_session_or_output_capacity",
+        "cargo:sketch-app-wire:lib:tests::policy_bounds::created_policy_controls_bound_save_while_legacy_create_preserves_default",
+        "cargo:sketch-app-wire:lib:tests::policy_bounds::bounds_response_goldens_preserve_empty_far_f64_identity_revision_and_readonly_query",
+        "cargo:sketch-app-wire:lib:tests::codec::exact_request_goldens_and_invalid_tails"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "PORTABLE-POLICY-C-001",
+      "expected": "Actual C caller creates the chooser policy, receives empty/nonempty identity-bound f64 bounds, saves through a pthread worker and reopens the chooser after binding.",
+      "invariants": ["FFI-001", "ASYNC-001", "SAVE-001", "RENDER-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "bridge"
+        }
+      ],
+      "testIds": ["native-c:portable-v2-consumer"],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "PORTABLE-POLICY-WASM-001",
+      "expected": "Actual Wasm module in Node preserves full f64 bounds and document identity/revision, and opens a new chooser after a confirmed write under AlwaysChoose.",
+      "invariants": ["FFI-001", "ASYNC-001", "SAVE-001", "RENDER-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "bridge"
+        }
+      ],
+      "testIds": ["wasm-js:portable-v2-conformance"],
       "automation": "implemented",
       "gaps": []
     }
