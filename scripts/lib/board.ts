@@ -10,14 +10,20 @@ export type Task = {
   roles: string[];
 };
 
-export async function readBoard(root: string): Promise<Task[]> {
-  const board = JSON.parse(await readFile(resolve(root, 'tasks/board.json'), 'utf8'));
+export async function readBoard(
+  root: string,
+  supplied?: { text: string; roles: readonly string[] },
+): Promise<Task[]> {
+  const board = JSON.parse(
+    supplied?.text ?? (await readFile(resolve(root, 'tasks/board.json'), 'utf8')),
+  );
   if (board.schema_version !== 1 || !Array.isArray(board.tasks))
     throw new Error('Expected schema_version 1 and tasks list');
   const roles = new Set(
-    (await readdir(resolve(root, '.codex/agents')))
-      .filter((p) => p.endsWith('.toml'))
-      .map((p) => p.slice(0, -5)),
+    supplied?.roles ??
+      (await readdir(resolve(root, '.codex/agents')))
+        .filter((p) => p.endsWith('.toml'))
+        .map((p) => p.slice(0, -5)),
   );
   const statuses = new Set(['ready', 'waiting', 'active', 'review', 'done', 'blocked']);
 
