@@ -24,10 +24,11 @@ export function requireFuzzFlags(value: unknown) {
 }
 
 export async function coreFuzzProof(cache: string) {
-  const directory = join(cache, 'aarch64-apple-darwin/release/.fingerprint');
-  const candidates = (await readdir(directory)).filter((name) => name.startsWith('sketch-core-'));
+  // Pinned nightly Cargo uses the per-package build/fingerprint layout.
+  const directory = join(cache, 'aarch64-apple-darwin/release/build/sketch-core');
+  const candidates = (await readdir(directory)).filter((name) => /^[a-f0-9]{16}$/.test(name));
   if (candidates.length !== 1) throw new Error('Missing or ambiguous core fuzz fingerprint');
-  const path = join(directory, candidates[0], 'lib-sketch_core.json');
+  const path = join(directory, candidates[0], 'fingerprint/lib-sketch_core.json');
   const value: unknown = JSON.parse(await readFile(path, 'utf8'));
   requireFuzzFlags(value);
   return { fingerprintSha256: await fileHash(path), fingerprint: value };
