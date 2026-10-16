@@ -1,7 +1,8 @@
 import Foundation
 
 enum DownloadFailure: Error, LocalizedError, Equatable {
-  case http(Int), oversized, insecureRedirect, invalidResponse
+  case http(Int)
+  case oversized, insecureRedirect, invalidResponse
   var errorDescription: String? {
     switch self {
     case .http(let status): "The server returned HTTP \(status)."
@@ -19,19 +20,35 @@ struct BoundedDownload {
   private(set) var bytes = Data()
   private(set) var failure: DownloadFailure?
   mutating func redirect(to url: URL?) -> Bool {
-    guard url?.scheme?.lowercased() == "https" else { reject(.insecureRedirect); return false }
+    guard url?.scheme?.lowercased() == "https" else {
+      reject(.insecureRedirect)
+      return false
+    }
     return failure == nil
   }
   mutating func response(status: Int?, expectedLength: Int64) -> Bool {
-    guard let status else { reject(.invalidResponse); return false }
-    guard (200...299).contains(status) else { reject(.http(status)); return false }
-    guard expectedLength <= Int64(limit) else { reject(.oversized); return false }
+    guard let status else {
+      reject(.invalidResponse)
+      return false
+    }
+    guard (200...299).contains(status) else {
+      reject(.http(status))
+      return false
+    }
+    guard expectedLength <= Int64(limit) else {
+      reject(.oversized)
+      return false
+    }
     return failure == nil
   }
   mutating func append(_ data: Data) -> Bool {
     guard failure == nil else { return false }
-    guard data.count <= limit, bytes.count <= limit - data.count else { reject(.oversized); return false }
-    bytes.append(data); return true
+    guard data.count <= limit, bytes.count <= limit - data.count else {
+      reject(.oversized)
+      return false
+    }
+    bytes.append(data)
+    return true
   }
   mutating private func reject(_ error: DownloadFailure) { if failure == nil { failure = error } }
   func result(transportError: Error?) -> Result<Data, Error> {

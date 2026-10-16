@@ -50,3 +50,23 @@ Simulator-only adapter replay also checks oversized-copy rejection without sendi
 Document → Apple Watch Transfer Status retains the latest transfer message for the
 current session, including a failure received while another sheet is open. The
 queue confirmation does not claim that a previously saved document became dirty.
+
+## Adapter organization
+
+`MobileEditor` retains the legacy Rust ABI 2 ownership boundary. `DrawingController`
+composes the native window content and keeps responder identity; its named extensions
+separate interface setup, editing actions, native inspector dialogs, document picker
+callbacks, viewport operations, Watch transfer presentation and debug replay.
+`DrawingView` owns viewport and contact lifetime, with separate touch, spatial-input,
+stroke-input and Core Graphics painting implementations. Touch overrides forward to
+the same arbitration code; rotation and second-contact cancellation order is unchanged.
+`NativeSketch.swift` now contains only application and scene lifecycle composition.
+
+This is a behavior-preserving extraction, not portable application-command or Skia
+adoption. Canvas/tool state and synchronous file policy still need the task 022 typed
+facade migration. Native field priority, UIKit selectors and existing controls remain.
+The shared legacy module map lives in `apps/apple-bridge/CSketchFFI`; macOS does not use it.
+
+Use `node scripts/build.ts --platform ios --variant simulator` for a background build;
+`--platform visionos` compiles the same editor adapters for the 2D visionOS window.
+Building does not constitute native touch, Pencil, spatial input or accessibility acceptance.

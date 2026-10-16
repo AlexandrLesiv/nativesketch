@@ -117,7 +117,7 @@ export async function buildApple(platform: string, variant: string = 'simulator'
       '-module-cache-path',
       cache,
       '-I',
-      'apps/macos/Sources/CSketchFFI',
+      'apps/apple-bridge/CSketchFFI',
       ...sources,
       `target/${target}/release/libsketch_ffi.a`,
       ...frameworks.flatMap((f) => ['-framework', f]),

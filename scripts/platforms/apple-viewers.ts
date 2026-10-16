@@ -43,7 +43,7 @@ export async function checkAppleViewers() {
       '6',
       '-parse-as-library',
       '-I',
-      'apps/macos/Sources/CSketchFFI',
+      'apps/apple-bridge/CSketchFFI',
       ...(await swiftFiles('apps/apple-sources')),
       ...(await swiftFiles('apps/apple-viewer')),
       join(directory, 'main.swift'),
