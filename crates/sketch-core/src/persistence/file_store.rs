@@ -30,15 +30,17 @@ pub(super) fn save_with(
         std::process::id(),
         TEMP_ID.fetch_add(1, Ordering::Relaxed)
     ));
-    let mut file = OpenOptions::new()
+    let file = OpenOptions::new()
         .write(true)
         .create_new(true)
         .open(&temp)
         .map_err(|_| Error::Io)?;
     let result = (|| {
-        file.write_all(&bytes)?;
-        file.sync_all()?;
-        drop(file);
+        {
+            let mut output = file;
+            output.write_all(&bytes)?;
+            output.sync_all()?;
+        }
         before_replace(&temp)?;
         fs::rename(&temp, path)
     })()
