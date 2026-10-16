@@ -3,7 +3,8 @@
 C# / WinUI 3 native controls call the shared Rust editor through ABI 2. Programmatic
 UI uses CommandBar/MenuBar, ColorPicker, NumberBox and HWND-initialized Windows
 file pickers. WinUI PathGeometry paints Rust-owned filled paths provisionally;
-no permanent renderer decision or GPU performance claim is made (task 002/004).
+the selected Skia backend has not yet been migrated into this host. No Windows GPU
+performance claim is made.
 
 ## Build on Windows
 
@@ -81,3 +82,39 @@ provisional XAML path surface lifecycle belongs to WinUI.
 References: [WinUI unpackaged deployment](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/unpackage-winui-app),
 [pointer input](https://learn.microsoft.com/en-us/windows/apps/develop/input/handle-pointer-input),
 [Rust rename semantics](https://doc.rust-lang.org/std/fs/fn.rename.html).
+
+## Task 022 composition evidence (2026-10-16)
+
+Tested source: `0e4cd7c5523db69c4a0133652f9eed12c8338646`, extracted from
+`2d2a534` without changing the legacy ABI 2 or renderer. `SketchWindow` composes
+`EditorView`, `NativeMenus`/`EditorToolbar`, `CanvasInput`, `CanvasNavigation`/
+`CanvasViewport`, `CanvasPainter`, `EditorPresenter`, and `DocumentEffects`.
+The engine remains uniquely owned by the window. Native event handlers and async
+picker/dialog continuations retain the existing DispatcherQueue synchronization
+context; no worker or callback transport was introduced. The next portable facade
+migration must replace the remaining host-side document/command policy explicitly.
+
+On macOS arm64 (Darwin 27.0.0), .NET 10.0.107 and the pinned WinUI packages:
+
+- The actual WinUI project's `Compile` target passed with no compiler diagnostics,
+  using the compile-only command above. This is not Windows packaging or execution.
+- `dotnet format <project> --verify-no-changes --no-restore` passed for both projects.
+  The WinUI workspace reports an expected macOS `mt.exe` exit 126 warning during
+  design-time loading; diagnostics confirm formatting/analyzer execution completed
+  with zero changed files. The independent console project has no such warning.
+- All 13 handwritten C# files are at most 192 physical lines after formatting.
+  Engine and replay lexical tokens are unchanged; all original UI/command string
+  literals are retained. Interop layout declarations and assertions are unchanged.
+- The existing real C#/Rust replay passed: ABI sizes, mouse/pressure paths, hit test,
+  resize cancellation/commit, undo/redo, Unicode repeated save, failed save/load
+  preservation, delete/undo and ink cancellation. It loaded the existing macOS
+  `libsketch_ffi.dylib`, SHA-256
+  `754a8bbfcf6ebb805fded5c8ed6486d49815813544bb4aaaa41b9d8cc1d51c03`.
+
+Relevant preserved invariants are `FFI-001`, `INK-002`, `UNDO-001`, `SAVE-001`,
+`LOAD-001`, `FOCUS-001`, `CANCEL-001`, and `VIEW-001`. The console replay covers only
+its listed bridge scenarios, not the full native acceptance of those invariants.
+No Windows native E2E, FlaUI/UIA3 validation, device/pointer tests, DPI/accessibility,
+resource/graphics performance or Windows package launch ran in this slice.
+Existing synchronous storage, XAML path rendering and local command policy remain
+migration debt, not the final shared Rust/Skia architecture.
