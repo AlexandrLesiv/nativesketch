@@ -10,9 +10,18 @@ int main(void) {
     assert(ns_v2_app_call(a.app, p, n, &r, &e) == 1);
     assert(r == 71);
     r = 0;
+    assert(ns_v2_app_call(0, p, n, &r, &e) == 7);
+    assert(get32(e.bytes + 8) == UINT32_C(0x80000005));
+    assert(get64(e.bytes + 16) == UINT64_C(0xfedcba9876543210));
+    n = frame(p, UINT32_C(0x70000005), NULL, 0);
+    assert(ns_v2_app_call(a.app, p, n, &r, &e) == 1);
+    assert(get32(e.bytes + 8) == UINT32_C(0xf0000005));
+    assert(get64(e.bytes + 16) == UINT64_C(0xfedcba9876543210));
+    n = frame(p, 5, NULL, 0);
     p[n++] = 42;
     assert(ns_v2_app_call(a.app, p, n, &r, &e) == 1);
     assert(r == 0);
+    assert(get64(e.bytes + 16) == 0);
     n = frame(p, 5, NULL, 0);
     assert(ns_v2_app_call(a.app, p, n, &r, &e) == 0);
     for (size_t i = 0; i < 72; i++) assert(e.bytes[i] == 0);

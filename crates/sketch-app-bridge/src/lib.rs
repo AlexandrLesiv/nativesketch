@@ -29,3 +29,18 @@ pub(crate) fn control(bytes: &[u8]) -> Result<()> {
 
 #[cfg(test)]
 mod tests;
+
+/// Preserve correlation only for an exact, bounded v2 frame; payload validation is separate.
+pub fn correlation(packet: &[u8]) -> (u32, u64) {
+    if packet.len() < 24 || packet.len() > 1024 * 1024 || &packet[..8] != b"NSAP\x02\0\0\0" {
+        return (0, 0);
+    }
+    let length = u32::from_le_bytes(packet[12..16].try_into().expect("header length"));
+    if usize::try_from(length).ok().and_then(|n| n.checked_add(24)) != Some(packet.len()) {
+        return (0, 0);
+    }
+    (
+        u32::from_le_bytes(packet[8..12].try_into().expect("header opcode")),
+        u64::from_le_bytes(packet[16..24].try_into().expect("header request")),
+    )
+}

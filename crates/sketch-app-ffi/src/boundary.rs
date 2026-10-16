@@ -11,6 +11,27 @@ pub(crate) fn invalid() -> WireError {
     }
 }
 pub(crate) unsafe fn run(error: *mut NsV2Error, f: impl FnOnce() -> Result<()>) -> u32 {
+    unsafe { run_context(error, (0, 0), f) }
+}
+pub(crate) unsafe fn run_packet(
+    error: *mut NsV2Error,
+    p: *const u8,
+    n: usize,
+    f: impl FnOnce(&[u8]) -> Result<()>,
+) -> u32 {
+    if error.is_null() {
+        return 1;
+    }
+    match unsafe { bytes(p, n) } {
+        Ok(packet) => unsafe { run_context(error, bridge::correlation(packet), || f(packet)) },
+        Err(e) => unsafe { run(error, || Err(e)) },
+    }
+}
+unsafe fn run_context(
+    error: *mut NsV2Error,
+    context: (u32, u64),
+    f: impl FnOnce() -> Result<()>,
+) -> u32 {
     if error.is_null() {
         return 1;
     }
@@ -22,7 +43,7 @@ pub(crate) unsafe fn run(error: *mut NsV2Error, f: impl FnOnce() -> Result<()>) 
     });
     let (status, bytes) = match result {
         Ok(()) => (0, [0; 72]),
-        Err(e) => (e.status, e.packet(0, 0)),
+        Err(e) => (e.status, e.packet(context.0, context.1)),
     };
     // Caller guarantees a writable, aligned error record, disjoint from other arguments.
     unsafe {

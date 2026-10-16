@@ -153,3 +153,7 @@ double release, actual WorkResult return and shutdown drain, owner TLS teardown 
 Actual Wasm instantiated in JS must exercise memory.grow, stale views, copied uploads, output
 exhaustion and corresponding transfer failures. Keep these portable/bridge tests separate from
 native UI, provider/device acceptance and rendering. No native scene borrow is exposed here.
+
+Fixed error records echo opcode/request for an exact bounded NSAP v2 frame, including
+rejected scope, owner, thread, output-capacity or payload calls. Malformed framing and
+packetless functions use opcode/request0. Correlation parsing never allocates or dispatches.

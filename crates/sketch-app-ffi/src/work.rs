@@ -30,12 +30,12 @@ pub unsafe extern "C" fn ns_v2_work_call(
     e: *mut NsV2Error,
 ) -> u32 {
     unsafe {
-        run(e, || {
+        run_packet(e, p, n, |packet| {
             let result = output(result)?;
             let reply = output(reply)?;
             let w = input(w)?;
             let i = input(i)?;
-            let outcome = bridge::work_call(*w, bytes(p, n)?, *i)?;
+            let outcome = bridge::work_call(*w, packet, *i)?;
             if outcome.work_consumed {
                 *w = 0;
             }

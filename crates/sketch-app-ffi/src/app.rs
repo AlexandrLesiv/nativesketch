@@ -9,9 +9,9 @@ pub unsafe extern "C" fn ns_v2_app_new(
     e: *mut NsV2Error,
 ) -> u32 {
     unsafe {
-        run(e, || {
+        run_packet(e, p, n, |packet| {
             let out = output(out)?;
-            *out = bridge::app_new(bytes(p, n)?)?;
+            *out = bridge::app_new(packet)?;
             Ok(())
         })
     }
@@ -27,9 +27,9 @@ pub unsafe extern "C" fn ns_v2_app_call(
     e: *mut NsV2Error,
 ) -> u32 {
     unsafe {
-        run(e, || {
+        run_packet(e, p, n, |packet| {
             let out = output(out)?;
-            *out = bridge::app_call(a, bytes(p, n)?)?;
+            *out = bridge::app_call(a, packet)?;
             Ok(())
         })
     }
@@ -46,10 +46,10 @@ pub unsafe extern "C" fn ns_v2_app_take_work(
     e: *mut NsV2Error,
 ) -> u32 {
     unsafe {
-        run(e, || {
+        run_packet(e, p, n, |packet| {
             let w = output(w)?;
             let r = output(r)?;
-            let (reply, work) = bridge::app_take_work(a, bytes(p, n)?)?;
+            let (reply, work) = bridge::app_take_work(a, packet)?;
             *w = work;
             *r = reply;
             Ok(())
@@ -68,10 +68,10 @@ pub unsafe extern "C" fn ns_v2_app_complete(
     e: *mut NsV2Error,
 ) -> u32 {
     unsafe {
-        run(e, || {
+        run_packet(e, p, n, |packet| {
             let out = output(out)?;
             let v = input(v)?;
-            let reply = bridge::app_complete(a, bytes(p, n)?, *v)?;
+            let reply = bridge::app_complete(a, packet, *v)?;
             *v = 0;
             *out = reply;
             Ok(())

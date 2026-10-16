@@ -1,5 +1,5 @@
 use crate::bridge;
-use std::sync::Mutex;
+use std::{cell::Cell, sync::Mutex};
 static RECORD: Mutex<[u8; 128]> = Mutex::new([0; 128]);
 #[derive(Default)]
 pub(crate) struct Output {
@@ -32,6 +32,18 @@ impl Output {
     }
 }
 pub(crate) fn run(f: impl FnOnce() -> bridge::Result<Output>) -> u32 {
+    run_context(&Cell::new((0, 0)), f)
+}
+pub(crate) fn request(upload: u32, f: impl FnOnce(&[u8]) -> bridge::Result<Output>) -> u32 {
+    let context = Cell::new((0, 0));
+    run_context(&context, || {
+        bridge::with_upload(upload.into(), |packet| {
+            context.set(bridge::correlation(packet));
+            f(packet)
+        })
+    })
+}
+fn run_context(context: &Cell<(u32, u64)>, f: impl FnOnce() -> bridge::Result<Output>) -> u32 {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)).unwrap_or_else(|_| {
         Err(bridge::WireError {
             status: 6,
@@ -63,7 +75,8 @@ pub(crate) fn run(f: impl FnOnce() -> bridge::Result<Output>) -> u32 {
         }
         Err(e) => {
             record[..4].copy_from_slice(&e.status.to_le_bytes());
-            record[32..104].copy_from_slice(&e.packet(0, 0));
+            let (opcode, request) = context.get();
+            record[32..104].copy_from_slice(&e.packet(opcode, request));
             e.status
         }
     }

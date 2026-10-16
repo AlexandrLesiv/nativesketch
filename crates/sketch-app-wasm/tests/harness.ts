@@ -53,6 +53,7 @@ export function makeHarness(exports: WebAssembly.Exports) {
       assert.equal(u32(b, 56), expected);
     } else assert.deepEqual(b.slice(32, 104), new Uint8Array(72));
     return {
+      errorFrame: b.slice(32, 104),
       flags: u32(b, 4),
       primary: u32(b, 8),
       reply: u32(b, 12),

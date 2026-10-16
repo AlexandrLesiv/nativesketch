@@ -134,3 +134,5 @@ fn decision(a: Handle, s: u64, e: u64, d: u32) -> Vec<u8> {
     b.extend(0u32.to_le_bytes());
     call(a, &packet(21, &b))
 }
+
+mod correlation;
