@@ -24,17 +24,35 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Installed facade Miri lane | `a3c7497` | All 27 library tests passed through the repeatable `miri-app` runner; fresh runner review passed |
 | Linux portable owner/provider | Worker `342cfae`, integrated `a3c7497` | 15 tests passed plus one ignored child helper exercised by its parent; strict Clippy/format/build passed; native host and save-chooser compatibility remain pending |
 | Bounded core fuzz | `f8bb00b` | Both targets generated 25,000 inputs and then failed LeakSanitizer in the isolated runtime thread path; no passing fuzz acceptance |
+| Latest full background integration | `4ee8aca` | Passed: 103 Node tests, Rust workspace, actual C/Wasm consumers, strict lint over 133 Swift files, production Mac build/pre-AppKit smoke and 17 GPU-free Swift tests |
+| Latest source inventory | `4ee8aca` | 790 handwritten source files, 58,987 physical lines, zero files above 200; includes tests and scripts |
+| Typed save-policy/bounds and transport | Worker `6de2d26`, integrated `a1f1aee`/`a6eaace` | Six mapped groups passed with no mapping issues; 33 facade/35 wire tests plus actual C/Wasm consumers; fresh independent review cleared typed and transport slices |
+| GTK chooser-policy repair | `54cfb3d` | 17 adapter/provider tests passed; one ignored helper explicitly exercised by its parent; strict Clippy/build passed; no native Linux UI |
+| Updated facade Miri | `54cfb3d` | All 33 facade tests passed, including the new policy, import-capability and bounds cases |
+| Automation entry retirement | `965a5d8` | Python board removed after parity; Node `scripts/check` compatibility entry passed argument/exit tests and actual `--core` from another directory; remaining host wrappers retained |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load
 cancellation and repeated linear geometry lookup. Direct indexed lookup and lifecycle
-regressions are included. Native/Wasm exports and actual host adoption remain distinct work.
+regressions are included. Native/Wasm exports now have actual consumer evidence; actual
+host adoption remains distinct work. Export review also repaired request/opcode correlation
+in fixed error replies before integration. Shared policy review repaired read-only imported
+bindings being denied before a chooser could open.
 
 Raw primary artifacts are under `artifacts/evidence/`: `integration-df2647f.log`,
 `integration-e8d191f.log`, `024-source-inventory-cfc9e9f.json`, `017-browser-0967656`,
 `023-asan-df2647f` and `023-miri-facade-cfc9e9f`. Worker wire logs are retained at
 `/private/tmp/wire-root-core-6df14a2.log` and `/private/tmp/wire-evidence-6df14a2.log`;
 its checkout has the revision-bound coverage/discovery/results JSON and HTML.
+
+Newer evidence is retained in `022-policy-wire-6de2d26`, `022-linux-save-policy`,
+`023-miri-app-54cfb3d`, `024-source-inventory-4ee8aca.json` and
+`integration-4ee8aca-retry1.log`. The first `integration-4ee8aca.log` attempt failed on
+sandbox-denied read-only `sysctl` metadata access; it remains retained. The repeat ran
+with that metadata access and passed, without desktop automation. Earlier
+`integration-87fd1df.log` failed because a tooling test observed another test's transient
+untracked fixture; isolated Git fixtures repaired that issue, and `integration-f28da29.log`
+passed. No result is relabeled as a native presentation or physical-input measurement.
 
 ## Browser and evidence integrity
 
@@ -73,10 +91,18 @@ legacy FFI tests. [Bounded fuzz evidence](023-bounded-fuzz.md) retains failed ex
 an empty-target runtime reproduction. Fuzz acceptance and per-host profiling remain incomplete.
 
 The [Linux adapter evidence](022-linux-portable.md) records real portable owner/provider
-tests and repaired bounded, nonblocking diagnostics. Subsequent compatibility inspection
-found that guarded Save must keep opening a chooser after earlier saves, as the original
-GTK interface did. The current shared default may reuse the bound destination. A shared
-chooser-on-save policy and regression are required; this slice is not final Linux acceptance.
+tests and repaired bounded, nonblocking diagnostics. Compatibility inspection found that
+guarded Save must keep opening a chooser after earlier saves, as the original GTK interface
+did. `54cfb3d` configures the shared immutable `AlwaysChoose` policy. Buttons, shortcuts and
+all navigation guards now dispatch shared Save; real-provider regressions verify cancellation
+does not write or lose dirty content. Native Linux acceptance remains pending.
+
+Explicit whole-document bounds are now available through typed queries and additive wire
+opcode 9. They retain f64 geometry and document/revision identity, exclude predictions and
+drafts, and are independent of viewport culling. Opcode 8 exposes the save policy; opcode 1's
+default behavior is unchanged. Apple staged nonbinding export, viewer cache-before-publish
+and source arbitration still need host-specific adoption contracts; these are not silently
+replaced by ordinary reusable-file save semantics.
 
 ## Package and symbol evidence
 

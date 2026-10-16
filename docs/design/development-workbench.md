@@ -5,6 +5,12 @@ no tracked sources, application features, desktop UI or system settings changed.
 Sources: devtool-plan-notes, architecture/refactoring plan, quality/coverage,
 quality/evidence-runner, quality/commands, current evidence types and task 024.
 
+Implementation amendment: the owner's later ten-hour restriction disables all foreground
+actions. The [version 1 contract](../architecture/025-workbench-contract.md) therefore
+overrides the future reservation dialogs described below: current UI/service show a
+persistent disabled reason and never request a desktop reservation or app permission.
+Only background jobs and headless browser checks are enabled for this implementation.
+
 ## Goal and scope
 
 The solo developer should answer three questions without reconstructing repository state:
