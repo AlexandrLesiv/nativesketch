@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { makeHarness, packet, fixture, u64, u32 } from './harness.ts';
 import { checkPolicyBounds } from './policy.ts';
+import { checkViewport } from './viewport.ts';
 import { checkWork, checkRead, session, close } from './flow.ts';
 const binary = process.argv[2];
 assert.ok(binary, 'pass the actual Wasm path');
@@ -43,6 +44,7 @@ h.invoke('upload_new', [64 * 1024 * 1024 + 2], 3);
 checkWork(h);
 checkRead(h);
 checkPolicyBounds(h);
+checkViewport(h);
 console.log(
   'PASS Wasm v2: actual module, memory growth, bounded uploads/replies, real work/result, rejection and shutdown',
 );

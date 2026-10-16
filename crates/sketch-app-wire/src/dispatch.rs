@@ -3,7 +3,7 @@ impl WireApp {
     /// Validate completely, reserve reply and identities, then mutate once on this owner.
     pub fn call(&mut self, bytes: &[u8]) -> Result<Reply, WireError> {
         let packet = decode(bytes)?;
-        if matches!(packet.opcode, 40..=44) {
+        if matches!(packet.opcode, 40..=47) {
             return self.scene_call(packet);
         }
         let mut reply = Reply::reserve(&self.budget, packet.opcode, packet.request, 4096)?;

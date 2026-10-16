@@ -42,7 +42,9 @@ void call(TestApp a, uint32_t op, const uint8_t *body, size_t n, uint8_t *out) {
     NsV2Error e;
     NsV2Handle r = 0;
     size_t len = frame(p, op, body, n);
-    assert(ns_v2_app_call(a.app, p, len, &r, &e) == 0);
+    uint32_t status = ns_v2_app_call(a.app, p, len, &r, &e);
+    if (status) fprintf(stderr, "C consumer opcode=%u status=%u failure=%u:%u\n", op, status, get32(e.bytes + 32), get32(e.bytes + 36));
+    assert(status == 0);
     copy_reply(r, out);
 }
 static TestApp configured(uint32_t opcode, uint32_t policy) {

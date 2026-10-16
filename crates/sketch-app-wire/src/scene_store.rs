@@ -32,6 +32,7 @@ pub(crate) struct Scenes {
     pub geometry_ids: HashMap<u64, usize>,
     pub cache: SceneCache,
     pub bytes: usize,
+    pub prepared: Option<crate::viewport_query::Prepared>,
 }
 pub(crate) fn geometry_key(value: &Arc<StrokeGeometry>) -> usize {
     Arc::as_ptr(value) as usize
@@ -65,6 +66,7 @@ impl Scenes {
             roots,
             cache: SceneCache::default(),
             bytes: 0,
+            prepared: None,
         })
     }
     pub fn lease(&self, id: u64) -> Result<&Lease, WireError> {

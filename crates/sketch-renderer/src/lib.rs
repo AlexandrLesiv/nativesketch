@@ -1,6 +1,5 @@
 //! Disposable rendering only: editor semantics remain in sketch-core.
 mod adornments;
-mod clip;
 mod compositor;
 mod paths;
 mod request;

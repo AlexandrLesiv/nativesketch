@@ -77,5 +77,6 @@ impl WireApp {
         self.app.stats().shutdown_ready()
             && self.budget.stats().0 == 0
             && self.scenes.leases.is_empty()
+            && self.scenes.prepared.is_none()
     }
 }

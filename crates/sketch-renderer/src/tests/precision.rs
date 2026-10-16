@@ -1,5 +1,5 @@
 use super::fixtures::*;
-use crate::{Compositor, RenderError};
+use crate::Compositor;
 use sketch_core::{
     Brush, Input, Sample, SceneCache,
     application::{
@@ -7,7 +7,7 @@ use sketch_core::{
         InteractionState, PointerId, RequestId, SampleBatch, ToolId,
     },
 };
-fn editor_stroke(start: f64, end: f64) -> EditorSession {
+pub(super) fn editor_stroke(start: f64, end: f64) -> EditorSession {
     let mut editor = EditorSession::new(
         Capabilities {
             edit_document: true,
@@ -134,9 +134,24 @@ fn enclosing_giant_curved_contour_keeps_fill_and_single_alpha() {
 }
 #[test]
 fn clipping_budget_exhaustion_is_explicit() {
-    let mut points = vec![[0.0, 0.0]; crate::clip::MAX_POINTS];
-    assert_eq!(
-        crate::clip::push(&mut points, [1.0, 1.0]),
-        Err(RenderError::ResourceLimit)
-    );
+    let editor = editor_stroke(0.0, 999_999_010.0);
+    let (_, mut request) = scene(vec![]);
+    request.offset_x = -999_999_000.0;
+    let scene = editor
+        .render_scene(&mut SceneCache::default(), request.viewport())
+        .unwrap();
+    let error = sketch_core::prepare_viewport_path(
+        &scene.committed[0],
+        sketch_core::PixelViewport {
+            document: request.viewport(),
+            pixel_width: request.pixel_width,
+            pixel_height: request.pixel_height,
+        },
+        sketch_core::PreparationLimits {
+            points: 0,
+            ..Default::default()
+        },
+    )
+    .unwrap_err();
+    assert_eq!(error, sketch_core::SceneError::ResourceLimit);
 }

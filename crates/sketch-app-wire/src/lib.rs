@@ -37,3 +37,4 @@ mod scene_records;
 mod scene_store;
 #[cfg(test)]
 mod tests;
+mod viewport_query;

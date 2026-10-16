@@ -22,3 +22,8 @@ pub use scene::{
     RenderScene, RenderViewport, SceneCacheStats, SceneError, SceneLimits, SceneStroke,
     StrokeGeometry, TransformPreview,
 };
+
+pub use scene::{
+    PixelViewport, PreparationLimits, PreparedViewportPath, prepare_viewport_path,
+    viewport_preparation_needed,
+};

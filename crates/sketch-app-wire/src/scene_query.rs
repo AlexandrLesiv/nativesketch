@@ -5,7 +5,7 @@ impl WireApp {
             Request::Descriptors(_, _, limit) => {
                 80 + usize::try_from(limit.min(1365)).expect("bounded page") * 48
             }
-            Request::GeometryCommands(_, _, _, limit) => {
+            Request::GeometryCommands(_, _, _, limit) | Request::PreparedCommands(_, _, limit) => {
                 80 + usize::try_from(limit.min(744)).expect("bounded page") * 88
             }
             _ => 4096,
@@ -45,6 +45,15 @@ impl WireApp {
                 self.scenes.commands(&mut reply, scene, id, first, limit)?
             }
             Request::ReleaseScene(id) => self.scenes.release(id)?,
+            Request::PrepareViewport(scene, selector, index, width, height) => {
+                self.scenes
+                    .prepare_viewport(&mut reply, scene, selector, index, width, height)?;
+            }
+            Request::PreparedCommands(id, first, limit) => {
+                self.scenes
+                    .prepared_commands(&mut reply, id, first, limit)?;
+            }
+            Request::ReleasePrepared(id) => self.scenes.release_prepared(id)?,
             _ => return Err(WireError::transport(3)),
         }
         Ok(reply.finish())

@@ -42,6 +42,7 @@ int main(void) {
     assert(r == 0);
     close_app(a);
     check_worker_roundtrip();
+    check_viewport();
     puts("PASS native v2 C consumer: transfer, pthread worker, rejection, shutdown");
     return 0;
 }

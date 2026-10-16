@@ -133,3 +133,6 @@ mod scenes;
 mod stale_load;
 mod tag_goldens;
 mod transfer_capacity;
+
+mod viewport_goldens;
+mod viewport_preparation;

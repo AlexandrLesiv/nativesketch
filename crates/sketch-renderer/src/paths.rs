@@ -81,7 +81,7 @@ impl Paths {
         let Some(command) = stroke.geometry.commands.first() else {
             return Ok(());
         };
-        let viewport_path = viewport_path::needed(stroke, request);
+        let viewport_path = viewport_path::needed(stroke, request)?;
         let path = if viewport_path {
             stats.path_misses += 1;
             viewport_path::build(stroke, request)?
