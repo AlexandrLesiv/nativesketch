@@ -25,7 +25,9 @@ export function paint(app: EditorHost, s: ReturnType<EditorHost['engine']['state
     for (let o = 0; o < geometry.commands.length; o += 88) {
       const c = [8, 16, 24, 32].map((n) => d.getFloat64(o + n, true));
       app.ctx.fillStyle = `rgba(${c[0] * 255},${c[1] * 255},${c[2] * 255},${c[3]})`;
-      const p = [40, 48, 56, 64, 72, 80].map((n) => d.getFloat64(o + n, true));
+      const p = [40, 48, 56, 64, 72, 80].map(
+        (n, i) => d.getFloat64(o + n, true) - geometry.origin[i % 2],
+      );
       switch (d.getUint32(o, true)) {
         case 0:
           app.ctx.moveTo(p[0], p[1]);
