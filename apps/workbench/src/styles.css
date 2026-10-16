@@ -1,0 +1,138 @@
+:root {
+  color-scheme: light dark;
+  --background: #f5f6f8;
+  --surface: #ffffff;
+  --text: #202733;
+  --muted: #526071;
+  --border: #c7cdd5;
+  --accent: #174ea6;
+  font:
+    16px/1.55 system-ui,
+    sans-serif;
+  color: var(--text);
+  background: var(--background);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: var(--accent);
+  text-underline-offset: 0.18em;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+button,
+input,
+select,
+summary {
+  font: inherit;
+}
+button,
+input,
+select {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  min-height: 44px;
+}
+button {
+  cursor: pointer;
+  margin: 0.25rem 0.5rem 0.25rem 0;
+}
+button:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.5rem 0;
+}
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+h1 {
+  margin: 0.2rem 0 0.7rem;
+  font-size: 1.8rem;
+}
+h2 {
+  margin-top: 1.5rem;
+  font-size: 1.3rem;
+}
+h3 {
+  font-size: 1.05rem;
+}
+p {
+  margin: 0.55rem 0;
+}
+pre,
+code {
+  font:
+    0.86rem/1.6 ui-monospace,
+    monospace;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0.8rem;
+  background: var(--background);
+}
+.muted,
+.eyebrow {
+  color: var(--muted);
+}
+.eyebrow {
+  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.notice {
+  border-left: 3px solid var(--border);
+  padding: 0.6rem 0.8rem;
+  background: var(--surface);
+}
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--surface);
+  margin: 0.8rem 0;
+}
+.count {
+  font-size: 2rem;
+  font-weight: 650;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #151a22;
+    --surface: #202732;
+    --text: #edf0f5;
+    --muted: #b3bdcb;
+    --border: #536071;
+    --accent: #9ec5ff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
+pre[data-log] {
+  max-height: 22rem;
+  overflow: auto;
+}
