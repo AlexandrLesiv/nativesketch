@@ -62,16 +62,21 @@ export async function executeFuzzTargets(
       controller.signal.throwIfAborted();
       result.status = 'passed';
     } catch (error) {
+      let failure = error;
+      try {
+        requireUnchanged(source, await sourceIdentity(root));
+        controller.signal.throwIfAborted();
+      } catch (validation) {
+        failure = validation;
+      }
       result.environment =
-        error instanceof ProcessFailure && !error.reason
+        failure instanceof ProcessFailure && !failure.reason
           ? { valid: true, reasons: [] }
-          : { valid: false, reasons: [String(error)] };
+          : { valid: false, reasons: [String(failure)] };
       // Independent targets still run after a real child failure. Environmental
       // failures, cancellation and source mutation stop the lane immediately.
-      requireUnchanged(source, await sourceIdentity(root));
-      controller.signal.throwIfAborted();
-      if (!(error instanceof ProcessFailure) || error.reason) throw error;
-      failures.push(error);
+      if (!(failure instanceof ProcessFailure) || failure.reason) throw failure;
+      failures.push(failure);
     } finally {
       result.durationMs = Date.now() - started;
       execution.results.push(result);
