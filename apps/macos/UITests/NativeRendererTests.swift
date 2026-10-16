@@ -25,9 +25,9 @@ import XCTest
     fixture.strokes(1)
     try assertInk(fixture.canvas, present: true, name: "skia-redo")
     let native = try NativeVisibilityWindow()
-    let hiddenCount = presented(fixture.canvas)
     fixture.app.windows.firstMatch.buttons["_XCUI:MinimizeWindow"].click()
     fixture.wait { native.minimized == true }
+    let hiddenCount = presented(fixture.canvas)
     try native.restore()
     fixture.wait { native.minimized == false }
     fixture.app.activate()
