@@ -98,3 +98,29 @@ These tasks do not open an emulator or install an app. The unit-test task can re
 reports live under `app/build/reports/`. The ktfmt version was checked against official
 Maven metadata on 2026-10-16; it does not change global IDE or formatter settings.
 Native replay/E2E, TalkBack, actual stylus and ChromeOS hardware checks remain separate.
+
+### Portable JNI transport checkpoint
+
+The pure Kotlin `portable` package is a transport checkpoint, not Activity adoption.
+The Activity still uses the legacy C++/Rust bridge. No native controls, file-provider
+policies or rendering paths change here. Host JVM tests do not establish Android UI
+or provider acceptance. Copy-import and nonbinding save policy remain prerequisites.
+
+`portableJniHostTest` requires an absolute `-PportableJniLibrary` pointing at the
+real host Rust library. `portableJniPendingExceptionTest` requires the separate
+probe library; each task runs a separate JVM. The probe includes its own bridge
+registry and must never be loaded beside the production library in one JVM.
+`portableJniDiscover` enumerates compiled JUnit annotations, not source patterns.
+Ordinary local unit tests retain the pure receipt tests and exclude native lanes.
+
+Run `node scripts/test-android-jni.ts --library /absolute/library --probe-library
+/absolute/probe --native-source /absolute/native-checkout` with explicit JAVA_HOME
+and GRADLE to retain exact library/class/source identities, javap, raw JUnit XML and
+normalized discovery/execution. Each attempt requires a new output directory.
+Failed, skipped, cancelled, stale or incomplete runs cannot qualify as passing.
+
+`node scripts/build-android-portable-jni.ts --native-source /absolute/native-checkout`
+builds both Android ABIs with the explicit ANDROID_NDK_HOME. It verifies defined
+JNI exports and ELF machines, then rebuilds legacy libraries and packages all six
+native entries. The provisional new JNI library retains debug symbols so its APK
+bytes exactly match the inspected build. No installation or app launch occurs.

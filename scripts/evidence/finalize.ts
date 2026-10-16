@@ -12,12 +12,22 @@ export async function persistExecution(
   stage: (path: string, contents: string) => Promise<void> = (path, contents) =>
     writeFile(path, contents, { flag: 'wx', mode: 0o600 }),
 ) {
+  return persistJson(execution, signal, destination, stage);
+}
+
+/** One staged record becomes evidence at one cancellation-checked publication point. */
+export async function persistJson(
+  value: unknown,
+  signal: AbortSignal,
+  destination: string,
+  stage: (path: string, contents: string) => Promise<void> = (path, contents) =>
+    writeFile(path, contents, { flag: 'wx', mode: 0o600 }),
+) {
   signal.throwIfAborted();
   const pending = join(dirname(destination), `.${basename(destination)}.${randomUUID()}.pending`);
   try {
-    await stage(pending, JSON.stringify(execution, null, 2));
+    await stage(pending, JSON.stringify(value, null, 2));
     signal.throwIfAborted();
-    // No await between cancellation check and publication. link rejects an existing attempt.
     linkSync(pending, destination);
   } finally {
     rmSync(pending, { force: true });

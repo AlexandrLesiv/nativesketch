@@ -35,6 +35,7 @@ export async function checkTooling() {
   const tests = [];
   for (const directory of [
     'scripts/tests',
+    'scripts/android-jni',
     'scripts/quality',
     'scripts/browser-e2e',
     'scripts/web-evidence',
