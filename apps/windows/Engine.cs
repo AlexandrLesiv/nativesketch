@@ -5,7 +5,9 @@ namespace NativeSketch;
 [StructLayout(LayoutKind.Sequential)]
 public struct Sample
 {
-    public double X, Y, Timestamp, Pressure; public ulong Id; public uint HasPressure, Kind;
+    public double X, Y, Timestamp, Pressure;
+    public ulong Id;
+    public uint HasPressure, Kind;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct Brush
@@ -20,30 +22,37 @@ public struct Bounds
 [StructLayout(LayoutKind.Sequential)]
 public struct State
 {
-    public ulong StrokeCount, SelectedId; public uint CanUndo, CanRedo, Dirty, Interaction; public Bounds Selection;
+    public ulong StrokeCount, SelectedId;
+    public uint CanUndo, CanRedo, Dirty, Interaction;
+    public Bounds Selection;
 }
 [StructLayout(LayoutKind.Sequential)]
 public struct PathCommand
 {
-    public ulong StrokeId; public uint Verb; public double Red, Green, Blue, Alpha, X1, Y1, X2, Y2, X3, Y3;
+    public ulong StrokeId;
+    public uint Verb;
+    public double Red, Green, Blue, Alpha, X1, Y1, X2, Y2, X3, Y3;
 }
 // One unique handle; all calls, including Dispose, are serialized on its creating thread.
 // No native callbacks. Input arrays are borrowed during a synchronous call only.
 public sealed class Engine : IDisposable
 {
-    IntPtr handle; readonly int owner = Environment.CurrentManagedThreadId;
+    IntPtr handle;
+    readonly int owner = Environment.CurrentManagedThreadId;
     public Engine()
     {
         if (N.sketch_abi_version() != 2)
             throw new InvalidOperationException("Unsupported Rust ABI");
         Check(N.sketch_editor_create(out handle));
     }
+
     void Guard()
     {
         if (owner != Environment.CurrentManagedThreadId)
             throw new InvalidOperationException("Editor thread ownership violated");
         ObjectDisposedException.ThrowIf(handle == IntPtr.Zero, this);
     }
+
     void Check(uint code)
     {
         if (code == 6)
@@ -69,21 +78,25 @@ public sealed class Engine : IDisposable
             return value;
         }
     }
+
     public void Begin(ulong id, uint device, Brush brush)
     {
         Guard();
         Check(N.sketch_stroke_begin(handle, id, device, brush));
     }
+
     public void Append(ulong id, Sample[] samples)
     {
         Guard();
         Check(N.sketch_stroke_append(handle, id, samples, (nuint)samples.Length));
     }
+
     public void Commit(ulong id)
     {
         Guard();
         Check(N.sketch_stroke_commit(handle, id));
     }
+
     public PathCommand[] Paths()
     {
         Guard();
@@ -92,33 +105,39 @@ public sealed class Engine : IDisposable
         Check(N.sketch_render_copy(handle, paths, count, out _));
         return paths;
     }
+
     public void Select(double x, double y, double tolerance)
     {
         Guard();
         Check(N.sketch_select_at(handle, x, y, tolerance));
     }
+
     public void Cycle(int direction)
     {
         Guard();
         Check(N.sketch_select_cycle(handle, direction));
     }
+
     public void Resize(double scale, double x, double y)
     {
         Guard();
         Check(N.sketch_resize_update(handle, scale, x, y));
     }
+
     public void Save(string path)
     {
         Guard();
         var b = Encoding.UTF8.GetBytes(path);
         Check(N.sketch_document_save(handle, b, (nuint)b.Length));
     }
+
     public void Load(string path)
     {
         Guard();
         var b = Encoding.UTF8.GetBytes(path);
         Check(N.sketch_document_load(handle, b, (nuint)b.Length));
     }
+
     public void Command(string name)
     {
         Guard();
@@ -135,6 +154,7 @@ public sealed class Engine : IDisposable
             _ => throw new ArgumentException(name)
         });
     }
+
     public void Dispose()
     {
         if (handle == IntPtr.Zero)
