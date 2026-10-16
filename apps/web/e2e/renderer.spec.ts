@@ -17,22 +17,33 @@ test('WEB-SURFACE-001 injected initial GL refusal uses real Skia raster and pres
 }, info) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
+    let firstCanvas: HTMLCanvasElement | undefined;
+    Object.defineProperty(window, 'sketchOriginalCanvas', { get: () => firstCanvas });
     Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
       value: function (this: HTMLCanvasElement, kind: string, ...args: unknown[]) {
-        if (kind === 'webgl' || kind === 'webgl2' || kind === 'experimental-webgl') return null;
+        if (kind === 'webgl' || kind === 'webgl2' || kind === 'experimental-webgl') {
+          firstCanvas ??= this;
+          return null;
+        }
         return Reflect.apply(original, this, [kind, ...args]);
       },
     });
   });
   await ready(page);
   await expect(page.locator('#canvas')).toHaveAttribute('data-renderer', 'CanvasKit 0.42.0 raster');
-  await page.locator('#canvas').evaluate((canvas) => {
-    canvas.dataset.original = 'retained';
-  });
+  const originalRetained = () =>
+    page
+      .locator('#canvas')
+      .evaluate(
+        (canvas) =>
+          canvas ===
+          (window as Window & { sketchOriginalCanvas?: HTMLCanvasElement }).sketchOriginalCanvas,
+      );
+  expect(await originalRetained()).toBe(true);
   await stroke(page);
   expect(await inkPixels(page)).toBeGreaterThan(100);
   await page.setViewportSize({ width: 1000, height: 700 });
-  await expect(page.locator('#canvas')).toHaveAttribute('data-original', 'retained');
+  expect(await originalRetained()).toBe(true);
   await page.locator('#width').focus();
   await expect(page.locator('#width')).toBeFocused();
   await page.locator('#undo').click();
@@ -75,6 +86,10 @@ test('WEB-CONTEXT-001 software WebGL loss cancels draft and restores latest reta
     contentType: 'image/png',
   });
   expect(await inkPixels(page)).toBeGreaterThan(100);
+  await stroke(page, 100);
+  await expect(page.locator('#status')).toContainText('2 strokes');
+  await page.locator('#undo').click();
+  await expect(page.locator('#status')).toContainText('1 stroke');
   await page.locator('#undo').click();
   await expect(page.locator('#status')).toContainText('0 strokes');
 });

@@ -19,12 +19,36 @@ await test('renderer evidence binds installed full bundle, declarations and emit
       await writeFile(join(root, file), 'original');
     }
     const packageFile = join(root, 'node_modules/canvaskit-wasm/package.json');
-    await writeFile(packageFile, JSON.stringify({ version: '0.42.0' }));
+    const metadata = {
+      version: '0.42.0',
+      exports: {
+        './full': {
+          import: './bin/full/canvaskit.js',
+          require: './bin/full/canvaskit.js',
+          types: './types/index.d.ts',
+        },
+      },
+    };
+    await writeFile(packageFile, JSON.stringify(metadata));
     for (const file of files) {
       const before = await rendererIdentity(root);
       await writeFile(join(root, file), 'changed');
       assert.notDeepEqual(await rendererIdentity(root), before, file);
     }
+    const beforeMetadata = await rendererIdentity(root);
+    await writeFile(
+      packageFile,
+      JSON.stringify({ ...metadata, description: 'same-version metadata mutation' }),
+    );
+    assert.notDeepEqual(await rendererIdentity(root), beforeMetadata);
+    await writeFile(
+      packageFile,
+      JSON.stringify({
+        ...metadata,
+        exports: { './full': { ...metadata.exports['./full'], import: './bin/canvaskit.js' } },
+      }),
+    );
+    await assert.rejects(rendererIdentity(root), /export routing/);
     await writeFile(packageFile, JSON.stringify({ version: 'different' }));
     await assert.rejects(rendererIdentity(root), /version/);
   } finally {
