@@ -54,6 +54,8 @@ the snapshot without remembering a destination. Portable editable Open and SaveA
 retain their provider bindings. Before host adoption, freeze explicit copy-import and
 confirmed nonbinding-save policies; keep default desktop binding behavior and existing wire
 layouts unchanged. Copy import alone does not solve successful save destination retention.
+The reviewed [copy-document contract proposal](022-copy-document-policy.md) defines the
+owner-Apply barrier, conservative uncertainty handling and required adversarial cases.
 
 These policies still use ordinary guarded editable Open and provider-confirmed Save, with
 exact issued work/results. Resources retire only after actual work and remaining operation
