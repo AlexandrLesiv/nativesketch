@@ -435,6 +435,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sketch-app-wire"
+version = "0.1.0"
+dependencies = [
+ "sketch-app",
+ "sketch-core",
+]
+
+[[package]]
 name = "sketch-core"
 version = "0.1.0"
 

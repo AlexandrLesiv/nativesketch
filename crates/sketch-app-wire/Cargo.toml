@@ -1,0 +1,10 @@
+[package]
+name = "sketch-app-wire"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.99"
+publish.workspace = true
+
+[dependencies]
+sketch-app = { path = "../sketch-app" }
+sketch-core = { path = "../sketch-core" }
