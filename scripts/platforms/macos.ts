@@ -39,9 +39,10 @@ export async function buildMacos(profile: string = 'debug') {
 }
 
 /** Pure scheduling policy tests; no NSApplication, Metal context or foreground input. */
+// GPU-free renderer policy and real Swift/Rust compound-action contracts.
 export async function checkMacosRenderPolicy() {
   requireHost('darwin');
-  await command('swift', ['test', ...swiftFlags('debug'), '--filter', 'Render.*Tests'], {
+  await command('swift', ['test', ...swiftFlags('debug'), '--filter', '(Render.*Tests|SessionActionTests)'], {
     env: {
       SKETCH_RUST_PROFILE: 'debug',
       DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer',
