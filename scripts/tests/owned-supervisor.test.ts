@@ -45,6 +45,7 @@ await test(
       ]);
       assert.equal(result.signal, 'SIGKILL');
       assert.equal(result.code, null);
+      assert.equal(result.error, '');
       let alive = true;
       for (let i = 0; i < 200 && alive; i++) {
         try {

@@ -1,3 +1,4 @@
+import { signalGroups, confirmGroupsExited } from './owned-signals.ts';
 import {
   mkdtempSync,
   readFileSync,
@@ -148,32 +149,12 @@ function subtree(owner: Ownership) {
 }
 export function signalOwned(owner: Ownership, signal: NodeJS.Signals) {
   writeFileSync(join(owner.directory, `${owner.scope}.cancel`), '', { mode: 0o600 });
-  const selected = subtree(owner);
-  for (const item of selected.reverse()) {
-    try {
-      process.kill(-item.pid, signal);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
-    }
-  }
+  return signalGroups(subtree(owner).reverse(), signal);
 }
 export function releaseOwnership(owner: Ownership, root: boolean) {
   // Never adopt persisted registrations after owner death or remove a still-live group.
   const selected = subtree(owner);
-  let remaining = selected;
-  for (let attempt = 0; attempt < 200 && remaining.length; attempt++) {
-    remaining = remaining.filter((item) => {
-      try {
-        process.kill(-item.pid, 0);
-        return true;
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ESRCH') return false;
-        throw error;
-      }
-    });
-    if (remaining.length) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5);
-  }
-  if (remaining.length) throw new Error('Owned groups did not finish within cleanup bound');
+  const diagnostics = confirmGroupsExited(selected);
   for (const item of selected)
     for (const suffix of ['json', 'cancel']) {
       try {
@@ -183,4 +164,5 @@ export function releaseOwnership(owner: Ownership, root: boolean) {
       }
     }
   if (root) rmSync(owner.directory, { recursive: true });
+  return diagnostics;
 }

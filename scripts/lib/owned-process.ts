@@ -1,3 +1,4 @@
+import type { OwnershipDiagnostic } from './ownership-diagnostics.ts';
 import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -32,11 +33,20 @@ export function spawnOwned(
   });
   let outcome: { code: number | null; signal: ChildProcess['signalCode'] } | null = null;
   let cleanupError = '';
+  const diagnostics = new Map<string, OwnershipDiagnostic>();
+  const retain = (items: OwnershipDiagnostic[]) => {
+    for (const item of items) {
+      const key = JSON.stringify([item.pid, item.phase, item.signal, item.code]);
+      if (diagnostics.size >= 2048 && !diagnostics.has(key))
+        throw new Error('Ownership diagnostic bound');
+      diagnostics.set(key, item);
+    }
+  };
   let released = false;
   const kill = (signal: NodeJS.Signals) => {
     if (released) return;
     try {
-      signalOwned(owner, signal);
+      retain(signalOwned(owner, signal));
     } catch (error) {
       cleanupError = error instanceof Error ? error.message : 'Owned tree cleanup failed';
       if (child.pid)
@@ -85,12 +95,24 @@ export function spawnOwned(
     finish(code: number | null, signal: ChildProcess['signalCode']) {
       kill('SIGKILL');
       try {
-        releaseOwnership(owner, root);
+        retain(releaseOwnership(owner, root));
+        released = true;
       } catch (error) {
         cleanupError ||= error instanceof Error ? error.message : 'Owned registry release failed';
       }
-      released = true;
+      const retained = [...diagnostics.values()];
+      if (retained.some((item) => item.code !== 'EPERM'))
+        cleanupError ||= 'Owned group signal failed';
+      if (retained.length)
+        console.error(
+          JSON.stringify({
+            event: 'owned-process-cleanup',
+            groupsConfirmedGone: released,
+            diagnostics: retained,
+          }),
+        );
       return {
+        diagnostics: retained,
         code: outcome?.code ?? code,
         signal: outcome ? outcome.signal : signal,
         error: cleanupError,

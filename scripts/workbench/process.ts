@@ -1,3 +1,4 @@
+import type { OwnershipDiagnostic } from '../lib/ownership-diagnostics.ts';
 import { StringDecoder } from 'node:string_decoder';
 import { spawnOwned } from '../lib/owned-process.ts';
 export interface OwnedResult {
@@ -6,6 +7,7 @@ export interface OwnedResult {
   reason: string | null;
   output: string;
   bytes: number;
+  diagnostics: OwnershipDiagnostic[];
 }
 /** Only the spawned process group is owned. Complete after termination and pipe closure. */
 export function runOwned(
@@ -23,7 +25,14 @@ export function runOwned(
     let bytes = 0;
     let reason: string | null = null;
     if (signal.aborted) {
-      resolve({ exitCode: null, signal: null, reason: 'Cancelled', output, bytes });
+      resolve({
+        exitCode: null,
+        signal: null,
+        reason: 'Cancelled',
+        output,
+        bytes,
+        diagnostics: [],
+      });
       return;
     }
     const owned = spawnOwned(executable, args, { cwd });
@@ -73,7 +82,14 @@ export function runOwned(
       const outcome = owned.finish(exitCode, exitSignal);
       if (outcome.error) reason = `${reason ?? 'Process finished'}; ${outcome.error}`;
       signal.removeEventListener('abort', cancel);
-      resolve({ exitCode: outcome.code, signal: outcome.signal, reason, output, bytes });
+      resolve({
+        exitCode: outcome.code,
+        signal: outcome.signal,
+        reason,
+        output,
+        bytes,
+        diagnostics: outcome.diagnostics,
+      });
     });
   });
 }
