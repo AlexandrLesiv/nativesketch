@@ -37,6 +37,8 @@ adoption are incremental, so extraction alone is not complete architectural migr
 | Portable browser integration | `233b79a` | Full background integration passed with 137 tooling tests, Rust/C/Wasm consumers, 133-file Swift lint, Mac pre-AppKit smoke and 17 GPU-free Swift checks; final source gate has zero oversized files |
 | Browser portable v2 | `233b79a` | 14 bridge checks and 12 headless journeys passed; 17 mapped rows passed; Canvas2D placement gap subsequently found and separately repaired |
 | Browser pixel placement | `79ddcaa` | All 13 headless journeys passed, including actual composited coordinate bounds; prior focus-outline test failure retained; CanvasKit migration remains separate |
+| Full CanvasKit browser integration | `9124ec5` | Full background gate passed with 140 tooling and 17 Swift checks; 20 classified direct checks plus 16 headless journeys passed; 27 mapped acceptance rows passed; zero source-size violations |
+| Workbench CanvasKit preview | `9124ec5` | 17 service and 14 headless journeys passed, including actual production drawing preview; native Zed and speech acceptance pending |
 
 The final wire code was independently reviewed at `94d1503`; `6df14a2` adds executable
 mapping only. Review found and repaired lost completion classification during save/load

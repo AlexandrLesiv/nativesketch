@@ -62,4 +62,27 @@ found no interface blocker. The two requested stronger canvas/input assertions a
 in the final passing browser run. Dark/small layouts, speech accessibility, Safari/mobile,
 hardware GPU presentation and physical pen-to-screen latency remain pending.
 
+## Integrated primary verification
+
+At clean primary `9124ec5`, the full background integration gate passed: 140 tooling tests,
+Rust workspace checks, real native interface consumers, strict Swift lint, the macOS
+build/pre-AppKit smoke path and all 17 GPU-free Swift tests. The final source/dependency
+gate passed with zero oversized handwritten source files.
+
+The separately executed qualified Node packet passed all 20 checks and the production
+browser packet passed all 16 journeys. Their [scoped report](../../artifacts/evidence/020-canvaskit-9124ec5/coverage.html)
+has 27 passing acceptance rows and no mapping issues. Referenced artifacts are copied into
+that report's directory, so its links remain local and complete. Exact-source primary
+packets are `020-canvaskit-node-9124ec5` and `020-canvaskit-browser-9124ec5`.
+
+The workbench subsequently passed 17 service and 14 browser checks, including its actual
+CanvasKit app preview, in `025-workbench-canvaskit-9124ec5`. No desktop app was opened.
+Native Zed and speech accessibility acceptance remain separate and pending.
+
+Two earlier primary integration attempts failed on test-fixture type-aware lint and pixel
+helper formatting. The lead diagnosed and repaired these, ran the complete tooling gate,
+and included the new renderer-evidence regressions in its normal inventory. The failed logs
+`integration-canvaskit-05952cf.log` and `integration-canvaskit-retry1.log` remain beside the
+passing `integration-canvaskit-retry2.log`. Fresh review cleared the explicit-receiver fix.
+
 This packet does not close task 024 or authorize a merge or release.

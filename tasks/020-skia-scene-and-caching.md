@@ -7,6 +7,9 @@ GPU measurements of the final timestamp/retry repair remain pending: a system di
 blocks the canvas and computer control refuses access. The desktop is reserved, but the
 owner requested no further app permission prompts while absent. Earlier native/designer
 results and invalid benchmark attempts are retained; the status is not a pass.
+The [browser CanvasKit migration](../docs/evidence/020-web-canvaskit.md) is integrated with
+scoped headless/CPU evidence. Shared viewport preparation and remaining host adapters are
+separate follow-ups; browser software rendering is not macOS GPU or pen-latency acceptance.
 Prerequisite handoff: [018/021 readiness](../docs/evidence/018-021-pre-skia-readiness.md)
 identifies the completed macOS/core preparation and retained platform/acceptance limits.
 The owner's request authorizes the next local migration work after technical verification;

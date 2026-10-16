@@ -144,3 +144,30 @@ isolated implementation worker owns the JNI crate, Kotlin/tests and Android buil
 Agree workspace manifest/lock ownership before starting. A fresh reviewer checks transfers,
 provider failures and evidence; the designer reviews preserved native behavior when desktop
 access is permitted. No merge, release or all-platform acceptance is implied by this plan.
+
+## Designer-reviewed interaction acceptance
+
+Read-only designer audit at `9124ec5`; these cases are planned, not native runtime evidence.
+The lead accepted the known-unavailable-action policy: consume the canvas shortcut without
+modal, mutation or cancellation. A modal for ordinary rejection would lose window focus
+and indirectly cancel the draft. Native text editing has priority; local validation remains
+local. Genuine fatal/provider errors retain explicit presentation. Current Kotlin blanket
+button/shortcut cancellation does not yet satisfy this policy.
+
+| Planned ID | Preserved behavior to verify |
+| --- | --- |
+| ANDROID-FOCUS-001 | Width/Scale text editing retains caret, selection and all ordinary editing shortcuts; invalid width stays in its dialog with inline error |
+| ANDROID-ACTION-001 | Unavailable canvas shortcuts preserve interaction; accepted controls and shortcuts route equivalent shared commands and reconcile local capture |
+| ANDROID-SCALE-001 | Committed top-left anchor, including during preview; repeated relative scale repeats; identity scale adds no undo; drag handle retains its existing anchor |
+| ANDROID-FIT-001 | Full committed bounds, 48dp total padding, centered result, maximum zoom 8, empty reset, large fits below .001 and no inward movement from Zoom out |
+| ANDROID-FILE-001 | Direct/guarded Save always opens SAF; only matching confirmed completion clears dirty or continues; failure/cancel/uncertainty retain content |
+| ANDROID-INCOMING-001 | VIEW/single-file drop follows editable Open; exact retained request crosses the guard; Discard does not open a second picker |
+| ANDROID-ASYNC-001 | Actual provider lifetime controls editing restrictions; stale results cannot replace state, resurrect dialogs or steal field focus |
+| ANDROID-RECREATE-001 | One owner, document/history/settings/viewport and exact pending identities survive recreation without duplicate effects or destroyed Activity retention |
+| ANDROID-INPUT-001 | Atomic ordered history/current batch; pressure/provenance retained; second touch, cancellation, focus loss and resize cancel before remapping |
+| ANDROID-PRESENTATION-001 | Existing Material controls/four color presets, 48dp targets, 840dp side-panel transition, short-window scrolling, DayNight appearance and accessibility description |
+
+Pending effects must be re-presented from the retained coordinator, not reconstructed as a
+new navigation intent. This does not promise process-death recovery or restoration of an
+unfinished dialog's text. Existing replay verifies only part of the field shortcut matrix;
+JNI/JVM tests and compilation cannot substitute for SAF, TalkBack or native delivery checks.
