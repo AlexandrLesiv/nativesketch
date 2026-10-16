@@ -14,7 +14,7 @@ platform. This is the first-stroke milestone, not a production drawing applicati
 | Android / compatible ChromeOS / Googlebook | Adaptive Kotlin / Material Views; ARM64 + x86-64 | `scripts/build-android`, `scripts/check-android` |
 | Windows | C# / WinUI 3 | `scripts/check-windows.ps1` on Windows |
 | Linux | Rust / GTK4 + libadwaita | `scripts/check-linux` |
-| Browser | TypeScript / semantic HTML + Rust/Wasm | `scripts/run-web`, `scripts/check-web` |
+| Browser | TypeScript / semantic HTML + Rust/Wasm | `node scripts/run.ts --platform web`, `node scripts/check.ts --platform web` |
 
 Apple chrome uses standard native controls and current SDK styling; Android uses
 Material Views. Actual platform runtime verification varies: read the
@@ -42,10 +42,10 @@ ink before panning/zooming. Windows cancels a second pointer but currently uses
 Space-drag/scroll for navigation.
 Failure to open preserves the current drawing; explicit replacement is guarded.
 
-Platform path painters are provisional: CoreGraphics, Android Canvas, WinUI paths,
-Cairo and Canvas2D consume Rust geometry. **Production renderer selection remains
-OPEN** for task 002's comparable Skia/Metal and Vello experiments. No GPU or physical
-pen latency claim is made.
+Skia is selected. macOS uses Skia/Metal; its latest native presentation checks remain
+pending. Other hosts still use provisional CoreGraphics, Android Canvas, WinUI paths,
+Cairo and Canvas2D adapters while portable command and Skia adoption proceeds.
+No physical pen-to-screen latency claim is made.
 
 ## Build and run
 

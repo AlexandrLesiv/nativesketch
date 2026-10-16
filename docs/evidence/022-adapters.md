@@ -154,12 +154,48 @@ old cache. These execute the emitted worker in a Node fixture, not a browser lif
 [Build identity and every emitted asset hash](../../artifacts/evidence/022-web-composition/identity.json)
 also disclose the worker's untracked local dependency symlink and retained development
 failures. Real browser E2E, CanvasKit and protocol-v2 adoption remain pending. Independent
-review of this slice is in progress.
+review found one obsolete build-path regression, described below; no other introduced
+correctness finding. The reviewer independently passed all four cache tests and the real
+Wasm adapter checks, and verified all 21 emitted asset hashes against the worker identity.
 
 The primary `node scripts/quality/check.ts --final` passed on source `5c05a7e`
 (documentation-only evidence updates present): zero handwritten source files exceed
 200 physical lines, and production dependency/native-boundary gates passed. This closes
 the size-inventory debt, not provider migration, native testing or task 024 acceptance.
+
+The retained shell builder did not substitute the new precache asset template, producing
+a service worker that failed installation. The supported Node builder passed primary
+web checks at `36fa8c0`, followed by actual loopback GET/HEAD-compatible asset delivery,
+Wasm/JS/HTML MIME checks and POST rejection. The first server attempt was sandbox-blocked;
+the authorized background retry passed without opening a browser. The obsolete five
+web/Wasm shell entry points and nested TypeScript/Prettier manifests were then removed,
+with active docs routed to Node. Historical command evidence remains historical.
+
+Root type-aware lint and formatting now include the extracted browser source and asset
+tooling. Node and browser lint projects run separately with concrete file arguments;
+an attempted literal glob caused a type-engine diagnostic and was repaired by enumerating
+tooling files. The full core integration passed after that repair. Failed attempts and
+server/build logs are retained in `artifacts/evidence/022-web-retirement`. Real browser
+offline lifecycle acceptance is still pending.
+
+## Typed portable application facade
+
+Worker `42bd477` / integration `e61a2bd` adds `sketch-app`, depending only on `sketch-core`.
+It owns bounded sessions, resource leases and issued worker/result transport; core retains
+all editing, navigation and save policy. It starts no thread and performs no I/O. Its
+mutation owner cannot move between threads; uniquely owned work/results can. The
+[public contract](../../crates/sketch-app/README.md) documents lifetime, cancellation,
+budget, release and explicitly unconfirmed export behavior.
+
+Fresh independent review reproduced and repaired two defects before freeze: redundant
+same-file alias grants exhausted capacity, and retiring a stale load could leave its
+navigation continuation busy. Exact binding-lease ownership and matching-continuation
+cleanup now have recovery regressions. The reviewer independently passed all 26 facade
+tests, strict Clippy and formatting at the frozen commit. Test binary SHA-256:
+`ea32569dc4b9850869391b521476a8b3015cd19cf9950c9eb234ddc12c0c477f`.
+All new Rust source files are at most 171 lines. The author's full background integration
+also passed. C/JNI/Wasm transport, host adoption and native acceptance are separate work;
+no portable recovery provider or platform renderer was introduced by this crate.
 
 ## Returned write receipt recovery
 

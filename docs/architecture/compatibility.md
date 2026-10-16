@@ -33,7 +33,7 @@ Run:
 cargo test --locked --workspace
 cargo fmt --all -- --check
 cargo clippy --locked --workspace --all-targets -- -D warnings
-./scripts/check-wasm
+node scripts/check.ts --platform wasm
 node crates/sketch-wasm/tests/protocol-compatibility.ts artifacts/web/sketch_wasm.wasm
 ```
 

@@ -1,8 +1,9 @@
 # Browser host
 
-Run `./scripts/run-web`, then open http://127.0.0.1:8077. Requires Rust with the
-`wasm32-unknown-unknown` target, Node/npm and Python 3. `./scripts/check-web` compiles
-pinned TypeScript and tests this adapter against the actual Rust/Wasm binary.
+Run `node scripts/run.ts --platform web`, then open http://127.0.0.1:8077. Requires
+Rust with the `wasm32-unknown-unknown` target, pinned Node and root dependencies installed
+with `npm ci --ignore-scripts`. `node scripts/check.ts --platform web` compiles pinned
+TypeScript and tests this adapter against the actual Rust/Wasm binary. No Python is needed.
 
 Semantic HTML controls surround a provisional Canvas2D painter of Rust path commands.
 All document, geometry, selection, history and persistence semantics remain in Rust.
@@ -66,9 +67,9 @@ engine and the full shared application-command migration remain separate task 02
 No control, layout, file semantics or service-worker activation policy was added here.
 
 The supported Node build (`node scripts/build.ts --platform web`) uses root TypeScript 7
-strict/erasable types and Vite. The retained nested TypeScript/Prettier setup remains for
-legacy parity work. Root Oxfmt formats all new sources; files stay <=200 physical lines.
-The explicit `.ts` imports are rewritten to `.js` by the nested compiler as well.
+strict/erasable types and Vite. The obsolete nested TypeScript/Prettier setup and web/Wasm
+shell commands were removed after Node build, conformance, cache and actual loopback-server
+verification. Root Oxfmt formats the sources; files stay <=200 physical lines.
 
 Vite emits `module-inventory.json` with every output and transitive import. The build rejects
 missing, unexpected or unsafe output paths and unknown imports. Every emitted payload,

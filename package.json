@@ -16,8 +16,8 @@
   "scripts": {
     "check": "node scripts/check.ts",
     "typecheck": "tsc --project tsconfig.scripts.json",
-    "lint": "oxlint --type-aware scripts apps/web/vite.config.ts apps/web/tests crates/sketch-wasm/tests",
-    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/vite.config.ts apps/web/tests/*.ts crates/sketch-wasm/tests/*.ts",
+    "lint": "node scripts/lint-typescript.ts",
+    "format:check": "oxfmt --check scripts/**/*.ts scripts/*.ts apps/web/*.ts apps/web/src/*.ts apps/web/tests/*.ts crates/sketch-wasm/tests/*.ts",
     "test:tooling": "node --test scripts/tests/*.test.ts scripts/quality/*.test.ts"
   }
 }

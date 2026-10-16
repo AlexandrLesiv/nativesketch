@@ -61,8 +61,8 @@ Generated artifacts are not source. Keep test fixtures synthetic and disposable.
 
 ## Portable host checks
 
-`scripts/check-wasm` verifies the raw Wasm bridge and native byte equivalence.
-`scripts/check-web` builds TypeScript and runs real-Wasm adapter/lifecycle regressions.
+`node scripts/check.ts --platform wasm` verifies the raw Wasm bridge and native byte equivalence.
+`node scripts/check.ts --platform web` builds TypeScript and runs real-Wasm adapter/lifecycle regressions.
 `scripts/check-linux` builds GTK/libadwaita, runs clippy and the native adapter test;
 running this on macOS does not certify Linux display servers or portals.
 `scripts/check-android` runs the JNI/input replay on the selected Android device or

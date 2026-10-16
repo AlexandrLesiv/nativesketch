@@ -57,7 +57,8 @@ Root npm exact pins: Oxlint 1.88.0, oxlint-tsgolint 7.0.2004, Oxfmt 0.73.0, Type
 npm package metadata checked 2026-10-15; their Node engine ranges include 24.22.0.
 Vite 8 uses Rolldown/Oxc. The built web app preserves separate main/engine ESM files,
 relative URLs and standard service-worker cache behavior. No renderer runtime changes.
-The old apps/web compiler package/lockfile remain for legacy-path parity until removal.
+The old apps/web compiler package/lockfile and web/Wasm shell entry points were removed
+after Node build/check/cache/loopback-server parity. Install tools only at repository root.
 
 JS formatting/type-aware lint checks cover all new orchestration and quality modules;
 legacy app sources are formatted within their owned extraction. Android, Apple, Windows,
@@ -90,8 +91,8 @@ pending. See [tooling probe evidence](../evidence/023-tooling-probes.md).
 
 The Pages workflow invokes Node portable/Wasm/web checks with complete Git history for
 the growth gate. This is configured remote CI, not evidence of a completed remote run.
-All old scripts are preserved: Mac/web parity does not certify Windows/Linux/Android or
-Apple simulator/device parity. Host-specific runtime acceptance and actual UI E2E remain
+Other old platform scripts remain: Mac/web parity does not certify Windows/Linux/Android
+or Apple simulator/device parity. Host-specific runtime acceptance and actual UI E2E remain
 separate from script, compiler, bridge and adapter tests.
 
 ## Process and test behavior
