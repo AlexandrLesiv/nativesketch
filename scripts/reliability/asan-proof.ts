@@ -4,6 +4,7 @@ import { fileHash } from '../evidence/identity.ts';
 import { ProcessFailure } from '../lib/process-failure.ts';
 import { recorded, json } from './evidence.ts';
 import { isRecord } from './validation.ts';
+import { controller } from '../lib/context.ts';
 
 /** Cargo gives encoded flags precedence even when the encoded value is empty. */
 export function sanitizerEnvironment() {
@@ -54,15 +55,19 @@ export async function sanitizerProof(
   nightly: string,
   rustup: string,
   log: string,
+  signal: AbortSignal = controller.signal,
+  execute: typeof recorded = recorded,
 ) {
+  signal.throwIfAborted();
   const cache = await realpath(join(root, 'target/reliability-asan'));
   const binary = await realpath(instrumentedArtifact(log));
   const path = relative(cache, binary);
   if (path.startsWith('..') || isAbsolute(path))
     throw new Error('Test binary outside sanitizer cache');
   const env = { RUSTUP_HOME: join(tools, 'rustup'), ...sanitizerEnvironment() };
-  const symbols = await recorded(output, 'asan-symbols', '/usr/bin/nm', ['-g', binary], {
+  const symbols = await execute(output, 'asan-symbols', '/usr/bin/nm', ['-g', binary], {
     cwd: root,
+    signal,
   });
   requireInstrumentation(symbols);
   const source = join(output, 'asan-canary.rs');
@@ -71,7 +76,7 @@ export async function sanitizerProof(
     'fn main() {\n    let mut bytes = vec![7u8; 16];\n    let pointer = bytes.as_mut_ptr();\n    drop(bytes);\n    unsafe { std::ptr::read_volatile(pointer); }\n}\n',
   );
   const executable = join(output, 'asan-canary');
-  await recorded(
+  await execute(
     output,
     'canary-build',
     rustup,
@@ -91,11 +96,16 @@ export async function sanitizerProof(
       '-o',
       executable,
     ],
-    { cwd: root, env },
+    { cwd: root, env, signal },
   );
   let failure: unknown;
   try {
-    await recorded(output, 'canary-execution', executable, [], { cwd: root, env, timeout: 30_000 });
+    await execute(output, 'canary-execution', executable, [], {
+      cwd: root,
+      env,
+      signal,
+      timeout: 30_000,
+    });
   } catch (error) {
     failure = error;
   }
@@ -111,6 +121,8 @@ export async function sanitizerProof(
       sourceSha256: await fileHash(source),
     },
   };
+  signal.throwIfAborted();
   await json(output, 'instrumentation.json', proof);
+  signal.throwIfAborted();
   return proof;
 }

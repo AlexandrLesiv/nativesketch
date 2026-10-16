@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { release } from 'node:os';
-import { root, main } from './lib/context.ts';
+import { root, main, controller } from './lib/context.ts';
 import { sourceIdentity } from './evidence/identity.ts';
 import { freshOutput, json } from './reliability/evidence.ts';
 import { options } from './reliability/options.ts';
@@ -30,6 +30,7 @@ await main(async () => {
     if (process.versions.node !== pins.node) throw new Error('Pinned Node version required');
     const evidence = await executeLane(args.lane, root, args.output, args.tools, pins);
     requireUnchanged(source, await sourceIdentity(root));
+    controller.signal.throwIfAborted();
     await json(args.output, 'result.json', {
       status: 'passed',
       source,
@@ -38,6 +39,7 @@ await main(async () => {
       finishedAt: new Date().toISOString(),
       evidence,
     });
+    controller.signal.throwIfAborted();
   } catch (error) {
     await json(args.output, 'result.json', {
       status: 'failed',

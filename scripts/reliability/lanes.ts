@@ -52,7 +52,11 @@ export async function executeLane(
     if (databases.length !== 1) throw new Error('Expected one provisioned RustSec database');
     const database = join(directory, databases[0]);
     const git = async (name: string, args: string[]) =>
-      recorded(output, name, 'git', args, { cwd: database, timeout: 30_000 });
+      recorded(output, name, 'git', args, {
+        cwd: database,
+        timeout: 30_000,
+        signal: controller.signal,
+      });
     const revision = await git('database-revision', ['rev-parse', 'HEAD']);
     const date = await git('database-date', ['show', '-s', '--format=%cI', 'HEAD']);
     if (await git('database-status', ['status', '--porcelain']))

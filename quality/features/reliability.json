@@ -7,7 +7,9 @@
     {
       "id": "RELIABILITY-001",
       "expected": "Pinned tools, complete outputs and unchanged source are required; failed attempts and prior evidence survive.",
-      "invariants": ["FFI-001"],
+      "invariants": [
+        "FFI-001"
+      ],
       "ownerTask": "023",
       "requirements": [
         {
@@ -21,7 +23,9 @@
         "node:scripts/reliability/validation.test.ts:reliability retains missing-tool, failed-command and timeout evidence",
         "node:scripts/reliability/asan-proof.test.ts:sanitizer uses encoded flags rather than a shadowed RUSTFLAGS value",
         "node:scripts/reliability/asan-proof.test.ts:sanitizer refuses missing artifacts and uninstrumented passing binaries",
-        "node:scripts/reliability/asan-proof.test.ts:sanitizer canary requires its exact detected fault and expected exit"
+        "node:scripts/reliability/asan-proof.test.ts:sanitizer canary requires its exact detected fault and expected exit",
+        "node:scripts/reliability/proof-cancellation.test.ts:pre-cancelled sanitizer proof cannot inspect artifacts or start a process",
+        "node:scripts/reliability/proof-cancellation.test.ts:cancelling during sanitizer proof stops its command and cannot publish proof"
       ],
       "automation": "implemented",
       "gaps": []
@@ -29,7 +33,9 @@
     {
       "id": "RELIABILITY-002",
       "expected": "Native platform and new facade memory safety require separately scoped executed evidence.",
-      "invariants": ["FFI-001"],
+      "invariants": [
+        "FFI-001"
+      ],
       "ownerTask": "023",
       "requirements": [
         {
