@@ -33,6 +33,25 @@ recommended; no native UI was exercised by this review. Source-size compliance w
 [Discovery/results/report](../../artifacts/evidence/022-actions-16af05c/coverage.html) preserve
 exact source and binary identity. The report's generated-success status is not full coverage.
 
+## macOS shared action adoption
+
+Worker `b26dc600` / integrated `0ccb071` routes tool selection, selection cycling,
+deletion, undo/redo and one-step scaling through the shared high-level Rust dispatcher.
+Native controls and menus use shared action availability; field editing retains native
+first-responder priority. Local pointer capture clears only after accepted dispatch.
+
+All 17 Swift policy/bridge tests passed, including three new `SessionActionTests`:
+`unavailableUndoPreservesFirstDraft`,
+`compoundUndoCancelsDraftAndUndoesCommittedHistory`, and
+`invalidScalePreservesPreviewThenValidScaleCommitsOnce`. These use the real Swift/FFI/Rust
+bridge without windows. Headless integration, Rust build, strict changed-file formatting
+and native test bundle compilation also passed. Changed files are at most 175 lines.
+
+Two new native held-pointer Undo journeys are mapped by `ACTION-NATIVE-HISTORY-001`.
+Their execution remains pending; successful test-bundle compilation is not UI evidence.
+Fresh review is in progress. Logs are retained under
+`artifacts/evidence/022-macos-actions`; the worker revision identifies the tested source.
+
 ## Android mechanical decomposition
 
 Worker `3e229db` / integrated `d88bafa` replaces the 1233-line Activity with native composition,

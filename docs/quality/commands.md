@@ -60,7 +60,7 @@ relative URLs and standard service-worker cache behavior. No renderer runtime ch
 The old apps/web compiler package/lockfile remain for legacy-path parity until removal.
 
 JS formatting/type-aware lint checks cover all new orchestration and quality modules;
-legacy app sources are not silently reformatted. After the reviewed macOS composition, the source-size gate reports five linked
+legacy app sources are not silently reformatted. After the reviewed Android composition, the source-size gate reports four linked
 legacy debts and rejects new violations, growth after partial extraction, and all debt
 in final mode. Cargo dependency checks enforce boundaries; **not** license/advisory scans.
 The macOS native boundary gate rejects legacy bridge imports/linkage, manual C symbol
@@ -72,9 +72,13 @@ actual compiler consumers, bridge behavior tests and native journeys remain requ
 Swift 6.4 toolchain `swift-format --version` reports `main` on this host. Strict lint
 currently fails existing style debt (including semicolon/line-length violations), so it
 is an explicit failing command, not a green integration gate. Do not autoformat oversized
-source before its extraction. Selected SwiftLint rules remain uninstalled. Kotlin ktlint/
-detekt, clang-format/tidy, cargo-deny, and C# analyzer expansion remain pending installation
-and native verification. Android Lint/Windows format commands are wired but unverified here.
+source before its extraction. Selected SwiftLint rules remain uninstalled. Android now has
+project-scoped ktfmt 0.64 with `kotlinFormat`, `kotlinFormatCheck`, `kotlinSourceSizeCheck`
+and aggregate `androidQuality` Gradle tasks. The aggregate passed on worker `398261d`:
+zero Lint errors, 15 unsuppressed warnings, JVM tests `NO-SOURCE`. The root Android lint
+entry point still runs only `lintDebug`; aggregate integration remains pending.
+Kotlin detekt, clang-format/tidy, cargo-deny and C# analyzer expansion remain pending
+installation and applicable host verification. Windows format is unverified here.
 
 The Pages workflow invokes Node portable/Wasm/web checks with complete Git history for
 the growth gate. This is configured remote CI, not evidence of a completed remote run.

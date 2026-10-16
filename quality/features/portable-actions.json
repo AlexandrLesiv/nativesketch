@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "portable-actions",
   "description": "Shared action and read-only viewer source semantics. Host adapter adoption, provider integration and native E2E remain separate requirements; mapping existence is not execution.",
-  "sourceRevision": "1291f7c",
+  "sourceRevision": "0ccb071",
   "cases": [
     {
       "id": "ACTION-ATOMIC-001",
@@ -46,6 +46,31 @@
         }
       ],
       "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "ACTION-NATIVE-HISTORY-001",
+      "expected": "Native Undo during a held draft cancels and undoes committed history; unavailable Undo preserves the first draft and native text editing retains priority.",
+      "invariants": ["CANCEL-001", "UNDO-001", "FOCUS-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "macos",
+          "level": "native-e2e",
+          "coverage": {
+            "automation": "implemented",
+            "testIds": [
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testUndoCancelsHeldDraftAndUndoesCommittedStroke",
+              "xctest:NativeSketchUITests:NativeGestureCancellationTests/testUnavailableUndoPreservesFirstHeldDraft",
+              "xctest:NativeSketchUITests:KeyboardShortcutTests/testFieldEditingKeepsCanvasState",
+              "xctest:NativeSketchUITests:NativeRoutingTests/testMenusShortcutsAndControlsShareEditingState"
+            ],
+            "gaps": []
+          }
+        }
+      ],
+      "testIds": [],
+      "automation": "planned",
       "gaps": []
     },
     {
