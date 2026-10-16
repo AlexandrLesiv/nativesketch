@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "portable-policy-bounds",
+  "description": "Typed core/facade save-policy and bounds tests. Automation existence is separate from execution. No host UI, wire or rendering performance acceptance is inferred.",
+  "sourceRevision": "0dcfedf6088bdbab7df45fd7d4fe279102dd11b8",
+  "cases": [
+    {
+      "id": "PORTABLE-SAVE-POLICY-001",
+      "expected": "Direct and guarded Save use one immutable session policy; AlwaysChoose preserves the chooser after binding and cancellation does not issue writes.",
+      "invariants": ["SAVE-001", "SAVE-003", "INK-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app:lib:tests::save_policy::bound_direct_and_guarded_saves_choose_again_and_cancel_without_issuing_writes",
+        "cargo:sketch-app:lib:tests::save_policy::chosen_destination_only_advances_navigation_after_matching_confirmed_write",
+        "cargo:sketch-core:lib:application::routing::tests::save_policy::only_reuse_binding_can_save_alongside_pending_source_without_losing_rejected_draft",
+        "cargo:sketch-core:lib:application::routing::tests::save_policy::always_choose_rejects_second_chooser_and_stale_reply_before_cancelling_draft"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "PORTABLE-SAVE-POLICY-002",
+      "expected": "Failed, uncertain, cancelled and older chosen saves retain dirty-navigation protection and release completed unused leases exactly once.",
+      "invariants": ["SAVE-001", "SAVE-002", "SAVE-003", "ASYNC-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-app:lib:tests::save_policy_failures::failed_uncertain_cancelled_and_older_chosen_save_cannot_authorize_close"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "PORTABLE-BOUNDS-001",
+      "expected": "Whole committed f64 outline bounds are independent of viewport, selection, temporary input and caches, and follow history/replacement.",
+      "invariants": ["RENDER-001", "CACHE-001", "INK-001", "INK-002", "VIEW-001"],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "portable",
+          "level": "unit"
+        }
+      ],
+      "testIds": [
+        "cargo:sketch-core:lib:application::session::tests::document_bounds::full_committed_bounds_match_outlines_for_pressure_transforms_and_far_coordinates",
+        "cargo:sketch-core:lib:application::session::tests::document_bounds::bounds_exclude_live_actual_predictions_and_transform_preview_without_mutation",
+        "cargo:sketch-core:lib:application::session::tests::document_bounds::committed_bounds_follow_history_deletion_new_and_replacement",
+        "cargo:sketch-app:lib:tests::document_bounds::document_bounds_remain_available_when_viewport_culls_all_strokes_and_draft_is_active",
+        "cargo:sketch-app:lib:tests::document_bounds::readonly_source_replacement_updates_document_bounds_and_detached_handle_is_rejected"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}
