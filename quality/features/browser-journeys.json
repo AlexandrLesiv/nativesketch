@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "id": "browser-journeys",
+  "description": "Actual Chromium headless production Wasm UI journeys. Browser-dispatched mouse/keyboard; not physical pen, native desktop E2E or performance evidence.",
+  "sourceRevision": "3d97af4623fd6b6dd9f22741f0818e4c07a1a517",
+  "cases": [
+    {
+      "id": "WEB-HISTORY-001",
+      "expected": "Mouse drawing, selection, scale, deletion, undo and redo preserve exact portable geometry.",
+      "invariants": [
+        "UNDO-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-HISTORY-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-FOCUS-001",
+      "expected": "Width and Scale field native editing does not invoke canvas undo/delete commands.",
+      "invariants": [
+        "FOCUS-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-FOCUS-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-CANCEL-001",
+      "expected": "Escape and delivered canvas resize cancel held mouse drafts without modifying saved bytes.",
+      "invariants": [
+        "INK-001",
+        "CANCEL-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-CANCEL-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-FILE-001",
+      "expected": "Actual download preserves dirty state; upload restores clean exact bytes; corrupt upload preserves content.",
+      "invariants": [
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-FILE-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-GUARD-001",
+      "expected": "Escape and Cancel preserve dirty content after an earlier destructive dialog choice.",
+      "invariants": [
+        "LOAD-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-GUARD-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-OFFLINE-001",
+      "expected": "A real installed service worker reloads all production modules and draws offline at a Pages subpath.",
+      "invariants": [
+        "CACHE-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-OFFLINE-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    },
+    {
+      "id": "WEB-WORKER-001",
+      "expected": "An updated worker activates; a subsequent missing asset prevents activation while the old offline app works.",
+      "invariants": [
+        "CACHE-001"
+      ],
+      "ownerTask": "022",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-WORKER-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
+    }
+  ]
+}

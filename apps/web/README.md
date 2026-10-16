@@ -84,3 +84,36 @@ real native-byte conformance and the 20-pair protocol-v1 fixture. These support 
 CANCEL-001, UNDO-001, LOAD-001, SAVE-001 and FFI-001; Node worker simulation is not real-browser
 UI/offline acceptance. A separate browser lane must still verify focus, drawing, controls,
 service-worker lifecycle, offline reload and downloads using the emitted build.
+
+## Production browser acceptance
+
+The headless Chromium lane exercises the production Rust/Wasm app under a
+`/nativesketch/` Pages subpath. It opens no desktop windows. Install the pinned
+root dependencies with `npm ci --ignore-scripts`, provision a matching Playwright
+Chromium headless shell, then run with the pinned Node version:
+
+```text
+SKETCH_BROWSER_EXECUTABLE=/absolute/path/to/chrome-headless-shell node scripts/test-web-e2e.ts --output artifacts/browser-e2e/attempt-1 --attempt 1
+```
+
+Every output directory must be new. The runner builds production assets, enumerates
+real Playwright tests, executes one Chromium worker, and retains JSON discovery and
+execution reports, source/build/test/browser hashes, logs, downloaded files, and
+failure screenshots/traces. It rejects changed provenance, missing tests/results,
+unexpected retries and unsafe output paths. Failed attempts remain separate.
+Runner checks: `node --test scripts/browser-e2e/*.test.ts`; strict test types:
+`node_modules/.bin/tsc --project apps/web/e2e/tsconfig.json`.
+
+`quality/features/browser-journeys.json` maps seven browser journeys to requirements:
+mouse editing/history, focused number fields, Escape/resize cancellation, downloads
+and uploads, corrupt input and replacement guards, offline reload, and worker update
+rollback. Tests read real canvas pixels and downloaded bytes without engine mocks or
+product test hooks. The resize test waits for actual backing-store layout delivery
+before releasing the mouse. Update-failure tests change only a disposable served
+copy, then restore it; original production artifacts remain unchanged.
+
+These are browser E2E results, not native platform acceptance or physical pen latency
+measurements. Safari/Firefox, real pen/touch devices, pressure/coalescing, browser
+permission UI, and hardware/GPU performance remain separate coverage gaps. This
+lane currently exercises the retained Canvas2D adapter, not a completed CanvasKit
+migration. Test implementation alone does not imply a passing execution.
