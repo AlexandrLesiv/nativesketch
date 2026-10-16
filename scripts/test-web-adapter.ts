@@ -4,6 +4,7 @@ import { platform, release, arch } from 'node:os';
 import { root, controller, command, main } from './lib/context.ts';
 import { browserOptions } from './browser-e2e/options.ts';
 import { prepareOutput } from './browser-e2e/output.ts';
+import { testClassification } from './web-evidence/renderer.ts';
 import { adapterIdentity } from './web-evidence/identity.ts';
 import { sourceIdentity } from './evidence/identity.ts';
 import { executeNode } from './evidence/node.ts';
@@ -42,11 +43,13 @@ await main(async () => {
     const discovery: Discovery = {
       schemaVersion: 1,
       source: identity.source,
-      scopes: [{ runner: 'node', platform: 'web', level: 'bridge' }],
+      scopes: [...new Set(observed.tests.map((test) => testClassification(test.id).level))].map(
+        (level) => ({ runner: 'node', platform: 'web', level }),
+      ),
       tests: observed.tests.map((test) => ({
         ...test,
         platform: 'web',
-        level: 'bridge',
+        level: testClassification(test.id).level,
         pointerWidth: 32,
         binarySha256: identity.binarySha256,
         testBinarySha256: identity.testBinarySha256,
@@ -63,9 +66,7 @@ await main(async () => {
         testBinarySha256: identity.testBinarySha256,
         device: `Node Wasm runtime ${platform()}/${arch()}`,
         os: `${platform()} ${release()} ${arch()}`,
-        inputRoute: result.testId.includes('/injected-failures.test.ts:')
-          ? 'TypeScript adapter with injected transport failure; no browser or physical input'
-          : 'Actual production Rust/Wasm via TypeScript adapter; no browser or physical input',
+        inputRoute: testClassification(result.testId).inputRoute,
         artifacts: ['identity.json', 'node-observations.json', 'build.log'],
         environment: unchanged
           ? result.environment
@@ -84,7 +85,9 @@ await main(async () => {
       execution.results.some((result) => result.status !== 'passed' || !result.environment.valid)
     )
       throw new Error('Web adapter checks did not pass; see execution.json');
-    console.log(`Passed ${execution.results.length} web adapter bridge checks: ${output}`);
+    console.log(
+      `Passed ${execution.results.length} web adapter/rendering/tooling checks: ${output}`,
+    );
   } catch (error) {
     await save('failure.json', { timestamp: new Date().toISOString(), error: String(error) });
     throw error;
