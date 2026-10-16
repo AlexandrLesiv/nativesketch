@@ -86,3 +86,18 @@ library tests. ASan instruments Rust/core/std with leak detection; Miri keeps de
 isolation. Separate `target/reliability-*` caches avoid contamination of ordinary builds.
 No Skia, native UI, JNI, Wasm, other-host or new portable-facade safety is certified here.
 Bounded property/fuzz targets, package acceptance and native profiling remain separate work.
+
+### Invalidated initial sanitizer evidence
+
+The `023-asan-25266d5` run is **not sanitizer evidence**. Review found that the runner
+set empty `CARGO_ENCODED_RUSTFLAGS`, which takes precedence over `RUSTFLAGS`; its six
+successful tests therefore ran without ASan instrumentation. Preserve that raw attempt
+unchanged. Its recorded `passed` status is superseded by this invalidation, not accepted
+as a memory-safety result. The advisory and Miri lanes are separate from this defect.
+
+The repaired lane passes `-Zsanitizer=address` through encoded flags, identifies the actual
+Cargo test executable, records its hash and requires ASan initialization/load-report
+symbols. It additionally compiles a disposable deliberate use-after-free canary and
+requires AddressSanitizer's expected fault report and dedicated exit code. A plain test
+pass, absent binary, uninstrumented executable, ordinary crash or wrong canary failure
+cannot certify this lane. Canary source/binary hashes and expected-failure logs are retained.

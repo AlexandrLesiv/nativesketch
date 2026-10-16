@@ -1,3 +1,4 @@
+import { sanitizerEnvironment, sanitizerProof } from './asan-proof.ts';
 import { readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
@@ -115,6 +116,7 @@ export async function executeLane(
           'test',
           '--locked',
           '-Zbuild-std',
+          '--message-format=json',
           '--target',
           'aarch64-apple-darwin',
           '-p',
@@ -123,12 +125,13 @@ export async function executeLane(
         ];
   const text = await command('execution', rustup, ['run', pins.nightly, 'cargo', ...args], {
     CARGO_TARGET_DIR: join(root, 'target', `reliability-${lane}`),
-    ...(lane === 'asan'
-      ? { RUSTFLAGS: '-Zsanitizer=address', ASAN_OPTIONS: 'detect_leaks=1' }
-      : {}),
+    ...(lane === 'asan' ? sanitizerEnvironment() : {}),
   });
   return {
     testIds: validateTestOutput(text, pins.ffiTests),
+    ...(lane === 'asan'
+      ? { instrumentation: await sanitizerProof(root, output, tools, pins.nightly, rustup, text) }
+      : {}),
     scope: 'Legacy Rust FFI/core only; no Skia, native UI, JNI, Wasm or portable facade',
   };
 }
