@@ -1,4 +1,4 @@
-use super::{SaveResult, SaveToken, WriteOutcome};
+use super::{SavePurpose, SaveResult, SaveToken, StorageError, WriteOutcome};
 use crate::application::DocumentSnapshot;
 
 /// Unique owned worker input. No editor reference, filesystem path, or native object.
@@ -33,6 +33,34 @@ impl WriteJob {
 pub struct WriteReceipt {
     pub(super) token: SaveToken,
     pub(super) outcome: WriteOutcome,
+}
+impl WriteReceipt {
+    /// Correct a rejected provider report using the actual observed I/O outcome.
+    /// The issued token is immutable; this cannot authorize a different job.
+    pub fn revise_outcome(&mut self, outcome: WriteOutcome) -> Result<(), StorageError> {
+        if outcome == WriteOutcome::DispatchedUnconfirmed
+            && self.token.purpose() != SavePurpose::ExportCopy
+        {
+            return Err(StorageError::CapabilityDenied);
+        }
+        self.outcome = outcome;
+        Ok(())
+    }
+}
+/// Rejection retains the only issued receipt; ordering stays active until a real
+/// corrected completion is supplied. No synthetic success or cancellation is implied.
+#[derive(Debug)]
+pub struct RejectedReceipt {
+    pub(super) error: StorageError,
+    pub(super) receipt: WriteReceipt,
+}
+impl RejectedReceipt {
+    pub fn error(&self) -> StorageError {
+        self.error
+    }
+    pub fn into_receipt(self) -> WriteReceipt {
+        self.receipt
+    }
 }
 /// Issued once by the coordinator, consumed once by the editor owner.
 #[derive(Debug)]

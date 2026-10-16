@@ -60,14 +60,19 @@ impl NativeRuntime {
             self.operations.remove(index);
             return Ok(());
         }
-        let value = if let WorkerValue::Write(receipt) = result.value {
+        let value = if let WorkerValue::Write(mut receipt) = result.value {
             let token = match self.operations[index].kind {
                 OperationKind::Save(token) => token,
                 _ => return Err(RuntimeError::Invalid),
             };
-            self.coordinator
-                .finish(receipt.write)
-                .map_err(|_| RuntimeError::Invalid)?;
+            if let Err(rejected) = self.coordinator.finish(receipt.write) {
+                receipt.write = rejected.into_receipt();
+                self.operations[index].state =
+                    OperationState::Ready(Box::new(WorkerValue::Write(receipt)));
+                // FFI catches this invariant breach and poisons the owner; retain the
+                // issued receipt until explicit terminal cleanup, never fabricate success.
+                panic!("native receipt violated the coordinator contract");
+            }
             let completion = self
                 .coordinator
                 .take_completion(token)

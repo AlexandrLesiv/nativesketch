@@ -3,7 +3,7 @@ mod job;
 mod lifecycle;
 mod types;
 use super::DocumentSnapshot;
-pub use job::{SaveCompletion, WriteJob, WriteReceipt};
+pub use job::{RejectedReceipt, SaveCompletion, WriteJob, WriteReceipt};
 use std::collections::VecDeque;
 pub use types::*;
 

@@ -39,7 +39,15 @@ impl SaveCoordinator {
         Ok(())
     }
     /// Only a receipt made by consuming the issued worker job can complete an active write.
-    pub fn finish(&mut self, receipt: WriteReceipt) -> Result<(), StorageError> {
+    pub fn finish(&mut self, receipt: WriteReceipt) -> Result<(), RejectedReceipt> {
+        let validation = self.validate_receipt(&receipt);
+        if let Err(error) = validation {
+            return Err(RejectedReceipt { error, receipt });
+        }
+        self.apply_receipt(receipt);
+        Ok(())
+    }
+    fn validate_receipt(&mut self, receipt: &WriteReceipt) -> Result<(), StorageError> {
         if receipt.outcome == WriteOutcome::DispatchedUnconfirmed
             && receipt.token.purpose() != SavePurpose::ExportCopy
         {
@@ -48,6 +56,16 @@ impl SaveCoordinator {
         let entry = self.entry_mut(receipt.token)?;
         let Phase::Active { cancelled } = entry.phase else {
             return Err(StorageError::InvalidTransition);
+        };
+        let _ = cancelled;
+        Ok(())
+    }
+    fn apply_receipt(&mut self, receipt: WriteReceipt) {
+        let entry = self
+            .entry_mut(receipt.token)
+            .expect("validated receipt token");
+        let Phase::Active { cancelled } = entry.phase else {
+            unreachable!("validated active receipt")
         };
         let result = match (cancelled, receipt.outcome) {
             (false, WriteOutcome::DispatchedUnconfirmed) => SaveResult::DispatchedUnconfirmed,
@@ -62,7 +80,6 @@ impl SaveCoordinator {
         entry.phase = Phase::Finished(result);
         let bytes = std::mem::take(&mut entry.bytes);
         self.reserved_bytes -= bytes;
-        Ok(())
     }
     /// Frees one slot; the returned completion is not Clone and is consumed by the owner.
     pub fn take_completion(&mut self, token: SaveToken) -> Result<SaveCompletion, StorageError> {

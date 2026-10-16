@@ -39,10 +39,12 @@ fn unknown_duplicate_and_unfinished_completion_are_rejected() {
         .finish(job.complete(WriteOutcome::Written(Durability::DirectorySyncUnconfirmed)))
         .unwrap();
     assert_eq!(
-        queue.finish(WriteReceipt {
-            token,
-            outcome: WriteOutcome::Written(Durability::ProviderConfirmed)
-        }),
+        queue
+            .finish(WriteReceipt {
+                token,
+                outcome: WriteOutcome::Written(Durability::ProviderConfirmed)
+            })
+            .map_err(|error| error.error()),
         Err(StorageError::InvalidTransition)
     );
     let completion = queue.take_completion(token).unwrap();
