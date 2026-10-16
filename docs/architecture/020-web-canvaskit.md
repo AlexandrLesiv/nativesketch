@@ -50,6 +50,10 @@ Sources: [CanvasKit overview](https://docs.skia.org/docs/user/modules/canvaskit/
   A flush/animation callback is software timing, not physical pen-to-screen latency.
 
 Subtract the f64 geometry origin before passing points to Skia's narrower coordinates.
+Wire command points are absolute coordinates; the origin is metadata, not an already
+applied coordinate conversion. A large stroke crossing the viewport needs separate
+f64 rebasing/clipping treatment; localizing a small stroke at a large origin alone does
+not prove that case. Use native `viewport_path.rs` as the existing reference behavior.
 Combine camera/stroke translation in f64 before narrowing the small visible offset. Apply
 stroke scale, zoom and backing scale in the order specified by the wire contract. Test a
 large document origin with small visible strokes, not merely a canvas near zero.
@@ -62,6 +66,14 @@ or the host's canvas reference. Prefer the explicit context/surface creation API
 replacement is necessary, the host must retire/rebind the surface and listeners coherently,
 preserving dimensions, accessibility and viewport. Interrupted input uses the shared cancel
 command; it is not silently committed. No full application restart merely for resize.
+
+Initial implementation policy: raster fallback is allowed only if WebGL never acquired the
+canvas. Deleting CanvasKit's WebGL context does not permit getting a 2D context from that
+same element. After acquisition, restore the owned WebGL surface or report renderer failure.
+Do not call a raster surface ready before its actual presentation succeeds. In 0.42, raster
+surfaces created by the convenience APIs require `dispose()` to free pixel storage;
+`delete()` alone is insufficient. Explicit raster allocations must be freed on every failed
+surface-creation path. Never delete a borrowed canvas object.
 
 On context loss, stop publishing that generation, retain the Rust document and invalidate
 GPU resources. Recreate a bounded surface and repaint the latest coherent scene on recovery.
@@ -109,3 +121,9 @@ single cancellation, retained history and latest-frame recovery; `WEB-RENDER-ERR
 covers failed recovery with a healthy downloadable document. Existing `WEB-CANCEL-001`
 continues to cover resize-before-remap. Synthetic context loss is not physical GPU failure.
 These IDs are planned until implementation, executable mapping and actual results exist.
+
+The rendering specialist reviewed the pinned API and wire at `233b79a`. The published
+`getResourceCacheUsageBytes`/`getResourceCacheLimitBytes` JavaScript wrappers omit return
+values despite their type declarations; do not use them as measured byte telemetry.
+Track owned wrapper counts and bounded estimates explicitly. Initial fallback, restored
+WebGL and failed restoration must remain distinguishable in diagnostics and evidence.

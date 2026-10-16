@@ -237,6 +237,25 @@
       ],
       "automation": "implemented",
       "gaps": []
+    },
+    {
+      "id": "WEB-POSITION-001",
+      "expected": "Composited stroke pixels remain at the input coordinates; absolute wire points and origin metadata are not applied twice.",
+      "invariants": [
+        "RENDER-001"
+      ],
+      "ownerTask": "020",
+      "requirements": [
+        {
+          "platform": "web",
+          "level": "browser-e2e"
+        }
+      ],
+      "testIds": [
+        "playwright:chromium:WEB-POSITION-001"
+      ],
+      "automation": "implemented",
+      "gaps": []
     }
   ]
 }
