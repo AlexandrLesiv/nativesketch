@@ -89,6 +89,11 @@ Rust/core/std with leak detection; both Miri lanes keep default isolation. Separ
 Skia, native UI, JNI, Wasm and other hosts are outside these lanes' scope.
 Bounded property/fuzz targets, package acceptance and native profiling remain separate work.
 
+The subsequent [bounded core fuzz lane](../../fuzz/README.md) adds document-codec and typed
+command/input targets through `node scripts/check-fuzz.ts --output NEW_DIRECTORY`.
+It is a separate explicit lane, with retained corpus/crashes and instrumented core proof;
+it does not make native profiling or package acceptance complete.
+
 ### Invalidated initial sanitizer evidence
 
 The `023-asan-25266d5` run is **not sanitizer evidence**. Review found that the runner

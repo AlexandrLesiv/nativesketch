@@ -31,6 +31,7 @@ await main(async () => {
   await checkTooling();
   await command(process.execPath, ['scripts/quality/check.ts']);
   await command('cargo', ['fmt', '--all', '--', '--check']);
+  await command('cargo', ['fmt', '--manifest-path', 'fuzz/Cargo.toml', '--', '--check']);
   await command('cargo', [
     'clippy',
     '--workspace',
