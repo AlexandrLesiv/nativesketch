@@ -40,6 +40,14 @@ impl ApplicationSession {
                 outcome = self.outcome(before, result.invalidation, None);
                 outcome.changes = result.changes;
             }
+            ApplicationCommand::Action(action) => {
+                let result = self
+                    .editor
+                    .action(context, action)
+                    .map_err(ApplicationFailure::Editor)?;
+                outcome = self.outcome(before, result.invalidation, None);
+                outcome.changes = result.changes;
+            }
             ApplicationCommand::Input(batch) => {
                 let result = self
                     .editor

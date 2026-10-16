@@ -7,6 +7,7 @@ pub use boundary::{Runtime, Scene, Session};
 pub extern "C" fn sketch_runtime_v1_version() -> u32 {
     1
 }
+mod action_api;
 mod availability_api;
 mod command_api;
 mod convert;

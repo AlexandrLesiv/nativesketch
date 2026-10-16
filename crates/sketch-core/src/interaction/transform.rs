@@ -9,14 +9,14 @@ pub(crate) struct TransformSession {
     pub(crate) preview: Transform,
 }
 impl TransformSession {
-    pub(super) fn new(index: usize, original: Transform) -> Self {
+    pub(crate) fn new(index: usize, original: Transform) -> Self {
         Self {
             index,
             original,
             preview: original,
         }
     }
-    pub(super) fn update(&mut self, document: &Document, scale: f64, x: f64, y: f64) -> Result<()> {
+    pub(crate) fn update(&mut self, document: &Document, scale: f64, x: f64, y: f64) -> Result<()> {
         let r = self;
         if !scale.is_finite() || scale <= 0.0 || !coordinate(x) || !coordinate(y) {
             return Err(Error::InvalidArgument);
@@ -39,7 +39,7 @@ impl TransformSession {
         Ok(())
     }
 
-    pub(super) fn commit(self, document: &mut Document) -> Option<Change> {
+    pub(crate) fn commit(self, document: &mut Document) -> Option<Change> {
         if self.preview == self.original {
             return None;
         }

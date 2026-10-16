@@ -26,6 +26,9 @@ pub use queries::{
 pub use session::EditorSession;
 pub use settings::{BrushSettings, DeviceKind, PointerId, ToolId};
 pub use summary::EditorSummary;
+mod actions;
+mod prepared_action;
+pub use actions::{CycleDirection, EditorAction, ScaleAnchor, ScaleFactor};
 mod availability;
 pub mod storage;
 pub use availability::{ActionId, Availability, DisabledReason};

@@ -58,6 +58,7 @@ pub struct EffectReply {
 #[derive(Debug)]
 pub enum ApplicationCommand<'a> {
     Edit(EditorCommand),
+    Action(EditorAction),
     Input(SampleBatch<'a>),
     File(FileIntent),
     ResolveEffect(EffectReply),

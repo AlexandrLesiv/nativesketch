@@ -40,7 +40,9 @@ impl NativeRuntime {
                     _ => 0,
                 }
             }
-            ApplicationCommand::Edit(_) | ApplicationCommand::Input(_) => 0,
+            ApplicationCommand::Edit(_)
+            | ApplicationCommand::Action(_)
+            | ApplicationCommand::Input(_) => 0,
             _ => return Err(RuntimeError::Invalid),
         };
         let clears_recovery = matches!(&command, ApplicationCommand::File(FileIntent::Navigate(intent)) if !matches!(intent, NavigationIntent::Recover(_)));

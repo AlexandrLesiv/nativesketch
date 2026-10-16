@@ -1,5 +1,7 @@
 use super::*;
 use crate::{Brush, Input, Sample};
+mod action_failures;
+mod actions;
 mod capabilities;
 mod capacity;
 mod equivalence;

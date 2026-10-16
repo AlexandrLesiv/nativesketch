@@ -1,3 +1,4 @@
+pub mod actions;
 pub mod commands;
 pub mod failures;
 pub mod input;

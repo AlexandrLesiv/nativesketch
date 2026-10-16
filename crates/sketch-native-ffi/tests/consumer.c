@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
+_Static_assert(sizeof(SketchEditorActionV1) == 16, "action layout");
+_Static_assert(offsetof(SketchEditorActionV1, factor) == 8, "action factor layout");
 _Static_assert(sizeof(SketchSampleV1) == 48, "sample layout");
 _Static_assert(sizeof(SketchCommandV1) == 48, "command layout");
 _Static_assert(offsetof(SketchOutcomeV1, effect) == sizeof(SketchProjectionV1), "projection layout");
@@ -39,8 +41,20 @@ int main(void) {
   assert(sketch_session_v1_input(runtime, session, context, 2, samples, 2, &result) == SK_V1_INVALID_ARGUMENT);
   assert(sketch_session_v1_projection(runtime, session, &projection) == SK_V1_OK);
   assert(projection.scene_generation == generation && projection.stroke_count == 0);
-  command.tag = SK_V1_CANCEL_INTERACTION;
-  assert(sketch_session_v1_dispatch(runtime, session, context, &command, &result) == SK_V1_OK);
+  SketchEditorActionV1 action = {SK_V1_ACTION_UNDO, 0, 0};
+  SketchAvailabilityV1 available = {0};
+  assert(sketch_session_v1_action_availability(runtime, session, &action, &available) == SK_V1_OK);
+  assert(available.enabled == 0 && available.reason == 5);
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) != SK_V1_OK);
+  action = (SketchEditorActionV1){SK_V1_ACTION_SCALE_SELECTION, SK_V1_ANCHOR_SELECTION_CENTER, -1};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_INVALID_ARGUMENT);
+  action = (SketchEditorActionV1){SK_V1_ACTION_CYCLE_SELECTION, 99, 0};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_INVALID_ARGUMENT);
+  assert(sketch_session_v1_projection(runtime, session, &projection) == SK_V1_OK);
+  assert(projection.scene_generation == generation && projection.interaction == context.interaction);
+  action = (SketchEditorActionV1){SK_V1_ACTION_CHOOSE_TOOL, SK_V1_SELECT, 0};
+  assert(sketch_session_v1_action(runtime, session, context, &action, &result) == SK_V1_OK);
+  assert(result.projection.interaction == 0 && result.projection.tool == SK_V1_SELECT);
   assert(sketch_session_v1_detach(runtime, &session) == SK_V1_OK);
   assert(session == NULL);
   assert(sketch_runtime_v1_request_shutdown(runtime) == SK_V1_OK);

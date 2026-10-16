@@ -1,6 +1,7 @@
 #ifndef SKETCH_SESSION_V1_H
 #define SKETCH_SESSION_V1_H
 #include "sketch_recovery_v1.h"
+#include "sketch_actions_v1.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
