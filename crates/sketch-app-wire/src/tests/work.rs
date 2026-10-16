@@ -4,6 +4,10 @@ fn issued_write_crosses_thread_and_wrong_owner_retains_result() {
     let mut a = app();
     let id = session(&mut a);
     draw(&mut a, id);
+    assert_eq!(
+        u32_at(a.call(&packet(3, &words(&[id]))).unwrap().bytes(), 156) & 1,
+        1
+    );
     let op = queued(&mut a, id, 2, 1, 7);
     let work = take(&mut a);
     let mut result = std::thread::spawn(move || {
@@ -42,7 +46,7 @@ fn issued_write_crosses_thread_and_wrong_owner_retains_result() {
     assert!(result.is_none());
     let r = a.call(&packet(32, &words(&[id, op]))).unwrap();
     assert_eq!(r.bytes().len(), 376);
-    assert_eq!(u32_at(r.bytes(), 164) & 1, 0);
+    assert_eq!(u32_at(r.bytes(), 156) & 1, 0);
 }
 #[test]
 fn completed_aliases_release_once_and_keep_one_bound_lease() {

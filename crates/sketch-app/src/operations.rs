@@ -17,6 +17,12 @@ pub(crate) struct Operation {
     pub continuation: Option<EffectToken>,
 }
 impl PortableApp {
+    /// Issued work classification, independent of the current file-dialog phase.
+    /// Stale and foreign IDs fail membership validation without mutating ownership.
+    pub fn operation_is_write(&self, id: OperationId) -> Result<bool, AppError> {
+        Ok(self.operations[self.operation(id)?].save.is_some())
+    }
+
     pub(crate) fn reserve_operation(&mut self) -> Result<OperationId, AppError> {
         if self.operations.len() >= self.limits.operations {
             return Err(AppError::Capacity);

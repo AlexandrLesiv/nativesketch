@@ -138,7 +138,9 @@ impl WireApp {
                     id,
                     handle,
                     fresh + 1,
-                    outcome.projection.file != FilePhase::Replacement,
+                    self.app
+                        .operation_is_write(id)
+                        .expect("issued queued operation"),
                     false,
                 );
                 5
