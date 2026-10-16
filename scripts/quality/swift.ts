@@ -19,6 +19,10 @@ export async function checkSwift() {
     .filter((path) => path && !deleted.has(path))
     .map((path) => join(root, path));
   if (!paths.length) throw new Error('No handwritten Swift sources found');
-  await command('xcrun', ['swift-format', 'lint', '--strict', ...paths]);
+  await command('xcrun', ['swift-format', 'lint', '--strict', ...paths], {
+    env: {
+      DEVELOPER_DIR: process.env.DEVELOPER_DIR ?? '/Applications/Xcode.app/Contents/Developer',
+    },
+  });
   console.log(`PASS: strict Swift lint (${paths.length} source, manifest and test files)`);
 }
