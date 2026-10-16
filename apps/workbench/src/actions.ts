@@ -139,13 +139,13 @@ function previewView(context: ActionContext): HTMLElement {
       url.hash
     )
       throw new Error('Invalid isolated preview URL');
-    const anchor = el('a', 'Open isolated Canvas2D preview');
+    const anchor = el('a', 'Open isolated CanvasKit 0.42.0 preview');
     anchor.href = url.href;
     anchor.target = '_blank';
     anchor.rel = 'noopener noreferrer';
     root.append(
       identity(preview.source),
-      el('p', `Canvas2D · ${preview.builtAt} · SHA-256 ${preview.sha256}`),
+      el('p', `CanvasKit 0.42.0 · ${preview.builtAt} · SHA-256 ${preview.sha256}`),
       anchor,
     );
   } catch {

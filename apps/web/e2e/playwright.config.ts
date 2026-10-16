@@ -19,7 +19,10 @@ export default defineConfig({
     baseURL,
     headless: true,
     viewport: { width: 1100, height: 760 },
-    launchOptions: { executablePath },
+    launchOptions: {
+      executablePath,
+      args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+    },
     acceptDownloads: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

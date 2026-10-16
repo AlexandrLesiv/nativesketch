@@ -106,7 +106,7 @@ export class Previews {
         sha256: hash(hashes.sort().join('\n')),
         url: `http://${authority}/`,
         builtAt: new Date().toISOString(),
-        renderer: 'Canvas2D',
+        renderer: 'CanvasKit 0.42.0',
       };
     } catch (error) {
       await rm(destination, { recursive: true, force: true });

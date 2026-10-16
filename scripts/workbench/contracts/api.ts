@@ -56,7 +56,7 @@ export interface Preview {
   sha256: string;
   url: string;
   builtAt: string;
-  renderer: 'Canvas2D';
+  renderer: 'CanvasKit 0.42.0';
 }
 export interface PreviewResponse {
   preview: Preview | null;

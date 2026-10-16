@@ -2,6 +2,7 @@ import type { EditorHost } from './host.ts';
 export function installPointerDown(app: EditorHost) {
   app.canvas.addEventListener('pointerdown', (e) =>
     app.safe(() => {
+      if (!app.renderer?.available) return;
       if (e.button !== 0 && e.button !== 1) return;
       app.canvas.focus();
       const p = app.position(e);

@@ -55,8 +55,8 @@ documents; it is not automatically promoted into the current coverage matrix.
   A visible action can still fail if its SDK or other detailed prerequisite is absent.
 - Jobs are local to this service instance; retained artifacts outlive its bounded job list.
   Windows execution is disabled until native process-tree cleanup is verified.
-- The isolated drawing preview currently uses the existing Canvas2D/Wasm app. CanvasKit
-  migration is pending; the workbench itself uses semantic HTML and does not need Skia.
+- The isolated drawing preview uses CanvasKit 0.42.0 with the portable Rust/Wasm app.
+  The workbench itself uses semantic HTML and does not need Skia.
 - Markdown code fences, including Mermaid, remain readable source; unsupported embedded
   content is not executed. Package metadata is inventory, not an advisory/license audit.
 - Native Zed launch, screen-reader speech and other OS/browser combinations are pending.

@@ -60,6 +60,8 @@ export async function webAssetManifest(directory: string) {
     'index.html',
     'style.css',
     'sketch_app_wasm.wasm',
+    'canvaskit.wasm',
+    'CANVASKIT-LICENSE.txt',
     'module-inventory.json',
     ...emitted,
   ]).sort();

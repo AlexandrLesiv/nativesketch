@@ -14,7 +14,12 @@
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "erasableSyntaxOnly": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "typeRoots": [
+      "./types",
+      "../../node_modules/@types"
+    ],
+    "types": []
   },
   "include": [
     "src/*.ts"

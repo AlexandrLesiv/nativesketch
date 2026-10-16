@@ -49,6 +49,14 @@ export async function buildWeb() {
   const output = join(root, 'artifacts/web');
   for (const file of ['index.html', 'style.css'])
     await copyFile(join(root, 'apps/web', file), join(output, file));
+  await copyFile(
+    join(root, 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'),
+    join(output, 'canvaskit.wasm'),
+  );
+  await copyFile(
+    join(root, 'node_modules/canvaskit-wasm/LICENSE'),
+    join(output, 'CANVASKIT-LICENSE.txt'),
+  );
   const manifest = await webAssetManifest(output);
   const worker = (await readFile(join(root, 'apps/web/sw.js'), 'utf8'))
     .replace('__CACHE_VERSION__', manifest.version)

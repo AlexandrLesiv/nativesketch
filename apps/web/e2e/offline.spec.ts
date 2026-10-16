@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ready, stroke, inkPixels } from './helpers.ts';
 import type { Page } from '@playwright/test';
@@ -26,7 +26,8 @@ test('WEB-OFFLINE-001 real service worker reloads all production modules offline
     return (await cache.keys()).map((request) => new URL(request.url).pathname);
   });
   expect(cached).toContain('/nativesketch/sketch_app_wasm.wasm');
-  expect(cached).toContain('/nativesketch/pointer-down.js');
+  expect(cached.some((path) => path.endsWith('/pointer-down.js'))).toBe(true);
+  expect(cached).toContain('/nativesketch/canvaskit.wasm');
   expect(cached.every((path) => path.startsWith('/nativesketch/'))).toBe(true);
   await context.setOffline(true);
   await page.reload();
@@ -44,6 +45,8 @@ test('WEB-WORKER-001 worker update activates and failed asset update retains wor
   if (!directory) throw new Error('Missing disposable served fixture');
   const path = join(directory, 'sw.js');
   const original = await readFile(path, 'utf8');
+  const wasmPath = join(directory, 'canvaskit.wasm');
+  let missingWasm = false;
   await controlled(page);
   const oldName = await page.evaluate(async () =>
     (await caches.keys()).find((key) => key.startsWith('native-sketch-'))!,
@@ -67,12 +70,9 @@ test('WEB-WORKER-001 worker update activates and failed asset update retains wor
     await expect.poll(() => next.evaluate(() => caches.keys())).toEqual([updatedName]);
     await expect(next.locator('#status')).toContainText('0 strokes');
     const brokenName = `${updatedName}-missing`;
-    await writeFile(
-      path,
-      original
-        .replace(oldName, brokenName)
-        .replace('const ASSETS = [', 'const ASSETS = ["./missing-e2e-module.js",'),
-    );
+    await rename(wasmPath, `${wasmPath}.held`);
+    missingWasm = true;
+    await writeFile(path, original.replace(oldName, brokenName));
     await next.evaluate(async () => {
       await (await navigator.serviceWorker.getRegistration())!.update();
     });
@@ -92,6 +92,7 @@ test('WEB-WORKER-001 worker update activates and failed asset update retains wor
     await stroke(next);
     expect(await inkPixels(next)).toBeGreaterThan(100);
   } finally {
+    if (missingWasm) await rename(`${wasmPath}.held`, wasmPath);
     await writeFile(path, original);
   }
 });

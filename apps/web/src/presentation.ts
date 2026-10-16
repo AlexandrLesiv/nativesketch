@@ -1,6 +1,5 @@
 import type { EditorHost } from './host.ts';
 import { el } from './elements.ts';
-import { paint } from './canvas-painter.ts';
 export function disableEngine(app: EditorHost, message: string, protectDocument: boolean) {
   app.failed = true;
   app.protectFailedDocument = protectDocument;
@@ -66,13 +65,16 @@ export function refresh(app: EditorHost) {
     `Drawing canvas, ${s.count} strokes, ${s.selected ? 'stroke selected, ' : ''}${Math.round(app.zoom * 100)} percent zoom`,
   );
   el('hint').hidden = s.count > 0n || s.interaction !== 0;
+  if (!app.renderer?.available)
+    el('status').textContent += ' · Rendering unavailable; download remains available';
+  app.canvas.setAttribute('aria-disabled', String(!app.renderer?.available));
   if (!app.repaint)
     app.repaint = requestAnimationFrame(() => {
       app.repaint = 0;
       try {
-        paint(app, app.engine.state());
+        app.renderer?.paint();
       } catch (error) {
-        app.error(error);
+        app.renderer?.fail(error);
       }
     });
 }

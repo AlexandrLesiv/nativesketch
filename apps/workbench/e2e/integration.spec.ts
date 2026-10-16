@@ -109,7 +109,7 @@ test('DX-PREVIEW-001 actual Wasm build runs on an isolated origin without admin 
       page.getByRole('heading', { name: 'preview-web · passed', exact: true }),
     ).toBeVisible({ timeout: 150_000 });
     const href = await page
-      .getByRole('link', { name: 'Open isolated Canvas2D preview' })
+      .getByRole('link', { name: 'Open isolated CanvasKit 0.42.0 preview' })
       .getAttribute('href');
     if (!href) throw new Error('Preview URL missing');
     expect(new URL(href).origin).not.toBe(new URL(service.url).origin);

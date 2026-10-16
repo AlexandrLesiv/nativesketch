@@ -1,3 +1,4 @@
+import type { Renderer } from './renderer.ts';
 import type { Scene } from './scene.ts';
 import type { Engine } from './engine.ts';
 import { el } from './elements.ts';
@@ -10,7 +11,7 @@ import { download } from './files.ts';
 /** Native browser presentation state; Rust remains the only document owner. */
 export class EditorHost {
   readonly canvas = el<HTMLCanvasElement>('canvas');
-  readonly ctx = this.canvas.getContext('2d')!;
+  renderer: Renderer | undefined;
   engine!: Engine;
   scene!: Scene;
   repaint = 0;

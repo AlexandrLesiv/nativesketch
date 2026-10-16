@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import type { Page, TestInfo } from '@playwright/test';
+import { screenshotInk } from './screenshot-pixels.ts';
 import { readFile } from 'node:fs/promises';
 export async function ready(page: Page) {
   await page.goto('./');
@@ -26,12 +27,5 @@ export async function download(page: Page, info: TestInfo, name: string) {
   return { bytes, path };
 }
 export async function inkPixels(page: Page) {
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  return page.locator('#canvas').evaluate((canvas: HTMLCanvasElement) => {
-    const data = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
-    let count = 0;
-    for (let i = 0; i < data.length; i += 4)
-      if (data[i] < 245 || data[i + 1] < 245 || data[i + 2] < 245) count++;
-    return count;
-  });
+  return (await screenshotInk(page, 4)).count;
 }
