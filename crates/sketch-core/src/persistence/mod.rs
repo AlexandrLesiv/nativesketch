@@ -1,6 +1,6 @@
 mod codec;
 mod estimate;
-pub(crate) use estimate::snapshot_bytes;
+pub(crate) use estimate::{encoded_bytes, snapshot_bytes};
 mod file_store;
 mod reader;
 #[cfg(test)]

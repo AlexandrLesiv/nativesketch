@@ -12,6 +12,11 @@ impl WriteJob {
     pub fn token(&self) -> SaveToken {
         self.token
     }
+    /// Checked codec size using stroke headers/sample counts, without encoding/copying.
+    pub fn encoded_len(&self) -> crate::Result<usize> {
+        crate::persistence::encoded_bytes(&self.snapshot.document)
+            .ok_or(crate::Error::InvalidArgument)
+    }
     /// Worker-only expensive operation. Returned bytes retain the portable codec format.
     pub fn encode(&self) -> crate::Result<Vec<u8>> {
         self.snapshot.encode()

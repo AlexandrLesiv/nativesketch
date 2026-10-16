@@ -73,6 +73,8 @@ pub fn outcome(value: ActionResult, current: dto::Projection) -> dto::Outcome {
         result.captured_revision = save.token.revision().0;
         result.save_purpose = purpose(save.token.purpose());
         let (saved, failure, durable) = match save.result {
+            SaveResult::DispatchedUnconfirmed => (8, None, 0),
+            SaveResult::DispatchedAfterCancellation => (9, None, 0),
             SaveResult::Written(d) => (1, None, durability(d)),
             SaveResult::Uncertain(f) => (2, Some(f), 0),
             SaveResult::Failed(f) => (3, Some(f), 0),
@@ -100,6 +102,7 @@ pub fn outcome(value: ActionResult, current: dto::Projection) -> dto::Outcome {
             Acknowledgement::Superseded => 7,
             Acknowledgement::Cancelled => 8,
             Acknowledgement::Failed => 9,
+            Acknowledgement::CopyDispatched => 10,
         };
     }
     result.failure.operation = value.operation_kind;

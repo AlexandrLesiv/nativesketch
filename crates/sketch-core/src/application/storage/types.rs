@@ -76,6 +76,8 @@ pub enum StorageFailure {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WriteOutcome {
+    /// ExportCopy dispatch only; not confirmation of provider persistence.
+    DispatchedUnconfirmed,
     Written(Durability),
     /// The adapter cannot establish whether replacement happened; never assume unchanged.
     Uncertain(StorageFailure),
@@ -84,6 +86,8 @@ pub enum WriteOutcome {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveResult {
+    DispatchedUnconfirmed,
+    DispatchedAfterCancellation,
     Written(Durability),
     Uncertain(StorageFailure),
     Failed(StorageFailure),
@@ -97,6 +101,7 @@ pub enum Acknowledgement {
     SavedCurrent,
     SavedOlder,
     CopyWritten,
+    CopyDispatched,
     CheckpointWritten,
     StaleSession,
     StaleBinding,

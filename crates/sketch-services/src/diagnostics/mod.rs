@@ -18,6 +18,7 @@ pub enum EventCode {
     NativeStarted = 9,
     NativeCompleted = 10,
     NativeFailed = 11,
+    ExportDispatched = 12,
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]

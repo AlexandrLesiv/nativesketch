@@ -2,6 +2,9 @@ use super::{MAX_BYTES, reader::Reader};
 use crate::geometry::bounds;
 use crate::model::coordinate;
 use crate::{Brush, Document, Error, MAX_SAMPLES, MAX_STROKES, Result, Sample, Stroke, Transform};
+pub(super) const DOCUMENT_BYTES: usize = 24;
+pub(super) const STROKE_BYTES: usize = 96;
+pub(super) const SAMPLE_BYTES: usize = 48;
 const MAGIC: &[u8; 8] = b"NSKETCH1";
 fn checksum(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf29ce484222325, |h, b| {

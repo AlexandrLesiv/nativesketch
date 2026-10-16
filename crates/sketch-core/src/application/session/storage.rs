@@ -88,6 +88,8 @@ impl EditorSession {
             return Acknowledgement::StaleBinding;
         }
         match completion.result() {
+            SaveResult::DispatchedUnconfirmed => return Acknowledgement::CopyDispatched,
+            SaveResult::DispatchedAfterCancellation => return Acknowledgement::Cancelled,
             SaveResult::Written(_) => {}
             SaveResult::WrittenAfterCancellation(_) => {
                 self.invalidate_written_copy(token.destination(), token.sequence());

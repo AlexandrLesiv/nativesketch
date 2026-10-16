@@ -1,6 +1,7 @@
 use super::*;
 use crate::{Brush, Input, Sample};
 mod effects;
+mod export_navigation;
 mod navigation;
 mod replacement;
 mod saves;

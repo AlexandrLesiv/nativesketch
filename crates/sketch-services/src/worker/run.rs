@@ -78,6 +78,7 @@ pub(crate) fn perform(
         WriteOutcome::Written(_) => EventCode::SaveWritten,
         WriteOutcome::Failed(_) => EventCode::SaveFailed,
         WriteOutcome::Uncertain(_) => EventCode::SaveUncertain,
+        WriteOutcome::DispatchedUnconfirmed => EventCode::ExportDispatched,
     };
     let event = Event {
         operation_id: 0,

@@ -6,6 +6,7 @@ mod admission;
 mod binding_order;
 mod cancellation;
 mod ordering;
+mod unconfirmed;
 const FIXTURE: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/tests/fixtures/portable-v1.nsketch"

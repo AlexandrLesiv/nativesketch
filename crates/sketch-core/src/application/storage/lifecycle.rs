@@ -40,11 +40,18 @@ impl SaveCoordinator {
     }
     /// Only a receipt made by consuming the issued worker job can complete an active write.
     pub fn finish(&mut self, receipt: WriteReceipt) -> Result<(), StorageError> {
+        if receipt.outcome == WriteOutcome::DispatchedUnconfirmed
+            && receipt.token.purpose() != SavePurpose::ExportCopy
+        {
+            return Err(StorageError::CapabilityDenied);
+        }
         let entry = self.entry_mut(receipt.token)?;
         let Phase::Active { cancelled } = entry.phase else {
             return Err(StorageError::InvalidTransition);
         };
         let result = match (cancelled, receipt.outcome) {
+            (false, WriteOutcome::DispatchedUnconfirmed) => SaveResult::DispatchedUnconfirmed,
+            (true, WriteOutcome::DispatchedUnconfirmed) => SaveResult::DispatchedAfterCancellation,
             (false, WriteOutcome::Written(d)) => SaveResult::Written(d),
             (false, WriteOutcome::Uncertain(e)) => SaveResult::Uncertain(e),
             (false, WriteOutcome::Failed(e)) => SaveResult::Failed(e),

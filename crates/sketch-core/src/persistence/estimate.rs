@@ -1,4 +1,12 @@
+use super::codec::{DOCUMENT_BYTES, SAMPLE_BYTES, STROKE_BYTES};
 use crate::{Document, Sample, Stroke};
+pub(crate) fn encoded_bytes(document: &Document) -> Option<usize> {
+    sizes(
+        document.strokes.len(),
+        document.strokes.iter().map(|s| s.samples.len()),
+    )
+    .map(|(_, encoded)| encoded)
+}
 /// Checked payload accounting, excluding allocator bookkeeping and worker encoded bytes.
 /// Reads stroke headers/sample lengths only; performs no sample traversal or encoding.
 pub(crate) fn snapshot_bytes(document: &Document) -> Option<usize> {
@@ -8,19 +16,22 @@ pub(crate) fn snapshot_bytes(document: &Document) -> Option<usize> {
     )
 }
 fn payload_bytes(strokes: usize, samples: impl Iterator<Item = usize>) -> Option<usize> {
-    let mut encoded = 24usize;
+    sizes(strokes, samples).map(|(memory, _)| memory)
+}
+fn sizes(strokes: usize, samples: impl Iterator<Item = usize>) -> Option<(usize, usize)> {
+    let mut encoded = DOCUMENT_BYTES;
     let mut memory =
         size_of::<Document>().checked_add(strokes.checked_mul(size_of::<Stroke>())?)?;
     for count in samples {
         encoded = encoded
-            .checked_add(96)?
-            .checked_add(count.checked_mul(48)?)?;
+            .checked_add(STROKE_BYTES)?
+            .checked_add(count.checked_mul(SAMPLE_BYTES)?)?;
         if encoded as u64 > super::MAX_BYTES {
             return None;
         }
         memory = memory.checked_add(count.checked_mul(size_of::<Sample>())?)?;
     }
-    Some(memory)
+    Some((memory, encoded))
 }
 #[cfg(test)]
 mod tests {
