@@ -232,3 +232,60 @@ single grant release and shutdown readiness. Fresh independent review cleared th
 the counter-bound failure and retries remain in `artifacts/evidence/022-receipt-recovery`.
 The full background integration gate at the same revision passed, including 17 GPU-free
 Swift bridge/policy tests. No new native UI or GPU presentation evidence is implied.
+
+## Browser portable v2 adoption
+
+Worker `56fc5422` integrates as `66abe03`; acceptance mappings and the evidence entry point
+are frozen together at primary `233b79a`. The browser now owns one portable Rust application
+and session, dispatches shared typed actions, executes issued file work, and consumes leased
+paged scenes. The rendering backend remains Canvas2D in this slice; CanvasKit is the next
+isolated change. Production v2 Wasm and retained legacy v1 conformance assets use separate
+directories, preventing legacy checks from overwriting the shipped engine.
+
+The adapter preserves BigInt identities, reacquires memory views after Wasm calls, reserves
+reply storage before mutating calls, and retains transferred work/results until completion.
+Unexpected failures after transfer quarantine the instance rather than retrying a consumed
+handle. Immutable committed descriptors reuse the pinned document/root identity while live
+geometry changes; bounded geometry admission stages a complete frame before replacing it.
+ExportCopy remains explicitly unconfirmed and preserves both dirty and clean state.
+
+Fresh review found and repaired lost receipt ownership after successful work followed by
+allocation failure. Designer review found that HTML step validation rejected the existing
+default brush width and ordinary integer widths, including color changes at that width.
+Both have regressions. The final reviewer found no actionable issue and independently passed
+14 adapter tests plus strict web/tooling types. Designer review cleared the repaired controls
+and dialog in successful desktop-light captures; it did not certify other appearance modes.
+
+At exact clean primary revision `233b79a`:
+
+- Full background integration passed: 137 tooling tests, Rust workspace checks, actual C and
+  Wasm consumers, strict 133-file Swift lint, macOS build/pre-AppKit smoke, and 17 GPU-free
+  Swift tests. Log: `artifacts/evidence/integration-web-v2.log`.
+- `022-web-adapter-233b79a` passed 14 bridge checks: 11 direct actual-Wasm cases and three
+  explicitly injected failures. Wasm SHA-256:
+  `3fa799f08d5230d04eb6eada64e48df0346561c880b7dc8168d13ace950e45e0`.
+  The evidence identity also binds adapter source, test tree and dependency lock.
+- `022-web-browser-233b79a` passed 12 real headless Chromium journeys against production
+  assets under a Pages subpath, including offline reload and failed service-worker update.
+  Browser chooser requests are actual; cancellation and color-change events are injected,
+  not native operating-system dialog automation. Delayed reads use an explicit barrier.
+- The scoped `022-web-233b79a/coverage.html` has 17 passing acceptance rows and no mapping
+  issues. The final source/dependency gate reports zero remaining oversized source files.
+
+Worker attempts, including the initial resize/width failures and later passing mutable
+and frozen runs, are retained under `artifacts/evidence/022-web-portable-worker`. Their
+original source identities are preserved; the passing primary packets are separate runs.
+
+Current navigation returns Busy while a read is outstanding. The host deliberately does
+not cancel that read and then attempt New/Open as a non-atomic substitute for a shared
+superseding command. Explicit cancellation followed by New is separately tested, including
+late completion retirement. Encoding/decoding still runs on the browser main thread outside
+pointer callbacks; a dedicated engine Worker needs a separate ordered ownership design.
+Safari, device/physical input, speech, native picker cancellation and latency remain gaps.
+
+A subsequent renderer contract review found a Canvas2D placement defect: absolute wire
+coordinates were translated by the geometry origin without first becoming origin-relative.
+The existing browser journeys checked saved geometry and ink presence, not exact screen
+placement. Therefore the passing packet above does not certify pixel placement. A separate
+correction and coordinate-specific browser regression precede the CanvasKit replacement;
+its later result must remain distinct from this original packet.
